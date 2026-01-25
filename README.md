@@ -2,16 +2,34 @@
 
 ## Portale (external disk) cross-platform Bitcoin full node.
 
-This project contains scripts for running Bitcoin Core and Electrum
-on macOS and Windows platforms.
+PortaNode bundles scripts, binaries, and data for running Bitcoin Core and
+Electrum on macOS and Windows.
 
-- core_scripts/: Contains scripts for Bitcoin Core full node operations.
-  - macos/: Scripts for macOS (.command files).
-  - win/: Scripts for Windows (.bat files).
+## Folder structure
 
-- electrum_scripts/: Contains scripts for Electrum wallet operations.
-  - macos/: Scripts for macOS (.command files).
-  - win/: Scripts for Windows (.bat files).
-  - README.txt: Additional information for Electrum scripts.
+- `macos/`
+  - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
+  - `scripts/`
+    - `bitcoin/`: Bitcoin Core launch scripts (.command).
+    - `electrum/`: Electrum launch scripts (.command).
 
-Ensure the external disk is properly mounted and paths are adjusted as needed for portability.
+- `win/`
+  - `bin/`: Windows binaries (e.g., `electrum.exe`).
+  - `scripts/`
+    - `bitcoin/`: Bitcoin Core launch scripts (.bat).
+    - `electrum/`: Electrum launch scripts (.bat).
+
+- `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
+- `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
+
+## Notes
+
+- Ensure the external disk is properly mounted and paths are adjusted as
+  needed for portability.
+- Scripts expect the bundled binaries in `macos/bin/` and `win/bin/`.
+- Electrum includes a local-server-only launcher on both platforms
+  (`mainnet-local-server-only` in each `electrum/` folder).
+- Regtest peer connections (addnode targets):
+  - Alice (18444) connects to Bob (18555) and Carol (18666).
+  - Bob (18555) connects to Alice (18444) and Carol (18666).
+  - Carol (18666) connects to Alice (18444) and Bob (18555).
