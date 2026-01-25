@@ -1,0 +1,41 @@
+{
+    "addr_history": {},
+    "addresses": {
+        "bc1q3c790vhngjdqumc3x9m63t664mrwvp69pvh38hf6khxkrvxhs4ts82cee4": {},
+        "bc1q4z2q38yj4vdezf4qc5h7qzj0tgf7ylnq7tcl8kjalhnw0y59cvpsqfvte9": {},
+        "bc1q85wjnay7sklecmrpd4th8elhez53pvjye4xjuwkqctdfeqyqzcmqptvtla": {},
+        "bc1q92ttncq856fnjf4tfc000jqdym6u6yx089ujc43fjqre9jn09zyqfxe80v": {},
+        "bc1qcprc4tp9awpgg79zrec63a6tlx27yul4n29vefe6hcf4xspllamqmezpg4": {},
+        "bc1qd4ecmfk8wzrde30xjt77u0hk8x2nlwc9fc8jkzkm3ajepkc3ye9skjc80s": {},
+        "bc1qepreqnchme93p2zggjrpar3k6sdmf32pcylw8j8g7sm8d9zphn3s5ajegh": {},
+        "bc1qexvf4cguq2cuj63ua606vx3dsns2ct3rh36f8zpp2uxhplgrmfus5gl68t": {},
+        "bc1qfrj9ys78amf8zqklxshx73z69qfzxu55tyhtqf5mqfyk9mexukcs3nluwq": {},
+        "bc1qjwzqrdgmj9d89vymr9fr436r2v65aajx4dkj7yymfl5mjn6m2yjqrmgsg5": {},
+        "bc1ql8njt2d0xtkk7cgtk0x9qr2xmtq95q8u4hvfkpzt983awdvp7c2ssuyh60": {},
+        "bc1qmgfa45y98p68da5v0mrry4ll22h525k6vsnhc4kqcthyysep2zpsy8akvv": {},
+        "bc1qqc0pnplvkh3t9nfmuegsqjyv2qq675fzferj9ec4wdgp5pclmfhsnd9727": {},
+        "bc1qsaczmn32vhc6r3h0v9mfw4us0j82negl3z94zvht0m2p2e3uul5q3gaahq": {},
+        "bc1qtyzfq8w9707qxlf8v42lt0xqva9qsz2npck0a0lxt54q5sn9y0sqpqju8p": {},
+        "bc1qu47uxrqg6cjalaxaccfgh0q68ne3304qvtvpw73wxnrkvjhqjvgql09wn8": {},
+        "bc1qxk7udw9gevvmnuzn3mcmldcwahsgytdr3v8q6c49gkhug57l7mlqh0wmmp": {},
+        "bc1qxyjl4u7055vehx945v7pqp682yzdxgkapdxyguc7fnss4t63ufyqwup5qr": {},
+        "bc1qyxjh249e5ptln69ulu65hujsxj9aytl6292xtu95udnrqymgfn6s8rjwpu": {},
+        "bc1qyxvd2c2hntxp5e6r68mx6e3mhvqwth2cfstwj5a9afrj2uku36ks2hsyxa": {}
+    },
+    "seed_version": 18,
+    "spent_outpoints": {},
+    "stored_height": 635335,
+    "transactions": {},
+    "tx_fees": {},
+    "txi": {},
+    "txo": {},
+    "use_encryption": false,
+    "verified_tx3": {},
+    "wallet_type": "imported",
+    "winpos-qt": [
+        1108,
+        924,
+        1034,
+        592
+    ]
+}

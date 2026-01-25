@@ -1,0 +1,275 @@
+{
+    "active_forwardings": {},
+    "addr_history": {
+        "tb1q0f4gv8zqnvngume5c5dy8pkd7hz527rqan826j": [],
+        "tb1q2a7g3xkpmeq2u8hpgxmuu8796hr08l6hu3fyul": [],
+        "tb1q2myfu8umuvd80gjshh8wa2qa6877nup77g699p": [],
+        "tb1q3vg2q94q5r6mre73gzak20ae5h2hnk66gkk9zj": [],
+        "tb1q3ykn95e0pr9dagznghrwl6advvmm4m4d3rdyvv": [],
+        "tb1q5fnqhaz7pzdpm9xc8vawzmhuvvtvd84lqt7cca": [],
+        "tb1q8z28mksunexylauagwg6alnd9437yw3w6jx3l0": [
+            [
+                "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51",
+                2577915
+            ],
+            [
+                "cf138ea9c5185ab218297e3d8b6a02236a6454c3ff53bb85feabe41eed5bb0d3",
+                2577915
+            ]
+        ],
+        "tb1q93n3gke42lveq4gl2v3km08u2pc82qy89m9fhm": [],
+        "tb1q9fc29raaweh0xq40479m08vpezgxwy03clqtjj": [],
+        "tb1qc9tlx2xd60hlljeakmsj6g9y7gyzm5wpmtcx0c": [],
+        "tb1qd6ehe489l9vxju2y3ydqlkymvp8cakym9fmhdv": [],
+        "tb1qd7a9726plnk6ds530qtrkqp3djzen5kekymxud": [],
+        "tb1qf07c0ez4zsu8vv8l8a9c2cg5kucx79v2w3wajr": [],
+        "tb1qfdn5kqsprldht62ptesh2ya4tznenafw9zwm8a": [],
+        "tb1qfkapj78cprvczrczg0qc9rnu5pp5hdcew03y54": [],
+        "tb1qga3qjhd7z6lnfldkhfwu038jvc05f830ks0277": [],
+        "tb1qgak0qt6hzc607hk22wy4eg87c5n6jlguxkawp0": [],
+        "tb1qhru95zfxaarcy2q4as3apsjjr6mwdpjf9zf922": [
+            [
+                "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893",
+                2577853
+            ],
+            [
+                "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51",
+                2577915
+            ]
+        ],
+        "tb1qj7ethp6qayw3mhtqn55qaj0dvt3l66aqq7wu0u": [],
+        "tb1qjpwuj24rkhxr44rpz3hs4g825ayz58rdf0lph2": [],
+        "tb1qju3uy6htx9qt4rdr7a3tc2qgj75pt7yv6uy4f9": [],
+        "tb1qmfnh3pnlsr70ljjw756n9hfx2jxmcdtzslkh6t": [],
+        "tb1qn43af8hwj2a49urkqznh6e734rqnfzlxczl3uy": [],
+        "tb1qnasvmmp3pemqfazu887g3xpaa5kqld4jusjdqk": [],
+        "tb1qntqjgsqh5vvc3ktwulcmjftpmrhrx2e7tp077s": [],
+        "tb1qtm6459umdcyvuyy0fzzd0v583js7c75xrs5t9k": [],
+        "tb1qtrhutw3pm86ze0xm9hyg6s05va2898apww0vcl": [],
+        "tb1qv0ew37s7cnyffw8szdtcu8kr9udd6dut5cnzdp": [],
+        "tb1qw44l333flarn6w3ngt78wkalckdzw2kdp6u8s7": [],
+        "tb1qwu0hw8lyu5z7eyxmvkwwqu9mr5xec3vqfj4zk0": [],
+        "tb1qyea69ec0vm94crv9q2e22e9ehk3j2eggjaltdj": [],
+        "tb1qzv5vz42tputg0udj75wsafhke6y8kqp48htkal": []
+    },
+    "addresses": {
+        "change": [
+            "tb1q8z28mksunexylauagwg6alnd9437yw3w6jx3l0",
+            "tb1qfkapj78cprvczrczg0qc9rnu5pp5hdcew03y54",
+            "tb1qfdn5kqsprldht62ptesh2ya4tznenafw9zwm8a",
+            "tb1qyea69ec0vm94crv9q2e22e9ehk3j2eggjaltdj",
+            "tb1qd7a9726plnk6ds530qtrkqp3djzen5kekymxud",
+            "tb1q2myfu8umuvd80gjshh8wa2qa6877nup77g699p",
+            "tb1qf07c0ez4zsu8vv8l8a9c2cg5kucx79v2w3wajr",
+            "tb1q93n3gke42lveq4gl2v3km08u2pc82qy89m9fhm",
+            "tb1qtrhutw3pm86ze0xm9hyg6s05va2898apww0vcl",
+            "tb1qwu0hw8lyu5z7eyxmvkwwqu9mr5xec3vqfj4zk0",
+            "tb1qga3qjhd7z6lnfldkhfwu038jvc05f830ks0277"
+        ],
+        "receiving": [
+            "tb1qhru95zfxaarcy2q4as3apsjjr6mwdpjf9zf922",
+            "tb1qnasvmmp3pemqfazu887g3xpaa5kqld4jusjdqk",
+            "tb1qntqjgsqh5vvc3ktwulcmjftpmrhrx2e7tp077s",
+            "tb1qmfnh3pnlsr70ljjw756n9hfx2jxmcdtzslkh6t",
+            "tb1qj7ethp6qayw3mhtqn55qaj0dvt3l66aqq7wu0u",
+            "tb1q9fc29raaweh0xq40479m08vpezgxwy03clqtjj",
+            "tb1qtm6459umdcyvuyy0fzzd0v583js7c75xrs5t9k",
+            "tb1q3vg2q94q5r6mre73gzak20ae5h2hnk66gkk9zj",
+            "tb1qv0ew37s7cnyffw8szdtcu8kr9udd6dut5cnzdp",
+            "tb1q2a7g3xkpmeq2u8hpgxmuu8796hr08l6hu3fyul",
+            "tb1q0f4gv8zqnvngume5c5dy8pkd7hz527rqan826j",
+            "tb1qzv5vz42tputg0udj75wsafhke6y8kqp48htkal",
+            "tb1qc9tlx2xd60hlljeakmsj6g9y7gyzm5wpmtcx0c",
+            "tb1qw44l333flarn6w3ngt78wkalckdzw2kdp6u8s7",
+            "tb1qju3uy6htx9qt4rdr7a3tc2qgj75pt7yv6uy4f9",
+            "tb1qd6ehe489l9vxju2y3ydqlkymvp8cakym9fmhdv",
+            "tb1qjpwuj24rkhxr44rpz3hs4g825ayz58rdf0lph2",
+            "tb1qgak0qt6hzc607hk22wy4eg87c5n6jlguxkawp0",
+            "tb1qn43af8hwj2a49urkqznh6e734rqnfzlxczl3uy",
+            "tb1q3ykn95e0pr9dagznghrwl6advvmm4m4d3rdyvv",
+            "tb1q5fnqhaz7pzdpm9xc8vawzmhuvvtvd84lqt7cca"
+        ]
+    },
+    "channels": {},
+    "db_metadata": {
+        "creation_timestamp": 1707698548,
+        "first_electrum_version_used": "4.5.2"
+    },
+    "fiat_value": {},
+    "forwarding_failures": {},
+    "frozen_coins": {},
+    "imported_channel_backups": {},
+    "invoices": {
+        "60478d7d55": {
+            "amount_msat": "!",
+            "bip70": null,
+            "exp": 0,
+            "height": 2577912,
+            "lightning_invoice": null,
+            "message": "",
+            "outputs": [
+                [
+                    0,
+                    "tb1q7a3x7hhsdm32uqqwq4sseefrl9ru8y0dvu7xz536rq25ja4ktlfqvf0ymx",
+                    "!"
+                ]
+            ],
+            "time": 1707748162
+        }
+    },
+    "keystore": {
+        "derivation": "m/0h",
+        "pw_hash_version": 1,
+        "root_fingerprint": "4501de82",
+        "seed": "since garment future deputy hotel equal black fine hen crew rebuild record",
+        "seed_type": "segwit",
+        "type": "bip32",
+        "xprv": "vprv9Fk36GFqzKVAB8QBnkFXKm7byyCrnisLkyWAocrDG5ZGk7GgUvmko4MYP2XmhJGtaC5sxUXCUjipLpTHP9hdTNf8Th7HdAHAve3dM39WgWB",
+        "xpub": "vpub5UjPVmnjph3TPcUetmnXgu4LY13MCBbC8CRmc1FppR6Fcubq2U61Lrg2EHqJHryfFLNpUwmC47Dsc53Q9e233ea3vjXco3JdtDsYddFVkcL"
+    },
+    "labels": {},
+    "lightning_payments": {},
+    "lightning_preimages": {},
+    "lightning_xprv": "vprv9HiizQVVHcxwLhSaKFJqRy4stfbkxHz8wBvG4TC4Z24ixaP2T3JJvUaNeF1XA6VRgMP8AcCu3dfcJ6wto5xxB1p8hWMpBzUXAgUH6XuUcCY",
+    "notes_text": "",
+    "num_parents": {
+        "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51": 2,
+        "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893": 1
+    },
+    "onchain_channel_backups": {},
+    "payment_requests": {},
+    "prevouts_by_scripthash": {
+        "1ff0c4e1783578e898f6de6fe1117c89f340627abf2b8142db59b453378f2342": [
+            [
+                "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893:1",
+                15200
+            ]
+        ],
+        "6e8b5bda705749bfc37e7de4f2d6423478e960918a48717ab48866d9f8a3b6f1": [],
+        "8a649f3958487bf5273fb49bfd4dd7d6f0b322a34d19c4e1434b95e14f709d54": [],
+        "a60e867da31f05e3f73b66a1ba917e9ee2531aafe24026930ffe67bcdd2ecbe1": [],
+        "b884673ee47b94a8d8fe41e521101ef8814820099f6695f6bb4209091ba03c3e": [
+            [
+                "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893:0",
+                3600
+            ]
+        ]
+    },
+    "qt-console-history": [],
+    "seed_version": 57,
+    "spent_outpoints": {
+        "10c722c31dc9bda6680b40b31c0458b93c2ade6bc03e665eedd9e7c722cd9dd5": {
+            "0": "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893"
+        },
+        "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51": {
+            "1": "cf138ea9c5185ab218297e3d8b6a02236a6454c3ff53bb85feabe41eed5bb0d3"
+        },
+        "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893": {
+            "0": "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51"
+        },
+        "52b081441072ea74814d4871e820d4ee7176ba55e2ba242a62bf8f23d61b363c": {
+            "1": "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893"
+        },
+        "96813d2db907aa32d10b0f125c39b4a28cf9b40da5242b992885ddd58317c34b": {
+            "0": "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893"
+        },
+        "c0950efd14f78724db863f81b169c79a44f86135ae0550cdfaf6bcf7e8933f5b": {
+            "0": "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893"
+        },
+        "c2b2ff32b60299504b6a30230bfbbf112c6202ba343e129dc46fe8910310df09": {
+            "0": "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893"
+        },
+        "c4c46b8692bcef0e869b3282d8049978e1654c8e14f0c3719722570f04a4e7ea": {
+            "1": "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893"
+        },
+        "ca4401b480237fd9e1e29a6287bf0d1ebb61e2c5592a5673a741d408c675d82e": {
+            "0": "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893"
+        },
+        "fce8bd465d53aea4c2a304de00568af87197923a81e731c8060fbe8d74f0a7c0": {
+            "0": "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893"
+        }
+    },
+    "stored_height": 2581502,
+    "submarine_swaps": {},
+    "transactions": {
+        "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51": "0200000000010193f8c73d445e50d8fa77ebcbb6214dcb6165689ee3c457238dbb1dc3fdde1f2c0000000000fdffffff026400000000000000220020bd4369f9de87a4c504e9297125cab9a465231da8ade79aa694ead02b7eca3c82e40c00000000000016001438947dda1c9e4c4ff79d4391aefe6d2d63e23a2e0247304402202d0dedd095c9994d4f7ab49fb0081d605cc3d09737ab7e6ed262c31adffa7604022035a2df0213a2b63ba37560116f4640d3ed9669efa732304b68e95f7285e842560121026926d63ad642cfb93c8036d278bd57f6c16b5dbe640cdf23eff42506d9c45831f6552700",
+        "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893": "02000000000108d59dcd22c7e7d9ed5e663ec06bde2a3cb958041cb3400b68a6bdc91dc322c7100000000000fdffffff3c361bd6238fbf622a24bae255ba7671eed420e871484d8174ea72104481b0520100000000fdffffff4bc31783d5dd8528992b24a50db4f98ca2b4395c120f0bd132aa07b92d3d81960000000000fdffffff5b3f93e8f7bcf6facd5005ae3561f8449ac769b1813f86db2487f714fd0e95c00000000000fdffffff09df100391e86fc49d123e34ba02622c11bffb0b23306a4b509902b632ffb2c20000000000fdffffffeae7a4040f57229771c3f0148e4c65e1789904d882329b860eefbc92866bc4c40100000000fdffffff2ed875c608d441a773562a59c5e261bb1e0dbf87629ae2e1d97f2380b40144ca0000000000fdffffffc0a7f0748dbe0f06c831e7813a929771f88a5600de04a3c2a4ae535d46bde8fc0000000000fdffffff02100e000000000000160014b8f85a0926ef47822815ec23d0c2521eb6e68649603b00000000000016001417da5cdba68a65d82825ea0445d6a29026bbb12a02473044022065ce6c2e816793ea3510ddded6ae34d7c9f173440f19a66514d650d17939990e02203dc645bbb520cc95342e001365db17a3a4d4022e5edf42ffe282e14644ccfdc801210209d242bb0b9bb5657aea57ed108f292968255029f69ab9e653b375c8c4b696050247304402200ba053ef3b63410c3a5c84004fe62f0594eef224a658a7adbd83cc4d23b1cbf002203041c50a8e2e2270787e6ff04b36650e443a173681bc915d70d68da97b1927bf01210209d242bb0b9bb5657aea57ed108f292968255029f69ab9e653b375c8c4b696050247304402204b316a7d20074be3b30d2683e7ab5dbe376d9f331c6ea9f3328dd19d4980389202202ac459b6119ed707dff5e6a7e55a1b081e2e776076f3c4f414110b8023b0ba6701210209d242bb0b9bb5657aea57ed108f292968255029f69ab9e653b375c8c4b696050247304402203345fb935de7fde19c142eba5a4c0b7d77e28b9fdf4886bf63b2b386ea558d56022053f2257b10727efeeeded024d065548b89ad4af835b0d27a24a6a08c9cb24d5501210209d242bb0b9bb5657aea57ed108f292968255029f69ab9e653b375c8c4b696050247304402207c745af5321dee67fd1e8d2b1eb427fdcc6c64eae9b17a4822bab28d539475d9022028dd03f172d541e116364c65bb262c097d536730128e26c56783e2b06b1c77f401210209d242bb0b9bb5657aea57ed108f292968255029f69ab9e653b375c8c4b6960502473044022011ed781a39fab93c6a59416ba84d079896a6242af34e772c6a6a949a0b22aef302203d18d2407cac71d5a3065389b97c2e0fc279c12f61e11ccc2797e68ab34dfa2f01210209d242bb0b9bb5657aea57ed108f292968255029f69ab9e653b375c8c4b6960502473044022014283062e311a3aa53e104f3a0a5953c385638c68f0024ce2f16cd98b98faac902207f610e020760748a894aef97755859c987036c46d9b3c909bda627681ae5923b01210209d242bb0b9bb5657aea57ed108f292968255029f69ab9e653b375c8c4b696050247304402207d4006f9085ee522230cff3af724055a2550f198f1ba16b4bb8db5e001e61e2b0220285ec7611703a90f2573766ff745357cb6801f7414de0e972a1469352b4b4b7c01210209d242bb0b9bb5657aea57ed108f292968255029f69ab9e653b375c8c4b69605bb552700",
+        "cf138ea9c5185ab218297e3d8b6a02236a6454c3ff53bb85feabe41eed5bb0d3": "02000000000101517d079be14011954e4390ade2498ad7a0e7011b4d1d7fc5d2d1783df9eb8b1c0100000000fdffffff016a0c000000000000220020f7626f5ef06ee2ae000e05610ce523f947c391ed673c61523a18154976b65fd2024730440220012a5986af9b263dd78dd193215a3de01d0a7b06cd038456ee3ac83afd84fc7a022001e1d96afb54d3113421f908a878f7718b612abab03a66b5b9ff4e027b0b8a99012103948093793198d10ba86b176db11debd524f4f6033d9c474be0dc100fa954e7a0f8552700"
+    },
+    "tx_fees": {
+        "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51": [
+            200,
+            true,
+            1
+        ],
+        "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893": [
+            null,
+            false,
+            8
+        ],
+        "cf138ea9c5185ab218297e3d8b6a02236a6454c3ff53bb85feabe41eed5bb0d3": [
+            122,
+            true,
+            1
+        ]
+    },
+    "txi": {
+        "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51": {
+            "tb1qhru95zfxaarcy2q4as3apsjjr6mwdpjf9zf922": {
+                "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893:0": 3600
+            }
+        },
+        "cf138ea9c5185ab218297e3d8b6a02236a6454c3ff53bb85feabe41eed5bb0d3": {
+            "tb1q8z28mksunexylauagwg6alnd9437yw3w6jx3l0": {
+                "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51:1": 3300
+            }
+        }
+    },
+    "txo": {
+        "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51": {
+            "tb1q8z28mksunexylauagwg6alnd9437yw3w6jx3l0": {
+                "1": [
+                    3300,
+                    false
+                ]
+            }
+        },
+        "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893": {
+            "tb1qhru95zfxaarcy2q4as3apsjjr6mwdpjf9zf922": {
+                "0": [
+                    3600,
+                    false
+                ]
+            }
+        }
+    },
+    "use_encryption": false,
+    "verified_tx3": {
+        "1c8bebf93d78d1d2c57f1d4d1b01e7a0d78a49e2ad90434e951140e19b077d51": [
+            2577915,
+            1707750749,
+            272,
+            "0000000000883809569e5dc0827cd239f5c17d562e8d7578efe2a2d98a123dab"
+        ],
+        "2c1fdefdc31dbb8d2357c4e39e686561cb4d21b6cbeb77fad8505e443dc7f893": [
+            2577853,
+            1707699028,
+            50,
+            "0000000000000018d22743ad623e57fac52b29db524fca4af83effb4eaa3e442"
+        ],
+        "cf138ea9c5185ab218297e3d8b6a02236a6454c3ff53bb85feabe41eed5bb0d3": [
+            2577915,
+            1707750749,
+            774,
+            "0000000000883809569e5dc0827cd239f5c17d562e8d7578efe2a2d98a123dab"
+        ]
+    },
+    "wallet_type": "standard",
+    "winpos-qt": [
+        888,
+        472,
+        840,
+        400
+    ]
+},
+{"op": "replace", "path": "/stored_height", "value": 2582492}

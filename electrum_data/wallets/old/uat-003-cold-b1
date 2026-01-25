@@ -1,0 +1,41 @@
+{
+    "addr_history": {},
+    "addresses": {
+        "bc1q060kflr05xmqeh5zeju42utpmqzhrd0dcmypsth3sa088mcx6zwqvxmu0f": {},
+        "bc1q4ajjrw5t2ft6mhpu0jrql8zt03fz9c5entmsxqh5ldfknd9rr2eqku9f72": {},
+        "bc1q50mp59d292feluy9u9zjpkppyngl2nmktk29qsufu3u55flzp0cqeqpt4z": {},
+        "bc1q5vtgclmrzdnf6xjte8u0g954lrj9hp7w43t9l0v2r6ctkslu0l0qgzleq4": {},
+        "bc1q8ssfg0aq272mkawedjp8zxjj37tda6cu29d399sh9zyuv0d036hqsuawgp": {},
+        "bc1qa7n9ejagudwka639puad6lpdj399avazm2gg9pv3uw4rd9ngffkqef7rfh": {},
+        "bc1qc2jxuz6aqz4f9g4cn67dvc98jtkhc05y4c4kxhjtwystv35qgypqck3qny": {},
+        "bc1qd75faveu3dz2xsq5cpx993elqxpu6ypvq2p53tyra4wur45lfwusnhkzq6": {},
+        "bc1qgph59nr264s97k3fmz2r0m4mgtnjad3l3xvygfudlqraynn0y7zsdc7upm": {},
+        "bc1qgpj58rmck2200mh99pg83njwq2humhacpl53mp9c73azvxsjd77ss97wx4": {},
+        "bc1qlel9ep4keuxmlnumj3ekktyd4penm09u3j5u5jgmw33teurzey9s7mvmy8": {},
+        "bc1qnvdmtl9cl6qv4ul7uvp5j950kdhrd7xmuhufpf7r5djhf3kfpq0sjc3qzd": {},
+        "bc1qsfg926t99vnmsjpvc344vprg3arvxddapm72r8f5s9xx2dhcyf5q2qda7t": {},
+        "bc1qszl3wc2qnfdg0a64c9pgp0gwm2nsntj6n78fm6yn5u5kr3ecvpmsyhnj26": {},
+        "bc1qtcv6s5gdygvageadaw54wxt93qqcgy38dj9a6r8anhd4amn2wnnqmps36v": {},
+        "bc1qtd8emxqhep9cjeynfuulamhfngh52yzt8u7rzre68nh24fgzh3hqsz448y": {},
+        "bc1qtmpzmv7f3g2caqetjhum736303af326hd5uwz4rvt94suf3vgzqqacp64s": {},
+        "bc1qwh6zaw2j2kxr6vs05xsmtzvfcahgekmvsa7jkyy93y7t8j7hz0fq5asq42": {},
+        "bc1qwy2g7fmjlfkh4wfqxk9xmzjyw0nck8x6pwkuvn0xunqsfra0wz8qpeu6kk": {},
+        "bc1qzul4wu2vek0rh6dcpycmxjwllhheppxtwfwf3jfjxetpdkytmm5s3rmgvm": {}
+    },
+    "seed_version": 18,
+    "spent_outpoints": {},
+    "stored_height": 635335,
+    "transactions": {},
+    "tx_fees": {},
+    "txi": {},
+    "txo": {},
+    "use_encryption": false,
+    "verified_tx3": {},
+    "wallet_type": "imported",
+    "winpos-qt": [
+        1754,
+        606,
+        1034,
+        592
+    ]
+}
