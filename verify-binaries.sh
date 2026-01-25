@@ -26,9 +26,9 @@ done < "$CHECKSUM_FILE"
 
 echo "Verifying binaries..."
 if command -v shasum >/dev/null 2>&1; then
-    shasum -a 256 -c "$CHECKSUM_FILE"
+    grep -v '^#' "$CHECKSUM_FILE" | grep -v '^$' | shasum -a 256 -c -
 elif command -v sha256sum >/dev/null 2>&1; then
-    sha256sum -c "$CHECKSUM_FILE"
+    grep -v '^#' "$CHECKSUM_FILE" | grep -v '^$' | sha256sum -c -
 else
     echo "Error: Neither shasum nor sha256sum found. Install coreutils or similar."
     exit 1
