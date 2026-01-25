@@ -1,0 +1,11 @@
+anchors.dat
+banlist.json
+blocks/
+chainstate/
+debug.log
+fee_estimates.dat
+indexes/
+mempool.dat
+peers.dat
+settings.json
+wallets/
