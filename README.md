@@ -1,11 +1,27 @@
 # PortaNode
 
-## Portale (external disk) cross-platform Bitcoin full node.
+## Portable (external disk) cross-platform Bitcoin full node.
 
 PortaNode bundles scripts, binaries, and data for running Bitcoin Core and
 Electrum on macOS and Windows.
 
-## Folder structure
+Version: 2026.01.26 (Calendar Versioning)
+
+## Prerequisites
+
+- **Operating System**: macOS 10.15+ or Windows 10+.
+- **Disk Space**: At least 500GB free for Bitcoin Core data (mainnet); more for full sync. Regtest/testnet require less.
+- **Permissions**: Ensure the external disk is mounted and writable. On macOS, scripts may need executable permissions (run `chmod +x macos/scripts/**/*.command` if needed).
+- **Dependencies**: None required beyond standard OS tools. For advanced use, ensure Python (for Electrum) and command-line tools are available.
+
+## Quick Start
+
+1. Mount your external disk and navigate to the PortaNode folder.
+2. For macOS: Double-click a script in `macos/scripts/bitcoin/` or `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
+3. For Windows: Double-click a script in `win/scripts/bitcoin/` or `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
+4. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
+
+## Folder Structure
 
 - `macos/`
   - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
@@ -22,14 +38,67 @@ Electrum on macOS and Windows.
 - `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
 
-## Notes
+## Detailed Setup
 
-- Ensure the external disk is properly mounted and paths are adjusted as
-  needed for portability.
-- Scripts expect the bundled binaries in `macos/bin/` and `win/bin/`.
-- Electrum includes a local-server-only launcher on both platforms
-  (`mainnet-local-server-only` in each `electrum/` folder).
-- Regtest peer connections (addnode targets):
-  - Alice (18444) connects to Bob (18555) and Carol (18666).
-  - Bob (18555) connects to Alice (18444) and Carol (18666).
-  - Carol (18666) connects to Alice (18444) and Bob (18555).
+### Bitcoin Core
+- **Mainnet**: Use `mainnet-8333-qt` scripts for GUI or CLI.
+- **Testnet**: Use `testnet3-18333-qt` for testnet.
+- **Regtest**: Use `regtest-*` scripts for local testing. Clean scripts reset data.
+- Data is stored in `bitcoin-datadir/`. Configure via `bitcoin.conf`.
+
+### Electrum
+- **Mainnet**: Use `mainnet` or `mainnet-local-server-only` (connects to local server).
+- **Testnet/Regtest**: Use respective scripts.
+- Data in `electrum-datadir/`. Wallets are in `wallets/`.
+
+### Environment Overrides
+Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
+- macOS: `export PORTANODE_ROOT=/path/to/portanode`
+- Windows: `set PORTANODE_ROOT=C:\path\to\portanode`
+
+## Updating Binaries
+
+- **Bitcoin Core**: Download latest from [bitcoin.org](https://bitcoin.org/en/download). Replace files in `macos/bin/Bitcoin-Qt.app` or `win/bin/bitcoin-*.exe`.
+- **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace `Electrum.app` or `electrum.exe`.
+- Verify checksums from official sources to ensure integrity.
+- After update, test with regtest scripts.
+
+## Troubleshooting
+
+### Common Issues
+- **Script fails with "Binary not found"**: Ensure binaries are in `macos/bin/` or `win/bin/`. Check permissions.
+- **Permission denied on macOS**: Run `chmod +x macos/scripts/**/*.command`.
+- **Disk space errors**: Free up space or use pruning in `bitcoin.conf` (`prune=550` for ~550MB blocks).
+- **Sync issues**: Check logs in `bitcoin-datadir/debug.log`. For Electrum, check console output.
+- **Regtest not connecting**: Ensure all regtest scripts are run (Alice, Bob, Carol) and ports are open.
+- **Path errors**: If moved, use `PORTANODE_ROOT` or adjust scripts.
+
+### Logs and Debugging
+- Bitcoin: `bitcoin-datadir/debug.log`
+- Electrum: Check terminal output or `electrum-datadir/` for logs.
+- Run scripts from terminal for verbose output: `bash macos/scripts/bitcoin/mainnet-8333-qt.command` or `win\scripts\bitcoin\mainnet-8333-qt.bat`.
+
+### Getting Help
+- Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum Docs](https://electrum.readthedocs.io/).
+- Report issues with logs and OS details.
+
+## Version Compatibility
+
+- **Bitcoin Core**: Bundled version ~25.x (check `bitcoin-cli --version`).
+- **Electrum**: Bundled version ~4.x (check `electrum --version`).
+- Compatible with macOS 10.15+, Windows 10+. Test on your setup.
+
+## Contributing
+
+This is an open-source project. To contribute:
+- Fork the repo and submit pull requests.
+- Report bugs with steps to reproduce.
+- Suggest improvements via issues.
+- Follow coding standards: Use relative paths, add error checks.
+
+## Security Notes
+
+- **Binary Integrity**: Verify binaries with `verify-binaries.sh` (macOS) or `verify-binaries.bat` (Windows) after downloads.
+- **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and `electrum-datadir/wallets/`. Use encrypted storage.
+- **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to localhost only and use strong passwords. Configure firewall to restrict access.
+- **Permissions**: Set restrictive permissions on data directories: `chmod 700 bitcoin-datadir electrum-datadir`.

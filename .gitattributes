@@ -1,0 +1,13 @@
+# Git attributes for PortaNode
+# Treat binaries as binary files to avoid diffing
+*.exe binary
+*.app binary
+Bitcoin-Qt binary
+run_electrum binary
+
+# Text files
+*.md text
+*.sh text eol=lf
+*.bat text eol=crlf
+*.conf text
+*.json text

@@ -4,6 +4,7 @@ Place the Windows executables here:
 
 - `bitcoin-qt.exe`
 - `bitcoind.exe`
+- `bitcoin-cli.exe`
 - `electrum.exe`
 
 These executables are launched by the scripts in `win/scripts/`.
