@@ -13,9 +13,15 @@ while IFS= read -r line; do
     case "$line" in
         ""|\#*) continue ;;
     esac
-    file="${line#*  }"
-    if [ -z "$file" ] || [ "$file" = "$line" ]; then
+    hash="${line%%[[:space:]]*}"
+    file="${line#"$hash"}"
+    file="${file#"${file%%[![:space:]]*}"}"
+    if [ -z "$hash" ] || [ -z "$file" ] || [ "$file" = "$line" ]; then
         echo "Error: Malformed checksum line: $line"
+        exit 1
+    fi
+    if [ "${#hash}" -ne 64 ]; then
+        echo "Error: Invalid SHA-256 hash length: $line"
         exit 1
     fi
     if [ ! -f "$file" ]; then

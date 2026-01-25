@@ -14,6 +14,8 @@ using YYYY.MM.DD format.
 - Script robustness with error checks and overrides
 - Automated update and health check scripts
 - User validation and file organization improvements
+- Log rotation and monitoring scripts
+- Version rollback functionality for Bitcoin and Electrum
 
 ### Changed
 - Standardized script variable names and added confirmations

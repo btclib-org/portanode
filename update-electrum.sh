@@ -27,11 +27,15 @@ curl -L -o "electrum-${VERSION}-${OS}.${EXT}" "$URL"
 # Replace manually or mount dmg
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
+    mkdir -p bin-backup-electrum
+    cp macos/bin/Electrum.app/Contents/MacOS/run_electrum bin-backup-electrum/ 2>/dev/null || true
     # Mount dmg and copy
     hdiutil attach "electrum-${VERSION}-${OS}.${EXT}"
     cp /Volumes/Electrum/Electrum.app/Contents/MacOS/run_electrum macos/bin/Electrum.app/Contents/MacOS/
     hdiutil detach /Volumes/Electrum
 elif [[ "$OSTYPE" == "msys" ]]; then
+    mkdir -p bin-backup-electrum
+    cp win/bin/electrum.exe bin-backup-electrum/ 2>/dev/null || true
     # For exe, it's installer, perhaps download portable
     echo "For Windows, download portable version manually"
 fi

@@ -62,6 +62,8 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace `Electrum.app` or `electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
 - After update, test with regtest scripts.
+- Use `./update-bitcoin.sh` or `./update-electrum.sh` for automated updates (backs up old versions).
+- Rollback with `./rollback-bitcoin.sh` or `./rollback-electrum.sh` if issues occur.
 
 ## Troubleshooting
 
@@ -77,6 +79,8 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - Bitcoin: `bitcoin-datadir/debug.log`
 - Electrum: Check terminal output or `electrum-datadir/` for logs.
 - Run scripts from terminal for verbose output: `bash macos/scripts/bitcoin/mainnet-8333-qt.command` or `win\scripts\bitcoin\mainnet-8333-qt.bat`.
+- Rotate logs: `./rotate-bitcoin-log.sh`
+- Monitor logs: `./monitor-bitcoin-log.sh` (run periodically to check for errors)
 
 ### Getting Help
 - Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum Docs](https://electrum.readthedocs.io/).

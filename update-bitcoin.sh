@@ -39,9 +39,13 @@ fi
 
 # Replace binaries
 if [[ "$OSTYPE" == "darwin"* ]]; then
+    mkdir -p bin-backup-bitcoin
+    cp macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt bin-backup-bitcoin/ 2>/dev/null || true
     cp "${SRC_DIR}/bin/bitcoin-qt" macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt
     # Others if needed
 elif [[ "$OSTYPE" == "msys" ]]; then
+    mkdir -p bin-backup-bitcoin
+    cp win/bin/bitcoin*.exe bin-backup-bitcoin/ 2>/dev/null || true
     cp "${SRC_DIR}/bin/"*.exe win/bin/
 fi
 
