@@ -1,2 +1,8 @@
-Electrum.app
-Bitcoin-Qt.app
+bitcoin-cli.exe
+bitcoin-qt.exe
+bitcoin-tx.exe
+bitcoin-util.exe
+bitcoin-wallet.exe
+bitcoin.exe
+bitcoind.exe
+electrum.exe
