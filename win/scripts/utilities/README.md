@@ -31,6 +31,7 @@ This folder contains Windows maintenance scripts for PortaNode. These are design
   - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
   - **Electrum signing key**: obtain the release signing key from electrum.org (Download page) and import with `gpg --import`.
 - Root launchers `Launcher.command` and `Launcher.bat` provide a menu to start common scripts from the repo root.
+- Root launchers are also available for specific areas: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command`, `.bat`, or `.sh` for your OS).
 
 ## Smoke Check (Windows)
 Run these in order after updates:

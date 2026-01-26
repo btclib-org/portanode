@@ -48,6 +48,7 @@ This directory contains macOS maintenance and utility scripts for PortaNode. Win
 - `macos/checksums.sha256` is append-only: new verified hashes are added with `version=<x>` and exact duplicates are pruned.
 - Update scripts place temporary downloads under `macos/bin/.tmp-downloads/` or `win/bin/.tmp-downloads/` and clean them on exit.
 - Root launchers `Launcher.command` and `Launcher.bat` provide a menu to start common scripts from the repo root.
+- Root launchers are also available for specific areas: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command`, `.bat`, or `.sh` for your OS).
 - For Windows scripts, use Command Prompt or PowerShell.
 - Check script output for errors; refer to main README.md for troubleshooting.
 

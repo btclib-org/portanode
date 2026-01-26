@@ -23,6 +23,13 @@ Version: 2026.01.26 (Calendar Versioning)
 5. Additional root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command`, `.bat`, or `.sh` for your OS).
 6. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
+## Launcher Notes
+
+- `.command` files are intended for double‑clicking in Finder on macOS.
+- `.sh` files are intended for running from a shell (macOS/Linux or Windows MSYS/Cygwin).
+- `.bat` files are intended for Command Prompt/PowerShell on Windows.
+- `Launcher.ps1` provides a PowerShell entrypoint for the menu launcher on Windows.
+
 ## Folder Structure
 
 - `macos/`
@@ -82,7 +89,10 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
 - On Windows, use `win\\scripts\\utilities\\validate-setup.bat`.
  - **Backup/Rollback**: Rollback scripts depend on backups created by update scripts—test the full update→rollback cycle after changes.
- - **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep ever-growing lists of acceptable hashes labeled by version; update scripts append new entries and deduplicate exact duplicates.
+- **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep ever-growing lists of acceptable hashes labeled by version; update scripts append new entries and deduplicate exact duplicates.
+ - **Signing Keys**:
+   - Bitcoin Core: import keys from `contrib/builder-keys/keys.txt` in the official Bitcoin Core repo. Verify fingerprints before trust.
+   - Electrum: import the release signing key from electrum.org Download page. Verify the fingerprint published there.
 
 ## Troubleshooting
 
