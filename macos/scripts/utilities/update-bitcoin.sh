@@ -19,7 +19,7 @@ fi
 # Get latest version from API (pinned for reliability)
 VERSION="30.2"
 
-# Detect OS
+# Detect OS (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="apple-darwin"
     EXT="tar.gz"
@@ -30,13 +30,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     else
         FILE="bitcoin-${VERSION}-x86_64-${OS}.${EXT}"
     fi
-elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    OS="win64"
-    EXT="zip"
-    FILE="bitcoin-${VERSION}-${OS}.${EXT}"
-    BACKUP_DIR="$ROOTDIR/win/bin/backup/bitcoin"
 else
-    echo "Unsupported OS"
+    echo "Unsupported OS (macOS only)."
     exit 1
 fi
 
@@ -113,15 +108,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     cp -R "$ROOTDIR/macos/bin/Bitcoin-Qt.app" "$BACKUP_DIR/Bitcoin-Qt.app"
     cp "${SRC_DIR}/bin/bitcoin-qt" "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
     update_checksum "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$VERSION"
-elif [[ "$OSTYPE" == "msys" ]]; then
-    mkdir -p "$BACKUP_DIR"
-    cp "$ROOTDIR/win/bin/bitcoin"*.exe "$BACKUP_DIR/" 2>/dev/null || true
-    cp "${SRC_DIR}/bin/"*.exe "$ROOTDIR/win/bin/"
-    for exe in win/bin/bitcoin-qt.exe win/bin/bitcoind.exe win/bin/bitcoin-cli.exe win/bin/bitcoin-wallet.exe win/bin/bitcoin-tx.exe win/bin/bitcoin-util.exe win/bin/bitcoin.exe; do
-        if [ -f "$exe" ]; then
-            update_checksum "$exe" "$VERSION"
-        fi
-    done
 fi
 
 # Cleanup

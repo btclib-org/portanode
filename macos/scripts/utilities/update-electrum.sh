@@ -16,17 +16,13 @@ if pgrep -f "electrum" > /dev/null; then
     exit 1
 fi
 
-# Detect OS
+# Detect OS (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="macos"
     EXT="dmg"
     BACKUP_DIR="$ROOTDIR/macos/bin/backup/electrum"
-elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    OS="windows"
-    EXT="exe"
-    BACKUP_DIR="$ROOTDIR/win/bin/backup/electrum"
 else
-    echo "Unsupported OS"
+    echo "Unsupported OS (macOS only)."
     exit 1
 fi
 
@@ -38,15 +34,9 @@ if [ -z "$VERSION" ]; then
 fi
 
 BASE_URL="https://download.electrum.org/${VERSION}"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    URL="${BASE_URL}/electrum-${VERSION}.dmg"
-    OUT_FILE="electrum-${VERSION}.dmg"
-    SIG_FILE="${OUT_FILE}.asc"
-elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    URL="${BASE_URL}/electrum-${VERSION}-portable.exe"
-    OUT_FILE="electrum-${VERSION}-portable.exe"
-    SIG_FILE="${OUT_FILE}.asc"
-fi
+URL="${BASE_URL}/electrum-${VERSION}.dmg"
+OUT_FILE="electrum-${VERSION}.dmg"
+SIG_FILE="${OUT_FILE}.asc"
 
 mkdir -p "$TMPDIR"
 echo "Downloading $URL..."
@@ -85,29 +75,22 @@ update_checksum() {
     mv "${checksum_file}.tmp" "$checksum_file"
 }
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    if [ ! -d "$ROOTDIR/macos/bin/Electrum.app" ]; then
-        echo "Error: macos/bin/Electrum.app not found. Install the app bundle first."
-        exit 1
-    fi
-    mkdir -p "$BACKUP_DIR"
-    cp -R "$ROOTDIR/macos/bin/Electrum.app" "$BACKUP_DIR/Electrum.app"
-    MOUNT_INFO="$(hdiutil attach -nobrowse "$TMPDIR/$OUT_FILE")"
-    MOUNT_POINT="$(echo "$MOUNT_INFO" | tail -n 1 | awk '{print $3}')"
-    if [ -z "$MOUNT_POINT" ]; then
-        echo "Failed to mount Electrum DMG."
-        exit 1
-    fi
-    rm -rf "$ROOTDIR/macos/bin/Electrum.app"
-    cp -R "${MOUNT_POINT}/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
-    hdiutil detach "$MOUNT_POINT" >/dev/null
-    update_checksum "macos/bin/Electrum.app/Contents/MacOS/run_electrum" "$VERSION"
-elif [[ "$OSTYPE" == "msys" ]]; then
-    mkdir -p "$BACKUP_DIR"
-    cp "$ROOTDIR/win/bin/electrum.exe" "$BACKUP_DIR/" 2>/dev/null || true
-    cp "$TMPDIR/$OUT_FILE" "$ROOTDIR/win/bin/electrum.exe"
-    update_checksum "win/bin/electrum.exe" "$VERSION"
+if [ ! -d "$ROOTDIR/macos/bin/Electrum.app" ]; then
+    echo "Error: macos/bin/Electrum.app not found. Install the app bundle first."
+    exit 1
 fi
+mkdir -p "$BACKUP_DIR"
+cp -R "$ROOTDIR/macos/bin/Electrum.app" "$BACKUP_DIR/Electrum.app"
+MOUNT_INFO="$(hdiutil attach -nobrowse "$TMPDIR/$OUT_FILE")"
+MOUNT_POINT="$(echo "$MOUNT_INFO" | tail -n 1 | awk '{print $3}')"
+if [ -z "$MOUNT_POINT" ]; then
+    echo "Failed to mount Electrum DMG."
+    exit 1
+fi
+rm -rf "$ROOTDIR/macos/bin/Electrum.app"
+cp -R "${MOUNT_POINT}/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
+hdiutil detach "$MOUNT_POINT" >/dev/null
+update_checksum "macos/bin/Electrum.app/Contents/MacOS/run_electrum" "$VERSION"
 
 # Cleanup
 rm -rf "$TMPDIR"

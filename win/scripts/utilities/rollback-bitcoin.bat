@@ -32,7 +32,7 @@ move /y "%BACKUP_DIR%\bitcoin-util.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
 move /y "%BACKUP_DIR%\bitcoin.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
 if exist "%BACKUP_DIR%" rmdir "%BACKUP_DIR%" >nul 2>&1
 
-echo Rollback complete. Run macos\scripts\utilities\validate-setup.sh to verify.
+echo Rollback complete. Run win\scripts\utilities\validate-setup.bat to verify.
 
 if exist "%SCRIPT_DIR%verify-binaries.bat" (
     call "%SCRIPT_DIR%verify-binaries.bat"

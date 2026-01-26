@@ -21,9 +21,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "Electrum.app not found in backup"
         exit 1
     fi
-elif [[ "$OSTYPE" == "msys" ]]; then
-    BACKUP_DIR="$ROOTDIR/win/bin/backup/electrum"
-    cp "$BACKUP_DIR/electrum.exe" "$ROOTDIR/win/bin/" 2>/dev/null || echo "electrum.exe not found in backup"
+else
+    echo "Unsupported OS"
+    exit 1
 fi
 
 echo "Rollback complete. Run macos/scripts/utilities/validate-setup.sh to verify."
