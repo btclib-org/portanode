@@ -24,10 +24,20 @@ if "%VERSION%"=="" (
 )
 
 set FILE=electrum-%VERSION%-portable.exe
+set SIG_FILE=%FILE%.asc
 set URL=https://download.electrum.org/%VERSION%/%FILE%
 
 echo Downloading %URL%...
 powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%.asc' -OutFile '%TMPDIR%\\%SIG_FILE%' }" || goto :error
+
+where gpg >nul 2>&1
+if %errorlevel%==0 (
+    echo Verifying Electrum signature...
+    gpg --verify "%TMPDIR%\\%SIG_FILE%" "%TMPDIR%\\%FILE%" || goto :error
+) else (
+    echo Warning: gpg not found; skipping PGP signature verification.
+)
 
 if not exist "%TMPDIR%\\%FILE%" (
     echo Error: download failed.

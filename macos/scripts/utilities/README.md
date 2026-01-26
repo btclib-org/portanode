@@ -41,6 +41,7 @@ This directory contains macOS maintenance and utility scripts for PortaNode. Win
 ## Usage Notes
 - Run scripts from the project root (e.g., `./macos/scripts/utilities/script.sh`).
 - Most scripts require internet for downloads; ensure connectivity.
+- If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core and Electrum downloads.
 - Backups are stored in `macos/bin/backup/` and `win/bin/backup/`; rollbacks depend on these.
 - `macos/checksums.sha256` is append-only: new verified hashes are added with `version=<x>` and exact duplicates are pruned.
 - Update scripts place temporary downloads under `macos/bin/.tmp-downloads/` or `win/bin/.tmp-downloads/` and clean them on exit.

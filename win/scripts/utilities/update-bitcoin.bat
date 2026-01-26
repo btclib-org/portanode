@@ -11,6 +11,7 @@ set VERSION=30.2
 set FILE=bitcoin-%VERSION%-win64.zip
 set URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/%FILE%
 set CHECKSUM_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/SHA256SUMS
+set CHECKSUM_SIG_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/SHA256SUMS.asc
 set CHECKSUM_FILE=%ROOTDIR%\win/checksums.sha256
 
 set TMPDIR=%ROOTDIR%\win\bin\.tmp-downloads\bitcoin
@@ -22,6 +23,15 @@ echo Updating Bitcoin Core to %VERSION%...
 echo Downloading %URL%...
 powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" || goto :error
 powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\\SHA256SUMS' }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' -OutFile '%TMPDIR%\\SHA256SUMS.asc' }" || goto :error
+
+where gpg >nul 2>&1
+if %errorlevel%==0 (
+    echo Verifying SHA256SUMS signature...
+    gpg --verify "%TMPDIR%\\SHA256SUMS.asc" "%TMPDIR%\\SHA256SUMS" || goto :error
+) else (
+    echo Warning: gpg not found; skipping PGP signature verification.
+)
 
 powershell -Command "& { $sum = Get-Content '%TMPDIR%\\SHA256SUMS' | Select-String -Pattern '%FILE%' | Select-Object -First 1; if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } $expected = ($sum -split '\\s+')[0].ToLower(); $actual = (Get-FileHash -Algorithm SHA256 '%TMPDIR%\\%FILE%').Hash.ToLower(); if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } Write-Host '%FILE%: OK' }" || goto :error
 

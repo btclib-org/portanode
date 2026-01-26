@@ -35,14 +35,24 @@ BASE_URL="https://download.electrum.org/${VERSION}"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     URL="${BASE_URL}/electrum-${VERSION}.dmg"
     OUT_FILE="electrum-${VERSION}.dmg"
+    SIG_FILE="${OUT_FILE}.asc"
 elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
     URL="${BASE_URL}/electrum-${VERSION}-portable.exe"
     OUT_FILE="electrum-${VERSION}-portable.exe"
+    SIG_FILE="${OUT_FILE}.asc"
 fi
 
 mkdir -p "$TMPDIR"
 echo "Downloading $URL..."
 curl -L -o "$TMPDIR/$OUT_FILE" "$URL"
+curl -L -o "$TMPDIR/$SIG_FILE" "${URL}.asc"
+
+if command -v gpg >/dev/null 2>&1; then
+    echo "Verifying Electrum signature..."
+    (cd "$TMPDIR" && gpg --verify "$SIG_FILE" "$OUT_FILE") || { echo "PGP signature verification failed"; exit 1; }
+else
+    echo "Warning: gpg not found; skipping PGP signature verification."
+fi
 
 update_checksum() {
     local file="$1"

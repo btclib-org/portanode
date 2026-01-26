@@ -36,13 +36,21 @@ fi
 
 URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/${FILE}"
 CHECKSUM_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS"
+CHECKSUM_SIG_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS.asc"
 
 mkdir -p "$TMPDIR"
 echo "Downloading $URL..."
 curl -L -o "$TMPDIR/$FILE" "$URL"
 curl -L -o "$TMPDIR/SHA256SUMS" "$CHECKSUM_URL"
+curl -L -o "$TMPDIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 
 # Verify
+if command -v gpg >/dev/null 2>&1; then
+    echo "Verifying SHA256SUMS signature..."
+    (cd "$TMPDIR" && gpg --verify SHA256SUMS.asc SHA256SUMS) || { echo "PGP signature verification failed"; exit 1; }
+else
+    echo "Warning: gpg not found; skipping PGP signature verification."
+fi
 if command -v shasum >/dev/null 2>&1; then
     grep "$FILE" "$TMPDIR/SHA256SUMS" > "$TMPDIR/SHA256SUMS.filtered"
     (cd "$TMPDIR" && shasum -a 256 -c SHA256SUMS.filtered) || { echo "Checksum failed"; exit 1; }

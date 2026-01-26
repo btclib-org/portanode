@@ -70,6 +70,7 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Bitcoin Core**: Download latest from [bitcoincore.org](https://bitcoincore.org/en/download/). Replace files in `macos/bin/Bitcoin-Qt.app` or `win/bin/bitcoin-*.exe`.
 - **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace `Electrum.app` or `electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
+- If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core and Electrum downloads.
 - After update, test with regtest scripts.
 - Use `./macos/scripts/utilities/update-bitcoin.sh` or `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up old versions).
 - On Windows, use `win\\scripts\\utilities\\update-bitcoin.bat` and `win\\scripts\\utilities\\update-electrum.bat`.

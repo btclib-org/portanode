@@ -27,6 +27,7 @@ This folder contains Windows maintenance scripts for PortaNode. These are design
 - Run from repo root or double-click in Explorer; scripts resolve paths relative to the repo.
 - Backups are stored in `win/bin/backup/` and are required for rollback.
 - Updates download into `win/bin/.tmp-downloads/` and clean up after themselves.
+- If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core and Electrum downloads.
 
 ## Smoke Check (Windows)
 Run these in order after updates:
