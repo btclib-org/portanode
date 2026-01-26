@@ -1,6 +1,6 @@
-# macOS Scripts
+# Scripts
 
-Entry point for macOS launch scripts.
+Entry point for launch scripts.
 
 ## Folders
 
@@ -19,6 +19,8 @@ Entry point for macOS launch scripts.
 Run `.command` files by double-clicking or from Terminal: `bash bitcoin/mainnet-8333-qt.command`.
 
 Scripts include error checks and will prompt for confirmations on data deletion.
+
+Root launchers are available for specific areas: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (`.command` or `.sh`).
 
 ## Customization
 

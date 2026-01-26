@@ -1,6 +1,6 @@
 # macOS
 
-macOS-specific binaries and scripts for PortaNode.
+OS-specific binaries and scripts for PortaNode.
 
 ## Binaries (`bin/`)
 
@@ -13,8 +13,9 @@ Ensure these are executable. If not, run `chmod +x bin/Bitcoin-Qt.app/Contents/M
 
 - `bitcoin/`: Scripts to launch Bitcoin Core (e.g., `mainnet-8333-qt.command` for GUI).
 - `electrum/`: Scripts to launch Electrum (e.g., `mainnet.command`).
+- `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
 
-Run by double-clicking or via terminal: `bash scripts/bitcoin/mainnet-8333-qt.command`.
+Root launchers are available for specific areas: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (`.command` or `.sh`).
 
 ## Data Folders
 

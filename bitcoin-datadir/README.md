@@ -20,7 +20,7 @@ Edit `bitcoin.conf` for settings like:
 
 ## Backup
 
-Backup `wallets/` regularly. For full node, consider external backups.
+Backup `wallets/` regularly.
 
 Set restrictive permissions: `chmod 700 .` (on Unix) or use folder properties (Windows).
 

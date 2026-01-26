@@ -75,24 +75,24 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 
 ## Updating Binaries
 
-- **Bitcoin Core**: Download latest from [bitcoincore.org](https://bitcoincore.org/en/download/). Replace the files `macos/bin/Bitcoin-Qt.app/` or `win/bin/bitcoin-*.exe`.
-- **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace the files `macos/bin/Electrum.app/` or `win/bin/electrum.exe`.
+- **Bitcoin Core**: Download latest from [bitcoincore.org](https://bitcoincore.org/en/download/). Replace files in `macos/bin/` (Bitcoin-Qt.app) or in `win/bin/` (e.g., `bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`, `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`).
+- **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace files in `macos/bin/Electrum.app/` or `win/bin/electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
 - If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core and Electrum downloads.
   - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
   - **Electrum signing key**: obtain the release signing key from electrum.org (Download page) and import with `gpg --import`.
 - After update, test with regtest scripts.
-- On MacOs, update using `./macos/scripts/utilities/update-bitcoin.sh` or `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up old versions).  
+- On macOS, update using `./macos/scripts/utilities/update-bitcoin.sh` or `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up old versions).  
 Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or `./macos/scripts/utilities/rollback-electrum.sh` if issues occur.  
 Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
-- On Windows, update using `win\\scripts\\utilities\\update-bitcoin.bat` and `win\\scripts\\utilities\\update-electrum.bat`.  
-Rollback with `win\\scripts\\utilities\\rollback-bitcoin.bat` and `win\\scripts\\utilities\\rollback-electrum.bat`.  
-Validate setup with `win\\scripts\\utilities\\validate-setup.bat`.
- - **Backup/Rollback**: Rollback scripts depend on backups created by update scripts.
+- On Windows, update using `win/scripts/utilities/update-bitcoin.bat` and `win/scripts/utilities/update-electrum.bat`.  
+Rollback with `win/scripts/utilities/rollback-bitcoin.bat` and `win/scripts/utilities/rollback-electrum.bat`.  
+Validate setup with `win/scripts/utilities/validate-setup.bat`.
+- **Backup/Rollback**: Rollback scripts depend on backups created by update scripts.
 - **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep ever-growing lists of acceptable hashes labeled by version; update scripts append new entries and deduplicate exact duplicates.
- - **Signing Keys**:
-   - Bitcoin Core: import keys from `contrib/builder-keys/keys.txt` in the official Bitcoin Core repo. Verify fingerprints before trust.
-   - Electrum: import the release signing key from electrum.org Download page. Verify the fingerprint published there.
+- **Signing Keys**:
+  - Bitcoin Core: import keys from `contrib/builder-keys/keys.txt` in the official Bitcoin Core repo. Verify fingerprints before trust.
+  - Electrum: import the release signing key from electrum.org Download page. Verify the fingerprint published there.
 
 ### Expected Binaries by OS
 
@@ -112,9 +112,9 @@ Validate setup with `win\\scripts\\utilities\\validate-setup.bat`.
 ### Logs and Debugging
 - Bitcoin: `bitcoin-datadir/debug.log`
 - Electrum: Check terminal output or `electrum-datadir/` for logs.
-- Run scripts from terminal for verbose output: `bash macos/scripts/bitcoin/mainnet-8333-qt.command` or `win\scripts\bitcoin\mainnet-8333-qt.bat`.
-- Rotate logs: `./macos/scripts/utilities/rotate-bitcoin-log.sh` or `win\\scripts\\utilities\\rotate-bitcoin-log.bat`
-- Monitor logs: `./macos/scripts/utilities/monitor-bitcoin-log.sh` or `win\\scripts\\utilities\\monitor-bitcoin-log.bat` (run periodically to check for errors)
+- Run scripts from terminal for verbose output: `bash macos/scripts/bitcoin/mainnet-8333-qt.command` or `win/scripts/bitcoin/mainnet-8333-qt.bat`.
+- Rotate logs: `./macos/scripts/utilities/rotate-bitcoin-log.sh` or `win/scripts/utilities/rotate-bitcoin-log.bat`
+- Monitor logs: `./macos/scripts/utilities/monitor-bitcoin-log.sh` or `win/scripts/utilities/monitor-bitcoin-log.bat` (run periodically to check for errors)
 
 ### Getting Help
 - Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum Docs](https://electrum.readthedocs.io/).
@@ -140,5 +140,5 @@ This is an open-source project. To contribute:
   - Each verification script checks only its platform’s binaries.
 - **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and `electrum-datadir/wallets/`. Use encrypted storage.
 - **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to localhost only and use strong passwords. Configure firewall to restrict access.
-- **Permissions**: Set restrictive permissions on data directories: `./macos/scripts/utilities/set-permissions.sh` or `win\\scripts\\utilities\\set-permissions.bat`.
-- **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` or `win\\scripts\\utilities\\clean-artifacts.bat` to remove existing ones.
+- **Permissions**: Set restrictive permissions on data directories: `./macos/scripts/utilities/set-permissions.sh` or `win/scripts/utilities/set-permissions.bat`.
+- **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` or `win/scripts/utilities/clean-artifacts.bat` to remove existing ones.

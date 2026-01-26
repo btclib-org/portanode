@@ -1,6 +1,6 @@
 # Windows
 
-Windows-specific binaries and scripts for PortaNode.
+OS-specific binaries and scripts for PortaNode.
 
 ## Binaries (`bin/`)
 
@@ -11,8 +11,9 @@ Windows-specific binaries and scripts for PortaNode.
 
 - `bitcoin/`: Scripts to launch Bitcoin Core (e.g., `mainnet-8333-qt.bat` for GUI).
 - `electrum/`: Scripts to launch Electrum (e.g., `mainnet.bat`).
+- `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
 
-Run by double-clicking or via command prompt: `win\scripts\bitcoin\mainnet-8333-qt.bat`.
+Root launchers are available for specific areas: `Bitcoin-Launcher.bat`, `Electrum-Launcher.bat`, and `Utilities-Launcher.bat`.
 
 ## Data Folders
 

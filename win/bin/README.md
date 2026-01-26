@@ -1,6 +1,6 @@
-# Windows Binaries
+# Binaries
 
-Place the Windows executables here:
+Place the executables here:
 
 - `bitcoin-qt.exe`
 - `bitcoind.exe`

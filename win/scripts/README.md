@@ -1,6 +1,6 @@
-# Windows Scripts
+# Scripts
 
-Entry point for Windows launch scripts.
+Entry point for launch scripts.
 
 ## Folders
 
@@ -20,6 +20,8 @@ Entry point for Windows launch scripts.
 Run `.bat` files by double-clicking or from Command Prompt: `bitcoin\mainnet-8333-qt.bat`.
 
 Scripts include error checks and will prompt for confirmations on data deletion.
+
+Root launchers are available for specific areas: `Bitcoin-Launcher.bat`, `Electrum-Launcher.bat`, and `Utilities-Launcher.bat`.
 
 ## Customization
 
