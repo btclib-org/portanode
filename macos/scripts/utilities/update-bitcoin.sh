@@ -11,7 +11,7 @@ trap 'rm -rf "$TMPDIR"' EXIT
 echo "Updating Bitcoin Core..."
 
 # Prevent updates while running
-if pgrep -f "bitcoind\\|bitcoin-qt" > /dev/null; then
+if pgrep -f -i "bitcoind\\|bitcoin-qt\\|bitcoin qt\\|bitcoin-qt.app" > /dev/null; then
     echo "Error: Bitcoin Core is running. Stop it before updating."
     exit 1
 fi

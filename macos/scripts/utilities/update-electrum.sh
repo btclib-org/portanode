@@ -11,7 +11,7 @@ trap 'rm -rf "$TMPDIR"' EXIT
 echo "Updating Electrum..."
 
 # Prevent updates while running
-if pgrep -f "electrum" > /dev/null; then
+if pgrep -f -i "Electrum.app/Contents/MacOS/(Electrum|run_electrum)$|/Electrum$|/electrum$|python.*electrum|run_electrum" > /dev/null; then
     echo "Error: Electrum is running. Stop it before updating."
     exit 1
 fi
