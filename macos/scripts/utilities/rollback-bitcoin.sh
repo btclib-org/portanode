@@ -29,7 +29,7 @@ fi
 echo "Rollback complete. Run macos/scripts/utilities/validate-setup.sh to verify."
 
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
-    "$SCRIPT_DIR/verify-binaries.sh"
+    bash "$SCRIPT_DIR/verify-binaries.sh"
 else
     echo "Warning: verify-binaries.sh not found or not executable; skipping verification."
 fi

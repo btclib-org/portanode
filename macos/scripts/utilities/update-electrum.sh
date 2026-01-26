@@ -46,6 +46,7 @@ curl -L -o "$TMPDIR/$OUT_FILE" "$URL"
 
 update_checksum() {
     local file="$1"
+    local version="$2"
     local checksum_file="$ROOTDIR/checksums.sha256"
     local hash=""
     if command -v shasum >/dev/null 2>&1; then
@@ -60,8 +61,11 @@ update_checksum() {
         echo "Warning: $checksum_file not found; checksums not updated."
         return 0
     fi
-    awk -v file="$file" 'BEGIN{updated=0} $2==file{next} {print} END{}' "$checksum_file" > "${checksum_file}.tmp"
-    echo "$hash  $file" >> "${checksum_file}.tmp"
+    local entry="$hash  $file  version=$version"
+    if ! grep -Fxq "$entry" "$checksum_file"; then
+        echo "$entry" >> "$checksum_file"
+    fi
+    awk '!seen[$0]++' "$checksum_file" > "${checksum_file}.tmp"
     mv "${checksum_file}.tmp" "$checksum_file"
 }
 
@@ -81,12 +85,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     rm -rf "$ROOTDIR/macos/bin/Electrum.app"
     cp -R "${MOUNT_POINT}/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
     hdiutil detach "$MOUNT_POINT" >/dev/null
-    update_checksum "macos/bin/Electrum.app/Contents/MacOS/run_electrum"
+    update_checksum "macos/bin/Electrum.app/Contents/MacOS/run_electrum" "$VERSION"
 elif [[ "$OSTYPE" == "msys" ]]; then
     mkdir -p "$BACKUP_DIR"
     cp "$ROOTDIR/win/bin/electrum.exe" "$BACKUP_DIR/" 2>/dev/null || true
     cp "$TMPDIR/$OUT_FILE" "$ROOTDIR/win/bin/electrum.exe"
-    update_checksum "win/bin/electrum.exe"
+    update_checksum "win/bin/electrum.exe" "$VERSION"
 fi
 
 # Cleanup
@@ -96,7 +100,7 @@ trap - EXIT
 echo "Electrum updated to $VERSION"
 
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
-    "$SCRIPT_DIR/verify-binaries.sh"
+    bash "$SCRIPT_DIR/verify-binaries.sh"
 else
     echo "Warning: verify-binaries.sh not found or not executable; skipping verification."
 fi

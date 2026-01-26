@@ -42,13 +42,13 @@ if not exist "%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe" (
 )
 copy /y "%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe" "%ROOTDIR%\\win\\bin\\" >nul
 
-call :update_checksum "win\\bin\\bitcoin-qt.exe"
-call :update_checksum "win\\bin\\bitcoind.exe"
-call :update_checksum "win\\bin\\bitcoin-cli.exe"
-call :update_checksum "win\\bin\\bitcoin-wallet.exe"
-call :update_checksum "win\\bin\\bitcoin-tx.exe"
-call :update_checksum "win\\bin\\bitcoin-util.exe"
-call :update_checksum "win\\bin\\bitcoin.exe"
+call :update_checksum "win\\bin\\bitcoin-qt.exe" "%VERSION%"
+call :update_checksum "win\\bin\\bitcoind.exe" "%VERSION%"
+call :update_checksum "win\\bin\\bitcoin-cli.exe" "%VERSION%"
+call :update_checksum "win\\bin\\bitcoin-wallet.exe" "%VERSION%"
+call :update_checksum "win\\bin\\bitcoin-tx.exe" "%VERSION%"
+call :update_checksum "win\\bin\\bitcoin-util.exe" "%VERSION%"
+call :update_checksum "win\\bin\\bitcoin.exe" "%VERSION%"
 
 echo Bitcoin Core updated to %VERSION%
 
@@ -63,8 +63,9 @@ goto :cleanup
 
 :update_checksum
 set FILEPATH=%~1
+set VERSION_LABEL=%~2
 if not exist "%FILEPATH%" exit /b 0
-powershell -Command "& { $file = '%FILEPATH%'; $checksum = '%CHECKSUM_FILE%'; if (!(Test-Path $checksum)) { Write-Host 'Warning: checksums.sha256 not found; skipping.'; exit 0 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $lines = Get-Content $checksum; $escaped = [regex]::Escape($file); $lines = $lines | Where-Object { $_ -notmatch ('\\s' + $escaped + '$') }; $lines += \"$hash  $file\"; Set-Content -Encoding ASCII $checksum $lines }"
+powershell -Command "& { $file = '%FILEPATH%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (!(Test-Path $checksum)) { Write-Host 'Warning: checksums.sha256 not found; skipping.'; exit 0 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $entry = \"$hash  $file  version=$version\"; $lines = Get-Content $checksum; if ($lines -notcontains $entry) { $lines += $entry } $lines = $lines | Select-Object -Unique; Set-Content -Encoding ASCII $checksum $lines }"
 exit /b 0
 
 :error

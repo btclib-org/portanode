@@ -66,6 +66,7 @@ fi
 # Replace binaries
 update_checksum() {
     local file="$1"
+    local version="$2"
     local checksum_file="$ROOTDIR/checksums.sha256"
     local hash=""
     if command -v shasum >/dev/null 2>&1; then
@@ -80,8 +81,11 @@ update_checksum() {
         echo "Warning: $checksum_file not found; checksums not updated."
         return 0
     fi
-    awk -v file="$file" 'BEGIN{updated=0} $2==file{next} {print} END{}' "$checksum_file" > "${checksum_file}.tmp"
-    echo "$hash  $file" >> "${checksum_file}.tmp"
+    local entry="$hash  $file  version=$version"
+    if ! grep -Fxq "$entry" "$checksum_file"; then
+        echo "$entry" >> "$checksum_file"
+    fi
+    awk '!seen[$0]++' "$checksum_file" > "${checksum_file}.tmp"
     mv "${checksum_file}.tmp" "$checksum_file"
 }
 
@@ -94,14 +98,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     fi
     cp -R "$ROOTDIR/macos/bin/Bitcoin-Qt.app" "$BACKUP_DIR/Bitcoin-Qt.app"
     cp "${SRC_DIR}/bin/bitcoin-qt" "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
-    update_checksum "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
+    update_checksum "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$VERSION"
 elif [[ "$OSTYPE" == "msys" ]]; then
     mkdir -p "$BACKUP_DIR"
     cp "$ROOTDIR/win/bin/bitcoin"*.exe "$BACKUP_DIR/" 2>/dev/null || true
     cp "${SRC_DIR}/bin/"*.exe "$ROOTDIR/win/bin/"
     for exe in win/bin/bitcoin-qt.exe win/bin/bitcoind.exe win/bin/bitcoin-cli.exe win/bin/bitcoin-wallet.exe win/bin/bitcoin-tx.exe win/bin/bitcoin-util.exe win/bin/bitcoin.exe; do
         if [ -f "$exe" ]; then
-            update_checksum "$exe"
+            update_checksum "$exe" "$VERSION"
         fi
     done
 fi
@@ -113,7 +117,7 @@ trap - EXIT
 echo "Bitcoin Core updated to $VERSION"
 
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
-    "$SCRIPT_DIR/verify-binaries.sh"
+    bash "$SCRIPT_DIR/verify-binaries.sh"
 else
     echo "Warning: verify-binaries.sh not found or not executable; skipping verification."
 fi
