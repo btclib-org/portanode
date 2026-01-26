@@ -7,8 +7,8 @@ if [ ! -d "${ROOTDIR}/macos/bin" ]; then
     exit 1
 fi
 
-if [ ! -x "${ROOTDIR}/macos/bin/Electrum.app/Contents/MacOS/Electrum" ]; then
-    echo "Error: Binary not executable at ${ROOTDIR}/macos/bin/Electrum.app/Contents/MacOS/Electrum"
+if [ ! -x "${ROOTDIR}/macos/bin/Electrum.app/Contents/MacOS/run_electrum" ] && [ ! -x "${ROOTDIR}/macos/bin/Electrum.app/Contents/MacOS/Electrum" ]; then
+    echo "Error: Electrum executable not found in ${ROOTDIR}/macos/bin/Electrum.app/Contents/MacOS"
     exit 1
 fi
 
