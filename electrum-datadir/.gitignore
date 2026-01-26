@@ -10,3 +10,15 @@ Thumbs.db
 
 # Temporary files
 *.tmp
+
+# Electrum runtime artifacts
+/blockchain_headers/
+/cache/
+/certs/
+/daemon/
+/forks/
+/plugins/
+/recent_servers
+/config
+/testnet/
+/regtest/
