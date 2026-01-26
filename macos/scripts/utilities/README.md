@@ -35,6 +35,7 @@ This directory contains macOS maintenance and utility scripts for PortaNode. Win
 - Run scripts from the project root (e.g., `./macos/scripts/utilities/script.sh`).
 - Most scripts require internet for downloads; ensure connectivity.
 - Backups are stored in `macos/bin-backup/` and `win/bin-backup/`; rollbacks depend on these.
+- Update scripts place temporary downloads under `macos/bin/.tmp-downloads/` or `win/bin/.tmp-downloads/` and clean them on exit.
 - For Windows scripts, use Command Prompt or PowerShell.
 - Check script output for errors; refer to main README.md for troubleshooting.
 

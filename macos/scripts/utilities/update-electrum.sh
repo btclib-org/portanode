@@ -4,9 +4,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-BACKUP_DIR="$ROOTDIR/macos/bin-backup/electrum"
 TMPDIR="$ROOTDIR/macos/bin/.tmp-downloads/electrum"
 cd "$ROOTDIR"
+trap 'rm -rf "$TMPDIR"' EXIT
 
 echo "Updating Electrum..."
 
@@ -14,9 +14,11 @@ echo "Updating Electrum..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="macos"
     EXT="dmg"
+    BACKUP_DIR="$ROOTDIR/macos/bin-backup/electrum"
 elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
     OS="windows"
     EXT="exe"
+    BACKUP_DIR="$ROOTDIR/win/bin-backup/electrum"
 else
     echo "Unsupported OS"
     exit 1
@@ -81,15 +83,15 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     hdiutil detach "$MOUNT_POINT" >/dev/null
     update_checksum "macos/bin/Electrum.app/Contents/MacOS/run_electrum"
 elif [[ "$OSTYPE" == "msys" ]]; then
-    BACKUP_DIR="$ROOTDIR/win/bin-backup/electrum"
     mkdir -p "$BACKUP_DIR"
     cp "$ROOTDIR/win/bin/electrum.exe" "$BACKUP_DIR/" 2>/dev/null || true
-    cp "$OUT_FILE" "$ROOTDIR/win/bin/electrum.exe"
+    cp "$TMPDIR/$OUT_FILE" "$ROOTDIR/win/bin/electrum.exe"
     update_checksum "win/bin/electrum.exe"
 fi
 
 # Cleanup
 rm -rf "$TMPDIR"
+trap - EXIT
 
 echo "Electrum updated to $VERSION"
 

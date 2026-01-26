@@ -4,9 +4,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-BACKUP_DIR="$ROOTDIR/win/bin-backup/bitcoin"
 TMPDIR="$ROOTDIR/macos/bin/.tmp-downloads/bitcoin"
 cd "$ROOTDIR"
+trap 'rm -rf "$TMPDIR"' EXIT
 
 echo "Updating Bitcoin Core..."
 
@@ -17,6 +17,7 @@ VERSION="30.2"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="apple-darwin"
     EXT="tar.gz"
+    BACKUP_DIR="$ROOTDIR/macos/bin-backup/bitcoin"
     ARCH="$(uname -m)"
     if [ "$ARCH" = "arm64" ]; then
         FILE="bitcoin-${VERSION}-arm64-${OS}.${EXT}"
@@ -27,6 +28,7 @@ elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
     OS="win64"
     EXT="zip"
     FILE="bitcoin-${VERSION}-${OS}.${EXT}"
+    BACKUP_DIR="$ROOTDIR/win/bin-backup/bitcoin"
 else
     echo "Unsupported OS"
     exit 1
@@ -106,6 +108,7 @@ fi
 
 # Cleanup
 rm -rf "$TMPDIR"
+trap - EXIT
 
 echo "Bitcoin Core updated to $VERSION"
 

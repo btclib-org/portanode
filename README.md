@@ -72,6 +72,7 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - On Windows, use `win\\scripts\\utilities\\rollback-bitcoin.bat` and `win\\scripts\\utilities\\rollback-electrum.bat`.
 - Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
  - **Backup/Rollback**: Rollback scripts depend on backups created by update scripts—test the full update→rollback cycle after changes.
+ - **Checksums**: `checksums.sha256` is updated by the update scripts to reflect the currently installed binaries.
 
 ## Troubleshooting
 
