@@ -15,6 +15,7 @@ win\bin\bitcoin-qt.exe ^
 win\bin\bitcoind.exe ^
 win\bin\bitcoin-cli.exe ^
 win\bin\bitcoin-tx.exe ^
+win\bin\bitcoin-util.exe ^
 win\bin\bitcoin-wallet.exe ^
 win\bin\electrum.exe
 
