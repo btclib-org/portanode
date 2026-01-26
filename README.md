@@ -10,7 +10,7 @@ Version: 2026.01.26 (Calendar Versioning)
 ## Prerequisites
 
 - **Operating System**: macOS 10.15+ or Windows 10+.
-- **Disk Space**: At least 500GB free for Bitcoin Core data (mainnet); more for full sync. Regtest/testnet require less.
+- **Disk Space**: At least 700GB free for Bitcoin Core data (mainnet) full sync. Regtest/testnet require less.
 - **Permissions**: Ensure the external disk is mounted and writable. On macOS, scripts may need executable permissions (run `chmod +x macos/scripts/**/*.command` if needed).
 - **Dependencies**: None required beyond standard OS tools. For advanced use, ensure Python (for Electrum) and command-line tools are available.
 
@@ -19,9 +19,8 @@ Version: 2026.01.26 (Calendar Versioning)
 1. Mount your external disk and navigate to the PortaNode folder.
 2. For macOS: Double-click a script in `macos/scripts/bitcoin/` or `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
 3. For Windows: Double-click a script in `win/scripts/bitcoin/` or `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
-4. Use `Launcher.command` (macOS), `Launcher.bat` (Windows), or `Launcher.ps1` (PowerShell) for a menu-based launcher. `Launcher.sh` is a cross-platform entrypoint when using a shell.
-5. Additional root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command`, `.bat`, `.ps1`, or `.sh` for your OS).
-6. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
+4. Root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command`, `.bat`, `.ps1`, or `.sh` for your OS).
+5. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
 ## Launcher Notes
 
@@ -34,11 +33,15 @@ Version: 2026.01.26 (Calendar Versioning)
 
 - `macos/`
   - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
+    - `Bitcoin-Qt.app/`: Bitcoin Core app bundle.
+    - `Electrum.app/`: Electrum app bundle.
+    - `.tmp-downloads/`: Temporary downloads used by update scripts.
   - `bin/backup/`: macOS backups created by update scripts (see `macos/bin/backup/README.md`).
   - `checksums.sha256`: macOS checksums (versioned).
   - `scripts/`
     - `bitcoin/`: Bitcoin Core launch scripts (.command). See `macos/scripts/bitcoin/README.md`.
     - `electrum/`: Electrum launch scripts (.command). See `macos/scripts/electrum/README.md`.
+    - `utilities/`: macOS maintenance scripts (updates, verification, cleanup, logs).
 
 - `win/`
   - `bin/`: Windows binaries (e.g., `electrum.exe`).
@@ -47,13 +50,10 @@ Version: 2026.01.26 (Calendar Versioning)
   - `scripts/`
     - `bitcoin/`: Bitcoin Core launch scripts (.bat). See `win/scripts/bitcoin/README.md`.
     - `electrum/`: Electrum launch scripts (.bat). See `win/scripts/electrum/README.md`.
+    - `utilities/`: Windows maintenance scripts (updates, verification, cleanup, logs).
 
 - `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
-- `macos/scripts/utilities/`: macOS maintenance scripts (updates, verification, cleanup, logs).
-- `win/scripts/utilities/`: Windows maintenance scripts (updates, verification, cleanup, logs).
-- `macos/bin/backup/`: Backups created by update scripts (Electrum.app, Bitcoin-Qt.app).
-- `win/bin/backup/`: Backups created by update scripts (Windows .exe files).
 
 ## Detailed Setup
 
@@ -75,24 +75,29 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 
 ## Updating Binaries
 
-- **Bitcoin Core**: Download latest from [bitcoincore.org](https://bitcoincore.org/en/download/). Replace files in `macos/bin/Bitcoin-Qt.app` or `win/bin/bitcoin-*.exe`.
-- **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace `Electrum.app` or `electrum.exe`.
+- **Bitcoin Core**: Download latest from [bitcoincore.org](https://bitcoincore.org/en/download/). Replace the files `macos/bin/Bitcoin-Qt.app/` or `win/bin/bitcoin-*.exe`.
+- **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace the files `macos/bin/Electrum.app/` or `win/bin/electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
 - If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core and Electrum downloads.
   - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
   - **Electrum signing key**: obtain the release signing key from electrum.org (Download page) and import with `gpg --import`.
 - After update, test with regtest scripts.
-- Use `./macos/scripts/utilities/update-bitcoin.sh` or `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up old versions).
-- On Windows, use `win\\scripts\\utilities\\update-bitcoin.bat` and `win\\scripts\\utilities\\update-electrum.bat`.
-- Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or `./macos/scripts/utilities/rollback-electrum.sh` if issues occur.
-- On Windows, use `win\\scripts\\utilities\\rollback-bitcoin.bat` and `win\\scripts\\utilities\\rollback-electrum.bat`.
-- Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
-- On Windows, use `win\\scripts\\utilities\\validate-setup.bat`.
- - **Backup/Rollback**: Rollback scripts depend on backups created by update scripts—test the full update→rollback cycle after changes.
+- On MacOs, update using `./macos/scripts/utilities/update-bitcoin.sh` or `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up old versions).  
+Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or `./macos/scripts/utilities/rollback-electrum.sh` if issues occur.  
+Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
+- On Windows, update using `win\\scripts\\utilities\\update-bitcoin.bat` and `win\\scripts\\utilities\\update-electrum.bat`.  
+Rollback with `win\\scripts\\utilities\\rollback-bitcoin.bat` and `win\\scripts\\utilities\\rollback-electrum.bat`.  
+Validate setup with `win\\scripts\\utilities\\validate-setup.bat`.
+ - **Backup/Rollback**: Rollback scripts depend on backups created by update scripts.
 - **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep ever-growing lists of acceptable hashes labeled by version; update scripts append new entries and deduplicate exact duplicates.
  - **Signing Keys**:
    - Bitcoin Core: import keys from `contrib/builder-keys/keys.txt` in the official Bitcoin Core repo. Verify fingerprints before trust.
    - Electrum: import the release signing key from electrum.org Download page. Verify the fingerprint published there.
+
+### Expected Binaries by OS
+
+- **macOS (`macos/bin/`)**: `Bitcoin-Qt.app/`, `Electrum.app/` (see `macos/bin/README.md`)
+- **Windows (`win/bin/`)**: `bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`, `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`, `electrum.exe` (see `win/bin/README.md`)
 
 ## Troubleshooting
 

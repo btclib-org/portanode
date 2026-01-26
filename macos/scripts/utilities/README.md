@@ -37,8 +37,8 @@ This directory contains macOS maintenance and utility scripts for PortaNode.
 - `macos/checksums.sha256` is append-only: new verified hashes are added with `version=<x>` and exact duplicates are pruned.
 - Update scripts place temporary downloads under `macos/bin/.tmp-downloads/` and clean them on exit.
 - Cleanup scripts are OS-specific; macOS cleanup only targets macOS artifacts.
-- Root launchers `Launcher.command` and `Launcher.sh` provide a menu to start common scripts from the repo root.
-- Root launchers are also available for specific areas: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command` or `.sh` for macOS).
+- Health checks rely on process listing; some sandboxed environments may restrict this and reduce detection accuracy.
+- Root launchers are available for specific areas: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command` or `.sh` for macOS).
 - Check script output for errors; refer to main README.md for troubleshooting.
 
 ## Dependencies
