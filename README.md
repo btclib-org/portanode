@@ -27,15 +27,15 @@ Version: 2026.01.26 (Calendar Versioning)
   - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
   - `bin-backup/`: macOS backups created by update scripts (see `macos/bin-backup/README.md`).
   - `scripts/`
-    - `bitcoin/`: Bitcoin Core launch scripts (.command).
-    - `electrum/`: Electrum launch scripts (.command).
+    - `bitcoin/`: Bitcoin Core launch scripts (.command). See `macos/scripts/bitcoin/README.md`.
+    - `electrum/`: Electrum launch scripts (.command). See `macos/scripts/electrum/README.md`.
 
 - `win/`
   - `bin/`: Windows binaries (e.g., `electrum.exe`).
   - `bin-backup/`: Windows backups created by update scripts (see `win/bin-backup/README.md`).
   - `scripts/`
-    - `bitcoin/`: Bitcoin Core launch scripts (.bat).
-    - `electrum/`: Electrum launch scripts (.bat).
+    - `bitcoin/`: Bitcoin Core launch scripts (.bat). See `win/scripts/bitcoin/README.md`.
+    - `electrum/`: Electrum launch scripts (.bat). See `win/scripts/electrum/README.md`.
 
 - `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
@@ -115,6 +115,7 @@ This is an open-source project. To contribute:
 ## Security Notes
 
 - **Binary Integrity**: Verify binaries with `macos/scripts/utilities/verify-binaries.sh` (macOS) or `win/scripts/utilities/verify-binaries.bat` (Windows) after downloads.
+  - Each verification script checks only its platform’s binaries.
 - **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and `electrum-datadir/wallets/`. Use encrypted storage.
 - **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to localhost only and use strong passwords. Configure firewall to restrict access.
 - **Permissions**: Set restrictive permissions on data directories: `./macos/scripts/utilities/set-permissions.sh` or `win\\scripts\\utilities\\set-permissions.bat`.
