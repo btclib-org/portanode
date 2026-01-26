@@ -12,10 +12,10 @@ Thumbs.db
 *.tmp
 
 # Electrum runtime artifacts
-/blockchain_headers/
+/blockchain_headers
 /cache/
 /certs/
-/daemon/
+/daemon
 /forks/
 /plugins/
 /recent_servers
