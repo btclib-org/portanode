@@ -3,8 +3,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 BACKUP_DIR="$ROOTDIR/win/bin-backup/bitcoin"
+TMPDIR="$ROOTDIR/macos/bin/.tmp-downloads/bitcoin"
 cd "$ROOTDIR"
 
 echo "Updating Bitcoin Core..."
@@ -34,17 +35,18 @@ fi
 URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/${FILE}"
 CHECKSUM_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS"
 
+mkdir -p "$TMPDIR"
 echo "Downloading $URL..."
-curl -O "$URL"
-curl -O "$CHECKSUM_URL"
+curl -L -o "$TMPDIR/$FILE" "$URL"
+curl -L -o "$TMPDIR/SHA256SUMS" "$CHECKSUM_URL"
 
 # Verify
 if command -v shasum >/dev/null 2>&1; then
-    grep "$FILE" SHA256SUMS > SHA256SUMS.filtered
-    shasum -a 256 -c SHA256SUMS.filtered || { echo "Checksum failed"; exit 1; }
+    grep "$FILE" "$TMPDIR/SHA256SUMS" > "$TMPDIR/SHA256SUMS.filtered"
+    (cd "$TMPDIR" && shasum -a 256 -c SHA256SUMS.filtered) || { echo "Checksum failed"; exit 1; }
 elif command -v sha256sum >/dev/null 2>&1; then
-    grep "$FILE" SHA256SUMS > SHA256SUMS.filtered
-    sha256sum -c SHA256SUMS.filtered || { echo "Checksum failed"; exit 1; }
+    grep "$FILE" "$TMPDIR/SHA256SUMS" > "$TMPDIR/SHA256SUMS.filtered"
+    (cd "$TMPDIR" && sha256sum -c SHA256SUMS.filtered) || { echo "Checksum failed"; exit 1; }
 else
     echo "Error: Neither shasum nor sha256sum found."
     exit 1
@@ -52,11 +54,11 @@ fi
 
 # Extract
 if [ "$EXT" = "tar.gz" ]; then
-    tar -xzf "$FILE"
-    SRC_DIR="bitcoin-${VERSION}"
+    tar -xzf "$TMPDIR/$FILE" -C "$TMPDIR"
+    SRC_DIR="$TMPDIR/bitcoin-${VERSION}"
 else
-    unzip "$FILE"
-    SRC_DIR="bitcoin-${VERSION}"
+    unzip "$TMPDIR/$FILE" -d "$TMPDIR"
+    SRC_DIR="$TMPDIR/bitcoin-${VERSION}"
 fi
 
 # Replace binaries
@@ -103,7 +105,7 @@ elif [[ "$OSTYPE" == "msys" ]]; then
 fi
 
 # Cleanup
-rm -rf "$SRC_DIR" "$FILE" SHA256SUMS SHA256SUMS.filtered
+rm -rf "$TMPDIR"
 
 echo "Bitcoin Core updated to $VERSION"
 

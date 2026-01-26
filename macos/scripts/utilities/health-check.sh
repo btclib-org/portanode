@@ -2,7 +2,7 @@
 # Health check for PortaNode
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 echo "Running health checks..."
 

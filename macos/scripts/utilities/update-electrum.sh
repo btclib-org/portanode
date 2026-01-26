@@ -3,8 +3,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 BACKUP_DIR="$ROOTDIR/macos/bin-backup/electrum"
+TMPDIR="$ROOTDIR/macos/bin/.tmp-downloads/electrum"
 cd "$ROOTDIR"
 
 echo "Updating Electrum..."
@@ -37,8 +38,9 @@ elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
     OUT_FILE="electrum-${VERSION}-portable.exe"
 fi
 
+mkdir -p "$TMPDIR"
 echo "Downloading $URL..."
-curl -L -o "$OUT_FILE" "$URL"
+curl -L -o "$TMPDIR/$OUT_FILE" "$URL"
 
 update_checksum() {
     local file="$1"
@@ -68,7 +70,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     fi
     mkdir -p "$BACKUP_DIR"
     cp -R "$ROOTDIR/macos/bin/Electrum.app" "$BACKUP_DIR/Electrum.app"
-    MOUNT_INFO="$(hdiutil attach -nobrowse "$OUT_FILE")"
+    MOUNT_INFO="$(hdiutil attach -nobrowse "$TMPDIR/$OUT_FILE")"
     MOUNT_POINT="$(echo "$MOUNT_INFO" | tail -n 1 | awk '{print $3}')"
     if [ -z "$MOUNT_POINT" ]; then
         echo "Failed to mount Electrum DMG."
@@ -87,7 +89,7 @@ elif [[ "$OSTYPE" == "msys" ]]; then
 fi
 
 # Cleanup
-rm "$OUT_FILE"
+rm -rf "$TMPDIR"
 
 echo "Electrum updated to $VERSION"
 

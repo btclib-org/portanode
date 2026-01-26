@@ -3,12 +3,12 @@ setlocal enabledelayedexpansion
 REM Update Electrum binaries (Windows)
 
 set SCRIPT_DIR=%~dp0
-set ROOTDIR=%SCRIPT_DIR%..
+set ROOTDIR=%SCRIPT_DIR%..\..\..
 for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
 pushd "%ROOTDIR%" >nul 2>&1
 
 set CHECKSUM_FILE=%ROOTDIR%\checksums.sha256
-set TMPDIR=%TEMP%\portanode-electrum-update
+set TMPDIR=%ROOTDIR%\win\bin\.tmp-downloads\electrum
 set STATUS=0
 
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"

@@ -37,7 +37,8 @@ Version: 2026.01.26 (Calendar Versioning)
 
 - `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
-- `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
+- `macos/scripts/utilities/`: macOS maintenance scripts (updates, verification, cleanup, logs).
+- `win/scripts/utilities/`: Windows maintenance scripts (updates, verification, cleanup, logs).
 - `macos/bin-backup/`: Backups created by update scripts (Electrum.app, Bitcoin-Qt.app).
 - `win/bin-backup/`: Backups created by update scripts (Windows .exe files).
 
@@ -65,11 +66,11 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace `Electrum.app` or `electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
 - After update, test with regtest scripts.
-- Use `./utilities/update-bitcoin.sh` or `./utilities/update-electrum.sh` for automated updates (backs up old versions).
-- On Windows, use `utilities\\update-bitcoin.bat` and `utilities\\update-electrum.bat`.
-- Rollback with `./utilities/rollback-bitcoin.sh` or `./utilities/rollback-electrum.sh` if issues occur.
-- On Windows, use `utilities\\rollback-bitcoin.bat` and `utilities\\rollback-electrum.bat`.
-- Validate setup with `./utilities/validate-setup.sh` after updates.
+- Use `./macos/scripts/utilities/update-bitcoin.sh` or `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up old versions).
+- On Windows, use `win\\scripts\\utilities\\update-bitcoin.bat` and `win\\scripts\\utilities\\update-electrum.bat`.
+- Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or `./macos/scripts/utilities/rollback-electrum.sh` if issues occur.
+- On Windows, use `win\\scripts\\utilities\\rollback-bitcoin.bat` and `win\\scripts\\utilities\\rollback-electrum.bat`.
+- Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
  - **Backup/Rollback**: Rollback scripts depend on backups created by update scripts—test the full update→rollback cycle after changes.
 
 ## Troubleshooting
@@ -86,8 +87,8 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - Bitcoin: `bitcoin-datadir/debug.log`
 - Electrum: Check terminal output or `electrum-datadir/` for logs.
 - Run scripts from terminal for verbose output: `bash macos/scripts/bitcoin/mainnet-8333-qt.command` or `win\scripts\bitcoin\mainnet-8333-qt.bat`.
-- Rotate logs: `./utilities/rotate-bitcoin-log.sh`
-- Monitor logs: `./utilities/monitor-bitcoin-log.sh` (run periodically to check for errors)
+- Rotate logs: `./macos/scripts/utilities/rotate-bitcoin-log.sh`
+- Monitor logs: `./macos/scripts/utilities/monitor-bitcoin-log.sh` (run periodically to check for errors)
 
 ### Getting Help
 - Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum Docs](https://electrum.readthedocs.io/).
@@ -109,8 +110,8 @@ This is an open-source project. To contribute:
 
 ## Security Notes
 
-- **Binary Integrity**: Verify binaries with `utilities/verify-binaries.sh` (macOS) or `utilities/verify-binaries.bat` (Windows) after downloads.
+- **Binary Integrity**: Verify binaries with `macos/scripts/utilities/verify-binaries.sh` (macOS) or `win/scripts/utilities/verify-binaries.bat` (Windows) after downloads.
 - **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and `electrum-datadir/wallets/`. Use encrypted storage.
 - **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to localhost only and use strong passwords. Configure firewall to restrict access.
-- **Permissions**: Set restrictive permissions on data directories: `./utilities/set-permissions.sh`.
-- **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are ignored by `.gitignore`. Run `./utilities/clean-artifacts.sh` to remove existing ones.
+- **Permissions**: Set restrictive permissions on data directories: `./macos/scripts/utilities/set-permissions.sh`.
+- **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` to remove existing ones.

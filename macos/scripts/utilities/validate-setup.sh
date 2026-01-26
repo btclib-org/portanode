@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 echo "Validating PortaNode setup..."
 

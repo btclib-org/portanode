@@ -2,7 +2,7 @@
 # Rotate Bitcoin debug log
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 LOG_FILE="$ROOTDIR/bitcoin-datadir/debug.log"
 MAX_ROTATIONS=5
 

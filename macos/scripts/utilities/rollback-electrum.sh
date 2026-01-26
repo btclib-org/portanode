@@ -2,7 +2,7 @@
 # Rollback Electrum binaries to previous version
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 BACKUP_DIR="$ROOTDIR/macos/bin-backup/electrum"
 
 if [ ! -d "$BACKUP_DIR" ]; then
@@ -15,7 +15,8 @@ echo "Rolling back Electrum binaries..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
     if [ -d "$BACKUP_DIR/Electrum.app" ]; then
         rm -rf "$ROOTDIR/macos/bin/Electrum.app"
-        cp -R "$BACKUP_DIR/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
+        mv "$BACKUP_DIR/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
+        rmdir "$BACKUP_DIR" 2>/dev/null || true
     else
         echo "Electrum.app not found in backup"
         exit 1
@@ -25,7 +26,7 @@ elif [[ "$OSTYPE" == "msys" ]]; then
     cp "$BACKUP_DIR/electrum.exe" "$ROOTDIR/win/bin/" 2>/dev/null || echo "electrum.exe not found in backup"
 fi
 
-echo "Rollback complete. Run utilities/validate-setup.sh to verify."
+echo "Rollback complete. Run macos/scripts/utilities/validate-setup.sh to verify."
 
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
     "$SCRIPT_DIR/verify-binaries.sh"

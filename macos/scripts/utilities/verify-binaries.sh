@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 CHECKSUM_FILE="$ROOTDIR/checksums.sha256"
 
 if [ ! -f "$CHECKSUM_FILE" ]; then

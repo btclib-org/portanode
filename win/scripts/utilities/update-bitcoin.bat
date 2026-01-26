@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 REM Update Bitcoin Core binaries (Windows)
 
 set SCRIPT_DIR=%~dp0
-set ROOTDIR=%SCRIPT_DIR%..
+set ROOTDIR=%SCRIPT_DIR%..\..\..
 for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
 pushd "%ROOTDIR%" >nul 2>&1
 
@@ -13,7 +13,7 @@ set URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/%FILE%
 set CHECKSUM_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/SHA256SUMS
 set CHECKSUM_FILE=%ROOTDIR%\checksums.sha256
 
-set TMPDIR=%TEMP%\portanode-bitcoin-update
+set TMPDIR=%ROOTDIR%\win\bin\.tmp-downloads\bitcoin
 set STATUS=0
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir "%TMPDIR%"

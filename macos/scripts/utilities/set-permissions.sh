@@ -2,7 +2,7 @@
 # Set secure permissions for PortaNode data directories
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 echo "Setting restrictive permissions on data directories..."
 

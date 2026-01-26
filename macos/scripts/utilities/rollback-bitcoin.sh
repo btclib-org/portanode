@@ -2,7 +2,7 @@
 # Rollback Bitcoin binaries to previous version
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 BACKUP_DIR="$ROOTDIR/win/bin-backup/bitcoin"
 
 if [ ! -d "$BACKUP_DIR" ]; then
@@ -16,7 +16,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     BACKUP_DIR="$ROOTDIR/macos/bin-backup/bitcoin"
     if [ -d "$BACKUP_DIR/Bitcoin-Qt.app" ]; then
         rm -rf "$ROOTDIR/macos/bin/Bitcoin-Qt.app"
-        cp -R "$BACKUP_DIR/Bitcoin-Qt.app" "$ROOTDIR/macos/bin/Bitcoin-Qt.app"
+        mv "$BACKUP_DIR/Bitcoin-Qt.app" "$ROOTDIR/macos/bin/Bitcoin-Qt.app"
+        rmdir "$BACKUP_DIR" 2>/dev/null || true
     else
         echo "Bitcoin-Qt.app not found in backup"
         exit 1
@@ -25,7 +26,7 @@ elif [[ "$OSTYPE" == "msys" ]]; then
     cp "$BACKUP_DIR/"*.exe "$ROOTDIR/win/bin/" 2>/dev/null || echo "Executables not found in backup"
 fi
 
-echo "Rollback complete. Run utilities/validate-setup.sh to verify."
+echo "Rollback complete. Run macos/scripts/utilities/validate-setup.sh to verify."
 
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
     "$SCRIPT_DIR/verify-binaries.sh"
