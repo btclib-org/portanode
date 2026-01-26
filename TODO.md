@@ -1,6 +1,5 @@
 # Suggested Fixes
 
-Update README.md chmod line to include run_electrum.
 
 # Possible Improvements
 

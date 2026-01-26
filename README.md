@@ -11,7 +11,7 @@ Version: 2026.01.26 (Calendar Versioning)
 
 - **Operating System**: macOS 10.15+ or Windows 10+.
 - **Disk Space**: At least 700GB free for Bitcoin Core data (mainnet) full sync. Regtest/testnet require less.
-- **Permissions**: Ensure the external disk is mounted and writable. On macOS, scripts may need executable permissions (run `chmod +x macos/scripts/**/*.command` if needed).
+- **Permissions**: Ensure the external disk is mounted and writable. On macOS, scripts may need executable permissions (run `chmod +x macos/scripts/**/*.command macos/bin/Electrum.app/Contents/MacOS/run_electrum` if needed).
 - **Dependencies**: None required beyond standard OS tools. For advanced use, ensure Python (for Electrum) and command-line tools are available.
 
 ## Quick Start
@@ -103,7 +103,7 @@ Validate setup with `win\\scripts\\utilities\\validate-setup.bat`.
 
 ### Common Issues
 - **Script fails with "Binary not found"**: Ensure binaries are in `macos/bin/` or `win/bin/`. Check permissions.
-- **Permission denied on macOS**: Run `chmod +x macos/scripts/**/*.command`.
+- **Permission denied on macOS**: Run `chmod +x macos/scripts/**/*.command macos/bin/Electrum.app/Contents/MacOS/run_electrum`.
 - **Disk space errors**: Free up space or use pruning in `bitcoin.conf` (`prune=550` for ~550MB blocks).
 - **Sync issues**: Check logs in `bitcoin-datadir/debug.log`. For Electrum, check console output.
 - **Regtest not connecting**: Ensure all regtest scripts are run (Alice, Bob, Carol) and ports are open.
