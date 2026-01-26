@@ -10,6 +10,12 @@ trap 'rm -rf "$TMPDIR"' EXIT
 
 echo "Updating Bitcoin Core..."
 
+# Prevent updates while running
+if pgrep -f "bitcoind\\|bitcoin-qt" > /dev/null; then
+    echo "Error: Bitcoin Core is running. Stop it before updating."
+    exit 1
+fi
+
 # Get latest version from API (pinned for reliability)
 VERSION="30.2"
 

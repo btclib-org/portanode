@@ -16,6 +16,13 @@ mkdir "%TMPDIR%"
 
 echo Updating Electrum...
 
+tasklist /fi "imagename eq electrum.exe" | find /i "electrum.exe" >nul
+if %errorlevel%==0 (
+    echo Error: Electrum is running. Stop it before updating.
+    popd >nul 2>&1
+    exit /b 1
+)
+
 for /f "usebackq delims=" %%V in (`powershell -Command "& { $html = (Invoke-WebRequest -Uri 'https://electrum.org/' -UseBasicParsing).Content; $m = [regex]::Match($html, 'Latest release: Electrum-([0-9.]+)'); if ($m.Success) { $m.Groups[1].Value } }"`) do set VERSION=%%V
 
 if "%VERSION%"=="" (

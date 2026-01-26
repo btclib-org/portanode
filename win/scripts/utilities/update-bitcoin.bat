@@ -20,6 +20,19 @@ if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir "%TMPDIR%"
 
 echo Updating Bitcoin Core to %VERSION%...
+
+tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
+if %errorlevel%==0 (
+    echo Error: Bitcoin Core is running. Stop it before updating.
+    popd >nul 2>&1
+    exit /b 1
+)
+tasklist /fi "imagename eq bitcoin-qt.exe" | find /i "bitcoin-qt.exe" >nul
+if %errorlevel%==0 (
+    echo Error: Bitcoin Core is running. Stop it before updating.
+    popd >nul 2>&1
+    exit /b 1
+)
 echo Downloading %URL%...
 powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" || goto :error
 powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\\SHA256SUMS' }" || goto :error

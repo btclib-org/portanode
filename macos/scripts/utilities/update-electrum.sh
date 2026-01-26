@@ -10,6 +10,12 @@ trap 'rm -rf "$TMPDIR"' EXIT
 
 echo "Updating Electrum..."
 
+# Prevent updates while running
+if pgrep -f "electrum" > /dev/null; then
+    echo "Error: Electrum is running. Stop it before updating."
+    exit 1
+fi
+
 # Detect OS
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="macos"
