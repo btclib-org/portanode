@@ -26,7 +26,7 @@ else
     exit 1
 fi
 
-echo "Rollback complete. Run macos/scripts/utilities/validate-setup.sh to verify."
+echo "Rollback complete. Run macos/scripts/utilities/validate-setup.sh to verify (macOS only)."
 
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
     bash "$SCRIPT_DIR/verify-binaries.sh"

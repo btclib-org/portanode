@@ -18,6 +18,10 @@ else
 fi
 
 # Bitcoin status
+PGREP_OUTPUT="$(pgrep -f -i "bitcoind\\|bitcoin-qt\\|bitcoin qt\\|bitcoin-qt.app" 2>&1 || true)"
+if echo "$PGREP_OUTPUT" | grep -qi "cannot get process list"; then
+    echo "Note: process listing unavailable; falling back to CLI/artifacts."
+fi
 BTC_CLI=""
 if [ -x "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/bitcoin-cli" ]; then
     BTC_CLI="$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/bitcoin-cli"
@@ -38,7 +42,7 @@ if [ -n "$BTC_CLI" ]; then
     fi
 fi
 
-if [ "$BTC_RUNNING" != "yes" ] && pgrep -f -i "bitcoind\\|bitcoin-qt\\|bitcoin qt\\|bitcoin-qt.app" > /dev/null; then
+if [ "$BTC_RUNNING" != "yes" ] && echo "$PGREP_OUTPUT" | grep -qi "^[0-9]"; then
     BTC_RUNNING="yes"
     BTC_METHOD="pgrep"
 fi

@@ -10,6 +10,11 @@ pushd "%ROOTDIR%" >nul 2>&1
 
 echo Health Check
 
+tasklist /fi "imagename eq explorer.exe" >nul 2>&1
+if not "%errorlevel%"=="0" (
+    echo Note: process listing unavailable; detection may be incomplete.
+)
+
 set "MOUNT_PATH=%ROOTDIR%"
 for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
 if defined FREE_BYTES (

@@ -14,7 +14,8 @@ if not exist "%LOG_FILE%" (
     exit /b 0
 )
 
-for /l %%I in (%MAX_ROTATIONS%,-1,1) do (
+set /a START=%MAX_ROTATIONS%-1
+for /l %%I in (%START%,-1,1) do (
     if exist "%LOG_FILE%.%%I" (
         set /a NEXT=%%I+1
         ren "%LOG_FILE%.%%I" "debug.log.!NEXT!"

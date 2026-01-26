@@ -6,6 +6,11 @@ ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 LOG_FILE="$ROOTDIR/bitcoin-datadir/debug.log"
 LAST_CHECK_FILE="$ROOTDIR/.last_log_check"
 
+if [ ! -f "$LOG_FILE" ]; then
+    echo "Log file not found: $LOG_FILE"
+    exit 0
+fi
+
 # Get last checked line
 if [ -f "$LAST_CHECK_FILE" ]; then
     LAST_LINE=$(cat "$LAST_CHECK_FILE")
