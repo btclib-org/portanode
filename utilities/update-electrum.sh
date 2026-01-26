@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BACKUP_DIR="$ROOTDIR/bin-backup/electrum"
+BACKUP_DIR="$ROOTDIR/macos/bin-backup/electrum"
 cd "$ROOTDIR"
 
 echo "Updating Electrum..."
@@ -79,6 +79,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     hdiutil detach "$MOUNT_POINT" >/dev/null
     update_checksum "macos/bin/Electrum.app/Contents/MacOS/run_electrum"
 elif [[ "$OSTYPE" == "msys" ]]; then
+    BACKUP_DIR="$ROOTDIR/win/bin-backup/electrum"
     mkdir -p "$BACKUP_DIR"
     cp "$ROOTDIR/win/bin/electrum.exe" "$BACKUP_DIR/" 2>/dev/null || true
     cp "$OUT_FILE" "$ROOTDIR/win/bin/electrum.exe"

@@ -38,6 +38,8 @@ Version: 2026.01.26 (Calendar Versioning)
 - `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
 - `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
+- `macos/bin-backup/`: Backups created by update scripts (Electrum.app, Bitcoin-Qt.app).
+- `win/bin-backup/`: Backups created by update scripts (Windows .exe files).
 
 ## Detailed Setup
 
@@ -59,12 +61,16 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 
 ## Updating Binaries
 
-- **Bitcoin Core**: Download latest from [bitcoin.org](https://bitcoin.org/en/download). Replace files in `macos/bin/Bitcoin-Qt.app` or `win/bin/bitcoin-*.exe`.
+- **Bitcoin Core**: Download latest from [bitcoincore.org](https://bitcoincore.org/en/download/). Replace files in `macos/bin/Bitcoin-Qt.app` or `win/bin/bitcoin-*.exe`.
 - **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace `Electrum.app` or `electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
 - After update, test with regtest scripts.
 - Use `./utilities/update-bitcoin.sh` or `./utilities/update-electrum.sh` for automated updates (backs up old versions).
+- On Windows, use `utilities\\update-bitcoin.bat` and `utilities\\update-electrum.bat`.
 - Rollback with `./utilities/rollback-bitcoin.sh` or `./utilities/rollback-electrum.sh` if issues occur.
+- On Windows, use `utilities\\rollback-bitcoin.bat` and `utilities\\rollback-electrum.bat`.
+- Validate setup with `./utilities/validate-setup.sh` after updates.
+ - **Backup/Rollback**: Rollback scripts depend on backups created by update scripts—test the full update→rollback cycle after changes.
 
 ## Troubleshooting
 
@@ -89,8 +95,8 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 
 ## Version Compatibility
 
-- **Bitcoin Core**: Bundled version ~25.x (check `bitcoin-cli --version`).
-- **Electrum**: Bundled version ~4.x (check `electrum --version`).
+- **Bitcoin Core**: Check `bitcoin-cli --version`.
+- **Electrum**: Check `electrum --version`.
 - Compatible with macOS 10.15+, Windows 10+. Test on your setup.
 
 ## Contributing
@@ -106,5 +112,5 @@ This is an open-source project. To contribute:
 - **Binary Integrity**: Verify binaries with `utilities/verify-binaries.sh` (macOS) or `utilities/verify-binaries.bat` (Windows) after downloads.
 - **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and `electrum-datadir/wallets/`. Use encrypted storage.
 - **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to localhost only and use strong passwords. Configure firewall to restrict access.
-- **Permissions**: Set restrictive permissions on data directories: `chmod 700 bitcoin-datadir electrum-datadir`.
+- **Permissions**: Set restrictive permissions on data directories: `./utilities/set-permissions.sh`.
 - **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are ignored by `.gitignore`. Run `./utilities/clean-artifacts.sh` to remove existing ones.

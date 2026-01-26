@@ -27,14 +27,14 @@ powershell -Command "& { $sum = Get-Content '%TMPDIR%\\SHA256SUMS' | Select-Stri
 
 powershell -Command "& { Expand-Archive -Force '%TMPDIR%\\%FILE%' '%TMPDIR%\\' }" || goto :error
 
-if not exist "%ROOTDIR%\\bin-backup\\bitcoin" mkdir "%ROOTDIR%\\bin-backup\\bitcoin"
-if exist "%ROOTDIR%\\win\\bin\\bitcoin-qt.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-qt.exe" "%ROOTDIR%\\bin-backup\\bitcoin\\" >nul
-if exist "%ROOTDIR%\\win\\bin\\bitcoind.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoind.exe" "%ROOTDIR%\\bin-backup\\bitcoin\\" >nul
-if exist "%ROOTDIR%\\win\\bin\\bitcoin-cli.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-cli.exe" "%ROOTDIR%\\bin-backup\\bitcoin\\" >nul
-if exist "%ROOTDIR%\\win\\bin\\bitcoin-wallet.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-wallet.exe" "%ROOTDIR%\\bin-backup\\bitcoin\\" >nul
-if exist "%ROOTDIR%\\win\\bin\\bitcoin-tx.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-tx.exe" "%ROOTDIR%\\bin-backup\\bitcoin\\" >nul
-if exist "%ROOTDIR%\\win\\bin\\bitcoin-util.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-util.exe" "%ROOTDIR%\\bin-backup\\bitcoin\\" >nul
-if exist "%ROOTDIR%\\win\\bin\\bitcoin.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin.exe" "%ROOTDIR%\\bin-backup\\bitcoin\\" >nul
+if not exist "%ROOTDIR%\\win\\bin-backup\\bitcoin" mkdir "%ROOTDIR%\\win\\bin-backup\\bitcoin"
+if exist "%ROOTDIR%\\win\\bin\\bitcoin-qt.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-qt.exe" "%ROOTDIR%\\win\\bin-backup\\bitcoin\\" >nul
+if exist "%ROOTDIR%\\win\\bin\\bitcoind.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoind.exe" "%ROOTDIR%\\win\\bin-backup\\bitcoin\\" >nul
+if exist "%ROOTDIR%\\win\\bin\\bitcoin-cli.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-cli.exe" "%ROOTDIR%\\win\\bin-backup\\bitcoin\\" >nul
+if exist "%ROOTDIR%\\win\\bin\\bitcoin-wallet.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-wallet.exe" "%ROOTDIR%\\win\\bin-backup\\bitcoin\\" >nul
+if exist "%ROOTDIR%\\win\\bin\\bitcoin-tx.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-tx.exe" "%ROOTDIR%\\win\\bin-backup\\bitcoin\\" >nul
+if exist "%ROOTDIR%\\win\\bin\\bitcoin-util.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin-util.exe" "%ROOTDIR%\\win\\bin-backup\\bitcoin\\" >nul
+if exist "%ROOTDIR%\\win\\bin\\bitcoin.exe" copy /y "%ROOTDIR%\\win\\bin\\bitcoin.exe" "%ROOTDIR%\\win\\bin-backup\\bitcoin\\" >nul
 
 if not exist "%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe" (
     echo Error: extracted binaries not found.

@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BACKUP_DIR="$ROOTDIR/bin-backup/bitcoin"
+BACKUP_DIR="$ROOTDIR/win/bin-backup/bitcoin"
 cd "$ROOTDIR"
 
 echo "Updating Bitcoin Core..."
@@ -82,6 +82,7 @@ update_checksum() {
 }
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
+    BACKUP_DIR="$ROOTDIR/macos/bin-backup/bitcoin"
     mkdir -p "$BACKUP_DIR"
     if [ ! -d "$ROOTDIR/macos/bin/Bitcoin-Qt.app" ]; then
         echo "Error: macos/bin/Bitcoin-Qt.app not found. Install the app bundle first."

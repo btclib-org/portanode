@@ -34,8 +34,8 @@ if not exist "%TMPDIR%\\%FILE%" (
     goto :error
 )
 
-if not exist "%ROOTDIR%\\bin-backup\\electrum" mkdir "%ROOTDIR%\\bin-backup\\electrum"
-if exist "%ROOTDIR%\\win\\bin\\electrum.exe" copy /y "%ROOTDIR%\\win\\bin\\electrum.exe" "%ROOTDIR%\\bin-backup\\electrum\\" >nul
+if not exist "%ROOTDIR%\\win\\bin-backup\\electrum" mkdir "%ROOTDIR%\\win\\bin-backup\\electrum"
+if exist "%ROOTDIR%\\win\\bin\\electrum.exe" copy /y "%ROOTDIR%\\win\\bin\\electrum.exe" "%ROOTDIR%\\win\\bin-backup\\electrum\\" >nul
 
 copy /y "%TMPDIR%\\%FILE%" "%ROOTDIR%\\win\\bin\\electrum.exe" >nul
 
