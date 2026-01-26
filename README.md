@@ -19,7 +19,8 @@ Version: 2026.01.26 (Calendar Versioning)
 1. Mount your external disk and navigate to the PortaNode folder.
 2. For macOS: Double-click a script in `macos/scripts/bitcoin/` or `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
 3. For Windows: Double-click a script in `win/scripts/bitcoin/` or `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
-4. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
+4. Root-level launchers like `Mainnet-8333-qt.command` and `Mainnet-8333-qt.bat` are provided for convenience; all other scripts live under the `macos/scripts/` and `win/scripts/` folders.
+5. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
 ## Folder Structure
 
@@ -34,7 +35,7 @@ Version: 2026.01.26 (Calendar Versioning)
 - `win/`
   - `bin/`: Windows binaries (e.g., `electrum.exe`).
   - `bin/backup/`: Windows backups created by update scripts (see `win/bin/backup/README.md`).
-  - `checksums.sha256`: Windows checksums (versioned).
+  - `checksums.sha256`: Windows checksums (versioned) at `win/checksums.sha256`.
   - `scripts/`
     - `bitcoin/`: Bitcoin Core launch scripts (.bat). See `win/scripts/bitcoin/README.md`.
     - `electrum/`: Electrum launch scripts (.bat). See `win/scripts/electrum/README.md`.

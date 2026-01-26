@@ -22,6 +22,7 @@ echo "✓ Binaries present"
 
 # Check checksums
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
+    echo "Using checksums file: $ROOTDIR/macos/checksums.sha256"
     bash "$SCRIPT_DIR/verify-binaries.sh"
     echo "✓ Checksums valid"
 else

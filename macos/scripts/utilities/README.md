@@ -12,6 +12,7 @@ This directory contains macOS maintenance and utility scripts for PortaNode. Win
 
 ### Verification Scripts
 - **`verify-binaries.sh`** (macOS): Verifies all binaries against `macos/checksums.sha256` using `shasum`. Supports multiple acceptable hashes per file with version labels.
+- **Note**: `verify-binaries.sh` uses `bash` features (associative arrays). Run it with `bash` if your system’s default `sh` is not bash.
 - **`verify-binaries.bat`** (Windows): Uses PowerShell to compute hashes and compare with the checksum file, located in `win/scripts/utilities/`.
 
 ### Rollback Scripts
@@ -19,7 +20,6 @@ This directory contains macOS maintenance and utility scripts for PortaNode. Win
 - **`rollback-electrum.sh`** (macOS): Restores Electrum binaries from `macos/bin/backup/electrum/`.
 - **`rollback-bitcoin.bat`** (Windows): Restores Bitcoin binaries from `win/bin/backup/bitcoin/`, located in `win/scripts/utilities/`.
 - **`rollback-electrum.bat`** (Windows): Restores Electrum binaries from `win/bin/backup/electrum/`, located in `win/scripts/utilities/`.
-- **`validate-setup.bat`** (Windows): Validates Windows binaries, checksums, and disk space; located in `win/scripts/utilities/`.
 - **`rotate-bitcoin-log.bat`** (Windows): Rotates `bitcoin-datadir/debug.log` and truncates the current log.
 - **`monitor-bitcoin-log.bat`** (Windows): Scans Bitcoin log for new errors/warnings.
 - **`health-check.bat`** (Windows): Disk space + basic process checks.
