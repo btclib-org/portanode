@@ -11,14 +11,14 @@ This directory contains macOS maintenance and utility scripts for PortaNode. Win
 - **`update-electrum.bat`** (Windows): Downloads the latest Electrum portable EXE for Windows, located in `win/scripts/utilities/`.
 
 ### Verification Scripts
-- **`verify-binaries.sh`** (macOS): Verifies all binaries against `checksums.sha256` using `shasum`. Supports multiple acceptable hashes per file with version labels.
+- **`verify-binaries.sh`** (macOS): Verifies all binaries against `macos/checksums.sha256` using `shasum`. Supports multiple acceptable hashes per file with version labels.
 - **`verify-binaries.bat`** (Windows): Uses PowerShell to compute hashes and compare with the checksum file, located in `win/scripts/utilities/`.
 
 ### Rollback Scripts
-- **`rollback-bitcoin.sh`** (macOS): Restores Bitcoin binaries from `macos/bin-backup/bitcoin/` if an update fails.
-- **`rollback-electrum.sh`** (macOS): Restores Electrum binaries from `macos/bin-backup/electrum/`.
-- **`rollback-bitcoin.bat`** (Windows): Restores Bitcoin binaries from `win/bin-backup/bitcoin/`, located in `win/scripts/utilities/`.
-- **`rollback-electrum.bat`** (Windows): Restores Electrum binaries from `win/bin-backup/electrum/`, located in `win/scripts/utilities/`.
+- **`rollback-bitcoin.sh`** (macOS): Restores Bitcoin binaries from `macos/bin/backup/bitcoin/` if an update fails.
+- **`rollback-electrum.sh`** (macOS): Restores Electrum binaries from `macos/bin/backup/electrum/`.
+- **`rollback-bitcoin.bat`** (Windows): Restores Bitcoin binaries from `win/bin/backup/bitcoin/`, located in `win/scripts/utilities/`.
+- **`rollback-electrum.bat`** (Windows): Restores Electrum binaries from `win/bin/backup/electrum/`, located in `win/scripts/utilities/`.
 - **`validate-setup.bat`** (Windows): Validates Windows binaries, checksums, and disk space; located in `win/scripts/utilities/`.
 - **`rotate-bitcoin-log.bat`** (Windows): Rotates `bitcoin-datadir/debug.log` and truncates the current log.
 - **`monitor-bitcoin-log.bat`** (Windows): Scans Bitcoin log for new errors/warnings.
@@ -41,8 +41,8 @@ This directory contains macOS maintenance and utility scripts for PortaNode. Win
 ## Usage Notes
 - Run scripts from the project root (e.g., `./macos/scripts/utilities/script.sh`).
 - Most scripts require internet for downloads; ensure connectivity.
-- Backups are stored in `macos/bin-backup/` and `win/bin-backup/`; rollbacks depend on these.
-- `checksums.sha256` is append-only: new verified hashes are added with `version=<x>` and exact duplicates are pruned.
+- Backups are stored in `macos/bin/backup/` and `win/bin/backup/`; rollbacks depend on these.
+- `macos/checksums.sha256` is append-only: new verified hashes are added with `version=<x>` and exact duplicates are pruned.
 - Update scripts place temporary downloads under `macos/bin/.tmp-downloads/` or `win/bin/.tmp-downloads/` and clean them on exit.
 - For Windows scripts, use Command Prompt or PowerShell.
 - Check script output for errors; refer to main README.md for troubleshooting.

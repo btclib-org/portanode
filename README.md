@@ -25,14 +25,16 @@ Version: 2026.01.26 (Calendar Versioning)
 
 - `macos/`
   - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
-  - `bin-backup/`: macOS backups created by update scripts (see `macos/bin-backup/README.md`).
+  - `bin/backup/`: macOS backups created by update scripts (see `macos/bin/backup/README.md`).
+  - `checksums.sha256`: macOS checksums (versioned).
   - `scripts/`
     - `bitcoin/`: Bitcoin Core launch scripts (.command). See `macos/scripts/bitcoin/README.md`.
     - `electrum/`: Electrum launch scripts (.command). See `macos/scripts/electrum/README.md`.
 
 - `win/`
   - `bin/`: Windows binaries (e.g., `electrum.exe`).
-  - `bin-backup/`: Windows backups created by update scripts (see `win/bin-backup/README.md`).
+  - `bin/backup/`: Windows backups created by update scripts (see `win/bin/backup/README.md`).
+  - `checksums.sha256`: Windows checksums (versioned).
   - `scripts/`
     - `bitcoin/`: Bitcoin Core launch scripts (.bat). See `win/scripts/bitcoin/README.md`.
     - `electrum/`: Electrum launch scripts (.bat). See `win/scripts/electrum/README.md`.
@@ -41,8 +43,8 @@ Version: 2026.01.26 (Calendar Versioning)
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
 - `macos/scripts/utilities/`: macOS maintenance scripts (updates, verification, cleanup, logs).
 - `win/scripts/utilities/`: Windows maintenance scripts (updates, verification, cleanup, logs).
-- `macos/bin-backup/`: Backups created by update scripts (Electrum.app, Bitcoin-Qt.app).
-- `win/bin-backup/`: Backups created by update scripts (Windows .exe files).
+- `macos/bin/backup/`: Backups created by update scripts (Electrum.app, Bitcoin-Qt.app).
+- `win/bin/backup/`: Backups created by update scripts (Windows .exe files).
 
 ## Detailed Setup
 
@@ -75,7 +77,7 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
 - On Windows, use `win\\scripts\\utilities\\validate-setup.bat`.
  - **Backup/Rollback**: Rollback scripts depend on backups created by update scripts—test the full update→rollback cycle after changes.
- - **Checksums**: `checksums.sha256` keeps an ever-growing list of acceptable hashes labeled by version; update scripts append new entries and deduplicate exact duplicates.
+ - **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep ever-growing lists of acceptable hashes labeled by version; update scripts append new entries and deduplicate exact duplicates.
 
 ## Troubleshooting
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Verify PortaNode binaries against checksums.sha256
+# Verify PortaNode binaries against macos/checksums.sha256
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-CHECKSUM_FILE="$ROOTDIR/checksums.sha256"
+CHECKSUM_FILE="$ROOTDIR/macos/checksums.sha256"
 
 if [ ! -f "$CHECKSUM_FILE" ]; then
     echo "Error: $CHECKSUM_FILE not found."

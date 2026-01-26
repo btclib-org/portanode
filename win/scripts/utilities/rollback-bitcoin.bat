@@ -5,7 +5,7 @@ REM Rollback Bitcoin Core binaries (Windows)
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..
 for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
-set BACKUP_DIR=%ROOTDIR%\win\bin-backup\bitcoin
+set BACKUP_DIR=%ROOTDIR%\win\bin\backup\bitcoin
 
 pushd "%ROOTDIR%" >nul 2>&1
 

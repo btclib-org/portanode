@@ -1,0 +1,5 @@
+# SHA-256 checksums for Bitcoin 30.2 and Electrum 4.7.0 binaries
+# Verify with: shasum -a 256 -c macos/checksums.sha256
+# Generated with: shasum -a 256 <files> > checksums.sha256
+# Format: <sha256>  <path>  version=<semver>
+# Note: macOS app bundles may change hash after codesign or quarantine changes.

@@ -14,11 +14,11 @@ echo "Updating Electrum..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="macos"
     EXT="dmg"
-    BACKUP_DIR="$ROOTDIR/macos/bin-backup/electrum"
+    BACKUP_DIR="$ROOTDIR/macos/bin/backup/electrum"
 elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
     OS="windows"
     EXT="exe"
-    BACKUP_DIR="$ROOTDIR/win/bin-backup/electrum"
+    BACKUP_DIR="$ROOTDIR/win/bin/backup/electrum"
 else
     echo "Unsupported OS"
     exit 1
@@ -47,7 +47,7 @@ curl -L -o "$TMPDIR/$OUT_FILE" "$URL"
 update_checksum() {
     local file="$1"
     local version="$2"
-    local checksum_file="$ROOTDIR/checksums.sha256"
+    local checksum_file="$ROOTDIR/macos/checksums.sha256"
     local hash=""
     if command -v shasum >/dev/null 2>&1; then
         hash="$(shasum -a 256 "$file" | awk '{print $1}')"

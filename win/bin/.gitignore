@@ -7,3 +7,4 @@ bitcoin.exe
 bitcoind.exe
 electrum.exe
 .tmp-downloads/
+backup/

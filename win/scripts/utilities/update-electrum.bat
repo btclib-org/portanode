@@ -7,7 +7,7 @@ set ROOTDIR=%SCRIPT_DIR%..\..\..
 for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
 pushd "%ROOTDIR%" >nul 2>&1
 
-set CHECKSUM_FILE=%ROOTDIR%\checksums.sha256
+set CHECKSUM_FILE=%ROOTDIR%\win/checksums.sha256
 set TMPDIR=%ROOTDIR%\win\bin\.tmp-downloads\electrum
 set STATUS=0
 
@@ -34,8 +34,8 @@ if not exist "%TMPDIR%\\%FILE%" (
     goto :error
 )
 
-if not exist "%ROOTDIR%\\win\\bin-backup\\electrum" mkdir "%ROOTDIR%\\win\\bin-backup\\electrum"
-if exist "%ROOTDIR%\\win\\bin\\electrum.exe" copy /y "%ROOTDIR%\\win\\bin\\electrum.exe" "%ROOTDIR%\\win\\bin-backup\\electrum\\" >nul
+if not exist "%ROOTDIR%\\win\\bin\\backup\\electrum" mkdir "%ROOTDIR%\\win\\bin\\backup\\electrum"
+if exist "%ROOTDIR%\\win\\bin\\electrum.exe" copy /y "%ROOTDIR%\\win\\bin\\electrum.exe" "%ROOTDIR%\\win\\bin\\backup\\electrum\\" >nul
 
 copy /y "%TMPDIR%\\%FILE%" "%ROOTDIR%\\win\\bin\\electrum.exe" >nul
 
@@ -56,7 +56,7 @@ goto :cleanup
 set FILEPATH=%~1
 set VERSION_LABEL=%~2
 if not exist "%FILEPATH%" exit /b 0
-powershell -Command "& { $file = '%FILEPATH%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (!(Test-Path $checksum)) { Write-Host 'Warning: checksums.sha256 not found; skipping.'; exit 0 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $entry = \"$hash  $file  version=$version\"; $lines = Get-Content $checksum; if ($lines -notcontains $entry) { $lines += $entry } $lines = $lines | Select-Object -Unique; Set-Content -Encoding ASCII $checksum $lines }"
+powershell -Command "& { $file = '%FILEPATH%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (!(Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $entry = \"$hash  $file  version=$version\"; $lines = Get-Content $checksum; if ($lines -notcontains $entry) { $lines += $entry } $lines = $lines | Select-Object -Unique; Set-Content -Encoding ASCII $checksum $lines }"
 exit /b 0
 
 :error

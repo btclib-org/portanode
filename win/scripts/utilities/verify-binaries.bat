@@ -1,10 +1,10 @@
 @echo off
-REM Verify PortaNode binaries against checksums.sha256
+REM Verify PortaNode binaries against win/checksums.sha256
 
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..
 for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
-set CHECKSUM_FILE=%ROOTDIR%\checksums.sha256
+set CHECKSUM_FILE=%ROOTDIR%\win/checksums.sha256
 
 pushd "%ROOTDIR%" >nul 2>&1
 

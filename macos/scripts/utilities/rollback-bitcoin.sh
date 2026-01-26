@@ -3,7 +3,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-BACKUP_DIR="$ROOTDIR/win/bin-backup/bitcoin"
+BACKUP_DIR="$ROOTDIR/win/bin/backup/bitcoin"
 
 if [ ! -d "$BACKUP_DIR" ]; then
     echo "No backup found in $BACKUP_DIR"
@@ -13,7 +13,7 @@ fi
 echo "Rolling back Bitcoin binaries..."
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    BACKUP_DIR="$ROOTDIR/macos/bin-backup/bitcoin"
+    BACKUP_DIR="$ROOTDIR/macos/bin/backup/bitcoin"
     if [ -d "$BACKUP_DIR/Bitcoin-Qt.app" ]; then
         rm -rf "$ROOTDIR/macos/bin/Bitcoin-Qt.app"
         mv "$BACKUP_DIR/Bitcoin-Qt.app" "$ROOTDIR/macos/bin/Bitcoin-Qt.app"

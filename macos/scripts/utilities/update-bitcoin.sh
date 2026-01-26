@@ -17,7 +17,7 @@ VERSION="30.2"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="apple-darwin"
     EXT="tar.gz"
-    BACKUP_DIR="$ROOTDIR/macos/bin-backup/bitcoin"
+    BACKUP_DIR="$ROOTDIR/macos/bin/backup/bitcoin"
     ARCH="$(uname -m)"
     if [ "$ARCH" = "arm64" ]; then
         FILE="bitcoin-${VERSION}-arm64-${OS}.${EXT}"
@@ -28,7 +28,7 @@ elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
     OS="win64"
     EXT="zip"
     FILE="bitcoin-${VERSION}-${OS}.${EXT}"
-    BACKUP_DIR="$ROOTDIR/win/bin-backup/bitcoin"
+    BACKUP_DIR="$ROOTDIR/win/bin/backup/bitcoin"
 else
     echo "Unsupported OS"
     exit 1
@@ -67,7 +67,7 @@ fi
 update_checksum() {
     local file="$1"
     local version="$2"
-    local checksum_file="$ROOTDIR/checksums.sha256"
+    local checksum_file="$ROOTDIR/macos/checksums.sha256"
     local hash=""
     if command -v shasum >/dev/null 2>&1; then
         hash="$(shasum -a 256 "$file" | awk '{print $1}')"
@@ -90,7 +90,7 @@ update_checksum() {
 }
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    BACKUP_DIR="$ROOTDIR/macos/bin-backup/bitcoin"
+    BACKUP_DIR="$ROOTDIR/macos/bin/backup/bitcoin"
     mkdir -p "$BACKUP_DIR"
     if [ ! -d "$ROOTDIR/macos/bin/Bitcoin-Qt.app" ]; then
         echo "Error: macos/bin/Bitcoin-Qt.app not found. Install the app bundle first."

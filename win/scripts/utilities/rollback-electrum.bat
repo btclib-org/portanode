@@ -5,7 +5,7 @@ REM Rollback Electrum binaries (Windows)
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..
 for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
-set BACKUP_DIR=%ROOTDIR%\win\bin-backup\electrum
+set BACKUP_DIR=%ROOTDIR%\win\bin\backup\electrum
 
 pushd "%ROOTDIR%" >nul 2>&1
 

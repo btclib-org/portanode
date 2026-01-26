@@ -9,12 +9,12 @@ This folder contains Windows maintenance scripts for PortaNode. These are design
 - `update-electrum.bat`: Downloads Electrum portable EXE, backs up binary, updates checksums.
 
 ### Verification and Validation
-- `verify-binaries.bat`: Verifies Windows binaries against `checksums.sha256` (versioned entries supported).
+- `verify-binaries.bat`: Verifies Windows binaries against `win/checksums.sha256` (versioned entries supported).
 - `validate-setup.bat`: Checks Windows binaries, verifies checksums, and reports disk space.
 
 ### Rollback
-- `rollback-bitcoin.bat`: Restores Bitcoin binaries from `win/bin-backup/bitcoin/`.
-- `rollback-electrum.bat`: Restores Electrum binary from `win/bin-backup/electrum/`.
+- `rollback-bitcoin.bat`: Restores Bitcoin binaries from `win/bin/backup/bitcoin/`.
+- `rollback-electrum.bat`: Restores Electrum binary from `win/bin/backup/electrum/`.
 
 ### Logging and Maintenance
 - `rotate-bitcoin-log.bat`: Rotates `bitcoin-datadir/debug.log` and truncates the current log.
@@ -25,5 +25,5 @@ This folder contains Windows maintenance scripts for PortaNode. These are design
 
 ## Notes
 - Run from repo root or double-click in Explorer; scripts resolve paths relative to the repo.
-- Backups are stored in `win/bin-backup/` and are required for rollback.
+- Backups are stored in `win/bin/backup/` and are required for rollback.
 - Updates download into `win/bin/.tmp-downloads/` and clean up after themselves.

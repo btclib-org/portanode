@@ -59,7 +59,7 @@ versions_for() {
         if [ "$path" = "$relpath" ] && [ "$line_hash" = "$hash" ]; then
             versions+=("$ver")
         fi
-    done < "$ROOTDIR/checksums.sha256"
+    done < "$ROOTDIR/macos/checksums.sha256"
     if [ "${#versions[@]}" -gt 0 ]; then
         printf "%s\n" "$(printf "%s, " "${versions[@]}" | sed 's/, $//')"
     fi
