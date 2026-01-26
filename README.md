@@ -19,8 +19,8 @@ Version: 2026.01.26 (Calendar Versioning)
 1. Mount your external disk and navigate to the PortaNode folder.
 2. For macOS: Double-click a script in `macos/scripts/bitcoin/` or `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
 3. For Windows: Double-click a script in `win/scripts/bitcoin/` or `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
-4. Use `Launcher.command` (macOS) or `Launcher.bat` (Windows) for a menu-based launcher. `Launcher.sh` is a cross-platform entrypoint when using a shell.
-5. Additional root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command`, `.bat`, or `.sh` for your OS).
+4. Use `Launcher.command` (macOS), `Launcher.bat` (Windows), or `Launcher.ps1` (PowerShell) for a menu-based launcher. `Launcher.sh` is a cross-platform entrypoint when using a shell.
+5. Additional root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command`, `.bat`, `.ps1`, or `.sh` for your OS).
 6. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
 ## Launcher Notes
@@ -28,7 +28,7 @@ Version: 2026.01.26 (Calendar Versioning)
 - `.command` files are intended for double‑clicking in Finder on macOS.
 - `.sh` files are intended for running from a shell (macOS/Linux or Windows MSYS/Cygwin).
 - `.bat` files are intended for Command Prompt/PowerShell on Windows.
-- `Launcher.ps1` provides a PowerShell entrypoint for the menu launcher on Windows.
+- `.ps1` files are intended for PowerShell on Windows (menu-based, same options as `.bat`).
 
 ## Folder Structure
 
