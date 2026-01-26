@@ -28,6 +28,8 @@ This folder contains Windows maintenance scripts for PortaNode. These are design
 - Backups are stored in `win/bin/backup/` and are required for rollback.
 - Updates download into `win/bin/.tmp-downloads/` and clean up after themselves.
 - If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core and Electrum downloads.
+  - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
+  - **Electrum signing key**: obtain the release signing key from electrum.org (Download page) and import with `gpg --import`.
 
 ## Smoke Check (Windows)
 Run these in order after updates:
