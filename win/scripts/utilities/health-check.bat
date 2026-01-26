@@ -10,10 +10,15 @@ pushd "%ROOTDIR%" >nul 2>&1
 
 echo Health Check
 
+set "MOUNT_PATH=%ROOTDIR%"
 for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
 if defined FREE_BYTES (
     set /a FREE_GB=%FREE_BYTES%/1024/1024/1024
-    echo Disk free: %FREE_GB% GB
+    if defined MOUNT_PATH (
+        echo Disk free: %FREE_GB% GB (%MOUNT_PATH%)
+    ) else (
+        echo Disk free: %FREE_GB% GB
+    )
 ) else (
     echo Disk free: unknown
 )

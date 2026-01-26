@@ -7,9 +7,15 @@ ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 echo "Health Check"
 
 # Disk free space (GB)
-DISK_FREE_KB=$(df -Pk "$ROOTDIR" | awk 'NR==2 {print $4}')
+DISK_LINE=$(df -Pk "$ROOTDIR" | awk 'NR==2')
+DISK_FREE_KB=$(echo "$DISK_LINE" | awk '{print $4}')
+DISK_MOUNT=$(echo "$DISK_LINE" | awk '{print $6}')
 DISK_FREE_GB=$((DISK_FREE_KB / 1024 / 1024))
-echo "Disk free: ${DISK_FREE_GB} GB"
+if [ -n "$DISK_MOUNT" ]; then
+    echo "Disk free: ${DISK_FREE_GB} GB (${DISK_MOUNT})"
+else
+    echo "Disk free: ${DISK_FREE_GB} GB"
+fi
 
 # Bitcoin status
 BTC_CLI=""
