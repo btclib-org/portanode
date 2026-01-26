@@ -1,0 +1,12 @@
+# Electrum data .gitignore
+
+# macOS artifacts
+._*
+.DS_Store
+
+# Windows artifacts
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp

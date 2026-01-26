@@ -37,6 +37,7 @@ Version: 2026.01.26 (Calendar Versioning)
 
 - `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
+- `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
 
 ## Detailed Setup
 
@@ -62,8 +63,8 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace `Electrum.app` or `electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
 - After update, test with regtest scripts.
-- Use `./update-bitcoin.sh` or `./update-electrum.sh` for automated updates (backs up old versions).
-- Rollback with `./rollback-bitcoin.sh` or `./rollback-electrum.sh` if issues occur.
+- Use `./utilities/update-bitcoin.sh` or `./utilities/update-electrum.sh` for automated updates (backs up old versions).
+- Rollback with `./utilities/rollback-bitcoin.sh` or `./utilities/rollback-electrum.sh` if issues occur.
 
 ## Troubleshooting
 
@@ -79,8 +80,8 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - Bitcoin: `bitcoin-datadir/debug.log`
 - Electrum: Check terminal output or `electrum-datadir/` for logs.
 - Run scripts from terminal for verbose output: `bash macos/scripts/bitcoin/mainnet-8333-qt.command` or `win\scripts\bitcoin\mainnet-8333-qt.bat`.
-- Rotate logs: `./rotate-bitcoin-log.sh`
-- Monitor logs: `./monitor-bitcoin-log.sh` (run periodically to check for errors)
+- Rotate logs: `./utilities/rotate-bitcoin-log.sh`
+- Monitor logs: `./utilities/monitor-bitcoin-log.sh` (run periodically to check for errors)
 
 ### Getting Help
 - Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum Docs](https://electrum.readthedocs.io/).
@@ -102,7 +103,8 @@ This is an open-source project. To contribute:
 
 ## Security Notes
 
-- **Binary Integrity**: Verify binaries with `verify-binaries.sh` (macOS) or `verify-binaries.bat` (Windows) after downloads.
+- **Binary Integrity**: Verify binaries with `utilities/verify-binaries.sh` (macOS) or `utilities/verify-binaries.bat` (Windows) after downloads.
 - **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and `electrum-datadir/wallets/`. Use encrypted storage.
 - **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to localhost only and use strong passwords. Configure firewall to restrict access.
 - **Permissions**: Set restrictive permissions on data directories: `chmod 700 bitcoin-datadir electrum-datadir`.
+- **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are ignored by `.gitignore`. Run `./utilities/clean-artifacts.sh` to remove existing ones.

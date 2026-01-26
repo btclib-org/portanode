@@ -1,8 +1,10 @@
 #!/bin/bash
 # Monitor Bitcoin log for errors and send notifications
 
-LOG_FILE="bitcoin-datadir/debug.log"
-LAST_CHECK_FILE=".last_log_check"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOG_FILE="$ROOTDIR/bitcoin-datadir/debug.log"
+LAST_CHECK_FILE="$ROOTDIR/.last_log_check"
 
 # Get last checked line
 if [ -f "$LAST_CHECK_FILE" ]; then

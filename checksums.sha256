@@ -3,8 +3,6 @@
 # Generated with: shasum -a 256 <files> > checksums.sha256
 # Note: macOS app bundles may change hash after codesign or quarantine changes.
 
-b8ce43f36bcaf799238238ce6be37a9b07d46db58f536741aad2f06359fee192  macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt
-11e5be61686d355b512afeb89cb970569ca018f22e8f5a76ebdb7fe5cc5a1824  macos/bin/Electrum.app/Contents/MacOS/run_electrum
 45eb95ec60dccb242770bcc19c4a5a1ad3ee9dc53841f5a710b35d127d80e21b  win/bin/bitcoin-cli.exe
 0c8d50e6ce9d1ddcc2b7fa631ae34e6b46ab80d9f3093eec5b4c8f7ce06ffa1b  win/bin/bitcoin-qt.exe
 49a010f0116f967ddea0405d1bf082ec88fea4eef9e5a38a4d7a0f4ec6960839  win/bin/bitcoin-tx.exe
@@ -13,3 +11,5 @@ b8ce43f36bcaf799238238ce6be37a9b07d46db58f536741aad2f06359fee192  macos/bin/Bitc
 37afcd7be97b188f517081aabcccbcf3c1fcc72c04cc27d8b3eb7dd297db765c  win/bin/bitcoin.exe
 4fddd47cb33560109b826f3d5b8a8332480db7a1c13d91676375cdae20c240b3  win/bin/bitcoind.exe
 368a40ac1b11ede03721ede742b3c55f83fe54276a7b586319e9a257b8fb692a  win/bin/electrum.exe
+9523d7cd4873649777331b0ec98ebd2c70de0fd45ba5355578c363652a2da4af  macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt
+11e5be61686d355b512afeb89cb970569ca018f22e8f5a76ebdb7fe5cc5a1824  macos/bin/Electrum.app/Contents/MacOS/run_electrum

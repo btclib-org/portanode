@@ -1,7 +1,9 @@
 #!/bin/bash
 # Rotate Bitcoin debug log
 
-LOG_FILE="bitcoin-datadir/debug.log"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOG_FILE="$ROOTDIR/bitcoin-datadir/debug.log"
 MAX_ROTATIONS=5
 
 if [ ! -f "$LOG_FILE" ]; then
@@ -16,10 +18,8 @@ for ((i=MAX_ROTATIONS-1; i>=1; i--)); do
     fi
 done
 
-# Move current log
-mv "$LOG_FILE" "${LOG_FILE}.1"
-
-# Create new log file (Bitcoin will recreate it)
-touch "$LOG_FILE"
+# Copy and truncate current log to avoid losing the file handle
+cp "$LOG_FILE" "${LOG_FILE}.1"
+: > "$LOG_FILE"
 
 echo "Log rotated: $LOG_FILE"

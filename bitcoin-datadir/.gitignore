@@ -9,3 +9,7 @@ mempool.dat
 peers.dat
 settings.json
 wallets/
+
+# macOS artifacts
+._*
+.DS_Store

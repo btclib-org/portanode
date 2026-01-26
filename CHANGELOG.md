@@ -16,6 +16,8 @@ using YYYY.MM.DD format.
 - User validation and file organization improvements
 - Log rotation and monitoring scripts
 - Version rollback functionality for Bitcoin and Electrum
+- .gitignore updates to ignore macOS artifacts (._*, .DS_Store)
+- clean-artifacts.sh script to remove system files
 
 ### Changed
 - Standardized script variable names and added confirmations

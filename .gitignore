@@ -1,4 +1,25 @@
+# PortaNode .gitignore
+
+# IDE/Editor files
+.vscode/
 #launch.json folder
 .vscode/
-# MacOS system files
+
+# macOS artifacts
 .DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows artifacts
+ehthumbs.db
+Thumbs.db
+*.stackdump
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Logs (if any outside data dirs)
+*.log
