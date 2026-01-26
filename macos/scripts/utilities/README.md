@@ -47,6 +47,7 @@ This directory contains macOS maintenance and utility scripts for PortaNode. Win
 - Backups are stored in `macos/bin/backup/` and `win/bin/backup/`; rollbacks depend on these.
 - `macos/checksums.sha256` is append-only: new verified hashes are added with `version=<x>` and exact duplicates are pruned.
 - Update scripts place temporary downloads under `macos/bin/.tmp-downloads/` or `win/bin/.tmp-downloads/` and clean them on exit.
+- Root launchers `Launcher.command` and `Launcher.bat` provide a menu to start common scripts from the repo root.
 - For Windows scripts, use Command Prompt or PowerShell.
 - Check script output for errors; refer to main README.md for troubleshooting.
 

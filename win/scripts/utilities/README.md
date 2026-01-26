@@ -30,6 +30,7 @@ This folder contains Windows maintenance scripts for PortaNode. These are design
 - If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core and Electrum downloads.
   - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
   - **Electrum signing key**: obtain the release signing key from electrum.org (Download page) and import with `gpg --import`.
+- Root launchers `Launcher.command` and `Launcher.bat` provide a menu to start common scripts from the repo root.
 
 ## Smoke Check (Windows)
 Run these in order after updates:

@@ -19,9 +19,8 @@ Version: 2026.01.26 (Calendar Versioning)
 1. Mount your external disk and navigate to the PortaNode folder.
 2. For macOS: Double-click a script in `macos/scripts/bitcoin/` or `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
 3. For Windows: Double-click a script in `win/scripts/bitcoin/` or `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
-4. Root-level launchers like `Mainnet-8333-qt.command` and `Mainnet-8333-qt.bat` are provided for convenience; all other scripts live under the `macos/scripts/` and `win/scripts/` folders.
-5. Use `PortaNode-Launcher.command` (macOS) or `PortaNode-Launcher.bat` (Windows) for a menu-based launcher.
-6. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
+4. Use `Launcher.command` (macOS) or `Launcher.bat` (Windows) for a menu-based launcher.
+5. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
 ## Folder Structure
 
