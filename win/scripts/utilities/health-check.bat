@@ -60,7 +60,16 @@ if "%BTC_RUNNING%"=="0" (
 )
 if "%BTC_RUNNING%"=="1" (
     if defined BTC_METHOD (
-        echo Bitcoin running: yes (%BTC_METHOD%)
+        if /i "%BTC_METHOD%"=="bitcoin-cli" (
+            for /f "usebackq delims=" %%P in (`powershell -Command "& { try { (Get-Command '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -ErrorAction Stop).Path } catch { try { (Get-Command bitcoin-cli.exe -ErrorAction Stop).Path } catch { '' } } }"`) do set BTC_CLI_PATH=%%P
+            if defined BTC_CLI_PATH (
+                echo Bitcoin running: yes (%BTC_METHOD%: %BTC_CLI_PATH%)
+            ) else (
+                echo Bitcoin running: yes (%BTC_METHOD%: PATH)
+            )
+        ) else (
+            echo Bitcoin running: yes (%BTC_METHOD%)
+        )
     ) else (
         echo Bitcoin running: yes
     )

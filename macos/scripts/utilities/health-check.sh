@@ -67,7 +67,20 @@ fi
 
 if [ "$BTC_RUNNING" = "yes" ]; then
     if [ -n "$BTC_METHOD" ]; then
-        echo "Bitcoin running: yes (${BTC_METHOD})"
+        if [ "$BTC_METHOD" = "bitcoin-cli" ] && [ -n "$BTC_CLI" ]; then
+            if [ "$BTC_CLI" = "bitcoin-cli" ]; then
+                BTC_CLI_PATH="$(command -v bitcoin-cli 2>/dev/null || true)"
+                if [ -n "$BTC_CLI_PATH" ]; then
+                    echo "Bitcoin running: yes (${BTC_METHOD}: ${BTC_CLI_PATH})"
+                else
+                    echo "Bitcoin running: yes (${BTC_METHOD}: PATH)"
+                fi
+            else
+                echo "Bitcoin running: yes (${BTC_METHOD}: ${BTC_CLI})"
+            fi
+        else
+            echo "Bitcoin running: yes (${BTC_METHOD})"
+        fi
     else
         echo "Bitcoin running: yes"
     fi
