@@ -1,6 +1,4 @@
-# Windows
-
-OS-specific binaries and scripts for PortaNode.
+# OS-specific binaries and scripts for PortaNode.
 
 ## Binaries (`bin/`)
 
@@ -13,7 +11,14 @@ OS-specific binaries and scripts for PortaNode.
 - `electrum/`: Scripts to launch Electrum (e.g., `mainnet.bat`).
 - `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
 
-Root launchers are available for specific areas: `Bitcoin-Launcher.bat`, `Electrum-Launcher.bat`, and `Utilities-Launcher.bat`.
+Root launchers are available for specific areas: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (`.bat` or `.ps1`).
+
+## Utilities Quickstart
+
+Run these in order after updates:
+1. `scripts/utilities/verify-binaries.bat`
+2. `scripts/utilities/validate-setup.bat`
+3. `scripts/utilities/health-check.bat`
 
 ## Data Folders
 

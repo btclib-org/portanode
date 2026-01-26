@@ -13,6 +13,7 @@ Entry point for launch scripts.
   - `mainnet.command`: Standard mainnet.
   - `mainnet-local-server-only.command`: Connects to local server.
   - `testnet.command`, `regtest.command`: For test/regtest networks.
+- `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
 
 ## Usage
 

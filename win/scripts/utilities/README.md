@@ -24,7 +24,7 @@ Can be used if an update fails
 - `rollback-electrum.bat`: Restores Electrum binary from `win/bin/backup/electrum/`.
 
 ### Logging and Maintenance
-- `rotate-bitcoin-log.bat`: Rotates `bitcoin-datadir/debug.log` by truncateing the current log, creating its backup (debug.log.1, etc.) and starting a new log file.
+- `rotate-bitcoin-log.bat`: Rotates `bitcoin-datadir/debug.log` by copying to a backup (debug.log.1, etc.) and truncating the current log.
 - `monitor-bitcoin-log.bat`: Scans the Bitcoin log for new errors/warnings.
 - `health-check.bat`: Disk space + basic process checks.
 - `clean-artifacts.bat`: Removes Windows artifact files from the repo.

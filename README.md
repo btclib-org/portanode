@@ -45,6 +45,7 @@ Version: 2026.01.26 (Calendar Versioning)
 
 - `win/`
   - `bin/`: Windows binaries (e.g., `electrum.exe`).
+    - `.tmp-downloads/`: Temporary downloads used by update scripts.
   - `bin/backup/`: Windows backups created by update scripts (see `win/bin/backup/README.md`).
   - `checksums.sha256`: Windows checksums (versioned) at `win/checksums.sha256`.
   - `scripts/`
@@ -115,6 +116,7 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
 - Run scripts from terminal for verbose output: `bash macos/scripts/bitcoin/mainnet-8333-qt.command` or `win/scripts/bitcoin/mainnet-8333-qt.bat`.
 - Rotate logs: `./macos/scripts/utilities/rotate-bitcoin-log.sh` or `win/scripts/utilities/rotate-bitcoin-log.bat`
 - Monitor logs: `./macos/scripts/utilities/monitor-bitcoin-log.sh` or `win/scripts/utilities/monitor-bitcoin-log.bat` (run periodically to check for errors)
+- Health check: `./macos/scripts/utilities/health-check.sh` or `win/scripts/utilities/health-check.bat`
 
 ### Getting Help
 - Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum Docs](https://electrum.readthedocs.io/).
