@@ -25,12 +25,14 @@ Version: 2026.01.26 (Calendar Versioning)
 
 - `macos/`
   - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
+  - `bin-backup/`: macOS backups created by update scripts (see `macos/bin-backup/README.md`).
   - `scripts/`
     - `bitcoin/`: Bitcoin Core launch scripts (.command).
     - `electrum/`: Electrum launch scripts (.command).
 
 - `win/`
   - `bin/`: Windows binaries (e.g., `electrum.exe`).
+  - `bin-backup/`: Windows backups created by update scripts (see `win/bin-backup/README.md`).
   - `scripts/`
     - `bitcoin/`: Bitcoin Core launch scripts (.bat).
     - `electrum/`: Electrum launch scripts (.bat).

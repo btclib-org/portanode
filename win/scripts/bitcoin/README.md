@@ -27,3 +27,8 @@ Peer connections (addnode targets):
 - `regtest-18555-Bob-qt-clean.bat`: Same as above, clean start.
 - `regtest-18666-Carol-qt.bat`: Regtest GUI for Carol, port 18666.
 - `regtest-18666-Carol-qt-clean.bat`: Same as above, clean start.
+
+## Prerequisites
+
+- Bitcoin Core executables in `win/bin/` (e.g., `bitcoin-qt.exe`,
+  `bitcoind.exe`, `bitcoin-cli.exe`).
