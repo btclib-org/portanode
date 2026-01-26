@@ -13,3 +13,6 @@ wallets/
 # macOS artifacts
 ._*
 .DS_Store
+/.cookie
+/.lock
+/bitcoind.pid
