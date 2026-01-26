@@ -1,6 +1,7 @@
 # SHA-256 checksums for Bitcoin 30.2 and Electrum 4.7.0 binaries
 # Verify with: shasum -a 256 -c win/checksums.sha256
-# Generated with: shasum -a 256 <files> > checksums.sha256
+# PowerShell verify: Get-FileHash -Algorithm SHA256 <file>
+# Generated with: shasum -a 256 <files> > win/checksums.sha256
 # Format: <sha256>  <path>  version=<semver>
 # Note: Windows binaries may change hash after updates.
 

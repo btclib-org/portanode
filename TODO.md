@@ -1,6 +1,5 @@
 # Suggested Fixes
 
-Update checksums.sha256 header to mention PowerShell and correct path.
 Update README.md chmod line to include run_electrum.
 
 # Possible Improvements
