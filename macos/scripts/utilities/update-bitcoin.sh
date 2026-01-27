@@ -122,7 +122,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     cp -R "$ROOTDIR/macos/bin/Bitcoin-Qt.app" "$BACKUP_DIR/Bitcoin-Qt.app"
     cp "${SRC_DIR}/bin/bitcoin-qt" \
       "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
-    update_checksum "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$VERSION"
+    update_checksum \
+      "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+      "$VERSION"
 fi
 
 # Cleanup
@@ -134,5 +136,6 @@ echo "Bitcoin Core updated to $VERSION"
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
     bash "$SCRIPT_DIR/verify-binaries.sh"
 else
-    echo "Warning: verify-binaries.sh not found or not executable; skipping verification."
+    echo "Warning: verify-binaries.sh not found or not executable;"
+    echo "skipping verification."
 fi

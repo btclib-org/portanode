@@ -36,8 +36,9 @@ if [ "$CURRENT_LINES" -gt "$LAST_LINE" ]; then
         if command -v osascript >/dev/null 2>&1; then
             NOTIFY_MSG="Bitcoin errors detected"
             NOTIFY_TITLE="PortaNode Alert"
-            osascript -e \
-              "display notification \"$NOTIFY_MSG\" with title \"$NOTIFY_TITLE\""
+            OSA_SCRIPT="display notification \"$NOTIFY_MSG\""
+            OSA_SCRIPT="$OSA_SCRIPT with title \"$NOTIFY_TITLE\""
+            osascript -e "$OSA_SCRIPT"
         fi
     fi
 

@@ -16,7 +16,8 @@ if not "%errorlevel%"=="0" (
 )
 
 set "MOUNT_PATH=%ROOTDIR%"
-for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
+for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
+findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
 if defined FREE_BYTES (
     set /a FREE_GB=%FREE_BYTES%/1024/1024/1024
     if defined MOUNT_PATH (
@@ -34,22 +35,42 @@ set BTC_METHOD=
 set ARTIFACTS=
 set ARTIFACT_NOTE=
 if exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
-    for /f "usebackq delims=" %%J in (`powershell -Command "& { try { & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
+    for /f "usebackq delims=" %%J in (`powershell -Command ^
+        "& { try { & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' ^
+        -datadir='%ROOTDIR%\\bitcoin-datadir' ^
+        getblockchaininfo 2>$null } catch { '' } }"`) ^
+    do set BTC_INFO=%%J
     if defined BTC_INFO (
         set BTC_RUNNING=1
         set BTC_METHOD=bitcoin-cli
     )
 )
 if "%BTC_RUNNING%"=="0" (
-    tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul && (set BTC_RUNNING=1 & set BTC_METHOD=tasklist)
-    if "%BTC_RUNNING%"=="0" tasklist /fi "imagename eq bitcoin-qt.exe" | find /i "bitcoin-qt.exe" >nul && (set BTC_RUNNING=1 & set BTC_METHOD=tasklist)
+    tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
+    if %errorlevel%==0 (
+        set BTC_RUNNING=1
+        set BTC_METHOD=tasklist
+    )
+    if "%BTC_RUNNING%"=="0" (
+        tasklist /fi "imagename eq bitcoin-qt.exe" ^
+          | find /i "bitcoin-qt.exe" >nul
+        if %errorlevel%==0 (
+            set BTC_RUNNING=1
+            set BTC_METHOD=tasklist
+        )
+    )
 )
 if "%BTC_RUNNING%"=="0" (
-    if exist "%ROOTDIR%\bitcoin-datadir\.lock" set ARTIFACTS=%ARTIFACTS% .lock
-    if exist "%ROOTDIR%\bitcoin-datadir\.cookie" set ARTIFACTS=%ARTIFACTS% .cookie
+    if exist "%ROOTDIR%\bitcoin-datadir\.lock" (
+        set ARTIFACTS=%ARTIFACTS% .lock
+    )
+    if exist "%ROOTDIR%\bitcoin-datadir\.cookie" (
+        set ARTIFACTS=%ARTIFACTS% .cookie
+    )
     if exist "%ROOTDIR%\bitcoin-datadir\bitcoind.pid" (
         set ARTIFACTS=%ARTIFACTS% bitcoind.pid
-        for /f "usebackq delims=" %%P in ("%ROOTDIR%\bitcoin-datadir\bitcoind.pid") do set PID=%%P
+        for /f "usebackq delims=" %%P in ^
+          ("%ROOTDIR%\bitcoin-datadir\bitcoind.pid") do set PID=%%P
         if defined PID (
             tasklist /fi "pid eq %PID%" | find /i "%PID%" >nul
             if %errorlevel%==0 (
@@ -71,7 +92,13 @@ if "%BTC_RUNNING%"=="0" (
 if "%BTC_RUNNING%"=="1" (
     if defined BTC_METHOD (
         if /i "%BTC_METHOD%"=="bitcoin-cli" (
-            for /f "usebackq delims=" %%P in (`powershell -Command "& { try { (Get-Command '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -ErrorAction Stop).Path } catch { try { (Get-Command bitcoin-cli.exe -ErrorAction Stop).Path } catch { '' } } }"`) do set BTC_CLI_PATH=%%P
+            for /f "usebackq delims=" %%P in (`powershell -Command ^
+                "& { try { ^
+                (Get-Command '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' ^
+                -ErrorAction Stop).Path } catch { ^
+                try { (Get-Command bitcoin-cli.exe -ErrorAction Stop).Path } ^
+                catch { '' } } }"`) ^
+            do set BTC_CLI_PATH=%%P
             if defined BTC_CLI_PATH (
                 echo Bitcoin running: yes (%BTC_METHOD%: %BTC_CLI_PATH%)
             ) else (
@@ -84,7 +111,14 @@ if "%BTC_RUNNING%"=="1" (
         echo Bitcoin running: yes
     )
     if exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
-        for /f "usebackq delims=" %%J in (`powershell -Command "& { try { $info = & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
+        for /f "usebackq delims=" %%J in (`powershell -Command ^
+            "& { try { $info = & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' ^
+            -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo ^
+            2>$null | ConvertFrom-Json; ^
+            if ($info.verificationprogress) { ^
+              [math]::Round($info.verificationprogress*100,2) ^
+            } } catch { '' } }"`) ^
+        do set SYNC=%%J
         if defined SYNC (
             echo Bitcoin sync: %SYNC%%%
         ) else (
@@ -109,11 +143,22 @@ if "%BTC_RUNNING%"=="1" (
 
 set ELECTRUM_RUNNING=0
 set ELECTRUM_METHOD=
-for /f "usebackq delims=" %%P in (`powershell -Command "& { $p = Get-Process electrum -ErrorAction SilentlyContinue; if ($p) { $p | Select-Object -ExpandProperty Path } }"`) do (
-    echo %%P | find /i "\\win\\bin\\electrum.exe" >nul && set ELECTRUM_RUNNING=1 && set ELECTRUM_METHOD=process-path
+for /f "usebackq delims=" %%P in (`powershell -Command ^
+    "& { $p = Get-Process electrum -ErrorAction SilentlyContinue; ^
+    if ($p) { $p | Select-Object -ExpandProperty Path } }"`) ^
+do (
+    echo %%P | find /i "\\win\\bin\\electrum.exe" >nul
+    if %errorlevel%==0 (
+        set ELECTRUM_RUNNING=1
+        set ELECTRUM_METHOD=process-path
+    )
 )
 if "%ELECTRUM_RUNNING%"=="0" (
-    tasklist /fi "imagename eq electrum.exe" | find /i "electrum.exe" >nul && (set ELECTRUM_RUNNING=1 & set ELECTRUM_METHOD=tasklist)
+    tasklist /fi "imagename eq electrum.exe" | find /i "electrum.exe" >nul
+    if %errorlevel%==0 (
+        set ELECTRUM_RUNNING=1
+        set ELECTRUM_METHOD=tasklist
+    )
 )
 if "%ELECTRUM_RUNNING%"=="1" (
     if defined ELECTRUM_METHOD (

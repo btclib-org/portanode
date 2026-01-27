@@ -52,9 +52,12 @@ if exist "bitcoin-datadir" if exist "electrum-datadir" (
 
 REM Report binary versions from checksums
 echo Binary versions:
-powershell -Command "& { $checksum = '%ROOTDIR%\\win\\checksums.sha256'; if (-not (Test-Path $checksum)) { Write-Host '- win/checksums.sha256: missing'; exit 0 } $lines = Get-Content $checksum | Where-Object { $_ -and ($_ -notmatch '^[\\s]*#') }; $map = @{}; foreach ($line in $lines) { $m = [regex]::Match($line, '^(?<hash>[0-9a-fA-F]{64})\\s+(?<path>.+?)(?:\\s+version=(?<ver>.+))?$'); if (-not $m.Success) { continue } $path = $m.Groups['path'].Value.Trim(); if (-not $path.ToLower().StartsWith('win/')) { continue } $ver = $m.Groups['ver'].Value; if ([string]::IsNullOrWhiteSpace($ver)) { $ver = 'unknown' } if (-not $map.ContainsKey($path)) { $map[$path] = @() } $map[$path] += [pscustomobject]@{ Hash = $m.Groups['hash'].Value.ToLower(); Version = $ver } } foreach ($path in $map.Keys) { if (-not (Test-Path $path)) { Write-Host \"- $path: missing\"; continue } $computed = (Get-FileHash -Algorithm SHA256 $path).Hash.ToLower(); $matches = $map[$path] | Where-Object { $_.Hash -eq $computed }; if ($matches.Count -gt 0) { $versions = ($matches | Select-Object -ExpandProperty Version | Select-Object -Unique) -join ', '; Write-Host \"- $path: $versions\" } else { Write-Host \"- $path: unknown\" } } }"
+powershell -NoProfile -ExecutionPolicy Bypass ^
+  -File "%SCRIPT_DIR%validate-setup.ps1" ^
+  -RootDir "%ROOTDIR%"
 
-for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
+for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
+findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
 if not defined FREE_BYTES (
     echo WARNING: Could not determine disk free space.
 ) else (

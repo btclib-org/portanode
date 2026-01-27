@@ -22,6 +22,8 @@ for /l %%I in (%START%,-1,1) do (
     )
 )
 
-powershell -Command "& { Copy-Item -Force '%LOG_FILE%' '%LOG_FILE%.1'; Clear-Content -Path '%LOG_FILE%' }"
+powershell -Command ^
+  "& { Copy-Item -Force '%LOG_FILE%' '%LOG_FILE%.1'; ^
+  Clear-Content -Path '%LOG_FILE%' }"
 echo Log rotated: %LOG_FILE%
 exit /b 0

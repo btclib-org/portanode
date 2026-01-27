@@ -14,7 +14,8 @@ if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
     exit /b 1
 )
 
-echo WARNING: This will delete regtest data. Press any key to continue or Ctrl+C to cancel
+echo WARNING: This will delete regtest data.
+echo Press any key to continue or Ctrl+C to cancel.
 pause
 
 rmdir "%ROOTDIR%\bitcoin-datadir\regtest" /s /q

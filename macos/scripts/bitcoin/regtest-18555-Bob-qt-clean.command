@@ -14,7 +14,8 @@ if [ ! -x "$BTC_QT" ]; then
     exit 1
 fi
 
-echo "WARNING: This will delete regtest data. Press Enter to continue or Ctrl+C to cancel"
+echo "WARNING: This will delete regtest data."
+echo "Press Enter to continue or Ctrl+C to cancel."
 read
 
 rm -rf "${ROOTDIR}/bitcoin-datadir/regtest_bob"
