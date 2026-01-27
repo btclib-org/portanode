@@ -11,4 +11,6 @@ if not exist "%ROOTDIR%\win\bin\electrum.exe" (
     exit /b 1
 )
 
-start "" "%ROOTDIR%\win\bin\electrum.exe" --dir "%ROOTDIR%\electrum-datadir" --regtest
+start "" "%ROOTDIR%\win\bin\electrum.exe" ^
+  --dir "%ROOTDIR%\electrum-datadir" ^
+  --regtest

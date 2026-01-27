@@ -23,14 +23,21 @@ CURRENT_LINES=$(wc -l < "$LOG_FILE" 2>/dev/null || echo 0)
 
 if [ "$CURRENT_LINES" -gt "$LAST_LINE" ]; then
     # Check new lines for errors
-    ERRORS=$(sed -n "$((LAST_LINE+1)),${CURRENT_LINES}p" "$LOG_FILE" | grep -i "error\|warning\|failed" | head -5)
+    ERRORS=$(
+      sed -n "$((LAST_LINE+1)),${CURRENT_LINES}p" "$LOG_FILE" \
+        | grep -i "error\\|warning\\|failed" \
+        | head -5
+    )
 
     if [ -n "$ERRORS" ]; then
         echo "Bitcoin log errors detected:"
         echo "$ERRORS"
         # macOS notification
         if command -v osascript >/dev/null 2>&1; then
-            osascript -e "display notification \"Bitcoin errors detected\" with title \"PortaNode Alert\""
+            NOTIFY_MSG="Bitcoin errors detected"
+            NOTIFY_TITLE="PortaNode Alert"
+            osascript -e \
+              "display notification \"$NOTIFY_MSG\" with title \"$NOTIFY_TITLE\""
         fi
     fi
 

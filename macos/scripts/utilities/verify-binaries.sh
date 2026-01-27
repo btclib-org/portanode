@@ -66,7 +66,8 @@ for path in "${!paths[@]}"; do
     elif command -v sha256sum >/dev/null 2>&1; then
         hash="$(sha256sum "$file" | awk '{print $1}')"
     else
-        echo "Error: Neither shasum nor sha256sum found. Install coreutils or similar."
+        echo "Error: Neither shasum nor sha256sum found."
+        echo "Install coreutils or similar."
         exit 1
     fi
     matches=()

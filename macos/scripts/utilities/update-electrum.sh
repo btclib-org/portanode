@@ -11,7 +11,11 @@ trap 'rm -rf "$TMPDIR"' EXIT
 echo "Updating Electrum..."
 
 # Prevent updates while running
-if pgrep -f -i "Electrum.app/Contents/MacOS/(Electrum|run_electrum)$|/Electrum$|/electrum$|python.*electrum|run_electrum" > /dev/null; then
+ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)$"
+ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|/Electrum$|/electrum$"
+ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|python.*electrum"
+ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|run_electrum"
+if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
     echo "Error: Electrum is running. Stop it before updating."
     exit 1
 fi
@@ -27,7 +31,12 @@ else
 fi
 
 HTML="$(curl -s -H "User-Agent: PortaNode" https://electrum.org/)"
-VERSION="$(echo "$HTML" | grep -o 'Latest release: Electrum-[0-9][0-9.]*' | head -n 1 | sed -E 's/.*Electrum-//')"
+VERSION="$(
+  echo "$HTML" \
+    | grep -o 'Latest release: Electrum-[0-9][0-9.]*' \
+    | head -n 1 \
+    | sed -E 's/.*Electrum-//'
+)"
 if [ -z "$VERSION" ]; then
     echo "Failed to determine latest Electrum version from electrum.org."
     exit 1
@@ -45,7 +54,10 @@ curl -L -o "$TMPDIR/$SIG_FILE" "${URL}.asc"
 
 if command -v gpg >/dev/null 2>&1; then
     echo "Verifying Electrum signature..."
-    (cd "$TMPDIR" && gpg --verify "$SIG_FILE" "$OUT_FILE") || { echo "PGP signature verification failed"; exit 1; }
+    if ! (cd "$TMPDIR" && gpg --verify "$SIG_FILE" "$OUT_FILE"); then
+        echo "PGP signature verification failed"
+        exit 1
+    fi
 else
     echo "Warning: gpg not found; skipping PGP signature verification."
 fi
@@ -60,11 +72,13 @@ update_checksum() {
     elif command -v sha256sum >/dev/null 2>&1; then
         hash="$(sha256sum "$file" | awk '{print $1}')"
     else
-        echo "Warning: shasum/sha256sum not found; checksums not updated."
+        echo "Warning: shasum/sha256sum not found;"
+        echo "checksums not updated."
         return 0
     fi
     if [ ! -f "$checksum_file" ]; then
-        echo "Warning: $checksum_file not found; checksums not updated."
+        echo "Warning: $checksum_file not found;"
+        echo "checksums not updated."
         return 0
     fi
     local entry="$hash  $file  version=$version"
@@ -76,7 +90,8 @@ update_checksum() {
 }
 
 if [ ! -d "$ROOTDIR/macos/bin/Electrum.app" ]; then
-    echo "Error: macos/bin/Electrum.app not found. Install the app bundle first."
+    echo "Error: macos/bin/Electrum.app not found."
+    echo "Install the app bundle first."
     exit 1
 fi
 mkdir -p "$BACKUP_DIR"
@@ -90,7 +105,9 @@ fi
 rm -rf "$ROOTDIR/macos/bin/Electrum.app"
 cp -R "${MOUNT_POINT}/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
 hdiutil detach "$MOUNT_POINT" >/dev/null
-update_checksum "macos/bin/Electrum.app/Contents/MacOS/run_electrum" "$VERSION"
+update_checksum \
+  "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+  "$VERSION"
 
 # Cleanup
 rm -rf "$TMPDIR"
@@ -101,5 +118,6 @@ echo "Electrum updated to $VERSION"
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
     bash "$SCRIPT_DIR/verify-binaries.sh"
 else
-    echo "Warning: verify-binaries.sh not found or not executable; skipping verification."
+    echo "Warning: verify-binaries.sh not found or not executable;"
+    echo "skipping verification."
 fi

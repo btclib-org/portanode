@@ -18,7 +18,8 @@ else
 fi
 
 # Bitcoin status
-PGREP_OUTPUT="$(pgrep -f -i "bitcoind\\|bitcoin-qt\\|bitcoin qt\\|bitcoin-qt.app" 2>&1 || true)"
+BTC_PGREP_PATTERN="bitcoind\\|bitcoin-qt\\|bitcoin qt\\|bitcoin-qt.app"
+PGREP_OUTPUT="$(pgrep -f -i "$BTC_PGREP_PATTERN" 2>&1 || true)"
 if echo "$PGREP_OUTPUT" | grep -qi "cannot get process list"; then
     echo "Note: process listing unavailable; falling back to CLI/artifacts."
 fi
@@ -35,7 +36,10 @@ BLOCKCHAIN_INFO=""
 ARTIFACT_NOTE=""
 ARTIFACTS_FOUND=0
 if [ -n "$BTC_CLI" ]; then
-    BLOCKCHAIN_INFO=$("$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" getblockchaininfo 2>/dev/null || true)
+    BLOCKCHAIN_INFO=$(
+      "$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" \
+        getblockchaininfo 2>/dev/null || true
+    )
     if [ -n "$BLOCKCHAIN_INFO" ]; then
         BTC_RUNNING="yes"
         BTC_METHOD="bitcoin-cli"
@@ -95,7 +99,10 @@ if [ "$BTC_RUNNING" = "yes" ]; then
         echo "Bitcoin running: yes"
     fi
     if [ -z "$BLOCKCHAIN_INFO" ] && [ -n "$BTC_CLI" ]; then
-        BLOCKCHAIN_INFO=$("$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" getblockchaininfo 2>/dev/null || true)
+        BLOCKCHAIN_INFO=$(
+          "$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" \
+            getblockchaininfo 2>/dev/null || true
+        )
     fi
     if [ -n "$BLOCKCHAIN_INFO" ] && command -v jq >/dev/null 2>&1; then
         SYNC=$(echo "$BLOCKCHAIN_INFO" | jq -r '.verificationprogress')
@@ -121,12 +128,18 @@ fi
 # Electrum status
 ELECTRUM_RUNNING="no"
 ELECTRUM_METHOD=""
-if pgrep -f -i "Electrum.app/Contents/MacOS/(Electrum|run_electrum)$|/Electrum$|/electrum$|python.*electrum" > /dev/null; then
+ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)$"
+ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|/Electrum$|/electrum$"
+ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|python.*electrum"
+if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
     ELECTRUM_RUNNING="yes"
     ELECTRUM_METHOD="pgrep"
 fi
 if [ "$ELECTRUM_RUNNING" != "yes" ] && command -v ps >/dev/null 2>&1; then
-    if ps -ax -o comm= 2>/dev/null | awk 'tolower($0) ~ /(electrum|run_electrum)$/ { found=1 } END { exit found?0:1 }'; then
+    if ps -ax -o comm= 2>/dev/null | awk '
+        tolower($0) ~ /(electrum|run_electrum)$/ { found=1 }
+        END { exit found ? 0 : 1 }
+    '; then
         ELECTRUM_RUNNING="yes"
         ELECTRUM_METHOD="ps"
     fi

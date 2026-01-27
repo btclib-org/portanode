@@ -11,7 +11,8 @@ trap 'rm -rf "$TMPDIR"' EXIT
 echo "Updating Bitcoin Core..."
 
 # Prevent updates while running
-if pgrep -f -i "bitcoind\\|bitcoin-qt\\|bitcoin qt\\|bitcoin-qt.app" > /dev/null; then
+BTC_PGREP_PATTERN="bitcoind\\|bitcoin-qt\\|bitcoin qt\\|bitcoin-qt.app"
+if pgrep -f -i "$BTC_PGREP_PATTERN" > /dev/null; then
     echo "Error: Bitcoin Core is running. Stop it before updating."
     exit 1
 fi
@@ -37,7 +38,8 @@ fi
 
 URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/${FILE}"
 CHECKSUM_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS"
-CHECKSUM_SIG_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS.asc"
+CHECKSUM_SIG_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/"\
+"SHA256SUMS.asc"
 
 mkdir -p "$TMPDIR"
 echo "Downloading $URL..."
@@ -48,16 +50,25 @@ curl -L -o "$TMPDIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 # Verify
 if command -v gpg >/dev/null 2>&1; then
     echo "Verifying SHA256SUMS signature..."
-    (cd "$TMPDIR" && gpg --verify SHA256SUMS.asc SHA256SUMS) || { echo "PGP signature verification failed"; exit 1; }
+    if ! (cd "$TMPDIR" && gpg --verify SHA256SUMS.asc SHA256SUMS); then
+        echo "PGP signature verification failed"
+        exit 1
+    fi
 else
     echo "Warning: gpg not found; skipping PGP signature verification."
 fi
 if command -v shasum >/dev/null 2>&1; then
     grep "$FILE" "$TMPDIR/SHA256SUMS" > "$TMPDIR/SHA256SUMS.filtered"
-    (cd "$TMPDIR" && shasum -a 256 -c SHA256SUMS.filtered) || { echo "Checksum failed"; exit 1; }
+    if ! (cd "$TMPDIR" && shasum -a 256 -c SHA256SUMS.filtered); then
+        echo "Checksum failed"
+        exit 1
+    fi
 elif command -v sha256sum >/dev/null 2>&1; then
     grep "$FILE" "$TMPDIR/SHA256SUMS" > "$TMPDIR/SHA256SUMS.filtered"
-    (cd "$TMPDIR" && sha256sum -c SHA256SUMS.filtered) || { echo "Checksum failed"; exit 1; }
+    if ! (cd "$TMPDIR" && sha256sum -c SHA256SUMS.filtered); then
+        echo "Checksum failed"
+        exit 1
+    fi
 else
     echo "Error: Neither shasum nor sha256sum found."
     exit 1
@@ -83,11 +94,13 @@ update_checksum() {
     elif command -v sha256sum >/dev/null 2>&1; then
         hash="$(sha256sum "$file" | awk '{print $1}')"
     else
-        echo "Warning: shasum/sha256sum not found; checksums not updated."
+        echo "Warning: shasum/sha256sum not found;"
+        echo "checksums not updated."
         return 0
     fi
     if [ ! -f "$checksum_file" ]; then
-        echo "Warning: $checksum_file not found; checksums not updated."
+        echo "Warning: $checksum_file not found;"
+        echo "checksums not updated."
         return 0
     fi
     local entry="$hash  $file  version=$version"
@@ -102,11 +115,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     BACKUP_DIR="$ROOTDIR/macos/bin/backup/bitcoin"
     mkdir -p "$BACKUP_DIR"
     if [ ! -d "$ROOTDIR/macos/bin/Bitcoin-Qt.app" ]; then
-        echo "Error: macos/bin/Bitcoin-Qt.app not found. Install the app bundle first."
+        echo "Error: macos/bin/Bitcoin-Qt.app not found."
+        echo "Install the app bundle first."
         exit 1
     fi
     cp -R "$ROOTDIR/macos/bin/Bitcoin-Qt.app" "$BACKUP_DIR/Bitcoin-Qt.app"
-    cp "${SRC_DIR}/bin/bitcoin-qt" "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
+    cp "${SRC_DIR}/bin/bitcoin-qt" \
+      "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
     update_checksum "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$VERSION"
 fi
 

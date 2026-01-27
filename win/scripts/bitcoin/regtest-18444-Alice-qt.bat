@@ -15,5 +15,9 @@ if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
 
 rem rmdir "%ROOTDIR%\bitcoin-datadir\regtest" /s /q
 
-start "" "%ROOTDIR%\win\bin\bitcoin-qt.exe" -uacomment=%~n0 ^
--datadir="%ROOTDIR%\bitcoin-datadir" -regtest -addnode=localhost:18555 -addnode=localhost:18666
+start "" "%ROOTDIR%\win\bin\bitcoin-qt.exe" ^
+  -uacomment=%~n0 ^
+  -datadir="%ROOTDIR%\bitcoin-datadir" ^
+  -regtest ^
+  -addnode=localhost:18555 ^
+  -addnode=localhost:18666

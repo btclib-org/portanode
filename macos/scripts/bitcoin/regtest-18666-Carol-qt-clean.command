@@ -1,14 +1,16 @@
 #!/bin/bash
 ROOTDIR="${PORTANODE_ROOT:-$(dirname "$0")/../../..}"
 echo ROOTDIR is "${ROOTDIR}"
+BIN_DIR="${ROOTDIR}/macos/bin"
+BTC_QT="${BIN_DIR}/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
 
-if [ ! -d "${ROOTDIR}/macos/bin" ]; then
-    echo "Error: Binaries directory not found at ${ROOTDIR}/macos/bin"
+if [ ! -d "$BIN_DIR" ]; then
+    echo "Error: Binaries directory not found at $BIN_DIR"
     exit 1
 fi
 
-if [ ! -x "${ROOTDIR}/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" ]; then
-    echo "Error: Binary not executable at ${ROOTDIR}/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
+if [ ! -x "$BTC_QT" ]; then
+    echo "Error: Binary not executable at $BTC_QT"
     exit 1
 fi
 
@@ -20,7 +22,10 @@ mkdir "${ROOTDIR}/bitcoin-datadir/regtest_carol"
 
 BASENAME="$(basename "$0")"
 FILENAME="${BASENAME%.*}"
-"${ROOTDIR}/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -uacomment="${FILENAME}" \
--datadir="${ROOTDIR}/bitcoin-datadir/regtest_carol" -regtest -port=18666 \
--addnode=localhost:18444 -addnode=localhost:18555
-
+"$BTC_QT" \
+  -uacomment="${FILENAME}" \
+  -datadir="${ROOTDIR}/bitcoin-datadir/regtest_carol" \
+  -regtest \
+  -port=18666 \
+  -addnode=localhost:18444 \
+  -addnode=localhost:18555

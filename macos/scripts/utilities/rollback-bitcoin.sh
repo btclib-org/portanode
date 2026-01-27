@@ -25,10 +25,12 @@ else
     exit 1
 fi
 
-echo "Rollback complete. Run macos/scripts/utilities/validate-setup.sh to verify (macOS only)."
+echo "Rollback complete. Run"
+echo "macos/scripts/utilities/validate-setup.sh to verify (macOS only)."
 
 if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
     bash "$SCRIPT_DIR/verify-binaries.sh"
 else
-    echo "Warning: verify-binaries.sh not found or not executable; skipping verification."
+    echo "Warning: verify-binaries.sh not found or not executable;"
+    echo "skipping verification."
 fi
