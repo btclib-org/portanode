@@ -5,7 +5,6 @@
 PortaNode bundles scripts, binaries, and data for running Bitcoin Core and
 Electrum on macOS and Windows.
 
-Version: 2026.01.26 (Calendar Versioning)
 
 ## Prerequisites
 
