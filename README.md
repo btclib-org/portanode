@@ -9,24 +9,35 @@ Electrum on macOS and Windows.
 ## Prerequisites
 
 - **Operating System**: macOS 10.15+ or Windows 10+.
-- **Disk Space**: At least 700GB free for Bitcoin Core data (mainnet) full sync. Regtest/testnet require less.
-- **Permissions**: Ensure the external disk is mounted and writable. On macOS, scripts may need executable permissions (run `chmod +x macos/scripts/**/*.command macos/bin/Electrum.app/Contents/MacOS/run_electrum` if needed).
-- **Dependencies**: None required beyond standard OS tools. For advanced use, ensure Python (for Electrum) and command-line tools are available.
+- **Disk Space**: At least 700GB free for Bitcoin Core data (mainnet) full sync.
+  Regtest/testnet require less.
+- **Permissions**: Ensure the external disk is mounted and writable. On macOS,
+  scripts may need executable permissions (run `chmod +x
+  macos/scripts/**/*.command macos/bin/Electrum.app/Contents/MacOS/run_electrum`
+  if needed).
+- **Dependencies**: None required beyond standard OS tools. For advanced use,
+  ensure Python (for Electrum) and command-line tools are available.
 
 ## Quick Start
 
 1. Mount your external disk and navigate to the PortaNode folder.
-2. For macOS: Double-click a script in `macos/scripts/bitcoin/` or `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
-3. For Windows: Double-click a script in `win/scripts/bitcoin/` or `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
-4. Root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command`, `.bat`, `.ps1`, or `.sh` for your OS).
+2. For macOS: Double-click a script in `macos/scripts/bitcoin/` or
+   `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
+3. For Windows: Double-click a script in `win/scripts/bitcoin/` or
+   `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
+4. Root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and
+   `Utilities-Launcher.*` (choose `.command`, `.bat`, `.ps1`, or `.sh` for your
+   OS).
 5. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
 ## Launcher Notes
 
 - `.command` files are intended for double‑clicking in Finder on macOS.
-- `.sh` files are intended for running from a shell (macOS/Linux or Windows MSYS/Cygwin).
+- `.sh` files are intended for running from a shell (macOS/Linux or Windows
+  MSYS/Cygwin).
 - `.bat` files are intended for Command Prompt/PowerShell on Windows.
-- `.ps1` files are intended for PowerShell on Windows (menu-based, same options as `.bat`).
+- `.ps1` files are intended for PowerShell on Windows (menu-based, same options
+  as `.bat`).
 
 ## Folder Structure
 
@@ -35,22 +46,30 @@ Electrum on macOS and Windows.
     - `Bitcoin-Qt.app/`: Bitcoin Core app bundle.
     - `Electrum.app/`: Electrum app bundle.
     - `.tmp-downloads/`: Temporary downloads used by update scripts.
-  - `bin/backup/`: macOS backups created by update scripts (see `macos/bin/backup/README.md`).
+  - `bin/backup/`: macOS backups created by update scripts (see
+    `macos/bin/backup/README.md`).
   - `checksums.sha256`: macOS checksums (versioned).
   - `scripts/`
-    - `bitcoin/`: Bitcoin Core launch scripts (.command). See `macos/scripts/bitcoin/README.md`.
-    - `electrum/`: Electrum launch scripts (.command). See `macos/scripts/electrum/README.md`.
-    - `utilities/`: macOS maintenance scripts (updates, verification, cleanup, logs).
+    - `bitcoin/`: Bitcoin Core launch scripts (.command). See
+      `macos/scripts/bitcoin/README.md`.
+    - `electrum/`: Electrum launch scripts (.command). See
+      `macos/scripts/electrum/README.md`.
+    - `utilities/`: macOS maintenance scripts (updates, verification, cleanup,
+      logs).
 
 - `win/`
   - `bin/`: Windows binaries (e.g., `electrum.exe`).
     - `.tmp-downloads/`: Temporary downloads used by update scripts.
-  - `bin/backup/`: Windows backups created by update scripts (see `win/bin/backup/README.md`).
+  - `bin/backup/`: Windows backups created by update scripts (see
+    `win/bin/backup/README.md`).
   - `checksums.sha256`: Windows checksums (versioned) at `win/checksums.sha256`.
   - `scripts/`
-    - `bitcoin/`: Bitcoin Core launch scripts (.bat). See `win/scripts/bitcoin/README.md`.
-    - `electrum/`: Electrum launch scripts (.bat). See `win/scripts/electrum/README.md`.
-    - `utilities/`: Windows maintenance scripts (updates, verification, cleanup, logs).
+    - `bitcoin/`: Bitcoin Core launch scripts (.bat). See
+      `win/scripts/bitcoin/README.md`.
+    - `electrum/`: Electrum launch scripts (.bat). See
+      `win/scripts/electrum/README.md`.
+    - `utilities/`: Windows maintenance scripts (updates, verification, cleanup,
+      logs).
 
 - `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
@@ -60,11 +79,13 @@ Electrum on macOS and Windows.
 ### Bitcoin Core
 - **Mainnet**: Use `mainnet-8333-qt` scripts for GUI or CLI.
 - **Testnet**: Use `testnet3-18333-qt` for testnet.
-- **Regtest**: Use `regtest-*` scripts for local testing. Clean scripts reset data.
+- **Regtest**: Use `regtest-*` scripts for local testing. Clean scripts reset
+  data.
 - Data is stored in `bitcoin-datadir/`. Configure via `bitcoin.conf`.
 
 ### Electrum
-- **Mainnet**: Use `mainnet` or `mainnet-local-server-only` (connects to local server).
+- **Mainnet**: Use `mainnet` or `mainnet-local-server-only` (connects to local
+  server).
 - **Testnet/Regtest**: Use respective scripts.
 - Data in `electrum-datadir/`. Wallets are in `wallets/`.
 
@@ -75,50 +96,83 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 
 ## Updating Binaries
 
-- **Bitcoin Core**: Download latest from [bitcoincore.org](https://bitcoincore.org/en/download/). Replace files in `macos/bin/` (Bitcoin-Qt.app) or in `win/bin/` (e.g., `bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`, `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`).
-- **Electrum**: Download from [electrum.org](https://electrum.org/#download). Replace files in `macos/bin/Electrum.app/` or `win/bin/electrum.exe`.
+- **Bitcoin Core**: Download latest from
+  [bitcoincore.org](https://bitcoincore.org/en/download/). Replace files in
+  `macos/bin/` (Bitcoin-Qt.app) or in `win/bin/` (e.g., `bitcoin-qt.exe`,
+  `bitcoind.exe`, `bitcoin-cli.exe`, `bitcoin-tx.exe`, `bitcoin-util.exe`,
+  `bitcoin-wallet.exe`, `bitcoin.exe`).
+- **Electrum**: Download from [electrum.org](https://electrum.org/#download).
+  Replace files in `macos/bin/Electrum.app/` or `win/bin/electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
-- If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core and Electrum downloads.
-  - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
-  - **Electrum signing key**: obtain the release signing key from electrum.org (Download page) and import with `gpg --import`.
+- If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core
+  and Electrum downloads.
+  - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
+    repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
+  - **Electrum signing key**: obtain the release signing key from electrum.org
+    (Download page) and import with `gpg --import`.
 - After update, test with regtest scripts.
-- On macOS, update using `./macos/scripts/utilities/update-bitcoin.sh` or `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up old versions).  
-Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or `./macos/scripts/utilities/rollback-electrum.sh` if issues occur.  
+- On macOS, update using `./macos/scripts/utilities/update-bitcoin.sh` or
+  `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up
+  old versions).
+Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or
+`./macos/scripts/utilities/rollback-electrum.sh` if issues occur.
 Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
-- On Windows, update using `win/scripts/utilities/update-bitcoin.bat` and `win/scripts/utilities/update-electrum.bat`.  
-Rollback with `win/scripts/utilities/rollback-bitcoin.bat` and `win/scripts/utilities/rollback-electrum.bat`.  
+- On Windows, update using `win/scripts/utilities/update-bitcoin.bat` and
+  `win/scripts/utilities/update-electrum.bat`.
+Rollback with `win/scripts/utilities/rollback-bitcoin.bat` and
+`win/scripts/utilities/rollback-electrum.bat`.
 Validate setup with `win/scripts/utilities/validate-setup.bat`.
-- **Backup/Rollback**: Rollback scripts depend on backups created by update scripts.
-- **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep ever-growing lists of acceptable hashes labeled by version; update scripts append new entries and deduplicate exact duplicates.
+- **Backup/Rollback**: Rollback scripts depend on backups created by update
+  scripts.
+- **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep
+  ever-growing lists of acceptable hashes labeled by version; update scripts
+  append new entries and deduplicate exact duplicates.
 - **Signing Keys**:
-  - Bitcoin Core: import keys from `contrib/builder-keys/keys.txt` in the official Bitcoin Core repo. Verify fingerprints before trust.
-  - Electrum: import the release signing key from electrum.org Download page. Verify the fingerprint published there.
+  - Bitcoin Core: import keys from `contrib/builder-keys/keys.txt` in the
+    official Bitcoin Core repo. Verify fingerprints before trust.
+  - Electrum: import the release signing key from electrum.org Download page.
+    Verify the fingerprint published there.
 
 ### Expected Binaries by OS
 
-- **macOS (`macos/bin/`)**: `Bitcoin-Qt.app/`, `Electrum.app/` (see `macos/bin/README.md`)
-- **Windows (`win/bin/`)**: `bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`, `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`, `electrum.exe` (see `win/bin/README.md`)
+- **macOS (`macos/bin/`)**: `Bitcoin-Qt.app/`, `Electrum.app/` (see
+  `macos/bin/README.md`)
+- **Windows (`win/bin/`)**: `bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`,
+  `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`,
+  `electrum.exe` (see `win/bin/README.md`)
 
 ## Troubleshooting
 
 ### Common Issues
-- **Script fails with "Binary not found"**: Ensure binaries are in `macos/bin/` or `win/bin/`. Check permissions.
-- **Permission denied on macOS**: Run `chmod +x macos/scripts/**/*.command macos/bin/Electrum.app/Contents/MacOS/run_electrum`.
-- **Disk space errors**: Free up space or use pruning in `bitcoin.conf` (`prune=550` for ~550MB blocks).
-- **Sync issues**: Check logs in `bitcoin-datadir/debug.log`. For Electrum, check console output.
-- **Regtest not connecting**: Ensure all regtest scripts are run (Alice, Bob, Carol) and ports are open.
+- **Script fails with "Binary not found"**: Ensure binaries are in `macos/bin/`
+  or `win/bin/`. Check permissions.
+- **Permission denied on macOS**: Run `chmod +x macos/scripts/**/*.command
+  macos/bin/Electrum.app/Contents/MacOS/run_electrum`.
+- **Disk space errors**: Free up space or use pruning in `bitcoin.conf`
+  (`prune=550` for ~550MB blocks).
+- **Sync issues**: Check logs in `bitcoin-datadir/debug.log`. For Electrum,
+  check console output.
+- **Regtest not connecting**: Ensure all regtest scripts are run (Alice, Bob,
+  Carol) and ports are open.
 - **Path errors**: If moved, use `PORTANODE_ROOT` or adjust scripts.
 
 ### Logs and Debugging
 - Bitcoin: `bitcoin-datadir/debug.log`
 - Electrum: Check terminal output or `electrum-datadir/` for logs.
-- Run scripts from terminal for verbose output: `bash macos/scripts/bitcoin/mainnet-8333-qt.command` or `win/scripts/bitcoin/mainnet-8333-qt.bat`.
-- Rotate logs: `./macos/scripts/utilities/rotate-bitcoin-log.sh` or `win/scripts/utilities/rotate-bitcoin-log.bat`
-- Monitor logs: `./macos/scripts/utilities/monitor-bitcoin-log.sh` or `win/scripts/utilities/monitor-bitcoin-log.bat` (run periodically to check for errors)
-- Health check: `./macos/scripts/utilities/health-check.sh` or `win/scripts/utilities/health-check.bat`
+- Run scripts from terminal for verbose output: `bash
+  macos/scripts/bitcoin/mainnet-8333-qt.command` or
+  `win/scripts/bitcoin/mainnet-8333-qt.bat`.
+- Rotate logs: `./macos/scripts/utilities/rotate-bitcoin-log.sh` or
+  `win/scripts/utilities/rotate-bitcoin-log.bat`
+- Monitor logs: `./macos/scripts/utilities/monitor-bitcoin-log.sh` or
+  `win/scripts/utilities/monitor-bitcoin-log.bat` (run periodically to check for
+  errors)
+- Health check: `./macos/scripts/utilities/health-check.sh` or
+  `win/scripts/utilities/health-check.bat`
 
 ### Getting Help
-- Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum Docs](https://electrum.readthedocs.io/).
+- Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum
+  Docs](https://electrum.readthedocs.io/).
 - Report issues with logs and OS details.
 
 ## Version Compatibility
@@ -137,9 +191,18 @@ This is an open-source project. To contribute:
 
 ## Security Notes
 
-- **Binary Integrity**: Verify binaries with `macos/scripts/utilities/verify-binaries.sh` (macOS) or `win/scripts/utilities/verify-binaries.bat` (Windows) after downloads.
+- **Binary Integrity**: Verify binaries with
+  `macos/scripts/utilities/verify-binaries.sh` (macOS) or
+  `win/scripts/utilities/verify-binaries.bat` (Windows) after downloads.
   - Each verification script checks only its platform’s binaries.
-- **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and `electrum-datadir/wallets/`. Use encrypted storage.
-- **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to localhost only and use strong passwords. Configure firewall to restrict access.
-- **Permissions**: Set restrictive permissions on data directories: `./macos/scripts/utilities/set-permissions.sh` or `win/scripts/utilities/set-permissions.bat`.
-- **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` or `win/scripts/utilities/clean-artifacts.bat` to remove existing ones.
+- **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and
+  `electrum-datadir/wallets/`. Use encrypted storage.
+- **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to
+  localhost only and use strong passwords. Configure firewall to restrict
+  access.
+- **Permissions**: Set restrictive permissions on data directories:
+  `./macos/scripts/utilities/set-permissions.sh` or
+  `win/scripts/utilities/set-permissions.bat`.
+- **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are
+  ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` or
+  `win/scripts/utilities/clean-artifacts.bat` to remove existing ones.

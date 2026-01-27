@@ -16,4 +16,5 @@ whether it restricts connections to a local Electrum server only.
 - Electrum app bundle in `macos/bin/Electrum.app`.
 - Data directory in `electrum-datadir/`.
 - For local server mode, a local Electrum server must be running.
-- Note: Some Electrum builds expose `run_electrum` instead of `Electrum` inside the app bundle. The launcher scripts accept either.
+- Note: Some Electrum builds expose `run_electrum` instead of `Electrum` inside
+  the app bundle. The launcher scripts accept either.

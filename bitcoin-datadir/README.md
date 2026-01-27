@@ -18,11 +18,12 @@ Edit `bitcoin.conf` for settings like:
 - `maxmempool=4096`: Mempool size (MB).
 - `prune=550`: Prune blocks to ~550MB.
 
-## Backup
+## Wallets
 
 Backup `wallets/` regularly.
 
-Set restrictive permissions: `chmod 700 .` (on Unix) or use folder properties (Windows).
+Set restrictive permissions: `chmod 700 .` (on Unix)
+or use folder properties (Windows).
 
 ## Troubleshooting
 

@@ -2,16 +2,19 @@
 
 ## Binaries (`bin/`)
 
-- `bitcoin-*.exe`: Bitcoin Core executables (qt for GUI, cli for command-line, etc.).
+- `bitcoin-*.exe`: Bitcoin Core executables (qt for GUI, cli for command-line,
+  etc.).
 - `electrum.exe`: Electrum wallet.
 
 ## Scripts (`scripts/`)
 
-- `bitcoin/`: Scripts to launch Bitcoin Core (e.g., `mainnet-8333-qt.bat` for GUI).
+- `bitcoin/`: Scripts to launch Bitcoin Core (e.g., `mainnet-8333-qt.bat` for
+  GUI).
 - `electrum/`: Scripts to launch Electrum (e.g., `mainnet.bat`).
 - `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
 
-Root launchers are available for specific areas: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and `Utilities-Launcher.*` (`.bat` or `.ps1`).
+Root launchers are available for specific areas: `Bitcoin-Launcher.*`,
+`Electrum-Launcher.*`, and `Utilities-Launcher.*` (`.bat` or `.ps1`).
 
 ## Utilities Quickstart
 
