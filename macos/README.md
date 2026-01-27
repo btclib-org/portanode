@@ -5,8 +5,14 @@
 - `Bitcoin-Qt.app`: Bitcoin Core GUI.
 - `Electrum.app`: Electrum wallet.
 
-Ensure these are executable. If not, run
-`chmod +x bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt bin/Electrum.app/Contents/MacOS/Electrum bin/Electrum.app/Contents/MacOS/run_electrum`.
+Ensure these are executable. If not, run:
+
+```sh
+chmod +x \
+  bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt \
+  bin/Electrum.app/Contents/MacOS/Electrum \
+  bin/Electrum.app/Contents/MacOS/run_electrum
+```
 
 ## Scripts (`scripts/`)
 
