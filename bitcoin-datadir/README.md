@@ -2,6 +2,11 @@
 
 Configuration and data directory for Bitcoin Core.
 
+For local installation this folder is typically in:
+- `~/Library/Application Support/Bitcoin/` (macOs)
+- `%LOCALAPPDATA%\Bitcoin` (Windows)
+- `C:\Users\<YourUsername>\AppData\Local\Bitcoin` (Windows)
+
 ## Files and Folders
 
 - `bitcoin.conf`: Node configuration (e.g., dbcache, txindex).

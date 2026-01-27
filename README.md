@@ -1,14 +1,22 @@
 # PortaNode
 
-## Portable (external disk) cross-platform Bitcoin full node.
+## Portable (external‑disk‑friendly) cross-platform Bitcoin node.
 
-PortaNode bundles scripts, binaries, and data for running Bitcoin Core and
-Electrum on macOS and Windows.
+PortaNode bundles scripts, binaries, and data for running Bitcoin Core
+(and Electrum) on macOS and Windows.
 
+If you’ve ever tried running an indexed full Bitcoin node
+on a portable external disk shared between Windows and macOS,
+you know the kinds of problems this is meant to address.
+
+It works best on an exFAT-formatted NVMe drive
+in a portable USB 3 / Thunderbolt enclosure.
+
+It has been tested with Bitocoin Core 30.2 and Electrum 4.7.0.
 
 ## Prerequisites
 
-- **Operating System**: macOS 10.15+ or Windows 10+.
+- **Operating System**: fairly recent macOS or Windows versions.
 - **Disk Space**: At least 700GB free for Bitcoin Core data (mainnet) full sync.
   Regtest/testnet require less.
 - **Permissions**: Ensure the external disk is mounted and writable. On macOS,

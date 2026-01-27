@@ -2,6 +2,10 @@
 
 Data directory for Electrum, including wallets and network-specific data.
 
+For local installation this folder is typically in:
+- `~/.electrum` (macOS)
+- `%APPDATA%\Electrum` (Windows)
+
 ## Folders
 
 - `wallets/`: Mainnet wallets (default and named).

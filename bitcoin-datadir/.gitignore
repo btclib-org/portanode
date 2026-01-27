@@ -9,6 +9,9 @@ mempool.dat
 peers.dat
 settings.json
 wallets/
+testnet3/
+testnet4/
+regtest/
 
 # macOS artifacts
 ._*
