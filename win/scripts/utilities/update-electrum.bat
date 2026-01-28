@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-REM Update Electrum version (Windows)
+REM Update Electrum Version
 
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..

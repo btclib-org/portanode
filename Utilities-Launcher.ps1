@@ -18,8 +18,8 @@ $Scripts = @{
 
 while ($true) {
     Write-Host "Utilities Launcher"
-    Write-Host "1) Update Bitcoin version"
-    Write-Host "2) Update Electrum version"
+    Write-Host "1) Update Bitcoin Version"
+    Write-Host "2) Update Electrum Version"
     Write-Host "3) Rollback Last Bitcoin Update"
     Write-Host "4) Rollback Last Electrum Update"
     Write-Host "5) Verify binaries"

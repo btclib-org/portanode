@@ -20,8 +20,8 @@ run_script() {
 
 while true; do
   echo "Utilities Launcher"
-  echo "1) Update Bitcoin version"
-  echo "2) Update Electrum version"
+  echo "1) Update Bitcoin Version"
+  echo "2) Update Electrum Version"
   echo "3) Rollback Last Bitcoin Update"
   echo "4) Rollback Last Electrum Update"
   echo "5) Verify binaries"
