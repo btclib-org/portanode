@@ -4,8 +4,13 @@ set -o pipefail
 
 ROOTDIR="$(cd "$(dirname "$0")" && pwd)"
 
-run_cmd() {
-  "$@"
+run_script() {
+  local script="$1"
+  if [ ! -f "$script" ]; then
+    echo "Script not found: $script"
+    return 0
+  fi
+  bash "$script"
   local status=$?
   if [ $status -ne 0 ]; then
     echo "Command failed (exit $status)."
@@ -29,16 +34,11 @@ while true; do
   fi
 
   case "$choice" in
-    1) run_cmd bash \
-         "$ROOTDIR/macos/scripts/bitcoin/mainnet-8333-qt.command" ;;
-    2) run_cmd bash \
-         "$ROOTDIR/macos/scripts/bitcoin/testnet3-18333-qt.command" ;;
-    3) run_cmd bash \
-         "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-qt.command" ;;
-    4) run_cmd bash \
-         "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt.command" ;;
-    5) run_cmd bash \
-         "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt.command" ;;
+    1) run_script "$ROOTDIR/macos/scripts/bitcoin/mainnet-8333-qt.command" ;;
+    2) run_script "$ROOTDIR/macos/scripts/bitcoin/testnet3-18333-qt.command" ;;
+    3) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-qt.command" ;;
+    4) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt.command" ;;
+    5) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt.command" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac

@@ -4,11 +4,16 @@ set -o pipefail
 
 ROOTDIR="$(cd "$(dirname "$0")" && pwd)"
 
-run_cmd() {
-  "$@"
+run_script() {
+  local script="$1"
+  if [ ! -f "$script" ]; then
+    echo "Script not found: $script"
+    return 0
+  fi
+  bash "$script"
   local status=$?
   if [ $status -ne 0 ]; then
-    echo "Command failed (exit $status). Returning to menu."
+    echo "Command failed (exit $status)."
   fi
   return 0
 }
@@ -33,15 +38,15 @@ while true; do
   fi
 
   case "$choice" in
-    1) run_cmd bash "$ROOTDIR/macos/scripts/utilities/update-bitcoin.sh" ;;
-    2) run_cmd bash "$ROOTDIR/macos/scripts/utilities/update-electrum.sh" ;;
-    3) run_cmd bash "$ROOTDIR/macos/scripts/utilities/verify-binaries.sh" ;;
-    4) run_cmd bash "$ROOTDIR/macos/scripts/utilities/validate-setup.sh" ;;
-    5) run_cmd bash "$ROOTDIR/macos/scripts/utilities/set-permissions.sh" ;;
-    6) run_cmd bash "$ROOTDIR/macos/scripts/utilities/health-check.sh" ;;
-    7) run_cmd bash "$ROOTDIR/macos/scripts/utilities/monitor-bitcoin-log.sh" ;;
-    8) run_cmd bash "$ROOTDIR/macos/scripts/utilities/rotate-bitcoin-log.sh" ;;
-    9) run_cmd bash "$ROOTDIR/macos/scripts/utilities/clean-artifacts.sh" ;;
+    1) run_script "$ROOTDIR/macos/scripts/utilities/update-bitcoin.sh" ;;
+    2) run_script "$ROOTDIR/macos/scripts/utilities/update-electrum.sh" ;;
+    3) run_script "$ROOTDIR/macos/scripts/utilities/verify-binaries.sh" ;;
+    4) run_script "$ROOTDIR/macos/scripts/utilities/validate-setup.sh" ;;
+    5) run_script "$ROOTDIR/macos/scripts/utilities/set-permissions.sh" ;;
+    6) run_script "$ROOTDIR/macos/scripts/utilities/health-check.sh" ;;
+    7) run_script "$ROOTDIR/macos/scripts/utilities/monitor-bitcoin-log.sh" ;;
+    8) run_script "$ROOTDIR/macos/scripts/utilities/rotate-bitcoin-log.sh" ;;
+    9) run_script "$ROOTDIR/macos/scripts/utilities/clean-artifacts.sh" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac
