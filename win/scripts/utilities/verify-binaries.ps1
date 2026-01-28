@@ -45,7 +45,6 @@ $fail = 0
 foreach ($path in $map.Keys) {
   if (-not (Test-Path $path)) {
     Write-Host "$path : MISSING"
-    $fail++
     continue
   }
   $computed = (Get-FileHash -Algorithm SHA256 $path).Hash

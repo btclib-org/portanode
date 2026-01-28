@@ -28,6 +28,8 @@ using YYYY.MM.DD format.
   utility libraries and rewired the scripts to use them.
 - Windows Electrum updater now restores the full update flow using shared
   verification and checksum helpers.
+- Verify-binaries scripts now treat missing binaries as informational and only
+  fail on checksum mismatches.
 - Bitcoin updater now hashes the extracted binary (not the app bundle directory)
   when updating checksums.
 - Bitcoin updater now validates and locates the extracted app bundle before

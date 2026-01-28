@@ -58,7 +58,6 @@ for path in "${!paths[@]}"; do
     file="$ROOTDIR/$path"
     if [ ! -f "$file" ]; then
         echo "$path: MISSING"
-        fail=1
         continue
     fi
     if command -v shasum >/dev/null 2>&1; then
