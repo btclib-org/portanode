@@ -1,5 +1,5 @@
 #!/bin/bash
-ROOTDIR="$(dirname "$0")/../../.."
+ROOTDIR="${PORTANODE_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd -P)}"
 echo ROOTDIR is "${ROOTDIR}"
 BIN_DIR="${ROOTDIR}/macos/bin"
 BTC_QT="${BIN_DIR}/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"

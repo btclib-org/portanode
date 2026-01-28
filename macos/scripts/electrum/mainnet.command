@@ -1,5 +1,5 @@
 #!/bin/bash
-ROOTDIR="${PORTANODE_ROOT:-$(dirname "$0")/../../..}"
+ROOTDIR="${PORTANODE_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd -P)}"
 echo "ROOTDIR is ${ROOTDIR}"
 BIN_DIR="${ROOTDIR}/macos/bin"
 ELECTRUM_APP="${BIN_DIR}/Electrum.app"

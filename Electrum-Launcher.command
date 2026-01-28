@@ -19,7 +19,7 @@ run_script() {
 }
 
 while true; do
-  echo "Electrum Launcher"
+  echo "Electrum Launcher ($ROOTDIR)"
   echo "1) Mainnet"
   echo "2) Testnet"
   echo "3) Regtest"

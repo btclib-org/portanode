@@ -19,7 +19,7 @@ run_script() {
 }
 
 while true; do
-  echo "Utilities Launcher"
+  echo "Utilities Launcher ($ROOTDIR)"
   echo "1) Update Bitcoin Version"
   echo "2) Update Electrum Version"
   echo "3) Rollback Last Bitcoin Update"

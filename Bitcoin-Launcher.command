@@ -19,7 +19,7 @@ run_script() {
 }
 
 while true; do
-  echo "Bitcoin Launcher"
+  echo "Bitcoin Launcher ($ROOTDIR)"
   echo "1) Mainnet (GUI)"
   echo "2) Testnet3 (GUI)"
   echo "3) Regtest Alice (GUI)"
