@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-REM Validate PortaNode setup (Windows)
+REM Validate setup
 
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..
@@ -8,30 +8,8 @@ for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
 
 pushd "%ROOTDIR%" >nul 2>&1
 
-echo Validating PortaNode setup...
+echo Validating setup at %ROOTDIR%
 
-set BINARIES=^
-win\bin\bitcoin-qt.exe ^
-win\bin\bitcoind.exe ^
-win\bin\bitcoin-cli.exe ^
-win\bin\bitcoin-tx.exe ^
-win\bin\bitcoin-util.exe ^
-win\bin\bitcoin-wallet.exe ^
-win\bin\electrum.exe
-
-set MISSING=0
-for %%B in (%BINARIES%) do (
-    if not exist "%%B" (
-        echo ERROR: Binary %%B not found.
-        set MISSING=1
-    )
-)
-
-if %MISSING% neq 0 (
-    popd >nul 2>&1
-    exit /b 1
-)
-echo OK: Binaries present
 
 if exist "%SCRIPT_DIR%verify-binaries.bat" (
     call "%SCRIPT_DIR%verify-binaries.bat"
@@ -39,7 +17,6 @@ if exist "%SCRIPT_DIR%verify-binaries.bat" (
         popd >nul 2>&1
         exit /b 1
     )
-    echo OK: Checksums valid
 ) else (
     echo WARNING: verify-binaries.bat not found, skipping checksum check
 )
@@ -49,12 +26,6 @@ if exist "bitcoin-datadir" if exist "electrum-datadir" (
 ) else (
     echo WARNING: Data directories not found
 )
-
-REM Report binary versions from checksums
-echo Binary versions:
-powershell -NoProfile -ExecutionPolicy Bypass ^
-  -File "%SCRIPT_DIR%validate-setup.ps1" ^
-  -RootDir "%ROOTDIR%"
 
 for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
 findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
@@ -70,6 +41,6 @@ if not defined FREE_BYTES (
     )
 )
 
-echo Validation complete. Setup looks good!
+echo Setup validation completed.
 popd >nul 2>&1
 exit /b 0

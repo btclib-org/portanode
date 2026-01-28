@@ -33,6 +33,17 @@ using YYYY.MM.DD format.
   verification and checksum helpers.
 - Verify-binaries scripts now treat missing binaries as informational and only
   fail on checksum mismatches.
+- Verify-binaries scripts now include expected versions when binaries are
+  missing or mismatched.
+- Validate-setup scripts now warn on missing binaries instead of failing.
+- Validate-setup scripts now delegate binary verification to verify-binaries
+  to avoid duplicated checks.
+- Verify-binaries now announces the checksum file path; validate-setup no longer
+  prints it.
+- Verify/validate scripts now use matching status text and failure summaries
+  across macOS and Windows.
+- Verify-binaries output now aligns the start/end status lines across macOS and
+  Windows.
 - Bitcoin updater now hashes the extracted binary (not the app bundle directory)
   when updating checksums.
 - Bitcoin updater now validates and locates the extracted app bundle before

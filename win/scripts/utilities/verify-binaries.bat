@@ -1,5 +1,5 @@
 @echo off
-REM Verify PortaNode binaries against win/checksums.sha256
+REM Verify binaries against win/checksums.sha256
 
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..
@@ -14,7 +14,7 @@ if not exist "%CHECKSUM_FILE%" (
     exit /b 1
 )
 
-echo Verifying binaries...
+echo Verifying binaries against %CHECKSUM_FILE%
 
 powershell -NoProfile -ExecutionPolicy Bypass ^
   -File "%SCRIPT_DIR%verify-binaries.ps1" ^

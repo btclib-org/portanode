@@ -43,8 +43,19 @@ foreach ($line in $lines) {
 
 $fail = 0
 foreach ($path in $map.Keys) {
+  $expectedVersions = $map[$path] |
+    Select-Object -ExpandProperty Version |
+    Select-Object -Unique
+  $expectedText = ''
+  if ($expectedVersions.Count -gt 0) {
+    $expectedText = ($expectedVersions -join ', ')
+  }
   if (-not (Test-Path $path)) {
-    Write-Host "$path : MISSING"
+    if ($expectedText) {
+    Write-Host "$path: MISSING (expected versions: $expectedText)"
+    } else {
+      Write-Host "$path: MISSING"
+    }
     continue
   }
   $computed = (Get-FileHash -Algorithm SHA256 $path).Hash
@@ -55,9 +66,13 @@ foreach ($path in $map.Keys) {
       Select-Object -ExpandProperty Version |
       Select-Object -Unique
     $versions = $versions -join ', '
-    Write-Host "$path : OK (version: $versions)"
+    Write-Host "$path: OK (version: $versions)"
   } else {
-    Write-Host "$path : FAILED"
+    if ($expectedText) {
+      Write-Host "$path: FAILED (expected versions: $expectedText)"
+    } else {
+      Write-Host "$path: FAILED"
+    }
     $fail++
   }
 }

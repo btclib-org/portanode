@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify PortaNode binaries against macos/checksums.sha256
+# Verify binaries against macos/checksums.sha256
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -10,6 +10,8 @@ if [ ! -f "$CHECKSUM_FILE" ]; then
     echo "Error: $CHECKSUM_FILE not found."
     exit 1
 fi
+
+echo "Verifying binaries against $CHECKSUM_FILE"
 
 trim() {
     local s="$1"
@@ -52,12 +54,28 @@ while IFS= read -r line; do
     entries["$key"]+="${hash}:${version},"
 done < "$CHECKSUM_FILE"
 
-echo "Verifying binaries..."
 fail=0
 for path in "${!paths[@]}"; do
     file="$ROOTDIR/$path"
+    expected_versions=()
+    IFS=',' read -r -a expected_items <<< "${entries[$path]}"
+    for item in "${expected_items[@]}"; do
+        [ -z "$item" ] && continue
+        item_ver="${item#*:}"
+        expected_versions+=("$item_ver")
+    done
+    if [ "${#expected_versions[@]}" -gt 0 ]; then
+        expected_versions_str=$(printf "%s, " "${expected_versions[@]}")
+        expected_versions_str="${expected_versions_str%, }"
+    else
+        expected_versions_str=""
+    fi
     if [ ! -f "$file" ]; then
-        echo "$path: MISSING"
+        if [ -n "$expected_versions_str" ]; then
+            echo "$path: MISSING (expected versions: $expected_versions_str)"
+        else
+            echo "$path: MISSING"
+        fi
         continue
     fi
     if command -v shasum >/dev/null 2>&1; then
@@ -84,13 +102,18 @@ for path in "${!paths[@]}"; do
         versions="${versions%, }"
         echo "$path: OK (version: $versions)"
     else
-        echo "$path: FAILED"
-        fail=1
+        if [ -n "$expected_versions_str" ]; then
+            echo "$path: FAILED (expected versions: $expected_versions_str)"
+        else
+            echo "$path: FAILED"
+        fi
+        fail=$((fail + 1))
     fi
 done
 
 if [ "$fail" -ne 0 ]; then
+    echo "Verification failed: $fail file(s)."
     exit 1
 fi
 
-echo "Verification complete."
+echo "Verification complete: all OK."
