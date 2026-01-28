@@ -52,9 +52,13 @@ Can be used if an update fails.
 - Most scripts require internet for downloads; ensure connectivity.
 - Update scripts place temporary downloads under `macos/bin/.tmp-downloads/` and
   clean them on exit.
-- If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core
-  and Electrum downloads. Updates require all signatures to verify; missing
-  keys are reported as warnings.
+- If `gpg` is installed, update scripts attempt to verify PGP signatures for
+  Bitcoin Core and Electrum downloads. Bad signatures fail. If verification
+  cannot be performed (missing keys or no `gpg`), updates continue but checksum
+  files are not updated.
+  - Signature files are detached and typically do **not** include public keys.
+    GPG can only validate signatures for keys already in your local keyring.
+    If signer keys are missing, signatures cannot be validated locally.
   - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
     repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
   - **Electrum signing key**: obtain the release signing key from electrum.org

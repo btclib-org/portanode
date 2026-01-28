@@ -22,7 +22,28 @@ where gpg >nul 2>&1
 if %errorlevel%==0 (
     call :warn_if_no_pubkeys
     echo Verifying %LABEL% signature...
-    gpg --verify "%SIG_FILE%" "%DATA_FILE%" || exit /b 1
+    set "STATUS_FILE=%TEMP%\\pgp_status_%RANDOM%%RANDOM%.txt"
+    gpg --status-fd 1 --verify "%SIG_FILE%" "%DATA_FILE%" 1> "%STATUS_FILE%"
+    set "HAS_GOOD="
+    set "HAS_BAD="
+    set "HAS_NOPUB="
+    for /f "delims=" %%A in ('findstr /c:"[GNUPG:] GOODSIG" "%STATUS_FILE%"') do set HAS_GOOD=1
+    for /f "delims=" %%A in ('findstr /c:"[GNUPG:] BADSIG" "%STATUS_FILE%"') do set HAS_BAD=1
+    for /f "delims=" %%A in ('findstr /c:"[GNUPG:] NO_PUBKEY" "%STATUS_FILE%"') do set HAS_NOPUB=1
+    del "%STATUS_FILE%" >nul 2>&1
+    if defined HAS_BAD (
+        echo PGP signature verification failed
+        exit /b 1
+    )
+    if not defined HAS_GOOD (
+        if defined HAS_NOPUB (
+            echo Warning: missing public keys for one or more signatures.
+            exit /b 0
+        )
+        echo PGP signature verification failed
+        exit /b 1
+    )
+    if defined HAS_NOPUB echo Warning: missing public keys for one or more signatures.
     set "RESULT=1"
 ) else (
     echo Warning: gpg not found; skipping PGP signature verification.

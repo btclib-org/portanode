@@ -21,9 +21,12 @@ using YYYY.MM.DD format.
 - Rollback scripts now verify the backup binary checksum before restoring.
 - Update/rollback scripts now emit one-line directory listings when expected
   files are missing.
-- Update scripts now require all signatures to verify successfully and warn if
-  no public keys are present in the local keyring.
-- Utilities READMEs now document the stricter signature verification behavior.
+- Update scripts now continue when PGP verification cannot be performed due to
+  missing `gpg` or signer keys; bad signatures still fail, and checksums are
+  only updated after successful verification.
+- Utilities READMEs now document the signature verification behavior.
+- Utilities READMEs now clarify that detached signatures require local signer
+  keys to validate; without them, signatures cannot be checked locally.
 - Factored shared update/rollback verification helpers into macOS/Windows
   utility libraries and rewired the scripts to use them.
 - Windows Electrum updater now restores the full update flow using shared

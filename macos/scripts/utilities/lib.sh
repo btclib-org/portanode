@@ -18,9 +18,38 @@ pgp_verify_or_warn() {
             echo "Warning: no public keys found in local keyring."
         fi
         echo "Verifying ${label} signature..."
-        if ! gpg --verify "$sig_file" "$data_file"; then
+        local status_file
+        status_file="$(mktemp)"
+        if ! gpg --status-fd 1 --verify "$sig_file" "$data_file" 1> "$status_file"; then
+            true
+        fi
+        local has_good=0
+        local has_bad=0
+        local has_missing=0
+        if grep -q '^\[GNUPG:\] GOODSIG' "$status_file"; then
+            has_good=1
+        fi
+        if grep -q '^\[GNUPG:\] BADSIG' "$status_file"; then
+            has_bad=1
+        fi
+        if grep -q '^\[GNUPG:\] NO_PUBKEY' "$status_file"; then
+            has_missing=1
+        fi
+        rm -f "$status_file"
+        if [ "$has_bad" -eq 1 ]; then
             echo "PGP signature verification failed"
             return 1
+        fi
+        if [ "$has_good" -eq 0 ]; then
+            if [ "$has_missing" -eq 1 ]; then
+                echo "Warning: missing public keys for one or more signatures."
+                return 0
+            fi
+            echo "PGP signature verification failed"
+            return 1
+        fi
+        if [ "$has_missing" -eq 1 ]; then
+            echo "Warning: missing public keys for one or more signatures."
         fi
         ok=1
     else
