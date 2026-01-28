@@ -7,7 +7,12 @@ UNAME="$(uname -s 2>/dev/null || true)"
 case "$UNAME" in
   MINGW*|MSYS*|CYGWIN*)
     if command -v cmd.exe >/dev/null 2>&1; then
-      cmd.exe /c "\"${ROOTDIR}\\Electrum-Launcher.bat\""
+      if [ -f "$ROOTDIR/Electrum-Launcher.bat" ]; then
+        cmd.exe /c "\"${ROOTDIR}\\Electrum-Launcher.bat\""
+      else
+        echo "Script not found: $ROOTDIR/Electrum-Launcher.bat"
+        exit 1
+      fi
       exit 0
     fi
     ;;
@@ -16,6 +21,6 @@ esac
 if [ -f "$ROOTDIR/Electrum-Launcher.command" ]; then
   bash "$ROOTDIR/Electrum-Launcher.command"
 else
-  echo "Electrum-Launcher.command not found."
+  echo "Script not found: $ROOTDIR/Electrum-Launcher.command"
   exit 1
 fi

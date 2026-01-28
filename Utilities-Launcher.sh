@@ -7,17 +7,20 @@ UNAME="$(uname -s 2>/dev/null || true)"
 case "$UNAME" in
   MINGW*|MSYS*|CYGWIN*)
     if command -v cmd.exe >/dev/null 2>&1; then
-      echo "Utilities Launcher (Windows)"
-      cmd.exe /c "\"${ROOTDIR}\\Utilities-Launcher.bat\""
+      if [ -f "$ROOTDIR/Utilities-Launcher.bat" ]; then
+        cmd.exe /c "\"${ROOTDIR}\\Utilities-Launcher.bat\""
+      else
+        echo "Script not found: $ROOTDIR/Utilities-Launcher.bat"
+        exit 1
+      fi
       exit 0
     fi
     ;;
 esac
 
 if [ -f "$ROOTDIR/Utilities-Launcher.command" ]; then
-  echo "Utilities Launcher (macOS)"
   bash "$ROOTDIR/Utilities-Launcher.command"
 else
-  echo "Utilities-Launcher.command not found."
+  echo "Script not found: $ROOTDIR/Utilities-Launcher.command"
   exit 1
 fi

@@ -25,10 +25,12 @@ if "%choice%"=="3" goto run
 if "%choice%"=="4" goto run
 
 echo Invalid selection.
+echo.
 goto menu
 
 :run
 call :run_script
+echo.
 goto menu
 
 :run_script
