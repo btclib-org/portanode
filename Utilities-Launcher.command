@@ -15,13 +15,15 @@ run_cmd() {
 
 while true; do
   echo "Utilities Launcher"
-  echo "1) Verify binaries"
-  echo "2) Validate setup"
-  echo "3) Health check"
-  echo "4) Rotate Bitcoin log"
-  echo "5) Monitor Bitcoin log"
-  echo "6) Clean macOS artifacts"
-  echo "7) Set permissions"
+  echo "1) Update Bitcoin binaries"
+  echo "2) Update Electrum binaries"
+  echo "3) Verify binaries"
+  echo "4) Validate setup"
+  echo "5) Set permissions"
+  echo "6) Health check"
+  echo "7) Monitor Bitcoin log"
+  echo "8) Rotate Bitcoin log"
+  echo "9) Clean macOS artifacts"
   echo "0) Exit"
   printf "Select: "
   read -r choice
@@ -31,13 +33,15 @@ while true; do
   fi
 
   case "$choice" in
-    1) run_cmd bash "$ROOTDIR/macos/scripts/utilities/verify-binaries.sh" ;;
-    2) run_cmd bash "$ROOTDIR/macos/scripts/utilities/validate-setup.sh" ;;
-    3) run_cmd bash "$ROOTDIR/macos/scripts/utilities/health-check.sh" ;;
-    4) run_cmd bash "$ROOTDIR/macos/scripts/utilities/rotate-bitcoin-log.sh" ;;
-    5) run_cmd bash "$ROOTDIR/macos/scripts/utilities/monitor-bitcoin-log.sh" ;;
-    6) run_cmd bash "$ROOTDIR/macos/scripts/utilities/clean-artifacts.sh" ;;
-    7) run_cmd bash "$ROOTDIR/macos/scripts/utilities/set-permissions.sh" ;;
+    1) run_cmd bash "$ROOTDIR/macos/scripts/utilities/update-bitcoin.sh" ;;
+    2) run_cmd bash "$ROOTDIR/macos/scripts/utilities/update-electrum.sh" ;;
+    3) run_cmd bash "$ROOTDIR/macos/scripts/utilities/verify-binaries.sh" ;;
+    4) run_cmd bash "$ROOTDIR/macos/scripts/utilities/validate-setup.sh" ;;
+    5) run_cmd bash "$ROOTDIR/macos/scripts/utilities/set-permissions.sh" ;;
+    6) run_cmd bash "$ROOTDIR/macos/scripts/utilities/health-check.sh" ;;
+    7) run_cmd bash "$ROOTDIR/macos/scripts/utilities/monitor-bitcoin-log.sh" ;;
+    8) run_cmd bash "$ROOTDIR/macos/scripts/utilities/rotate-bitcoin-log.sh" ;;
+    9) run_cmd bash "$ROOTDIR/macos/scripts/utilities/clean-artifacts.sh" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac
