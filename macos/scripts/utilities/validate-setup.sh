@@ -32,4 +32,4 @@ if [ "$DISK_FREE_KB" -lt "$REQUIRED_KB" ]; then
     exit 1
 fi
 
-echo "Validation complete. Setup looks good!"
+echo "Setup validation completed."

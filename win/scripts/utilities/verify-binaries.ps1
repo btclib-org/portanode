@@ -82,4 +82,4 @@ if ($fail -gt 0) {
   exit 1
 }
 
-Write-Host "Verification complete: all OK."
+Write-Host "Binaries verified."

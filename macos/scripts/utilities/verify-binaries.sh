@@ -4,14 +4,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-CHECKSUM_FILE="$ROOTDIR/macos/checksums.sha256"
+CHECKSUM_FILE="macos/checksums.sha256"
 
-if [ ! -f "$CHECKSUM_FILE" ]; then
+echo "Verifying binaries against $CHECKSUM_FILE"
+
+if [ ! -f "$ROOTDIR/$CHECKSUM_FILE" ]; then
     echo "Error: $CHECKSUM_FILE not found."
     exit 1
 fi
 
-echo "Verifying binaries against $CHECKSUM_FILE"
 
 trim() {
     local s="$1"
@@ -52,7 +53,7 @@ while IFS= read -r line; do
     esac
     key="$path"
     entries["$key"]+="${hash}:${version},"
-done < "$CHECKSUM_FILE"
+done < "$ROOTDIR/$CHECKSUM_FILE"
 
 fail=0
 for path in "${!paths[@]}"; do
@@ -116,4 +117,4 @@ if [ "$fail" -ne 0 ]; then
     exit 1
 fi
 
-echo "Verification complete: all OK."
+echo "Binaries verified."
