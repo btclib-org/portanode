@@ -62,24 +62,15 @@ curl -L -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 # Verify
 UPDATE_CHECKSUMS=0
 if command -v gpg >/dev/null 2>&1; then
+    if ! gpg --list-keys --with-colons 2>/dev/null | grep -q '^pub'; then
+        echo "Warning: no public keys found in local keyring."
+    fi
     echo "Verifying SHA256SUMS signature..."
-    GPG_STATUS="$TMP_DIR/gpg-status.txt"
-    (cd "$TMP_DIR" && gpg --status-fd=1 --verify SHA256SUMS.asc SHA256SUMS >"$GPG_STATUS" 2>&1) || true
-    if grep -qE '^\[GNUPG:\] (GOODSIG|VALIDSIG)' "$GPG_STATUS"; then
-        UPDATE_CHECKSUMS=1
-        FP="$(awk '/^\[GNUPG:\] VALIDSIG/ {print $3; exit}' "$GPG_STATUS")"
-        if [ -n "$FP" ]; then
-            echo "PGP signature verified (fingerprint: $FP)."
-        else
-            echo "PGP signature verified (one or more known keys)."
-        fi
-        if grep -qE '^\[GNUPG:\] (NO_PUBKEY|ERRSIG)' "$GPG_STATUS"; then
-            echo "Warning: some signatures could not be checked (missing public keys)."
-        fi
-    else
+    if ! (cd "$TMP_DIR" && gpg --verify SHA256SUMS.asc SHA256SUMS); then
         echo "PGP signature verification failed"
         exit 1
     fi
+    UPDATE_CHECKSUMS=1
 else
     echo "Warning: gpg not found; skipping PGP signature verification."
 fi

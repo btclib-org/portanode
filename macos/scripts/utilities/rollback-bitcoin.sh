@@ -1,5 +1,5 @@
 #!/bin/bash
-# Rollback Bitcoin binaries to previous version
+# Rollback Last Bitcoin Update
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"

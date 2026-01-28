@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-REM Update Electrum binaries (Windows)
+REM Update Electrum version (Windows)
 
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..
@@ -56,26 +56,15 @@ powershell -Command ^
 
 where gpg >nul 2>&1
 if %errorlevel%==0 (
+    set HAS_PUBKEYS=
+    for /f %%A in ('gpg --list-keys --with-colons 2^>nul ^| findstr /B "pub"') do set HAS_PUBKEYS=1
+    if not defined HAS_PUBKEYS echo Warning: no public keys found in local keyring.
     echo Verifying Electrum signature...
-    set PGP_FINGERPRINT=
-    gpg --status-fd 1 --verify "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" > "%TMPDIR%\gpg-status.txt" 2>&1
-    findstr /C:"[GNUPG:] GOODSIG" /C:"[GNUPG:] VALIDSIG" "%TMPDIR%\gpg-status.txt" >nul
-    if %errorlevel%==0 (
-        set PGP_OK=1
-        for /f "tokens=3" %%F in ('findstr /C:"[GNUPG:] VALIDSIG" "%TMPDIR%\gpg-status.txt"') do if not defined PGP_FINGERPRINT set PGP_FINGERPRINT=%%F
-        if defined PGP_FINGERPRINT (
-            echo PGP signature verified (fingerprint: !PGP_FINGERPRINT!).
-        ) else (
-            echo PGP signature verified (one or more known keys).
-        )
-        findstr /C:"[GNUPG:] NO_PUBKEY" /C:"[GNUPG:] ERRSIG" "%TMPDIR%\gpg-status.txt" >nul
-        if %errorlevel%==0 echo Warning: some signatures could not be checked (missing public keys).
-    ) else (
-        echo PGP signature verification failed
-        goto :error
-    )
+    gpg --verify "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" || goto :error
+    set PGP_OK=1
 ) else (
     echo Warning: gpg not found; skipping PGP signature verification.
 )
+
 
 

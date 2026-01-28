@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-REM Rollback Electrum binaries (Windows)
+REM Rollback Last Electrum Update
 
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..

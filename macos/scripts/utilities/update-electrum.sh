@@ -1,5 +1,5 @@
 #!/bin/bash
-# Update Electrum binaries
+# Update Electrum version
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -59,24 +59,15 @@ curl -L -o "$TMPDIR/$SIG_FILE" "${URL}.asc"
 
 PGP_OK=0
 if command -v gpg >/dev/null 2>&1; then
+    if ! gpg --list-keys --with-colons 2>/dev/null | grep -q '^pub'; then
+        echo "Warning: no public keys found in local keyring."
+    fi
     echo "Verifying Electrum signature..."
-    GPG_STATUS="$TMPDIR/gpg-status.txt"
-    (cd "$TMPDIR" && gpg --status-fd=1 --verify "$SIG_FILE" "$OUT_FILE" >"$GPG_STATUS" 2>&1) || true
-    if grep -qE '^\[GNUPG:\] (GOODSIG|VALIDSIG)' "$GPG_STATUS"; then
-        PGP_OK=1
-        FP="$(awk '/^\[GNUPG:\] VALIDSIG/ {print $3; exit}' "$GPG_STATUS")"
-        if [ -n "$FP" ]; then
-            echo "PGP signature verified (fingerprint: $FP)."
-        else
-            echo "PGP signature verified (one or more known keys)."
-        fi
-        if grep -qE '^\[GNUPG:\] (NO_PUBKEY|ERRSIG)' "$GPG_STATUS"; then
-            echo "Warning: some signatures could not be checked (missing public keys)."
-        fi
-    else
+    if ! (cd "$TMPDIR" && gpg --verify "$SIG_FILE" "$OUT_FILE"); then
         echo "PGP signature verification failed"
         exit 1
     fi
+    PGP_OK=1
 else
     echo "Warning: gpg not found; skipping PGP signature verification."
 fi

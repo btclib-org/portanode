@@ -21,9 +21,9 @@ using YYYY.MM.DD format.
 - Rollback scripts now verify the backup binary checksum before restoring.
 - Update/rollback scripts now emit one-line directory listings when expected
   files are missing.
-- Update scripts now accept any valid PGP signature (even if other signatures
-  are missing) and report the verified key fingerprint when available.
-- Utilities READMEs now document that updates proceed on any valid signature.
+- Update scripts now require all signatures to verify successfully and warn if
+  no public keys are present in the local keyring.
+- Utilities READMEs now document the stricter signature verification behavior.
 - Bitcoin updater now hashes the extracted binary (not the app bundle directory)
   when updating checksums.
 - Bitcoin updater now validates and locates the extracted app bundle before
