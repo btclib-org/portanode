@@ -8,6 +8,11 @@ TMPDIR="$ROOTDIR/macos/bin/.tmp-downloads/electrum"
 cd "$ROOTDIR"
 trap 'rm -rf "$TMPDIR"' EXIT
 
+debug_list_dir() {
+    local dir="$1"
+    echo "Debug: $dir contents: $(ls -a "$dir" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+}
+
 echo "Updating Electrum..."
 
 # Prevent updates while running
@@ -80,6 +85,7 @@ update_checksum() {
     fi
     if [ ! -f "$checksum_file" ]; then
         echo "Warning: $checksum_file not found;"
+        debug_list_dir "$(dirname "$checksum_file")"
         echo "checksums not updated."
         return 0
     fi
@@ -105,6 +111,7 @@ if [ -z "$MOUNT_POINT" ]; then
 fi
 if [ ! -d "${MOUNT_POINT}/Electrum.app" ]; then
     echo "Electrum.app not found in mounted DMG."
+    debug_list_dir "$MOUNT_POINT"
     hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
     exit 1
 fi

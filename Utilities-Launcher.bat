@@ -7,26 +7,30 @@ set ROOTDIR=%~dp0
 echo Utilities Launcher
 echo 1^) Update Bitcoin binaries
 echo 2^) Update Electrum binaries
-echo 3^) Verify binaries
-echo 4^) Validate setup
-echo 5^) Set permissions
-echo 6^) Health check
-echo 7^) Monitor Bitcoin log
-echo 8^) Rotate Bitcoin log
-echo 9^) Clean Windows artifacts
+echo 3^) Rollback Bitcoin binaries
+echo 4^) Rollback Electrum binaries
+echo 5^) Verify binaries
+echo 6^) Validate setup
+echo 7^) Set permissions
+echo 8^) Health check
+echo 9^) Monitor Bitcoin log
+echo 10^) Rotate Bitcoin log
+echo 11^) Clean Windows artifacts
 echo 0^) Exit
 set /p choice=Select: 
 
 if "%choice%"=="" set "choice=0"
 if "%choice%"=="1" set "SCRIPT=%ROOTDIR%win\scripts\utilities\update-bitcoin.bat"
 if "%choice%"=="2" set "SCRIPT=%ROOTDIR%win\scripts\utilities\update-electrum.bat"
-if "%choice%"=="3" set "SCRIPT=%ROOTDIR%win\scripts\utilities\verify-binaries.bat"
-if "%choice%"=="4" set "SCRIPT=%ROOTDIR%win\scripts\utilities\validate-setup.bat"
-if "%choice%"=="5" set "SCRIPT=%ROOTDIR%win\scripts\utilities\set-permissions.bat"
-if "%choice%"=="6" set "SCRIPT=%ROOTDIR%win\scripts\utilities\health-check.bat"
-if "%choice%"=="7" set "SCRIPT=%ROOTDIR%win\scripts\utilities\monitor-bitcoin-log.bat"
-if "%choice%"=="8" set "SCRIPT=%ROOTDIR%win\scripts\utilities\rotate-bitcoin-log.bat"
-if "%choice%"=="9" set "SCRIPT=%ROOTDIR%win\scripts\utilities\clean-artifacts.bat"
+if "%choice%"=="3" set "SCRIPT=%ROOTDIR%win\scripts\utilities\rollback-bitcoin.bat"
+if "%choice%"=="4" set "SCRIPT=%ROOTDIR%win\scripts\utilities\rollback-electrum.bat"
+if "%choice%"=="5" set "SCRIPT=%ROOTDIR%win\scripts\utilities\verify-binaries.bat"
+if "%choice%"=="6" set "SCRIPT=%ROOTDIR%win\scripts\utilities\validate-setup.bat"
+if "%choice%"=="7" set "SCRIPT=%ROOTDIR%win\scripts\utilities\set-permissions.bat"
+if "%choice%"=="8" set "SCRIPT=%ROOTDIR%win\scripts\utilities\health-check.bat"
+if "%choice%"=="9" set "SCRIPT=%ROOTDIR%win\scripts\utilities\monitor-bitcoin-log.bat"
+if "%choice%"=="10" set "SCRIPT=%ROOTDIR%win\scripts\utilities\rotate-bitcoin-log.bat"
+if "%choice%"=="11" set "SCRIPT=%ROOTDIR%win\scripts\utilities\clean-artifacts.bat"
 if "%choice%"=="0" goto end
 
 if "%choice%"=="1" goto run
@@ -38,6 +42,8 @@ if "%choice%"=="6" goto run
 if "%choice%"=="7" goto run
 if "%choice%"=="8" goto run
 if "%choice%"=="9" goto run
+if "%choice%"=="10" goto run
+if "%choice%"=="11" goto run
 
 echo Invalid selection.
 echo.

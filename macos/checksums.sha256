@@ -3,3 +3,5 @@
 # Generated with: shasum -a 256 <files> > macos/checksums.sha256
 # Format: <sha256>  <path>  version=<semver>
 # Note: macOS app bundles may change hash after codesign or quarantine changes.
+
+5a0ee50f7e8343d9721d888c199b9022a227916c713076abf57a77fbd3d76eb9  macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt  version=30.2

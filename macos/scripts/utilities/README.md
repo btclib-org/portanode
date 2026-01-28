@@ -67,6 +67,8 @@ Can be used if an update fails.
 - Root launchers are available for specific areas: `Bitcoin-Launcher.*`,
   `Electrum-Launcher.*`, and `Utilities-Launcher.*` (choose `.command` or `.sh`
   for macOS).
+- The Utilities launcher includes update and rollback options for Bitcoin and
+  Electrum.
 - Check script output for errors; refer to main README.md for troubleshooting.
 
 ## Smoke Check (macOS)

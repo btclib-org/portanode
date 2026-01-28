@@ -6,6 +6,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$ROOTDIR"
 
+debug_list_dir() {
+    local dir="$1"
+    echo "Debug: $dir contents: $(ls -a "$dir" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+}
+
 # Latest version pinned for reliability
 VERSION="30.2"
 
@@ -15,9 +20,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     EXT="tar.gz"
     ARCH="$(uname -m)"
     if [ "$ARCH" = "arm64" ]; then
-        FILE="bitcoin-${VERSION}-arm64-${OS}.${EXT}"
+        FILE="bitcoin-${VERSION}-arm64-${OS}-codesigning.${EXT}"
     else
-        FILE="bitcoin-${VERSION}-x86_64-${OS}.${EXT}"
+        FILE="bitcoin-${VERSION}-x86_64-${OS}-codesigning.${EXT}"
     fi
     APP_NAME="Bitcoin-Qt.app"
     APP_DIR="$ROOTDIR/macos/bin"
@@ -92,14 +97,36 @@ else
     TMP_APP_DIR="$TMP_DIR/bitcoin-${VERSION}"
 fi
 
+# Locate extracted app bundle
+TMP_APP=""
+if [ -d "$TMP_DIR/dist/$APP_NAME" ]; then
+    TMP_APP="$TMP_DIR/dist/$APP_NAME"
+elif [ -d "$TMP_DIR/$APP_NAME" ]; then
+    TMP_APP="$TMP_DIR/$APP_NAME"
+elif [ -d "$TMP_APP_DIR/$APP_NAME" ]; then
+    TMP_APP="$TMP_APP_DIR/$APP_NAME"
+elif [ -d "$TMP_APP_DIR/bin/$APP_NAME" ]; then
+    TMP_APP="$TMP_APP_DIR/bin/$APP_NAME"
+fi
+if [ -z "$TMP_APP" ]; then
+    echo "Error: ${APP_NAME} not found in extracted archive."
+    debug_list_dir "$TMP_DIR"
+    debug_list_dir "$TMP_APP_DIR"
+    exit 1
+fi
+
 # Update checksum
 update_checksum() {
-    local dir="$1"
-    local file_name="$2"
+    local file="$1"
+    local entry_path="$2"
     local version="$3"
-    local file="$dir/$file_name"
     local checksum_file="$ROOTDIR/macos/checksums.sha256"
     local hash=""
+    if [ ! -f "$file" ]; then
+        echo "Error: checksum source not found at $file"
+        debug_list_dir "$(dirname "$file")"
+        exit 1
+    fi
     if command -v shasum >/dev/null 2>&1; then
         hash="$(shasum -a 256 "$file" | awk '{print $1}')"
     elif command -v sha256sum >/dev/null 2>&1; then
@@ -111,10 +138,11 @@ update_checksum() {
     fi
     if [ ! -f "$checksum_file" ]; then
         echo "Warning: $checksum_file not found;"
+        debug_list_dir "$(dirname "$checksum_file")"
         echo "checksums not updated."
         return 0
     fi
-    local entry="$hash  $file_name  version=$version"
+    local entry="$hash  $entry_path  version=$version"
     if ! grep -Fxq "$entry" "$checksum_file"; then
         echo "$entry" >> "$checksum_file"
     fi
@@ -122,7 +150,10 @@ update_checksum() {
     mv "${checksum_file}.tmp" "$checksum_file"
 }
 if [ $UPDATE_CHECKSUMS -eq 1 ]; then
-    update_checksum "$TMP_APP_DIR" "$APP_NAME" "$VERSION"
+    update_checksum \
+      "$TMP_APP/Contents/MacOS/Bitcoin-Qt" \
+      "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+      "$VERSION"
 else
     echo "Warning: PGP not verified; skipping checksum update."
 fi
@@ -137,11 +168,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         cp -R "$APP" "$APP_BACKUP_DIR/${APP_NAME}"
     fi
 
-    TMP_APP="$TMP_APP_DIR/${APP_NAME}"
-    if [ ! -d "$TMP_APP" ]; then
-        echo "Error: ${APP_NAME} not found in extracted archive."
-        exit 1
-    fi
     rm -rf "$APP"
     cp -R "$TMP_APP" "$APP"
 fi
