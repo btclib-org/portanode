@@ -24,8 +24,8 @@ foreach ($line in $lines) {
     exit 1
   }
   $hash = $m.Groups['hash'].Value.ToLower()
-  $path = $m.Groups['path'].Value.Trim()
-  $path = $path -replace '\\\\', '/'
+$path = $m.Groups['path'].Value.Trim()
+$path = $path -replace '\\', '/'
   if (-not $path.ToLower().StartsWith('win/')) {
     continue
   }

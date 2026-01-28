@@ -52,22 +52,20 @@ if not "%OUTVAR%"=="" set "%OUTVAR%=%RESULT%"
 exit /b 0
 
 :update_checksum
-set "FILEPATH=%~1"
+set "FILEPATH_RAW=%~1"
 set "VERSION_LABEL=%~2"
-if not exist "%FILEPATH%" exit /b 0
+call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
+call :normalize_entry_path "%FILEPATH_RAW%" FILEPATH_ENTRY
+if not exist "%FILEPATH_FS%" exit /b 0
 if "%CHECKSUM_FILE%"=="" exit /b 0
 powershell -Command ^
-  "& { $file = '%FILEPATH%'; $version = '%VERSION_LABEL%'; ^
+  "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; ^
   $checksum = '%CHECKSUM_FILE%'; ^
   if (!(Test-Path $checksum)) { ^
     Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; ^
     exit 0 } ^
-  $filePath = $file; ^
-  if ($filePath -match '/') { $filePath = $filePath -replace '/', '\\\\' } ^
-  if (!(Test-Path $filePath)) { $filePath = $file } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $filePath).Hash.ToLower(); ^
-  $entryPath = $file.Replace('\','/'); ^
-  $entry = "$hash  $entryPath  version=$version"; ^
+  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
+  $entry = "$hash  %FILEPATH_ENTRY%  version=$version"; ^
   $lines = Get-Content $checksum; ^
   if ($lines -notcontains $entry) { $lines += $entry } ^
   $lines = $lines | Select-Object -Unique; ^
@@ -75,23 +73,36 @@ powershell -Command ^
 exit /b 0
 
 :verify_checksum
-set "FILEPATH=%~1"
-set "CHECKPATH=%~2"
-if not exist "%FILEPATH%" exit /b 0
+set "FILEPATH_RAW=%~1"
+set "CHECKPATH_RAW=%~2"
+call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
+call :normalize_entry_path "%CHECKPATH_RAW%" CHECKPATH_ENTRY
+if not exist "%FILEPATH_FS%" exit /b 0
 if "%CHECKSUM_FILE%"=="" exit /b 1
 powershell -Command ^
-  "& { $file = '%FILEPATH%'; $path = '%CHECKPATH%'; ^
+  "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; ^
   $checksum = '%CHECKSUM_FILE%'; ^
   if (!(Test-Path $checksum)) { exit 1 } ^
-  $filePath = $file; ^
-  if ($filePath -match '/') { $filePath = $filePath -replace '/', '\\\\' } ^
-  if (!(Test-Path $filePath)) { $filePath = $file } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $filePath).Hash.ToLower(); ^
-  $pathNorm = $path.Replace('\','/').ToLower(); ^
+  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
+  $pathNorm = $path.ToLower(); ^
   $lines = Get-Content $checksum; ^
   $found = $false; foreach ($l in $lines) { ^
     $line = $l.ToLower().Replace('\','/'); ^
     if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } ^
   if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
+exit /b 0
+
+:normalize_fs_path
+set "RAW=%~1"
+set "OUTVAR=%~2"
+set "VAL=%RAW:/=\%"
+set "%OUTVAR%=%VAL%"
+exit /b 0
+
+:normalize_entry_path
+set "RAW=%~1"
+set "OUTVAR=%~2"
+set "VAL=%RAW:\=/%"
+set "%OUTVAR%=%VAL%"
 exit /b 0

@@ -21,8 +21,8 @@ foreach ($line in $lines) {
   if (-not $m.Success) {
     continue
   }
-  $path = $m.Groups['path'].Value.Trim()
-  $path = $path -replace '\\\\', '/'
+$path = $m.Groups['path'].Value.Trim()
+$path = $path -replace '\\', '/'
   if (-not $path.ToLower().StartsWith('win/')) {
     continue
   }

@@ -47,6 +47,8 @@ using YYYY.MM.DD format.
 - Verify-binaries now prints the checksum file path as a repo-relative path.
 - Windows checksum entries now use forward slashes, and verification normalizes
   and resolves paths against the repo root.
+- Windows checksum helpers now normalize paths before PowerShell, and PS1
+  normalizes checksum paths on ingestion.
 - Update and rollback scripts no longer run verify-binaries automatically.
 - Bitcoin updater now hashes the extracted binary (not the app bundle directory)
   when updating checksums.
