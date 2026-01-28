@@ -13,7 +13,7 @@ if [ ! -d "$BIN_DIR" ]; then
 fi
 
 if [ ! -x "$ELECTRUM_RUN" ] && [ ! -x "$ELECTRUM_BIN" ]; then
-    echo "Error: Electrum executable not found in $ELECTRUM_MACOS"
+    echo "Error: binary not found in $ELECTRUM_MACOS"
     exit 1
 fi
 

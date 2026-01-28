@@ -9,6 +9,11 @@ if [ ! -d "$BIN_DIR" ]; then
     exit 1
 fi
 
+if [ ! -e "$BTC_QT" ]; then
+    echo "Error: Binary not found at $BTC_QT"
+    exit 1
+fi
+
 if [ ! -x "$BTC_QT" ]; then
     echo "Error: Binary not executable at $BTC_QT"
     exit 1

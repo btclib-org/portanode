@@ -4,6 +4,21 @@ echo ROOTDIR is "${ROOTDIR}"
 BIN_DIR="${ROOTDIR}/macos/bin"
 BTC_QT="${BIN_DIR}/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
 
+if [ ! -d "$BIN_DIR" ]; then
+    echo "Error: Binaries directory not found at $BIN_DIR"
+    exit 1
+fi
+
+if [ ! -e "$BTC_QT" ]; then
+    echo "Error: Binary not found at $BTC_QT"
+    exit 1
+fi
+
+if [ ! -x "$BTC_QT" ]; then
+    echo "Error: Binary not executable at $BTC_QT"
+    exit 1
+fi
+
 BASENAME="$(basename "$0")"
 FILENAME="${BASENAME%.*}"
 "$BTC_QT" \
