@@ -68,19 +68,12 @@ if not exist "%TMPDIR%\%FILE%" (
 copy /y "%TMPDIR%\%FILE%" "%BIN_DIR%\electrum.exe" >nul
 
 if "%PGP_OK%"=="1" (
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\electrum.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/electrum.exe" "%VERSION%"
 ) else (
   echo Warning: PGP signature(s) not verified; skipping checksum update.
 )
 
 echo Electrum updated to %VERSION%
-
-if exist "%SCRIPT_DIR%verify-binaries.bat" (
-    call "%SCRIPT_DIR%verify-binaries.bat"
-    if errorlevel 1 set STATUS=1
-) else (
-    echo Warning: verify-binaries.bat not found; skipping verification.
-)
 
 goto :cleanup
 

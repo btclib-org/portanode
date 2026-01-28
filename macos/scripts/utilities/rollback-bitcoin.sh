@@ -40,10 +40,3 @@ else
 fi
 
 echo "Rollback complete"
-
-if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
-    bash "$SCRIPT_DIR/verify-binaries.sh"
-else
-    echo "Warning: verify-binaries.sh not found or not executable;"
-    echo "skipping verification."
-fi

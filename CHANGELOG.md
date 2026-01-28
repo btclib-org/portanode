@@ -45,6 +45,9 @@ using YYYY.MM.DD format.
 - Verify-binaries output now aligns the start/end status lines across macOS and
   Windows.
 - Verify-binaries now prints the checksum file path as a repo-relative path.
+- Windows checksum entries now use forward slashes, and verification normalizes
+  and resolves paths against the repo root.
+- Update and rollback scripts no longer run verify-binaries automatically.
 - Bitcoin updater now hashes the extracted binary (not the app bundle directory)
   when updating checksums.
 - Bitcoin updater now validates and locates the extracted app bundle before

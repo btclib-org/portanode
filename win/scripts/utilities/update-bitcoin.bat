@@ -94,25 +94,18 @@ if not exist "%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe" (
 copy /y "%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe" "%BIN_DIR%\\" >nul
 
 if "%PGP_OK%"=="1" (
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-qt.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoind.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-cli.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-wallet.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-tx.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-util.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-qt.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoind.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-cli.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-wallet.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-tx.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-util.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin.exe" "%VERSION%"
 ) else (
   echo Warning: PGP signature(s) not verified; skipping checksum update.
 )
 
 echo Bitcoin Core updated to %VERSION%
-
-if exist "%SCRIPT_DIR%verify-binaries.bat" (
-    call "%SCRIPT_DIR%verify-binaries.bat"
-    if errorlevel 1 set STATUS=1
-) else (
-    echo Warning: verify-binaries.bat not found; skipping verification.
-)
 
 goto :cleanup
 

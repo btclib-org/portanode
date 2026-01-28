@@ -3,7 +3,7 @@ param(
   [string]$RootDir
 )
 
-$checksum = Join-Path $RootDir 'win\\checksums.sha256'
+$checksum = Join-Path $RootDir 'win/checksums.sha256'
 if (-not (Test-Path $checksum)) {
   Write-Host '- win/checksums.sha256: missing'
   exit 0
@@ -22,6 +22,7 @@ foreach ($line in $lines) {
     continue
   }
   $path = $m.Groups['path'].Value.Trim()
+  $path = $path -replace '\\\\', '/'
   if (-not $path.ToLower().StartsWith('win/')) {
     continue
   }
@@ -39,11 +40,13 @@ foreach ($line in $lines) {
 }
 
 foreach ($path in $map.Keys) {
-  if (-not (Test-Path $path)) {
+  $relative = $path -replace '/', [IO.Path]::DirectorySeparatorChar
+  $filePath = Join-Path $RootDir $relative
+  if (-not (Test-Path $filePath)) {
     Write-Host "- $path: missing"
     continue
   }
-  $computed = (Get-FileHash -Algorithm SHA256 $path).Hash
+  $computed = (Get-FileHash -Algorithm SHA256 $filePath).Hash
   $computed = $computed.ToLower()
   $matches = $map[$path] | Where-Object { $_.Hash -eq $computed }
   if ($matches.Count -gt 0) {

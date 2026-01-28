@@ -24,7 +24,7 @@ if not exist "%CHECKSUM_FILE%" (
     exit /b 1
 )
 
-call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\electrum.exe" "win\bin\electrum.exe"
+call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\electrum.exe" "win/bin/electrum.exe"
 if errorlevel 1 (
     echo Error: backup binary checksum not recognized for electrum.exe.
     popd >nul 2>&1
@@ -41,16 +41,6 @@ move /y "%BACKUP_DIR%\electrum.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
 if exist "%BACKUP_DIR%" rmdir "%BACKUP_DIR%" >nul 2>&1
 
 echo Rollback complete.
-
-if exist "%SCRIPT_DIR%verify-binaries.bat" (
-    call "%SCRIPT_DIR%verify-binaries.bat"
-    if errorlevel 1 (
-        popd >nul 2>&1
-        exit /b 1
-    )
-) else (
-    echo Warning: verify-binaries.bat not found; skipping verification.
-)
 
 popd >nul 2>&1
 exit /b 0

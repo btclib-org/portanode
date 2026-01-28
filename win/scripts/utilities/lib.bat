@@ -62,8 +62,12 @@ powershell -Command ^
   if (!(Test-Path $checksum)) { ^
     Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; ^
     exit 0 } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
-  $entry = "$hash  $file  version=$version"; ^
+  $filePath = $file; ^
+  if ($filePath -match '/') { $filePath = $filePath -replace '/', '\\\\' } ^
+  if (!(Test-Path $filePath)) { $filePath = $file } ^
+  $hash = (Get-FileHash -Algorithm SHA256 $filePath).Hash.ToLower(); ^
+  $entryPath = $file.Replace('\','/'); ^
+  $entry = "$hash  $entryPath  version=$version"; ^
   $lines = Get-Content $checksum; ^
   if ($lines -notcontains $entry) { $lines += $entry } ^
   $lines = $lines | Select-Object -Unique; ^
@@ -79,10 +83,15 @@ powershell -Command ^
   "& { $file = '%FILEPATH%'; $path = '%CHECKPATH%'; ^
   $checksum = '%CHECKSUM_FILE%'; ^
   if (!(Test-Path $checksum)) { exit 1 } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
+  $filePath = $file; ^
+  if ($filePath -match '/') { $filePath = $filePath -replace '/', '\\\\' } ^
+  if (!(Test-Path $filePath)) { $filePath = $file } ^
+  $hash = (Get-FileHash -Algorithm SHA256 $filePath).Hash.ToLower(); ^
+  $pathNorm = $path.Replace('\','/').ToLower(); ^
   $lines = Get-Content $checksum; ^
   $found = $false; foreach ($l in $lines) { ^
-    if ($l.ToLower().StartsWith($hash) -and $l.ToLower().Contains($path.ToLower())) { $found = $true; break } } ^
+    $line = $l.ToLower().Replace('\','/'); ^
+    if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } ^
   if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0

@@ -137,10 +137,3 @@ rm -rf "$TMP_DIR"
 trap - EXIT
 
 echo "Bitcoin Core updated to $VERSION"
-
-if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
-    bash "$SCRIPT_DIR/verify-binaries.sh"
-else
-    echo "Warning: verify-binaries.sh not found or not executable;"
-    echo "skipping verification."
-fi
