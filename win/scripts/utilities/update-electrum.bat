@@ -70,7 +70,7 @@ copy /y "%TMPDIR%\%FILE%" "%BIN_DIR%\electrum.exe" >nul
 if "%PGP_OK%"=="1" (
   call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\electrum.exe" "%VERSION%"
 ) else (
-  echo Warning: PGP not verified; skipping checksum update.
+  echo Warning: PGP signature(s) not verified; skipping checksum update.
 )
 
 echo Electrum updated to %VERSION%

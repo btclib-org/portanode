@@ -102,7 +102,7 @@ if "%PGP_OK%"=="1" (
   call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-util.exe" "%VERSION%"
   call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin.exe" "%VERSION%"
 ) else (
-  echo Warning: PGP not verified; skipping checksum update.
+  echo Warning: PGP signature(s) not verified; skipping checksum update.
 )
 
 echo Bitcoin Core updated to %VERSION%

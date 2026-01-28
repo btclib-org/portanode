@@ -115,7 +115,7 @@ if [ $UPDATE_CHECKSUMS -eq 1 ]; then
       "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
       "$VERSION"
 else
-    echo "Warning: PGP not verified; skipping checksum update."
+    echo "Warning: PGP signature(s) not verified; skipping checksum update."
 fi
 
 # Replace binaries

@@ -90,7 +90,7 @@ if [ "$PGP_OK" -eq 1 ]; then
       "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
       "$VERSION"
 else
-    echo "Warning: PGP not verified; skipping checksum update."
+    echo "Warning: PGP signature(s) not verified; skipping checksum update."
 fi
 
 # Cleanup
