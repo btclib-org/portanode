@@ -5,17 +5,17 @@ set ROOTDIR=%~dp0
 
  :menu
 echo Utilities Launcher
-echo 1^) Verify binaries (Windows)
-echo 2^) Validate setup (Windows)
+echo 1^) Verify binaries
+echo 2^) Validate setup
 echo 3^) Health check
 echo 4^) Rotate Bitcoin log
 echo 5^) Monitor Bitcoin log
-echo 6^) Clean artifacts (Windows)
+echo 6^) Clean Windows artifacts
 echo 7^) Set permissions
 echo 0^) Exit
 set /p choice=Select: 
 
-if "%choice%"=="" goto end
+if "%choice%"=="" set "choice=0"
 if "%choice%"=="1" goto v
 if "%choice%"=="2" goto val
 if "%choice%"=="3" goto hc

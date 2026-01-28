@@ -15,19 +15,19 @@ run_cmd() {
 
 while true; do
   echo "Utilities Launcher"
-  echo "1) Verify binaries (macOS)"
-  echo "2) Validate setup (macOS)"
+  echo "1) Verify binaries"
+  echo "2) Validate setup"
   echo "3) Health check"
   echo "4) Rotate Bitcoin log"
   echo "5) Monitor Bitcoin log"
-  echo "6) Clean artifacts (macOS)"
+  echo "6) Clean macOS artifacts"
   echo "7) Set permissions"
   echo "0) Exit"
   printf "Select: "
   read -r choice
 
   if [ -z "$choice" ]; then
-    exit 0
+    choice=0
   fi
 
   case "$choice" in

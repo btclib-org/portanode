@@ -24,7 +24,7 @@ while true; do
   read -r choice
 
   if [ -z "$choice" ]; then
-    exit 0
+    choice=0
   fi
 
   case "$choice" in

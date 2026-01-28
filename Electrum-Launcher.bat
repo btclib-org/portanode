@@ -12,7 +12,7 @@ echo 4^) Mainnet ^(local server only^)
 echo 0^) Exit
 set /p choice=Select: 
 
-if "%choice%"=="" goto end
+if "%choice%"=="" set "choice=0"
 if "%choice%"=="1" goto el_main
 if "%choice%"=="2" goto el_test
 if "%choice%"=="3" goto el_reg

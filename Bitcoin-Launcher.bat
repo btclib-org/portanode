@@ -13,7 +13,7 @@ echo 5^) Regtest Carol ^(GUI^)
 echo 0^) Exit
 set /p choice=Select: 
 
-if "%choice%"=="" goto end
+if "%choice%"=="" set "choice=0"
 if "%choice%"=="1" goto btc_main
 if "%choice%"=="2" goto btc_test
 if "%choice%"=="3" goto btc_ra

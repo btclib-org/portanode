@@ -21,7 +21,7 @@ while ($true) {
     $choice = Read-Host "Select"
 
     if ([string]::IsNullOrWhiteSpace($choice)) {
-        exit 0
+        $choice = "0"
     }
 
     if ($choice -eq "0") {
