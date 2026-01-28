@@ -54,18 +54,8 @@ powershell -Command ^
   -OutFile '%TMPDIR%\\SHA256SUMS.asc' }" ^
   || goto :error
 
-where gpg >nul 2>&1
-if %errorlevel%==0 (
-    set HAS_PUBKEYS=
-    for /f %%A in ('gpg --list-keys --with-colons 2^>nul ^| findstr /B "pub"') do set HAS_PUBKEYS=1
-    if not defined HAS_PUBKEYS echo Warning: no public keys found in local keyring.
-    echo Verifying SHA256SUMS signature...
-    gpg --verify "%TMPDIR%\SHA256SUMS.asc" ^
-      "%TMPDIR%\SHA256SUMS" || goto :error
-    set PGP_OK=1
-) else (
-    echo Warning: gpg not found; skipping PGP signature verification.
-)
+call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK
+if errorlevel 1 goto :error
 
 powershell -Command ^
   "& { $sum = Get-Content '%TMPDIR%\\SHA256SUMS' ^
@@ -104,13 +94,13 @@ if not exist "%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe" (
 copy /y "%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe" "%BIN_DIR%\\" >nul
 
 if "%PGP_OK%"=="1" (
-  call :update_checksum "win\bin\bitcoin-qt.exe" "%VERSION%"
-  call :update_checksum "win\bin\bitcoind.exe" "%VERSION%"
-  call :update_checksum "win\bin\bitcoin-cli.exe" "%VERSION%"
-  call :update_checksum "win\bin\bitcoin-wallet.exe" "%VERSION%"
-  call :update_checksum "win\bin\bitcoin-tx.exe" "%VERSION%"
-  call :update_checksum "win\bin\bitcoin-util.exe" "%VERSION%"
-  call :update_checksum "win\bin\bitcoin.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-qt.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoind.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-cli.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-wallet.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-tx.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin-util.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\bitcoin.exe" "%VERSION%"
 ) else (
   echo Warning: PGP not verified; skipping checksum update.
 )
@@ -126,24 +116,6 @@ if exist "%SCRIPT_DIR%verify-binaries.bat" (
 
 goto :cleanup
 
-:update_checksum
-set FILEPATH=%~1
-set VERSION_LABEL=%~2
-if not exist "%FILEPATH%" exit /b 0
-powershell -Command ^
-  "& { $file = '%FILEPATH%'; $version = '%VERSION_LABEL%'; ^
-  $checksum = '%CHECKSUM_FILE%'; ^
-  if (!(Test-Path $checksum)) { ^
-    Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; ^
-    exit 0 } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
-  $entry = \"$hash  $file  version=$version\"; ^
-  $lines = Get-Content $checksum; ^
-  if ($lines -notcontains $entry) { $lines += $entry } ^
-  $lines = $lines | Select-Object -Unique; ^
-  Set-Content -Encoding ASCII $checksum $lines }"
-exit /b 0
-
 :error
 echo Update failed.
 set STATUS=1
@@ -153,3 +125,4 @@ if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 popd >nul 2>&1
 endlocal
 exit /b %STATUS%
+

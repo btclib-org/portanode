@@ -6,10 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$ROOTDIR"
 
-debug_list_dir() {
-    local dir="$1"
-    echo "Debug: $dir contents: $(ls -a "$dir" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
-}
+. "$SCRIPT_DIR/lib.sh"
 
 # Latest version pinned for reliability
 VERSION="30.2"
@@ -61,18 +58,12 @@ curl -L -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 
 # Verify
 UPDATE_CHECKSUMS=0
-if command -v gpg >/dev/null 2>&1; then
-    if ! gpg --list-keys --with-colons 2>/dev/null | grep -q '^pub'; then
-        echo "Warning: no public keys found in local keyring."
-    fi
-    echo "Verifying SHA256SUMS signature..."
-    if ! (cd "$TMP_DIR" && gpg --verify SHA256SUMS.asc SHA256SUMS); then
-        echo "PGP signature verification failed"
-        exit 1
-    fi
-    UPDATE_CHECKSUMS=1
-else
-    echo "Warning: gpg not found; skipping PGP signature verification."
+if ! pgp_verify_or_warn \
+  "$TMP_DIR/SHA256SUMS.asc" \
+  "$TMP_DIR/SHA256SUMS" \
+  "SHA256SUMS" \
+  UPDATE_CHECKSUMS; then
+    exit 1
 fi
 if command -v shasum >/dev/null 2>&1; then
     grep "$FILE" "$TMP_DIR/SHA256SUMS" > "$TMP_DIR/SHA256SUMS.filtered"
@@ -118,40 +109,6 @@ if [ -z "$TMP_APP" ]; then
     exit 1
 fi
 
-# Update checksum
-update_checksum() {
-    local file="$1"
-    local entry_path="$2"
-    local version="$3"
-    local checksum_file="$ROOTDIR/macos/checksums.sha256"
-    local hash=""
-    if [ ! -f "$file" ]; then
-        echo "Error: checksum source not found at $file"
-        debug_list_dir "$(dirname "$file")"
-        exit 1
-    fi
-    if command -v shasum >/dev/null 2>&1; then
-        hash="$(shasum -a 256 "$file" | awk '{print $1}')"
-    elif command -v sha256sum >/dev/null 2>&1; then
-        hash="$(sha256sum "$file" | awk '{print $1}')"
-    else
-        echo "Warning: shasum/sha256sum not found;"
-        echo "checksums not updated."
-        return 0
-    fi
-    if [ ! -f "$checksum_file" ]; then
-        echo "Warning: $checksum_file not found;"
-        debug_list_dir "$(dirname "$checksum_file")"
-        echo "checksums not updated."
-        return 0
-    fi
-    local entry="$hash  $entry_path  version=$version"
-    if ! grep -Fxq "$entry" "$checksum_file"; then
-        echo "$entry" >> "$checksum_file"
-    fi
-    awk '!seen[$0]++' "$checksum_file" > "${checksum_file}.tmp"
-    mv "${checksum_file}.tmp" "$checksum_file"
-}
 if [ $UPDATE_CHECKSUMS -eq 1 ]; then
     update_checksum \
       "$TMP_APP/Contents/MacOS/Bitcoin-Qt" \

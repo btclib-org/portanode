@@ -24,6 +24,10 @@ using YYYY.MM.DD format.
 - Update scripts now require all signatures to verify successfully and warn if
   no public keys are present in the local keyring.
 - Utilities READMEs now document the stricter signature verification behavior.
+- Factored shared update/rollback verification helpers into macOS/Windows
+  utility libraries and rewired the scripts to use them.
+- Windows Electrum updater now restores the full update flow using shared
+  verification and checksum helpers.
 - Bitcoin updater now hashes the extracted binary (not the app bundle directory)
   when updating checksums.
 - Bitcoin updater now validates and locates the extracted app bundle before

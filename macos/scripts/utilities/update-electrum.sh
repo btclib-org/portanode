@@ -8,10 +8,7 @@ TMPDIR="$ROOTDIR/macos/bin/.tmp-downloads/electrum"
 cd "$ROOTDIR"
 trap 'rm -rf "$TMPDIR"' EXIT
 
-debug_list_dir() {
-    local dir="$1"
-    echo "Debug: $dir contents: $(ls -a "$dir" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
-}
+. "$SCRIPT_DIR/lib.sh"
 
 echo "Updating Electrum..."
 
@@ -58,47 +55,13 @@ curl -L -o "$TMPDIR/$OUT_FILE" "$URL"
 curl -L -o "$TMPDIR/$SIG_FILE" "${URL}.asc"
 
 PGP_OK=0
-if command -v gpg >/dev/null 2>&1; then
-    if ! gpg --list-keys --with-colons 2>/dev/null | grep -q '^pub'; then
-        echo "Warning: no public keys found in local keyring."
-    fi
-    echo "Verifying Electrum signature..."
-    if ! (cd "$TMPDIR" && gpg --verify "$SIG_FILE" "$OUT_FILE"); then
-        echo "PGP signature verification failed"
-        exit 1
-    fi
-    PGP_OK=1
-else
-    echo "Warning: gpg not found; skipping PGP signature verification."
+if ! pgp_verify_or_warn \
+  "$TMPDIR/$SIG_FILE" \
+  "$TMPDIR/$OUT_FILE" \
+  "Electrum" \
+  PGP_OK; then
+    exit 1
 fi
-
-update_checksum() {
-    local file="$1"
-    local version="$2"
-    local checksum_file="$ROOTDIR/macos/checksums.sha256"
-    local hash=""
-    if command -v shasum >/dev/null 2>&1; then
-        hash="$(shasum -a 256 "$file" | awk '{print $1}')"
-    elif command -v sha256sum >/dev/null 2>&1; then
-        hash="$(sha256sum "$file" | awk '{print $1}')"
-    else
-        echo "Warning: shasum/sha256sum not found;"
-        echo "checksums not updated."
-        return 0
-    fi
-    if [ ! -f "$checksum_file" ]; then
-        echo "Warning: $checksum_file not found;"
-        debug_list_dir "$(dirname "$checksum_file")"
-        echo "checksums not updated."
-        return 0
-    fi
-    local entry="$hash  $file  version=$version"
-    if ! grep -Fxq "$entry" "$checksum_file"; then
-        echo "$entry" >> "$checksum_file"
-    fi
-    awk '!seen[$0]++' "$checksum_file" > "${checksum_file}.tmp"
-    mv "${checksum_file}.tmp" "$checksum_file"
-}
 
 mkdir -p "$ROOTDIR/macos/bin"
 mkdir -p "$BACKUP_DIR"
@@ -123,6 +86,7 @@ cp -R "${MOUNT_POINT}/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
 hdiutil detach "$MOUNT_POINT" >/dev/null
 if [ "$PGP_OK" -eq 1 ]; then
     update_checksum \
+      "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
       "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
       "$VERSION"
 else

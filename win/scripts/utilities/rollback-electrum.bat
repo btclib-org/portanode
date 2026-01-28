@@ -24,7 +24,7 @@ if not exist "%CHECKSUM_FILE%" (
     exit /b 1
 )
 
-call :verify_checksum "%BACKUP_DIR%\electrum.exe" "win\bin\electrum.exe"
+call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\electrum.exe" "win\bin\electrum.exe"
 if errorlevel 1 (
     echo Error: backup binary checksum not recognized for electrum.exe.
     popd >nul 2>&1
@@ -55,18 +55,3 @@ if exist "%SCRIPT_DIR%verify-binaries.bat" (
 popd >nul 2>&1
 exit /b 0
 
-:verify_checksum
-set FILEPATH=%~1
-set CHECKPATH=%~2
-if not exist "%FILEPATH%" exit /b 0
-powershell -Command ^
-  "& { $file = %FILEPATH%; $path = %CHECKPATH%; ^
-  $checksum = %CHECKSUM_FILE%; ^
-  if (!(Test-Path $checksum)) { exit 1 } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
-  $lines = Get-Content $checksum; ^
-  $found = $false; foreach ($l in $lines) { ^
-    if ($l.ToLower().StartsWith($hash) -and $l.ToLower().Contains($path.ToLower())) { $found = $true; break } } ^
-  if (-not $found) { exit 1 } }"
-if errorlevel 1 exit /b 1
-exit /b 0

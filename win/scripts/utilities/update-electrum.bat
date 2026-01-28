@@ -1,16 +1,16 @@
 @echo off
 setlocal enabledelayedexpansion
-REM Update Electrum Version
+REM Update Electrum version (Windows)
 
 set SCRIPT_DIR=%~dp0
 set ROOTDIR=%SCRIPT_DIR%..\..\..
 for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
 pushd "%ROOTDIR%" >nul 2>&1
 
-set "BIN_DIR=%ROOTDIR%\\win\\bin"
-set "BACKUP_DIR=%BIN_DIR%\\backup\\electrum"
-set CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256
-set TMPDIR=%BIN_DIR%\\.tmp-downloads\\electrum
+set "BIN_DIR=%ROOTDIR%\win\bin"
+set "BACKUP_DIR=%BIN_DIR%\backup\electrum"
+set CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256
+set TMPDIR=%BIN_DIR%\.tmp-downloads\electrum
 set STATUS=0
 
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
@@ -46,25 +46,50 @@ echo Downloading %URL%...
 set PGP_OK=0
 powershell -Command ^
   "& { $ProgressPreference = 'SilentlyContinue'; ^
-  Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" ^
+  Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' }" ^
   || goto :error
 powershell -Command ^
   "& { $ProgressPreference = 'SilentlyContinue'; ^
   Invoke-WebRequest -Uri '%URL%.asc' ^
-  -OutFile '%TMPDIR%\\%SIG_FILE%' }" ^
+  -OutFile '%TMPDIR%\%SIG_FILE%' }" ^
   || goto :error
 
-where gpg >nul 2>&1
-if %errorlevel%==0 (
-    set HAS_PUBKEYS=
-    for /f %%A in ('gpg --list-keys --with-colons 2^>nul ^| findstr /B "pub"') do set HAS_PUBKEYS=1
-    if not defined HAS_PUBKEYS echo Warning: no public keys found in local keyring.
-    echo Verifying Electrum signature...
-    gpg --verify "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" || goto :error
-    set PGP_OK=1
+call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" PGP_OK
+if errorlevel 1 goto :error
+
+if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
+if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
+if exist "%BIN_DIR%\electrum.exe" copy /y "%BIN_DIR%\electrum.exe" "%BACKUP_DIR%\" >nul
+
+if not exist "%TMPDIR%\%FILE%" (
+    echo Error: downloaded file not found.
+    goto :error
+)
+copy /y "%TMPDIR%\%FILE%" "%BIN_DIR%\electrum.exe" >nul
+
+if "%PGP_OK%"=="1" (
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "win\bin\electrum.exe" "%VERSION%"
 ) else (
-    echo Warning: gpg not found; skipping PGP signature verification.
+  echo Warning: PGP not verified; skipping checksum update.
 )
 
+echo Electrum updated to %VERSION%
 
+if exist "%SCRIPT_DIR%verify-binaries.bat" (
+    call "%SCRIPT_DIR%verify-binaries.bat"
+    if errorlevel 1 set STATUS=1
+) else (
+    echo Warning: verify-binaries.bat not found; skipping verification.
+)
 
+goto :cleanup
+
+:error
+echo Update failed.
+set STATUS=1
+
+:cleanup
+if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
+popd >nul 2>&1
+endlocal
+exit /b %STATUS%
