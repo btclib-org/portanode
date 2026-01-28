@@ -57,64 +57,25 @@ powershell -Command ^
 where gpg >nul 2>&1
 if %errorlevel%==0 (
     echo Verifying Electrum signature...
-    gpg --verify "%TMPDIR%\\%SIG_FILE%" "%TMPDIR%\\%FILE%" || goto :error
-    set PGP_OK=1
+    set PGP_FINGERPRINT=
+    gpg --status-fd 1 --verify "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" > "%TMPDIR%\gpg-status.txt" 2>&1
+    findstr /C:"[GNUPG:] GOODSIG" /C:"[GNUPG:] VALIDSIG" "%TMPDIR%\gpg-status.txt" >nul
+    if %errorlevel%==0 (
+        set PGP_OK=1
+        for /f "tokens=3" %%F in ('findstr /C:"[GNUPG:] VALIDSIG" "%TMPDIR%\gpg-status.txt"') do if not defined PGP_FINGERPRINT set PGP_FINGERPRINT=%%F
+        if defined PGP_FINGERPRINT (
+            echo PGP signature verified (fingerprint: !PGP_FINGERPRINT!).
+        ) else (
+            echo PGP signature verified (one or more known keys).
+        )
+        findstr /C:"[GNUPG:] NO_PUBKEY" /C:"[GNUPG:] ERRSIG" "%TMPDIR%\gpg-status.txt" >nul
+        if %errorlevel%==0 echo Warning: some signatures could not be checked (missing public keys).
+    ) else (
+        echo PGP signature verification failed
+        goto :error
+    )
 ) else (
     echo Warning: gpg not found; skipping PGP signature verification.
 )
 
-if not exist "%TMPDIR%\\%FILE%" (
-    echo Error: download failed.
-    goto :error
-)
 
-if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
-if exist "%BIN_DIR%\\electrum.exe" ^
-  copy /y "%BIN_DIR%\\electrum.exe" "%BACKUP_DIR%\\" >nul
-
-copy /y "%TMPDIR%\\%FILE%" "%BIN_DIR%\\electrum.exe" >nul
-
-if "%PGP_OK%"=="1" (
-  call :update_checksum "win\bin\electrum.exe" "%VERSION%"
-) else (
-  echo Warning: PGP not verified; skipping checksum update.
-)
-
-echo Electrum updated to %VERSION%
-
-if exist "%SCRIPT_DIR%verify-binaries.bat" (
-    call "%SCRIPT_DIR%verify-binaries.bat"
-    if errorlevel 1 set STATUS=1
-) else (
-    echo Warning: verify-binaries.bat not found; skipping verification.
-)
-
-goto :cleanup
-
-:update_checksum
-set FILEPATH=%~1
-set VERSION_LABEL=%~2
-if not exist "%FILEPATH%" exit /b 0
-powershell -Command ^
-  "& { $file = '%FILEPATH%'; $version = '%VERSION_LABEL%'; ^
-  $checksum = '%CHECKSUM_FILE%'; ^
-  if (!(Test-Path $checksum)) { ^
-    Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; ^
-    exit 0 } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
-  $entry = \"$hash  $file  version=$version\"; ^
-  $lines = Get-Content $checksum; ^
-  if ($lines -notcontains $entry) { $lines += $entry } ^
-  $lines = $lines | Select-Object -Unique; ^
-  Set-Content -Encoding ASCII $checksum $lines }"
-exit /b 0
-
-:error
-echo Update failed.
-set STATUS=1
-
-:cleanup
-if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
-popd >nul 2>&1
-endlocal
-exit /b %STATUS%

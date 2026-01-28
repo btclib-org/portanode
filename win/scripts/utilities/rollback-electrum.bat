@@ -40,7 +40,7 @@ if not exist "%BACKUP_DIR%\electrum.exe" (
 move /y "%BACKUP_DIR%\electrum.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
 if exist "%BACKUP_DIR%" rmdir "%BACKUP_DIR%" >nul 2>&1
 
-echo Rollback complete. Run win\scripts\utilities\validate-setup.bat to verify.
+echo Rollback complete.
 
 if exist "%SCRIPT_DIR%verify-binaries.bat" (
     call "%SCRIPT_DIR%verify-binaries.bat"

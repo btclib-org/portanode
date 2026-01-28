@@ -48,7 +48,8 @@ Can be used if an update fails
 - Update scripts place temporary downloads under `win/bin/.tmp-downloads/` and
   clean them on exit.
 - If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core
-  and Electrum downloads.
+  and Electrum downloads. The update proceeds if at least one valid signature
+  is found; missing keys are reported as warnings.
   - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
     repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
   - **Electrum signing key**: obtain the release signing key from electrum.org
@@ -61,6 +62,8 @@ Can be used if an update fails
 - Cleanup scripts are OS-specific; Windows cleanup only targets Windows
   artifacts.
 - Check script output for errors; refer to main README.md for troubleshooting.
+- The Utilities launcher includes update and rollback options for Bitcoin and
+  Electrum.
 
 ## Smoke Check
 Run these in order after updates:

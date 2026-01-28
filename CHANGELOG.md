@@ -14,12 +14,16 @@ using YYYY.MM.DD format.
 - Launcher menus: blank input maps to exit, utilities menu reordered,
   and update binaries added.
 - Utilities launchers now include rollback options for Bitcoin and Electrum.
+- Utilities README now notes the rollback options in the launcher menus.
 - Standardized launcher parity: consistent missing-script checks, error messages,
   and spacing across .command/.bat/.ps1/.sh.
 - Update scripts now update local checksums after successful PGP verification.
 - Rollback scripts now verify the backup binary checksum before restoring.
 - Update/rollback scripts now emit one-line directory listings when expected
   files are missing.
+- Update scripts now accept any valid PGP signature (even if other signatures
+  are missing) and report the verified key fingerprint when available.
+- Utilities READMEs now document that updates proceed on any valid signature.
 - Bitcoin updater now hashes the extracted binary (not the app bundle directory)
   when updating checksums.
 - Bitcoin updater now validates and locates the extracted app bundle before
