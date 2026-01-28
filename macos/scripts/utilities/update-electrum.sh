@@ -52,12 +52,14 @@ echo "Downloading $URL..."
 curl -L -o "$TMPDIR/$OUT_FILE" "$URL"
 curl -L -o "$TMPDIR/$SIG_FILE" "${URL}.asc"
 
+PGP_OK=0
 if command -v gpg >/dev/null 2>&1; then
     echo "Verifying Electrum signature..."
     if ! (cd "$TMPDIR" && gpg --verify "$SIG_FILE" "$OUT_FILE"); then
         echo "PGP signature verification failed"
         exit 1
     fi
+    PGP_OK=1
 else
     echo "Warning: gpg not found; skipping PGP signature verification."
 fi
@@ -89,25 +91,33 @@ update_checksum() {
     mv "${checksum_file}.tmp" "$checksum_file"
 }
 
-if [ ! -d "$ROOTDIR/macos/bin/Electrum.app" ]; then
-    echo "Error: macos/bin/Electrum.app not found."
-    echo "Install the app bundle first."
-    exit 1
-fi
+mkdir -p "$ROOTDIR/macos/bin"
 mkdir -p "$BACKUP_DIR"
-cp -R "$ROOTDIR/macos/bin/Electrum.app" "$BACKUP_DIR/Electrum.app"
+rm -rf "$BACKUP_DIR/Electrum.app"
+if [ -d "$ROOTDIR/macos/bin/Electrum.app" ]; then
+    cp -R "$ROOTDIR/macos/bin/Electrum.app" "$BACKUP_DIR/Electrum.app"
+fi
 MOUNT_INFO="$(hdiutil attach -nobrowse "$TMPDIR/$OUT_FILE")"
 MOUNT_POINT="$(echo "$MOUNT_INFO" | tail -n 1 | awk '{print $3}')"
 if [ -z "$MOUNT_POINT" ]; then
     echo "Failed to mount Electrum DMG."
     exit 1
 fi
+if [ ! -d "${MOUNT_POINT}/Electrum.app" ]; then
+    echo "Electrum.app not found in mounted DMG."
+    hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
+    exit 1
+fi
 rm -rf "$ROOTDIR/macos/bin/Electrum.app"
 cp -R "${MOUNT_POINT}/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
 hdiutil detach "$MOUNT_POINT" >/dev/null
-update_checksum \
-  "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-  "$VERSION"
+if [ "$PGP_OK" -eq 1 ]; then
+    update_checksum \
+      "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+      "$VERSION"
+else
+    echo "Warning: PGP not verified; skipping checksum update."
+fi
 
 # Cleanup
 rm -rf "$TMPDIR"

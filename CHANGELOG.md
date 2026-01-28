@@ -5,12 +5,18 @@ All notable changes to PortaNode will be documented in this file.
 The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
-## [2026.01.28]
-- Bitcoin macOS launchers now distinguish missing vs non-executable binaries and add checks to testnet launcher.
-- Windows regtest Bitcoin launchers now include full binary paths in missing-binary errors.
+## [2026.01.28] - git main branch
+- Bitcoin macOS launchers now distinguish missing vs non-executable binaries
+  and add checks to testnet launcher.
+- Windows regtest Bitcoin launchers now include full binary paths
+  in missing-binary errors.
 - Added macOS smoke test for Bitcoin launcher error paths.
-- Launcher menus: blank input maps to exit, utilities menu reordered, and update binaries added.
-- Standardized launcher parity: consistent missing-script checks, error messages, and spacing across .command/.bat/.ps1/.sh.
+- Launcher menus: blank input maps to exit, utilities menu reordered,
+  and update binaries added.
+- Standardized launcher parity: consistent missing-script checks, error messages,
+  and spacing across .command/.bat/.ps1/.sh.
+- Update scripts now update local checksums after successful PGP verification.
+- Rollback scripts now verify the backup binary checksum before restoring.
 
 ## [2026.01.27] - Initial Release
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

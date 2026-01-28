@@ -38,6 +38,7 @@ if %errorlevel%==0 (
     exit /b 1
 )
 echo Downloading %URL%...
+set PGP_OK=0
 powershell -Command ^
   "& { $ProgressPreference = 'SilentlyContinue'; ^
   Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" ^
@@ -58,6 +59,7 @@ if %errorlevel%==0 (
     echo Verifying SHA256SUMS signature...
     gpg --verify "%TMPDIR%\\SHA256SUMS.asc" ^
       "%TMPDIR%\\SHA256SUMS" || goto :error
+    set PGP_OK=1
 ) else (
     echo Warning: gpg not found; skipping PGP signature verification.
 )
@@ -98,13 +100,17 @@ if not exist "%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe" (
 )
 copy /y "%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe" "%BIN_DIR%\\" >nul
 
-call :update_checksum "win\\bin\\bitcoin-qt.exe" "%VERSION%"
-call :update_checksum "win\\bin\\bitcoind.exe" "%VERSION%"
-call :update_checksum "win\\bin\\bitcoin-cli.exe" "%VERSION%"
-call :update_checksum "win\\bin\\bitcoin-wallet.exe" "%VERSION%"
-call :update_checksum "win\\bin\\bitcoin-tx.exe" "%VERSION%"
-call :update_checksum "win\\bin\\bitcoin-util.exe" "%VERSION%"
-call :update_checksum "win\\bin\\bitcoin.exe" "%VERSION%"
+if "%PGP_OK%"=="1" (
+  call :update_checksum "win\bin\bitcoin-qt.exe" "%VERSION%"
+  call :update_checksum "win\bin\bitcoind.exe" "%VERSION%"
+  call :update_checksum "win\bin\bitcoin-cli.exe" "%VERSION%"
+  call :update_checksum "win\bin\bitcoin-wallet.exe" "%VERSION%"
+  call :update_checksum "win\bin\bitcoin-tx.exe" "%VERSION%"
+  call :update_checksum "win\bin\bitcoin-util.exe" "%VERSION%"
+  call :update_checksum "win\bin\bitcoin.exe" "%VERSION%"
+) else (
+  echo Warning: PGP not verified; skipping checksum update.
+)
 
 echo Bitcoin Core updated to %VERSION%
 

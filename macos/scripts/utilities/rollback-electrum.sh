@@ -14,6 +14,32 @@ echo "Rolling back Electrum binaries..."
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     if [ -d "$BACKUP_DIR/Electrum.app" ]; then
+        CHECKSUM_FILE="$ROOTDIR/macos/checksums.sha256"
+        BACKUP_BIN="$BACKUP_DIR/Electrum.app/Contents/MacOS/run_electrum"
+        if [ ! -f "$BACKUP_BIN" ]; then
+            echo "Error: backup binary not found at $BACKUP_BIN"
+            exit 1
+        fi
+        if [ ! -f "$CHECKSUM_FILE" ]; then
+            echo "Error: $CHECKSUM_FILE not found."
+            exit 1
+        fi
+        if command -v shasum >/dev/null 2>&1; then
+            HASH="$(shasum -a 256 "$BACKUP_BIN" | awk '{print $1}')"
+        elif command -v sha256sum >/dev/null 2>&1; then
+            HASH="$(sha256sum "$BACKUP_BIN" | awk '{print $1}')"
+        else
+            echo "Error: Neither shasum nor sha256sum found."
+            exit 1
+        fi
+        if ! awk -v h="$HASH" \
+            -v p="macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+            '$1 == h && index($0, p) { found=1 } END { exit found ? 0 : 1 }' \
+            "$CHECKSUM_FILE"; then
+            echo "Error: backup binary checksum not recognized."
+            exit 1
+        fi
+
         rm -rf "$ROOTDIR/macos/bin/Electrum.app"
         mv "$BACKUP_DIR/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
         rmdir "$BACKUP_DIR" 2>/dev/null || true

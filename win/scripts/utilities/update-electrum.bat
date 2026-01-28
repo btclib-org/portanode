@@ -43,6 +43,7 @@ set BASE_URL=https://download.electrum.org/%VERSION%/
 set URL=%BASE_URL%%FILE%
 
 echo Downloading %URL%...
+set PGP_OK=0
 powershell -Command ^
   "& { $ProgressPreference = 'SilentlyContinue'; ^
   Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" ^
@@ -57,6 +58,7 @@ where gpg >nul 2>&1
 if %errorlevel%==0 (
     echo Verifying Electrum signature...
     gpg --verify "%TMPDIR%\\%SIG_FILE%" "%TMPDIR%\\%FILE%" || goto :error
+    set PGP_OK=1
 ) else (
     echo Warning: gpg not found; skipping PGP signature verification.
 )
@@ -72,7 +74,11 @@ if exist "%BIN_DIR%\\electrum.exe" ^
 
 copy /y "%TMPDIR%\\%FILE%" "%BIN_DIR%\\electrum.exe" >nul
 
-call :update_checksum "win\\bin\\electrum.exe" "%VERSION%"
+if "%PGP_OK%"=="1" (
+  call :update_checksum "win\bin\electrum.exe" "%VERSION%"
+) else (
+  echo Warning: PGP not verified; skipping checksum update.
+)
 
 echo Electrum updated to %VERSION%
 
