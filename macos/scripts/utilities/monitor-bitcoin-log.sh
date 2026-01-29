@@ -20,6 +20,10 @@ fi
 
 # Get current line count
 CURRENT_LINES=$(wc -l < "$LOG_FILE" 2>/dev/null || echo 0)
+if [ "$CURRENT_LINES" -lt "$LAST_LINE" ]; then
+    LAST_LINE=0
+    echo "0" > "$LAST_CHECK_FILE"
+fi
 
 if [ "$CURRENT_LINES" -gt "$LAST_LINE" ]; then
     # Check new lines for errors

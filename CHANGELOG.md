@@ -58,6 +58,7 @@ using YYYY.MM.DD format.
 - Bitcoin updater now checks the extracted top-level dist/ folder for
   Bitcoin-Qt.app.
 - Windows regtest Alice CLI launcher now sets -datadir in the doskey alias.
+- Log monitor now resets its state when debug.log shrinks on macOS and Windows.
 
 ## [2026.01.27] - Initial Release
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

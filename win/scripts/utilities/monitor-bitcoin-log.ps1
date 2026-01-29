@@ -20,6 +20,10 @@ if (Test-Path $lastCheckFile) {
 }
 
 $currentLines = (Get-Content -Path $logFile -ReadCount 0).Count
+if ($currentLines -lt $lastLine) {
+  $lastLine = 0
+  Set-Content -Path $lastCheckFile -Value 0
+}
 if ($currentLines -le $lastLine) {
   exit 0
 }
