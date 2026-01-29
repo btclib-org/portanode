@@ -1,6 +1,11 @@
 # Suggested Fixes
 
-None currently.
+- The update scripts are pinned to Bitcoin Core 30.2,
+  while the docs say “download latest” and recommend the update scripts.
+  Users will assume “latest” but won’t get it.
+- validation enforces 100GB free, but the README says 700GB
+  for a full mainnet sync. This can report “OK” on disks that
+  are too small for the advertised use case.
 
 # Possible Improvements
 

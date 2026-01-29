@@ -25,11 +25,13 @@ if %errorlevel%==0 (
     exit /b 1
 )
 
-for /f "usebackq delims=" %%V in (`powershell -Command ^
-    "& { $html = (Invoke-WebRequest -Uri 'https://electrum.org/' ^
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command ^
+    "& { $html = (Invoke-WebRequest -Uri 'https://download.electrum.org/' ^
     -UseBasicParsing).Content; ^
-    $m = [regex]::Match($html, 'Latest release: Electrum-([0-9.]+)'); ^
-    if ($m.Success) { $m.Groups[1].Value } }"`) ^
+    $versions = [regex]::Matches($html, 'href=\"(\\d+\\.\\d+\\.\\d+)/\"') ^
+      | ForEach-Object { $_.Groups[1].Value }; ^
+    $versions = $versions | Sort-Object -Unique | Sort-Object {[version]$_}; ^
+    if ($versions) { $versions | Select-Object -Last 1 } }"`) ^
 do set VERSION=%%V
 
 if "%VERSION%"=="" (

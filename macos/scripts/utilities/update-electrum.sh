@@ -32,12 +32,12 @@ else
     exit 1
 fi
 
-HTML="$(curl -s -H "User-Agent: PortaNode" https://electrum.org/)"
+INDEX_HTML="$(curl -fsSL -H "User-Agent: PortaNode" https://download.electrum.org/)"
 VERSION="$(
-  echo "$HTML" \
-    | grep -o 'Latest release: Electrum-[0-9][0-9.]*' \
-    | head -n 1 \
-    | sed -E 's/.*Electrum-//'
+  echo "$INDEX_HTML" \
+    | sed -nE 's/.*href="([0-9]+\.[0-9]+\.[0-9]+)\/".*/\1/p' \
+    | sort -t. -k1,1n -k2,2n -k3,3n \
+    | tail -n 1
 )"
 if [ -z "$VERSION" ]; then
     echo "Failed to determine latest Electrum version from electrum.org."
