@@ -12,7 +12,7 @@ you know the kinds of problems this is meant to address.
 It works best on an exFAT-formatted NVMe drive
 in a portable USB 3 / Thunderbolt enclosure.
 
-It has been tested with Bitocoin Core 30.2 and Electrum 4.7.0.
+It has been tested with Bitcoin Core 30.2 and Electrum 4.7.0.
 
 ## Prerequisites
 
