@@ -26,4 +26,4 @@ start "" cmd /k ^
 start "" cmd /k ^
   "cd /d \"%ROOTDIR%\\win\\bin\" ^& ^
   title %~n0 ^& ^
-  doskey btc=bitcoin-cli.exe -regtest $*"
+  doskey btc=bitcoin-cli.exe -regtest -datadir=\"%ROOTDIR%\\bitcoin-datadir\" $*"

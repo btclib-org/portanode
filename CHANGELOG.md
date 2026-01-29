@@ -5,7 +5,7 @@ All notable changes to PortaNode will be documented in this file.
 The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
-## [2026.01.28] - git main branch
+## [2026.01.29] - git main branch
 - Bitcoin macOS launchers now distinguish missing vs non-executable binaries
   and add checks to testnet launcher.
 - Windows regtest Bitcoin launchers now include full binary paths
@@ -57,6 +57,7 @@ using YYYY.MM.DD format.
 - Bitcoin updater now uses the codesigning tarball to obtain Bitcoin-Qt.app.
 - Bitcoin updater now checks the extracted top-level dist/ folder for
   Bitcoin-Qt.app.
+- Windows regtest Alice CLI launcher now sets -datadir in the doskey alias.
 
 ## [2026.01.27] - Initial Release
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
