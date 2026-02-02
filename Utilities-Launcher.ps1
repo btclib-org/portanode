@@ -1,6 +1,8 @@
 Param()
 
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+. (Join-Path $ScriptRoot "win\\scripts\\root.ps1")
+$Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
 $Scripts = @{
     "1" = Join-Path $Root "win\scripts\utilities\update-bitcoin.bat"

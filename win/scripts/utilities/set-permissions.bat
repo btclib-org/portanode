@@ -3,8 +3,7 @@ setlocal enabledelayedexpansion
 REM Set restrictive permissions for PortaNode data directories (Windows)
 
 set SCRIPT_DIR=%~dp0
-set ROOTDIR=%SCRIPT_DIR%..\..\..
-for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
+call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 
 set BDD=%ROOTDIR%\bitcoin-datadir
 set EDD=%ROOTDIR%\electrum-datadir

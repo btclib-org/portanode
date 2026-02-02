@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOTDIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/macos/scripts/lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 UNAME="$(uname -s 2>/dev/null || true)"
 
 case "$UNAME" in

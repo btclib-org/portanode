@@ -3,8 +3,7 @@ setlocal enabledelayedexpansion
 REM Validate setup
 
 set SCRIPT_DIR=%~dp0
-set ROOTDIR=%SCRIPT_DIR%..\..\..
-for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
+call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 
 pushd "%ROOTDIR%" >nul 2>&1
 

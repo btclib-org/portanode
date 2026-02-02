@@ -2,7 +2,9 @@
 set -u
 set -o pipefail
 
-ROOTDIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/macos/scripts/lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 
 run_script() {
   local script="$1"

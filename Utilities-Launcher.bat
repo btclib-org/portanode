@@ -1,7 +1,8 @@
 @echo off
 setlocal
 
-set ROOTDIR=%~dp0
+set "SCRIPT_DIR=%~dp0"
+call "%SCRIPT_DIR%win\scripts\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 
 :menu
 echo Utilities Launcher

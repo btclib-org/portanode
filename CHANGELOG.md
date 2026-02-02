@@ -61,6 +61,8 @@ using YYYY.MM.DD format.
 - Log monitor now resets its state when debug.log shrinks on macOS and Windows.
 - Electrum updaters now derive the latest version from download.electrum.org
   instead of scraping electrum.org HTML.
+- Root resolution is now centralized per OS, and utilities/launchers honor
+  PORTANODE_ROOT overrides on macOS and Windows.
 
 ## [2026.01.27] - Initial Release
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

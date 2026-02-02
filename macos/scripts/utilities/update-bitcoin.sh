@@ -3,10 +3,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-cd "$ROOTDIR"
-
 . "$SCRIPT_DIR/lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+cd "$ROOTDIR"
 
 # Latest version pinned for reliability
 VERSION="30.2"

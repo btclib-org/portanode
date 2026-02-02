@@ -3,7 +3,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+. "$SCRIPT_DIR/../lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 
 echo "Validating setup at $ROOTDIR"
 

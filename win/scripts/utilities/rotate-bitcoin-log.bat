@@ -3,8 +3,7 @@ setlocal enabledelayedexpansion
 REM Rotate Bitcoin debug log (Windows)
 
 set SCRIPT_DIR=%~dp0
-set ROOTDIR=%SCRIPT_DIR%..\..\..
-for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
+call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 
 set LOG_FILE=%ROOTDIR%\bitcoin-datadir\debug.log
 set MAX_ROTATIONS=5

@@ -3,8 +3,7 @@ setlocal enabledelayedexpansion
 REM Rollback Bitcoin Core binaries (Windows)
 
 set SCRIPT_DIR=%~dp0
-set ROOTDIR=%SCRIPT_DIR%..\..\..
-for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
+call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 set BACKUP_DIR=%ROOTDIR%\win\bin\backup\bitcoin
 set CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256
 

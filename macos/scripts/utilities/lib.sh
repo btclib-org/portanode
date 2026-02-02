@@ -1,6 +1,10 @@
 #!/bin/bash
 # Shared helpers for macOS utility scripts.
 
+_UTILS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$_UTILS_LIB_DIR/../lib.sh"
+unset _UTILS_LIB_DIR
+
 debug_list_dir() {
     local dir="$1"
     echo "Debug: $dir contents: $(ls -a "$dir" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"

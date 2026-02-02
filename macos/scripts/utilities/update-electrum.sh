@@ -3,12 +3,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+. "$SCRIPT_DIR/lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 TMPDIR="$ROOTDIR/macos/bin/.tmp-downloads/electrum"
 cd "$ROOTDIR"
 trap 'rm -rf "$TMPDIR"' EXIT
-
-. "$SCRIPT_DIR/lib.sh"
 
 echo "Updating Electrum..."
 

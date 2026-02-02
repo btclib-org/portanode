@@ -3,7 +3,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+. "$SCRIPT_DIR/../lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 CHECKSUM_FILE="macos/checksums.sha256"
 
 echo "Verifying binaries against $CHECKSUM_FILE"

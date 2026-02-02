@@ -2,10 +2,9 @@
 # Rollback Last Electrum Update
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOTDIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-BACKUP_DIR="$ROOTDIR/macos/bin/backup/electrum"
-
 . "$SCRIPT_DIR/lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+BACKUP_DIR="$ROOTDIR/macos/bin/backup/electrum"
 
 if [ ! -d "$BACKUP_DIR" ]; then
     echo "No backup found in $BACKUP_DIR"

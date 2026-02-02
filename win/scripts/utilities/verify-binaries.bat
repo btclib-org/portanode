@@ -2,8 +2,7 @@
 REM Verify binaries against win/checksums.sha256
 
 set SCRIPT_DIR=%~dp0
-set ROOTDIR=%SCRIPT_DIR%..\..\..
-for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
+call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 set CHECKSUM_FILE=win/checksums.sha256
 
 pushd "%ROOTDIR%" >nul 2>&1
