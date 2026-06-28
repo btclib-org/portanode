@@ -6,10 +6,12 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
-- Bitcoin updater now also installs `bitcoin-cli` into `macos/bin/` (extracted
-  from the official `.tar.gz`, checksum-verified alongside the app), since the
-  `.app` GUI `.zip` ships without it. The health check uses it to report
-  Bitcoin sync progress instead of always showing "unknown".
+- Bitcoin updater now also installs the command-line tools (`bitcoind`,
+  `bitcoin-cli`, `bitcoin-qt`, `bitcoin-tx`, `bitcoin-util`, `bitcoin-wallet`)
+  into `macos/bin/`, extracted from the official `.tar.gz` and checksum-verified
+  alongside the app, since the `.app` GUI `.zip` ships without them. The health
+  check uses `bitcoin-cli` to report Bitcoin sync progress instead of always
+  showing "unknown".
 - Health check no longer flags the datadir `.lock` file as a leftover artifact.
   Bitcoin Core leaves that empty advisory-lock file in place after a clean
   shutdown, so it was producing a false "Bitcoin running: maybe" every time.

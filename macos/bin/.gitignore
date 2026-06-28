@@ -1,5 +1,10 @@
 Electrum.app
 Bitcoin-Qt.app
+bitcoind
 bitcoin-cli
+bitcoin-qt
+bitcoin-tx
+bitcoin-util
+bitcoin-wallet
 .tmp-downloads/
 backup/

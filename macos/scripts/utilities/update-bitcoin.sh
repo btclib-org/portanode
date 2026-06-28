@@ -64,12 +64,12 @@ fi
 FILE="$(release_file "$VERSION")"
 echo "Latest Bitcoin Core with a macOS build: ${VERSION}"
 
-# The ".app" zip ships only the GUI; bitcoin-cli (used by the health check to
-# read sync status) lives in the loose-binary tarball, so fetch that too and
-# install it next to the app in macos/bin/ (adding it inside the signed .app
-# bundle would invalidate the bundle's code signature).
+# The ".app" zip ships only the GUI; the command-line tools (bitcoind,
+# bitcoin-cli, etc.) live in the loose-binary tarball, so fetch that too and
+# install them next to the app in macos/bin/ (putting them inside the signed
+# .app bundle would invalidate the bundle's code signature).
 CLI_ARCHIVE="bitcoin-${VERSION}-${ARCH_TAG}-${OS}.tar.gz"
-CLI_NAME="bitcoin-cli"
+BIN_NAMES="bitcoind bitcoin-cli bitcoin-qt bitcoin-tx bitcoin-util bitcoin-wallet"
 
 # Prevent updates while running. pgrep on macOS/BSD uses extended regular
 # expressions, so alternation is "|" (a GNU-BRE "\|" matches a literal pipe and
@@ -98,7 +98,7 @@ echo "Downloading $CHECKSUM_URL..."
 curl -fL -o "$TMP_DIR/SHA256SUMS" "$CHECKSUM_URL"
 echo "Downloading $CHECKSUM_SIG_URL..."
 curl -fL -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
-echo "Downloading ${CLI_ARCHIVE} (for bitcoin-cli)..."
+echo "Downloading ${CLI_ARCHIVE} (for CLI tools)..."
 curl -fL -o "$TMP_DIR/$CLI_ARCHIVE" \
   "https://bitcoincore.org/bin/bitcoin-core-${VERSION}/${CLI_ARCHIVE}"
 
@@ -157,25 +157,29 @@ if [ -z "$TMP_APP" ]; then
     exit 1
 fi
 
-# Extract just bitcoin-cli from the loose-binary tarball.
-tar -xzf "$TMP_DIR/$CLI_ARCHIVE" -C "$TMP_DIR" \
-  "bitcoin-${VERSION}/bin/${CLI_NAME}"
-TMP_CLI="$TMP_DIR/bitcoin-${VERSION}/bin/${CLI_NAME}"
-if [ ! -x "$TMP_CLI" ]; then
-    echo "Error: ${CLI_NAME} not found in extracted archive."
-    debug_list_dir "$TMP_DIR/bitcoin-${VERSION}/bin"
-    exit 1
-fi
+# Extract the command-line tools from the loose-binary tarball.
+TMP_BIN_DIR="$TMP_DIR/bitcoin-${VERSION}/bin"
+TAR_MEMBERS=""
+for b in $BIN_NAMES; do
+    TAR_MEMBERS="$TAR_MEMBERS bitcoin-${VERSION}/bin/$b"
+done
+tar -xzf "$TMP_DIR/$CLI_ARCHIVE" -C "$TMP_DIR" $TAR_MEMBERS
+for b in $BIN_NAMES; do
+    if [ ! -x "$TMP_BIN_DIR/$b" ]; then
+        echo "Error: $b not found in extracted archive."
+        debug_list_dir "$TMP_BIN_DIR"
+        exit 1
+    fi
+done
 
 if [ $UPDATE_CHECKSUMS -eq 1 ]; then
     update_checksum \
       "$TMP_APP/Contents/MacOS/Bitcoin-Qt" \
       "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
       "$VERSION"
-    update_checksum \
-      "$TMP_CLI" \
-      "macos/bin/${CLI_NAME}" \
-      "$VERSION"
+    for b in $BIN_NAMES; do
+        update_checksum "$TMP_BIN_DIR/$b" "macos/bin/$b" "$VERSION"
+    done
 else
     echo "Warning: PGP signature(s) not verified; skipping checksum update."
 fi
@@ -193,16 +197,16 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     rm -rf "$APP"
     cp -R "$TMP_APP" "$APP"
 
-    # bitcoin-cli is small, stateless and re-downloadable, so just overwrite it
-    # (no backup/rollback): a newer cli still talks to an older node fine, and
-    # the app rollback is what matters.
-    CLI_DEST="$APP_DIR/${CLI_NAME}"
-    cp "$TMP_CLI" "$CLI_DEST"
-    chmod +x "$CLI_DEST"
+    # The command-line tools are small, stateless and re-downloadable, so just
+    # overwrite them (no backup/rollback): the app rollback is what matters.
+    for b in $BIN_NAMES; do
+        cp "$TMP_BIN_DIR/$b" "$APP_DIR/$b"
+        chmod +x "$APP_DIR/$b"
+    done
 fi
 
 # Cleanup
 rm -rf "$TMP_DIR"
 trap - EXIT
 
-echo "Bitcoin Core updated to $VERSION (Bitcoin-Qt.app + bitcoin-cli)"
+echo "Bitcoin Core updated to $VERSION (Bitcoin-Qt.app + CLI tools)"
