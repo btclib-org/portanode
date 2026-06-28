@@ -15,4 +15,4 @@ de95297fd56943630529ae12ee9f9fc4f875089f7f8f37765d54e21410376ae3  macos/bin/bitc
 1e17da0b1ad8a5782a9deb987dd0feb3f64c7aef1da96f379d82c238a134ac46  macos/bin/bitcoin-tx  version=31.0
 bf188d1ab80d64c47284b9ce97e1c1b1ec702847cad2e71f3b583d8a5e87f907  macos/bin/bitcoin-util  version=31.0
 dff20b899fd6df850048d74f11129b814445c1b8dcf12d523d681dec3515a691  macos/bin/bitcoin-wallet  version=31.0
-11e5be61686d355b512afeb89cb970569ca018f22e8f5a76ebdb7fe5cc5a1824  macos/bin/Electrum.app/Contents/MacOS/run_electrum  version=4.7.0
+cf3281e3a2ceb656b5aa0151d3a6f9ae4976d4b3d7b13ffd26c54ffa18faed24  macos/bin/Electrum.app/Contents/MacOS/run_electrum  version=4.7.2
