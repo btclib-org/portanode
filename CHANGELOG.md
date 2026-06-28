@@ -6,6 +6,15 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
+- Health check no longer flags the datadir `.lock` file as a leftover artifact.
+  Bitcoin Core leaves that empty advisory-lock file in place after a clean
+  shutdown, so it was producing a false "Bitcoin running: maybe" every time.
+- Fixed the Bitcoin `pgrep` patterns in the health check and the updater's
+  "already running" guard: they used GNU-BRE alternation (`\|`), which macOS's
+  ERE-based `pgrep` treats as a literal pipe, so they never matched a running
+  Bitcoin. The guard could have let an update run while Bitcoin was open.
+- Health check now confirms the `bitcoind.pid` process is actually Bitcoin
+  (not just that some process with that PID exists) before reporting running.
 - Bitcoin macOS updater now downloads the official notarized release archive
   (`bitcoin-<ver>-<arch>-apple-darwin.zip`) instead of the unsigned
   `-codesigning` tarball. The unsigned binary was killed by the kernel with

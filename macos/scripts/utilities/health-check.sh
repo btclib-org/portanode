@@ -19,7 +19,9 @@ else
 fi
 
 # Bitcoin status
-BTC_PGREP_PATTERN="bitcoind\\|bitcoin-qt\\|bitcoin qt\\|bitcoin-qt.app"
+# pgrep on macOS/BSD uses extended regular expressions, so alternation is "|"
+# (a GNU-BRE "\|" matches a literal pipe and never matches a real process).
+BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt|bitcoin-qt.app"
 PGREP_OUTPUT="$(pgrep -f -i "$BTC_PGREP_PATTERN" 2>&1 || true)"
 if echo "$PGREP_OUTPUT" | grep -qi "cannot get process list"; then
     echo "Note: process listing unavailable; falling back to CLI/artifacts."
@@ -54,10 +56,10 @@ fi
 
 if [ "$BTC_RUNNING" != "yes" ]; then
     ARTIFACTS=()
-    if [ -f "$ROOTDIR/bitcoin-datadir/.lock" ]; then
-        ARTIFACTS+=(".lock")
-        ARTIFACTS_FOUND=1
-    fi
+    # Note: .lock is intentionally NOT treated as an artifact. Bitcoin Core
+    # leaves the empty .lock file in the datadir even after a clean shutdown
+    # (it is only an advisory lock while running), so it carries no info about
+    # whether Bitcoin is running and flagging it produced false "maybe" alarms.
     if [ -f "$ROOTDIR/bitcoin-datadir/.cookie" ]; then
         ARTIFACTS+=(".cookie")
         ARTIFACTS_FOUND=1
@@ -66,7 +68,11 @@ if [ "$BTC_RUNNING" != "yes" ]; then
         ARTIFACTS+=("bitcoind.pid")
         ARTIFACTS_FOUND=1
         PID="$(cat "$ROOTDIR/bitcoin-datadir/bitcoind.pid" 2>/dev/null || true)"
-        if [ -n "$PID" ] && kill -0 "$PID" >/dev/null 2>&1; then
+        # Confirm the PID is actually a Bitcoin process: after a crash the pid
+        # file can be left behind and its number reused by something unrelated,
+        # so a bare kill -0 would report a false "running".
+        if [ -n "$PID" ] && \
+           ps -p "$PID" -o comm= 2>/dev/null | grep -qi "bitcoin"; then
             BTC_RUNNING="yes"
             BTC_METHOD="pid"
         else
