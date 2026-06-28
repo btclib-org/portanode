@@ -7,18 +7,19 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 cd "$ROOTDIR"
 
-# Latest version pinned for reliability
-VERSION="30.2"
-
-# Detect OS (macOS only)
+# Detect OS/arch (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="apple-darwin"
-    EXT="tar.gz"
+    # Use the official notarized release archive (the ".zip" ships the
+    # Apple-signed, notarized Bitcoin-Qt.app). The "-codesigning" archive is
+    # the project's *unsigned* internal build artifact; on Apple Silicon an
+    # unsigned binary is killed by the kernel with SIGKILL ("Killed: 9").
+    EXT="zip"
     ARCH="$(uname -m)"
     if [ "$ARCH" = "arm64" ]; then
-        FILE="bitcoin-${VERSION}-arm64-${OS}-codesigning.${EXT}"
+        ARCH_TAG="arm64"
     else
-        FILE="bitcoin-${VERSION}-x86_64-${OS}-codesigning.${EXT}"
+        ARCH_TAG="x86_64"
     fi
     APP_NAME="Bitcoin-Qt.app"
     APP_DIR="$ROOTDIR/macos/bin"
@@ -28,6 +29,40 @@ else
     echo "Unsupported OS (macOS only)."
     exit 1
 fi
+
+# Release archive name for a given version.
+release_file() { echo "bitcoin-$1-${ARCH_TAG}-${OS}.${EXT}"; }
+
+# Pick the newest release on bitcoincore.org that actually ships a macOS
+# archive (mirrors how update-electrum.sh auto-detects the latest Electrum).
+# The index can list version directories that are empty (a release not yet
+# published) or that lack macOS builds, so we probe newest-first and skip any
+# candidate whose archive is missing. Legacy 0.x releases are excluded so the
+# numeric sort picks a modern version.
+echo "Determining latest Bitcoin Core version..."
+INDEX_HTML="$(curl -fsSL -H "User-Agent: PortaNode" https://bitcoincore.org/bin/)"
+CANDIDATES="$(
+  echo "$INDEX_HTML" \
+    | sed -nE 's/.*href="bitcoin-core-([0-9]+\.[0-9]+(\.[0-9]+)?)\/".*/\1/p' \
+    | grep -vE '^0\.' \
+    | sort -t. -k1,1nr -k2,2nr -k3,3nr
+)"
+VERSION=""
+for candidate in $CANDIDATES; do
+    candidate_url="https://bitcoincore.org/bin/bitcoin-core-${candidate}/$(release_file "$candidate")"
+    if curl -fsIL -o /dev/null "$candidate_url"; then
+        VERSION="$candidate"
+        break
+    fi
+    echo "Skipping ${candidate} (no macOS archive published)."
+done
+if [ -z "$VERSION" ]; then
+    echo "Failed to find a Bitcoin Core release with a macOS archive on" \
+         "bitcoincore.org."
+    exit 1
+fi
+FILE="$(release_file "$VERSION")"
+echo "Latest Bitcoin Core with a macOS build: ${VERSION}"
 
 # Prevent updates while running
 BTC_PGREP_PATTERN="bitcoind\\|bitcoin-qt\\|bitcoin qt\\|${APP_NAME}"
@@ -49,11 +84,11 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 mkdir -p "$TMP_DIR"
 
 echo "Downloading $URL..."
-curl -L -o "$TMP_DIR/$FILE" "$URL"
+curl -fL -o "$TMP_DIR/$FILE" "$URL"
 echo "Downloading $CHECKSUM_URL..."
-curl -L -o "$TMP_DIR/SHA256SUMS" "$CHECKSUM_URL"
+curl -fL -o "$TMP_DIR/SHA256SUMS" "$CHECKSUM_URL"
 echo "Downloading $CHECKSUM_SIG_URL..."
-curl -L -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
+curl -fL -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 
 # Verify
 UPDATE_CHECKSUMS=0

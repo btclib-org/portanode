@@ -22,8 +22,14 @@ trim() {
     printf "%s" "$s"
 }
 
-declare -A entries
-declare -A paths
+# Parallel indexed arrays hold one record per checksum entry:
+#   rec_path[i] / rec_hash[i] / rec_ver[i]
+# (associative arrays would need bash 4+, but macOS ships bash 3.2.)
+rec_path=()
+rec_hash=()
+rec_ver=()
+# Ordered list of unique macos/* paths, in first-seen order.
+upaths=()
 
 while IFS= read -r line; do
     case "$line" in
@@ -49,22 +55,28 @@ while IFS= read -r line; do
         version="$(trim "$version")"
     fi
     case "$path" in
-        macos/*) paths["$path"]=1 ;;
+        macos/*) ;;
         *) continue ;;
     esac
-    key="$path"
-    entries["$key"]+="${hash}:${version},"
+    rec_path+=("$path")
+    rec_hash+=("$hash")
+    rec_ver+=("$version")
+    seen=0
+    for p in ${upaths[@]+"${upaths[@]}"}; do
+        if [ "$p" = "$path" ]; then
+            seen=1
+            break
+        fi
+    done
+    [ "$seen" -eq 0 ] && upaths+=("$path")
 done < "$ROOTDIR/$CHECKSUM_FILE"
 
 fail=0
-for path in "${!paths[@]}"; do
+for path in ${upaths[@]+"${upaths[@]}"}; do
     file="$ROOTDIR/$path"
     expected_versions=()
-    IFS=',' read -r -a expected_items <<< "${entries[$path]}"
-    for item in "${expected_items[@]}"; do
-        [ -z "$item" ] && continue
-        item_ver="${item#*:}"
-        expected_versions+=("$item_ver")
+    for i in "${!rec_path[@]}"; do
+        [ "${rec_path[$i]}" = "$path" ] && expected_versions+=("${rec_ver[$i]}")
     done
     if [ "${#expected_versions[@]}" -gt 0 ]; then
         expected_versions_str=$(printf "%s, " "${expected_versions[@]}")
@@ -90,13 +102,9 @@ for path in "${!paths[@]}"; do
         exit 1
     fi
     matches=()
-    IFS=',' read -r -a items <<< "${entries[$path]}"
-    for item in "${items[@]}"; do
-        [ -z "$item" ] && continue
-        item_hash="${item%%:*}"
-        item_ver="${item#*:}"
-        if [ "$item_hash" = "$hash" ]; then
-            matches+=("$item_ver")
+    for i in "${!rec_path[@]}"; do
+        if [ "${rec_path[$i]}" = "$path" ] && [ "${rec_hash[$i]}" = "$hash" ]; then
+            matches+=("${rec_ver[$i]}")
         fi
     done
     if [ "${#matches[@]}" -gt 0 ]; then

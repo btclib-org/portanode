@@ -6,6 +6,18 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
+- Bitcoin macOS updater now downloads the official notarized release archive
+  (`bitcoin-<ver>-<arch>-apple-darwin.zip`) instead of the unsigned
+  `-codesigning` tarball. The unsigned binary was killed by the kernel with
+  SIGKILL ("Killed: 9") on Apple Silicon; the notarized app runs and passes
+  Gatekeeper.
+- Bitcoin macOS updater now auto-detects the latest version from
+  bitcoincore.org (like the Electrum updater) instead of a pinned version,
+  probing newest-first and skipping releases that ship no macOS archive (e.g.
+  an index entry for a not-yet-published version). Downloads now use `curl -f`
+  so an HTTP error fails immediately instead of saving an error page.
+- `verify-binaries.sh` no longer uses associative arrays (`declare -A`), so it
+  runs on the stock macOS bash 3.2 instead of erroring out before verifying.
 - Bitcoin macOS launchers now distinguish missing vs non-executable binaries
   and add checks to testnet launcher.
 - Windows regtest Bitcoin launchers now include full binary paths
