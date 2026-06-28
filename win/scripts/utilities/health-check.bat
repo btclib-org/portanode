@@ -20,9 +20,9 @@ findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
 if defined FREE_BYTES (
     set /a FREE_GB=%FREE_BYTES%/1024/1024/1024
     if defined MOUNT_PATH (
-        echo Disk free: %FREE_GB% GB (%MOUNT_PATH%)
+        echo Disk free: !FREE_GB! GB (%MOUNT_PATH%)
     ) else (
-        echo Disk free: %FREE_GB% GB
+        echo Disk free: !FREE_GB! GB
     )
 ) else (
     echo Disk free: unknown
@@ -46,33 +46,37 @@ if exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
 )
 if "%BTC_RUNNING%"=="0" (
     tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
-    if %errorlevel%==0 (
+    if !errorlevel!==0 (
         set BTC_RUNNING=1
         set BTC_METHOD=tasklist
     )
-    if "%BTC_RUNNING%"=="0" (
+    if "!BTC_RUNNING!"=="0" (
         tasklist /fi "imagename eq bitcoin-qt.exe" ^
           | find /i "bitcoin-qt.exe" >nul
-        if %errorlevel%==0 (
+        if !errorlevel!==0 (
             set BTC_RUNNING=1
             set BTC_METHOD=tasklist
         )
     )
 )
+REM Artifact detection below. .lock is intentionally NOT treated as an artifact:
+REM Bitcoin Core leaves that empty advisory-lock file in the datadir even after
+REM a clean shutdown, so it says nothing about running state (and flagging it
+REM produced false "maybe" results). .cookie and bitcoind.pid are removed on a
+REM clean shutdown, so they are meaningful leftovers. The bitcoind.pid process
+REM is checked to actually be Bitcoin, since a reused PID after a crash would
+REM otherwise report a false "running".
 if "%BTC_RUNNING%"=="0" (
-    if exist "%ROOTDIR%\bitcoin-datadir\.lock" (
-        set ARTIFACTS=%ARTIFACTS% .lock
-    )
     if exist "%ROOTDIR%\bitcoin-datadir\.cookie" (
-        set ARTIFACTS=%ARTIFACTS% .cookie
+        set ARTIFACTS=!ARTIFACTS! .cookie
     )
     if exist "%ROOTDIR%\bitcoin-datadir\bitcoind.pid" (
-        set ARTIFACTS=%ARTIFACTS% bitcoind.pid
+        set ARTIFACTS=!ARTIFACTS! bitcoind.pid
         for /f "usebackq delims=" %%P in ^
           ("%ROOTDIR%\bitcoin-datadir\bitcoind.pid") do set PID=%%P
         if defined PID (
-            tasklist /fi "pid eq %PID%" | find /i "%PID%" >nul
-            if %errorlevel%==0 (
+            tasklist /fi "pid eq !PID!" | find /i "bitcoin" >nul
+            if !errorlevel!==0 (
                 set BTC_RUNNING=1
                 set BTC_METHOD=pid
             ) else (
@@ -81,10 +85,10 @@ if "%BTC_RUNNING%"=="0" (
         )
     )
     if defined ARTIFACTS (
-        if "%BTC_RUNNING%"=="0" (
+        if "!BTC_RUNNING!"=="0" (
             set BTC_RUNNING=2
             set BTC_METHOD=artifacts
-            echo Bitcoin artifacts:%ARTIFACTS%%ARTIFACT_NOTE%
+            echo Bitcoin artifacts:!ARTIFACTS!!ARTIFACT_NOTE!
         )
     )
 )
@@ -99,7 +103,7 @@ if "%BTC_RUNNING%"=="1" (
                 catch { '' } } }"`) ^
             do set BTC_CLI_PATH=%%P
             if defined BTC_CLI_PATH (
-                echo Bitcoin running: yes (%BTC_METHOD%: %BTC_CLI_PATH%)
+                echo Bitcoin running: yes (%BTC_METHOD%: !BTC_CLI_PATH!)
             ) else (
                 echo Bitcoin running: yes (%BTC_METHOD%: PATH)
             )
@@ -119,7 +123,7 @@ if "%BTC_RUNNING%"=="1" (
             } } catch { '' } }"`) ^
         do set SYNC=%%J
         if defined SYNC (
-            echo Bitcoin sync: %SYNC%%%
+            echo Bitcoin sync: !SYNC!%%
         ) else (
             echo Bitcoin sync: unknown
         )
@@ -146,15 +150,15 @@ for /f "usebackq delims=" %%P in (`powershell -Command ^
     "& { $p = Get-Process electrum -ErrorAction SilentlyContinue; ^
     if ($p) { $p | Select-Object -ExpandProperty Path } }"`) ^
 do (
-    echo %%P | find /i "\\win\\bin\\electrum.exe" >nul
-    if %errorlevel%==0 (
+    echo %%P | find /i "\win\bin\electrum.exe" >nul
+    if !errorlevel!==0 (
         set ELECTRUM_RUNNING=1
         set ELECTRUM_METHOD=process-path
     )
 )
 if "%ELECTRUM_RUNNING%"=="0" (
     tasklist /fi "imagename eq electrum.exe" | find /i "electrum.exe" >nul
-    if %errorlevel%==0 (
+    if !errorlevel!==0 (
         set ELECTRUM_RUNNING=1
         set ELECTRUM_METHOD=tasklist
     )

@@ -6,6 +6,15 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
+- Windows Bitcoin updater now auto-detects the latest version from
+  bitcoincore.org (via `latest-bitcoin-version.ps1`, probing newest-first and
+  skipping releases with no win64 build) instead of a pinned version, matching
+  the macOS updater. Recorded the win64 31.0 binary checksums alongside 30.2.
+- Windows health check fixes: stop flagging the datadir `.lock` file (left in
+  place after a clean shutdown) as a leftover; confirm the `bitcoind.pid`
+  process is actually Bitcoin before reporting running; and fix pervasive
+  delayed-expansion bugs (`%var%` read inside `( )` blocks returned stale
+  parse-time values, breaking process/disk/sync detection) by using `!var!`.
 - Bitcoin updater now also installs the command-line tools (`bitcoind`,
   `bitcoin-cli`, `bitcoin-qt`, `bitcoin-tx`, `bitcoin-util`, `bitcoin-wallet`)
   into `macos/bin/`, extracted from the official `.tar.gz` and checksum-verified

@@ -9,7 +9,16 @@ pushd "%ROOTDIR%" >nul 2>&1
 set "BIN_DIR=%ROOTDIR%\\win\\bin"
 set "BACKUP_DIR=%BIN_DIR%\\backup\\bitcoin"
 
-set VERSION=30.2
+echo Determining latest Bitcoin Core version...
+set VERSION=
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+  -File "%SCRIPT_DIR%latest-bitcoin-version.ps1"`) do set VERSION=%%V
+if not defined VERSION (
+    echo Error: could not determine a Bitcoin Core release with a win64 build.
+    popd >nul 2>&1
+    exit /b 1
+)
+echo Latest Bitcoin Core with a win64 build: %VERSION%
 set FILE=bitcoin-%VERSION%-win64.zip
 set BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/
 set URL=%BASE_URL%%FILE%
