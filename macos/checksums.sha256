@@ -5,4 +5,5 @@
 # Note: macOS app bundles may change hash after codesign or quarantine changes.
 
 88bcbf8f5c70022154c26725e666e64ca4efa24e39a2d4a6822a9cae4be9abf8  macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt  version=31.0
+de95297fd56943630529ae12ee9f9fc4f875089f7f8f37765d54e21410376ae3  macos/bin/bitcoin-cli  version=31.0
 11e5be61686d355b512afeb89cb970569ca018f22e8f5a76ebdb7fe5cc5a1824  macos/bin/Electrum.app/Contents/MacOS/run_electrum  version=4.7.0

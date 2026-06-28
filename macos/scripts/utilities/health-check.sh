@@ -27,7 +27,9 @@ if echo "$PGREP_OUTPUT" | grep -qi "cannot get process list"; then
     echo "Note: process listing unavailable; falling back to CLI/artifacts."
 fi
 BTC_CLI=""
-if [ -x "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/bitcoin-cli" ]; then
+if [ -x "$ROOTDIR/macos/bin/bitcoin-cli" ]; then
+    BTC_CLI="$ROOTDIR/macos/bin/bitcoin-cli"
+elif [ -x "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/bitcoin-cli" ]; then
     BTC_CLI="$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/bitcoin-cli"
 elif command -v bitcoin-cli >/dev/null 2>&1; then
     BTC_CLI="bitcoin-cli"
