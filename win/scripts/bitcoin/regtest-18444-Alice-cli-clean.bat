@@ -16,6 +16,10 @@ if not exist "%ROOTDIR%\win\bin\bitcoind.exe" (
     exit /b 1
 )
 
+echo WARNING: This will delete regtest data.
+echo Press Enter to continue or Ctrl+C to cancel.
+pause
+
 rmdir "%ROOTDIR%\bitcoin-datadir\regtest" /s /q
 
 start "" cmd /k ^

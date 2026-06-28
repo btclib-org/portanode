@@ -16,7 +16,7 @@ if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
 
 echo WARNING: This will delete regtest data.
 echo Press Enter to continue or Ctrl+C to cancel.
-<nul set /p ="" 
+pause
 
 rmdir "%ROOTDIR%\bitcoin-datadir\regtest_bob" /s /q
 mkdir "%ROOTDIR%\bitcoin-datadir\regtest_bob"

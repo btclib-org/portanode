@@ -19,6 +19,15 @@ if [ ! -x "$BTC_QT" ]; then
     exit 1
 fi
 
+# Refuse to wipe regtest data while a regtest node is using this datadir: on
+# Unix "rm -rf" deletes files held open by the running process and corrupts it.
+if pgrep -f -i -- "-datadir=${ROOTDIR}/bitcoin-datadir -regtest" >/dev/null 2>&1
+then
+    echo "Error: a regtest Bitcoin process is using ${ROOTDIR}/bitcoin-datadir."
+    echo "Stop it before a clean start."
+    exit 1
+fi
+
 echo "WARNING: This will delete regtest data."
 echo "Press Enter to continue or Ctrl+C to cancel."
 read

@@ -32,8 +32,8 @@ if not defined FREE_BYTES (
     echo WARNING: Could not determine disk free space.
 ) else (
     set /a FREE_GB=%FREE_BYTES%/1024/1024/1024
-    echo Disk free space: %FREE_GB% GB
-    if %FREE_GB% lss 100 (
+    echo Disk free space: !FREE_GB! GB
+    if !FREE_GB! lss 100 (
         echo ERROR: Less than 100GB free.
         popd >nul 2>&1
         exit /b 1

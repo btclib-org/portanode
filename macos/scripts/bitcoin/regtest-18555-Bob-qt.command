@@ -20,7 +20,7 @@ if [ ! -x "$BTC_QT" ]; then
 fi
 
 # rm -rf "${ROOTDIR}/bitcoin-datadir/regtest_bob"
-mkdir "${ROOTDIR}/bitcoin-datadir/regtest_bob"
+mkdir -p "${ROOTDIR}/bitcoin-datadir/regtest_bob"
 
 BASENAME="$(basename "$0")"
 FILENAME="${BASENAME%.*}"

@@ -19,12 +19,22 @@ if [ ! -x "$BTC_QT" ]; then
     exit 1
 fi
 
+DATADIR="${ROOTDIR}/bitcoin-datadir/regtest_bob"
+
+# Refuse to wipe a datadir a node is using: on Unix "rm -rf" deletes files held
+# open by the running process, which would corrupt a live node.
+if pgrep -f -i -- "-datadir=${DATADIR}" >/dev/null 2>&1; then
+    echo "Error: a Bitcoin process is using ${DATADIR}."
+    echo "Stop it before a clean start."
+    exit 1
+fi
+
 echo "WARNING: This will delete regtest data."
 echo "Press Enter to continue or Ctrl+C to cancel."
 read
 
-rm -rf "${ROOTDIR}/bitcoin-datadir/regtest_bob"
-mkdir "${ROOTDIR}/bitcoin-datadir/regtest_bob"
+rm -rf "${DATADIR}"
+mkdir -p "${DATADIR}"
 
 BASENAME="$(basename "$0")"
 FILENAME="${BASENAME%.*}"
