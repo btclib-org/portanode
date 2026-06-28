@@ -3,6 +3,10 @@
 # PowerShell verify: Get-FileHash -Algorithm SHA256 <file>
 # Generated with: shasum -a 256 <files> > win/checksums.sha256
 # Format: <sha256>  <path>  version=<semver>
+# Integrity/rollback only, NOT authenticity: entries are recorded by the updater
+# after a PGP-verified download. They detect later corruption/tampering of an
+# installed binary; they do NOT by themselves prove a binary is a genuine
+# release (that is the PGP signature step's job).
 
 45eb95ec60dccb242770bcc19c4a5a1ad3ee9dc53841f5a710b35d127d80e21b  win/bin/bitcoin-cli.exe  version=30.2
 0c8d50e6ce9d1ddcc2b7fa631ae34e6b46ab80d9f3093eec5b4c8f7ce06ffa1b  win/bin/bitcoin-qt.exe  version=30.2

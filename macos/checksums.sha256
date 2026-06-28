@@ -3,6 +3,10 @@
 # Generated with: shasum -a 256 <files> > macos/checksums.sha256
 # Format: <sha256>  <path>  version=<semver>
 # Note: macOS app bundles may change hash after codesign or quarantine changes.
+# Integrity/rollback only, NOT authenticity: entries are recorded by the updater
+# after a PGP-verified download. They detect later corruption/tampering of an
+# installed binary; they do NOT by themselves prove a binary is a genuine
+# release (that is the PGP signature step's job).
 
 88bcbf8f5c70022154c26725e666e64ca4efa24e39a2d4a6822a9cae4be9abf8  macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt  version=31.0
 435695e0502474fdde94306c8715fc6478a35d4edc2adc34ca229cd2a8c3b48e  macos/bin/bitcoind  version=31.0

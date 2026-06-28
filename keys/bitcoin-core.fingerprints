@@ -1,0 +1,18 @@
+# Pinned PGP signing-key fingerprints for Bitcoin Core's SHA256SUMS (one
+# 40-hex fingerprint per line; lines starting with # are comments).
+#
+# Bitcoin Core's SHA256SUMS.asc is signed by MANY independent builders, and the
+# trusted set changes over time, so no fixed list ships here by default. With
+# this file holding no active fingerprints, the updater still FAILS CLOSED: it
+# requires at least one GOODSIG (i.e. SHA256SUMS must be signed by a key you
+# have imported) before installing.
+#
+# To additionally PIN specific builders, add their fingerprints below. Get the
+# current builder keys and verify their fingerprints from:
+#   https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys
+# then import the ones you trust:
+#   gpg --import <key>.gpg
+#   gpg --fingerprint <name>     # confirm before adding the line below
+#
+# Example line format (40 uppercase hex chars, no spaces):
+# 0123456789ABCDEF0123456789ABCDEF01234567

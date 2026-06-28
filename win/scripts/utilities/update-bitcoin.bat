@@ -62,7 +62,7 @@ powershell -Command ^
   -OutFile '%TMPDIR%\\SHA256SUMS.asc' }" ^
   || goto :error
 
-call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK
+call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK "%ROOTDIR%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
 
 powershell -Command ^

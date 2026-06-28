@@ -1,0 +1,8 @@
+# Pinned PGP signing-key fingerprints for Electrum (one 40-hex fingerprint per
+# line; lines starting with # are comments). The updater requires the Electrum
+# .dmg/.asc to carry a VALIDSIG from one of these keys.
+#
+# ThomasV (Electrum maintainer). Verify independently before trusting:
+#   https://electrum.org/  ->  "Signature" / GPG section
+#   key id 0x2BD5824B7F9470E6
+6694D8DE7BE8EE5631BED9502BD5824B7F9470E6

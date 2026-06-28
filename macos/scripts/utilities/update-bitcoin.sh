@@ -102,13 +102,14 @@ echo "Downloading ${CLI_ARCHIVE} (for CLI tools)..."
 curl -fL -o "$TMP_DIR/$CLI_ARCHIVE" \
   "https://bitcoincore.org/bin/bitcoin-core-${VERSION}/${CLI_ARCHIVE}"
 
-# Verify
+# Verify (fails closed; set PORTANODE_ALLOW_UNVERIFIED=1 to bypass)
 UPDATE_CHECKSUMS=0
-if ! pgp_verify_or_warn \
+if ! pgp_verify_or_fail \
   "$TMP_DIR/SHA256SUMS.asc" \
   "$TMP_DIR/SHA256SUMS" \
   "SHA256SUMS" \
-  UPDATE_CHECKSUMS; then
+  UPDATE_CHECKSUMS \
+  "$ROOTDIR/keys/bitcoin-core.fingerprints"; then
     exit 1
 fi
 if command -v shasum >/dev/null 2>&1; then

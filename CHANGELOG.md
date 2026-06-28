@@ -6,6 +6,27 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
+- Security: PGP verification now FAILS CLOSED on both platforms. Updaters abort
+  the install unless the download carries a valid signature (gpg present + key
+  imported); previously a missing gpg/key only warned and installed anyway. Set
+  `PORTANODE_ALLOW_UNVERIFIED=1` to bypass. Added optional signer-fingerprint
+  pinning via `keys/electrum.fingerprints` (pinned to the Electrum release key)
+  and `keys/bitcoin-core.fingerprints` (template). Renamed the bash helper to
+  `pgp_verify_or_fail`.
+- Fixed a pre-existing Windows bug where `lib.bat`'s PGP check set and read
+  `%STATUS_FILE%` inside the same block without delayed expansion, so the gpg
+  status file path was empty and verification never worked. Rewritten flat.
+- `validate-setup.bat`: fixed the disk-space guard (`%FREE_GB%` read inside a
+  block was stale; the "100 GB free" check never fired). Now uses `!FREE_GB!`.
+- Regtest clean launchers: `Bob`/`Carol` Windows scripts deleted data without
+  waiting (`<nul set /p`); `Alice-cli-clean.bat` deleted with no prompt at all.
+  All now `pause` for confirmation. macOS clean launchers now refuse to wipe a
+  datadir a running node is using (Unix `rm -rf` would corrupt a live node).
+- `update-electrum.sh` downloads now use `curl -fL` (fail on HTTP error) instead
+  of saving an error page; matches `update-bitcoin.sh`.
+- macOS regtest Bob/Carol launchers use `mkdir -p` (no error on relaunch).
+- Documented that `checksums.sha256` provides integrity/rollback, not
+  authenticity (PGP is the authenticity control).
 - Windows Bitcoin updater now auto-detects the latest version from
   bitcoincore.org (via `latest-bitcoin-version.ps1`, probing newest-first and
   skipping releases with no win64 build) instead of a pinned version, matching

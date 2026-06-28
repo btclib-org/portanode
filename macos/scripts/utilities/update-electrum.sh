@@ -50,15 +50,16 @@ SIG_FILE="${OUT_FILE}.asc"
 
 mkdir -p "$TMPDIR"
 echo "Downloading $URL..."
-curl -L -o "$TMPDIR/$OUT_FILE" "$URL"
-curl -L -o "$TMPDIR/$SIG_FILE" "${URL}.asc"
+curl -fL -o "$TMPDIR/$OUT_FILE" "$URL"
+curl -fL -o "$TMPDIR/$SIG_FILE" "${URL}.asc"
 
 PGP_OK=0
-if ! pgp_verify_or_warn \
+if ! pgp_verify_or_fail \
   "$TMPDIR/$SIG_FILE" \
   "$TMPDIR/$OUT_FILE" \
   "Electrum" \
-  PGP_OK; then
+  PGP_OK \
+  "$ROOTDIR/keys/electrum.fingerprints"; then
     exit 1
 fi
 

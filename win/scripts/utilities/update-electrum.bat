@@ -55,7 +55,7 @@ powershell -Command ^
   -OutFile '%TMPDIR%\%SIG_FILE%' }" ^
   || goto :error
 
-call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" PGP_OK
+call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" PGP_OK "%ROOTDIR%\keys\electrum.fingerprints"
 if errorlevel 1 goto :error
 
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"

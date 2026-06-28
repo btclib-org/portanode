@@ -112,12 +112,21 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Electrum**: Download from [electrum.org](https://electrum.org/#download).
   Replace files in `macos/bin/Electrum.app/` or `win/bin/electrum.exe`.
 - Verify checksums from official sources to ensure integrity.
-- If `gpg` is installed, update scripts verify PGP signatures for Bitcoin Core
-  and Electrum downloads.
-  - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
-    repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
+- **PGP verification fails closed.** Update scripts abort the install unless the
+  download carries a valid PGP signature. This requires `gpg` to be installed
+  and the signer's key imported. To bypass (installs UNAUTHENTICATED binaries —
+  not recommended), set `PORTANODE_ALLOW_UNVERIFIED=1` in the environment.
+  - **Bitcoin Core signing keys**: obtain builder keys from
+    [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys)
+    and import with `gpg --import`.
   - **Electrum signing key**: obtain the release signing key from electrum.org
     (Download page) and import with `gpg --import`.
+  - **Key pinning**: `keys/electrum.fingerprints` and
+    `keys/bitcoin-core.fingerprints` list pinned signer fingerprints. If a file
+    lists any fingerprint, the matching download must be signed by one of those
+    keys. Electrum ships pinned to its release key; the Bitcoin Core list is a
+    template you can populate with the builders you choose to trust (without it,
+    any imported builder key that signed `SHA256SUMS` is accepted).
 - After update, test with regtest scripts.
 - On macOS, update using `./macos/scripts/utilities/update-bitcoin.sh` or
   `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up
@@ -134,12 +143,18 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
   scripts.
 - **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep
   ever-growing lists of acceptable hashes labeled by version; update scripts
-  append new entries and deduplicate exact duplicates.
+  append new entries (only after a successful PGP verification) and deduplicate
+  exact duplicates. These files provide **integrity and rollback** checks
+  (detecting corruption/tampering of an already-installed binary), not
+  authenticity — authenticity comes from the PGP step above.
 - **Signing Keys**:
-  - Bitcoin Core: import keys from `contrib/builder-keys/keys.txt` in the
-    official Bitcoin Core repo. Verify fingerprints before trust.
+  - Bitcoin Core: import builder keys from
+    [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys).
+    Verify fingerprints before trust; pin trusted ones in
+    `keys/bitcoin-core.fingerprints`.
   - Electrum: import the release signing key from electrum.org Download page.
-    Verify the fingerprint published there.
+    Verify the fingerprint published there (pinned in
+    `keys/electrum.fingerprints`).
 
 ### Expected Binaries by OS
 
