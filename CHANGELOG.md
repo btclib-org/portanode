@@ -6,6 +6,15 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
+- Updaters now download/unzip/verify on the local disk (macOS: an APFS
+  `mktemp` dir; Windows: `%TEMP%`) instead of on the removable install volume,
+  then copy only the final binaries onto it. On macOS each copy goes through
+  `install_verified`, which re-reads the destination and retries until it
+  matches the source byte-for-byte. This defends against the macOS fskit exFAT
+  driver silently corrupting files during extraction (observed: a full update
+  wrote corrupted, then vanishing, binaries to an exFAT volume).
+- Updaters run a post-install integrity check of the binaries they just
+  installed (against checksums.sha256) and abort if it fails.
 - Security: PGP verification now FAILS CLOSED on both platforms. Updaters abort
   the install unless the download carries a valid signature (gpg present + key
   imported); previously a missing gpg/key only warned and installed anyway. Set

@@ -24,7 +24,11 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     APP_NAME="Bitcoin-Qt.app"
     APP_DIR="$ROOTDIR/macos/bin"
     APP_BACKUP_DIR="$APP_DIR/backup/bitcoin"
-    TMP_DIR="$ROOTDIR/macos/bin/.tmp-downloads/bitcoin"
+    # Download/verify/extract on the local (APFS) temp dir, never on the
+    # removable exFAT volume: macOS's fskit exFAT driver can silently corrupt
+    # files written during extraction. Only the final, verified binaries are
+    # copied onto exFAT (see install_verified).
+    TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-bitcoin.XXXXXX")"
 else
     echo "Unsupported OS (macOS only)."
     exit 1
@@ -185,7 +189,9 @@ else
     echo "Warning: PGP signature(s) not verified; skipping checksum update."
 fi
 
-# Replace binaries
+# Replace binaries. Everything below copies from the APFS temp dir onto the
+# (possibly exFAT) install dir via install_verified, which re-reads and retries
+# until the on-disk copy matches the source byte-for-byte.
 if [[ "$OSTYPE" == "darwin"* ]]; then
     APP="$APP_DIR/${APP_NAME}"
     mkdir -p "$APP_DIR"
@@ -195,13 +201,16 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         cp -R "$APP" "$APP_BACKUP_DIR/${APP_NAME}"
     fi
 
-    rm -rf "$APP"
-    cp -R "$TMP_APP" "$APP"
+    if ! install_verified "$TMP_APP" "$APP"; then
+        exit 1
+    fi
 
     # The command-line tools are small, stateless and re-downloadable, so just
     # overwrite them (no backup/rollback): the app rollback is what matters.
     for b in $BIN_NAMES; do
-        cp "$TMP_BIN_DIR/$b" "$APP_DIR/$b"
+        if ! install_verified "$TMP_BIN_DIR/$b" "$APP_DIR/$b"; then
+            exit 1
+        fi
         chmod +x "$APP_DIR/$b"
     done
 fi
@@ -209,5 +218,27 @@ fi
 # Cleanup
 rm -rf "$TMP_DIR"
 trap - EXIT
+
+# Final integrity gate: re-read the installed binaries and confirm they match
+# the (PGP-verified) hashes just recorded. Catches corruption that happens after
+# the verified copy. Only when checksums were updated (i.e. PGP verified); with
+# PORTANODE_ALLOW_UNVERIFIED set, install_verified already checked the copy.
+if [ "$UPDATE_CHECKSUMS" -eq 1 ]; then
+    echo "Verifying installed binaries against checksums.sha256..."
+    vfail=0
+    verify_checksum_entry \
+      "$APP_DIR/${APP_NAME}/Contents/MacOS/Bitcoin-Qt" \
+      "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+      "$ROOTDIR/macos/checksums.sha256" "Bitcoin-Qt" || vfail=1
+    for b in $BIN_NAMES; do
+        verify_checksum_entry "$APP_DIR/$b" "macos/bin/$b" \
+          "$ROOTDIR/macos/checksums.sha256" "$b" || vfail=1
+    done
+    if [ "$vfail" -ne 0 ]; then
+        echo "Error: post-install verification failed (filesystem corruption?)."
+        exit 1
+    fi
+    echo "All Bitcoin binaries verified."
+fi
 
 echo "Bitcoin Core updated to $VERSION (Bitcoin-Qt.app + CLI tools)"

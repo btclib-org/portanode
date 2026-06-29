@@ -26,7 +26,9 @@ set CHECKSUM_URL=%BASE_URL%SHA256SUMS
 set CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc
 set CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256
 
-set TMPDIR=%BIN_DIR%\\.tmp-downloads\\bitcoin
+REM Download/verify/extract on the local disk (%TEMP%), never on the removable
+REM volume; only the final, verified .exe files are copied onto win\bin.
+set "TMPDIR=%TEMP%\portanode-bitcoin"
 set STATUS=0
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir "%TMPDIR%"
@@ -111,6 +113,20 @@ if "%PGP_OK%"=="1" (
   call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin.exe" "%VERSION%"
 ) else (
   echo Warning: PGP signature(s) not verified; skipping checksum update.
+)
+
+if "%PGP_OK%"=="1" (
+  echo Verifying installed binaries against checksums.sha256...
+  set "VERR=0"
+  for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do (
+    call "%SCRIPT_DIR%lib.bat" :verify_checksum "win/bin/%%E.exe" "win/bin/%%E.exe"
+    if errorlevel 1 set "VERR=1"
+  )
+  if "!VERR!"=="1" (
+    echo Error: post-install verification failed ^(filesystem corruption?^).
+    goto :error
+  )
+  echo All Bitcoin binaries verified.
 )
 
 echo Bitcoin Core updated to %VERSION%

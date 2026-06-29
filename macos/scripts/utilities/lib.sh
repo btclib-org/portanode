@@ -10,6 +10,48 @@ debug_list_dir() {
     echo "Debug: $dir contents: $(ls -a "$dir" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
 }
 
+# tree_hash PATH — deterministic content hash of a file or of every regular
+# file under a directory. AppleDouble sidecars (._*) are ignored so a source on
+# APFS and a copy on exFAT (which materialises ._* files) compare equal.
+tree_hash() {
+    local path="$1"
+    if [ -d "$path" ]; then
+        ( cd "$path" && find . -type f ! -name '._*' -print0 \
+            | LC_ALL=C sort -z \
+            | xargs -0 shasum -a 256 2>/dev/null \
+            | shasum -a 256 | awk '{print $1}' )
+    else
+        shasum -a 256 "$path" 2>/dev/null | awk '{print $1}'
+    fi
+}
+
+# install_verified SRC DEST — replace DEST with a copy of SRC, then verify the
+# copy is byte-identical (content) and retry on mismatch. Defends against
+# removable filesystems (notably macOS's fskit exFAT) that can silently corrupt
+# files on write. Returns non-zero if still corrupt after several attempts.
+install_verified() {
+    local src="$1" dest="$2" want got i
+    want="$(tree_hash "$src")"
+    if [ -z "$want" ]; then
+        echo "Error: cannot hash source $src"
+        return 1
+    fi
+    for i in 1 2 3 4 5; do
+        rm -rf "$dest"
+        cp -R "$src" "$dest"
+        sync 2>/dev/null || true
+        got="$(tree_hash "$dest")"
+        if [ "$got" = "$want" ]; then
+            return 0
+        fi
+        echo "Warning: $(basename "$dest") corrupted on write" \
+             "(attempt $i/5); retrying..."
+    done
+    echo "Error: $(basename "$dest") still corrupt after 5 attempts."
+    echo "The destination filesystem may be unreliable (e.g. exFAT/fskit)."
+    return 1
+}
+
 # pgp_verify_or_fail SIG_FILE DATA_FILE LABEL OUT_VAR [FPR_FILE]
 #
 # Verifies DATA_FILE against the detached SIG_FILE. FAILS CLOSED: returns

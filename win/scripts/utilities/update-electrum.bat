@@ -9,7 +9,9 @@ pushd "%ROOTDIR%" >nul 2>&1
 set "BIN_DIR=%ROOTDIR%\win\bin"
 set "BACKUP_DIR=%BIN_DIR%\backup\electrum"
 set CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256
-set TMPDIR=%BIN_DIR%\.tmp-downloads\electrum
+REM Download/verify on the local disk (%TEMP%), never on the removable volume;
+REM only the final, verified electrum.exe is copied onto win\bin.
+set "TMPDIR=%TEMP%\portanode-electrum"
 set STATUS=0
 
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
@@ -70,6 +72,13 @@ copy /y "%TMPDIR%\%FILE%" "%BIN_DIR%\electrum.exe" >nul
 
 if "%PGP_OK%"=="1" (
   call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/electrum.exe" "%VERSION%"
+  echo Verifying installed Electrum against checksums.sha256...
+  call "%SCRIPT_DIR%lib.bat" :verify_checksum "win/bin/electrum.exe" "win/bin/electrum.exe"
+  if errorlevel 1 (
+    echo Error: post-install verification failed ^(filesystem corruption?^).
+    goto :error
+  )
+  echo Electrum verified.
 ) else (
   echo Warning: PGP signature(s) not verified; skipping checksum update.
 )

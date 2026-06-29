@@ -5,7 +5,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
-TMPDIR="$ROOTDIR/macos/bin/.tmp-downloads/electrum"
+# Download/verify/mount on the local (APFS) temp dir, never on the removable
+# exFAT volume; only the final, verified Electrum.app is copied onto exFAT.
+TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-electrum.XXXXXX")"
 cd "$ROOTDIR"
 trap 'rm -rf "$TMPDIR"' EXIT
 
@@ -81,14 +83,27 @@ if [ ! -d "${MOUNT_POINT}/Electrum.app" ]; then
     hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
     exit 1
 fi
-rm -rf "$ROOTDIR/macos/bin/Electrum.app"
-cp -R "${MOUNT_POINT}/Electrum.app" "$ROOTDIR/macos/bin/Electrum.app"
-hdiutil detach "$MOUNT_POINT" >/dev/null
+install_rc=0
+install_verified "${MOUNT_POINT}/Electrum.app" \
+  "$ROOTDIR/macos/bin/Electrum.app" || install_rc=1
+hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
+if [ "$install_rc" -ne 0 ]; then
+    exit 1
+fi
 if [ "$PGP_OK" -eq 1 ]; then
     update_checksum \
       "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
       "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
       "$VERSION"
+    echo "Verifying installed Electrum against checksums.sha256..."
+    if ! verify_checksum_entry \
+        "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+        "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+        "$ROOTDIR/macos/checksums.sha256" "Electrum"; then
+        echo "Error: post-install verification failed (filesystem corruption?)."
+        exit 1
+    fi
+    echo "Electrum verified."
 else
     echo "Warning: PGP signature(s) not verified; skipping checksum update."
 fi
