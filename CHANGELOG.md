@@ -6,6 +6,10 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
+- Deleted `TODO.md` and `BUG.md`; their contents are issues #3 through #9,
+  and the bug report template they carried is now a GitHub issue form at
+  `.github/ISSUE_TEMPLATE/bug_report.yml`. README.md and CONTRIBUTING.md
+  point at the tracker.
 - Updaters now download/unzip/verify on the local disk (macOS: an APFS
   `mktemp` dir; Windows: `%TEMP%`) instead of on the removable install volume,
   then copy only the final binaries onto it. On macOS each copy goes through

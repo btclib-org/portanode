@@ -196,7 +196,11 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
 ### Getting Help
 - Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum
   Docs](https://electrum.readthedocs.io/).
-- Report issues with logs and OS details.
+- Search
+  [the open issues](https://github.com/btclib-org/portanode/issues) before
+  reporting: what is already known to be broken is there. What is not,
+  [the bug form](https://github.com/btclib-org/portanode/issues/new/choose)
+  asks for.
 
 ## Version Compatibility
 
@@ -206,11 +210,12 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
 
 ## Contributing
 
-This is an open-source project. To contribute:
-- Fork the repo and submit pull requests.
-- Report bugs with steps to reproduce.
-- Suggest improvements via issues.
-- Follow coding standards: Use relative paths, add error checks.
+This is an open-source project. `CONTRIBUTING.md` describes how a change
+gets in and what `main` requires of it.
+
+Everything known to be wrong or missing is an open issue:
+[the issue tracker](https://github.com/btclib-org/portanode/issues) is the
+list, and it is the only list.
 
 ## Security Notes
 

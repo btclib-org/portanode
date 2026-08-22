@@ -13,8 +13,10 @@ Thank you for your interest in contributing to PortaNode!
 
 ## Guidelines
 
-- **Code Style**: Use consistent naming (e.g., `ROOTDIR` for paths). Add
-  comments for complex logic.
+- **Code Style**: Use consistent naming (e.g., `ROOTDIR` for paths) and
+  paths relative to it, never absolute ones — the folder's mount point
+  changes with the machine it is plugged into. Add comments for complex
+  logic.
 - **Error Handling**: Include checks for paths, binaries, and user
   confirmations.
 - **Documentation**: Update READMEs for any changes. Add examples.
@@ -25,9 +27,18 @@ Thank you for your interest in contributing to PortaNode!
 
 ## Reporting Issues
 
-- Use GitHub Issues.
-- Include: OS, script used, error messages, steps to reproduce.
-- Attach logs if available.
+The issue tracker is where unfinished work lives — a bug, a missing
+feature, a paragraph of documentation that describes something the scripts
+do not do. Nothing is tracked in a file in the tree, because a file cannot
+be searched, assigned, or closed by the pull request that fixes it.
+
+Open a bug through
+[the form](https://github.com/btclib-org/portanode/issues/new/choose). It
+asks for what a reproduction needs, the volume and filesystem the folder
+lives on included: on a portable node that is the difference between most
+reports and the ones that reproduce.
+
+Anything that is not a bug goes in a blank issue.
 
 ## Review and Merging
 
