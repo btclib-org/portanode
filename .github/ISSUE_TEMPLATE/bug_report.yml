@@ -1,0 +1,132 @@
+---
+name: Bug report
+description: A PortaNode script does not do what its documentation says
+labels: [bug]
+
+body:
+  - type: markdown
+    attributes:
+      value: >
+        PortaNode is launchers and utilities around binaries it does not
+        build. A crash inside Bitcoin Core itself belongs to
+        [bitcoin/bitcoin](https://github.com/bitcoin/bitcoin/issues) and one
+        inside the Electrum GUI to
+        [spesmilo/electrum](https://github.com/spesmilo/electrum/issues); a
+        launcher that starts the wrong binary, a utility that verifies the
+        wrong thing, or documentation that describes something the scripts
+        do not do belongs here. If in doubt, report it here.
+
+
+        Never paste a wallet file, a seed phrase, an `xprv`, or the
+        `rpcpassword` from `bitcoin.conf`. Redact them before pasting a log.
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: >
+        Every script exists once per platform, and the two halves fail
+        differently.
+      options:
+        - macOS
+        - Windows
+        - both
+    validations:
+      required: true
+
+  - type: input
+    id: script
+    attributes:
+      label: Which script
+      description: >
+        The path from the repository root, so the launcher and the script it
+        calls are not confused with each other.
+      placeholder: "macos/scripts/utilities/update-bitcoin.sh"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+      description: What the script does, and what you expect it to do instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce it
+      description: >
+        The commands, in order, from a state somebody else can reach. Run the
+        script from a terminal rather than by double-clicking it: a
+        double-clicked window closes on exit and takes the output with it.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: >
+        What the script prints, in full. `bitcoin-datadir/debug.log` too when
+        the report is about a node that does not start or does not sync.
+      render: text
+
+  - type: input
+    id: version
+    attributes:
+      label: PortaNode version
+      description: >
+        The `VERSION` file, plus `git rev-parse --short HEAD` if you are on a
+        checkout rather than a release.
+      placeholder: "2026.01.27"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: Version and architecture.
+      placeholder: "macOS 15.6 arm64, Windows 11 24H2 x86_64"
+    validations:
+      required: true
+
+  - type: input
+    id: binaries
+    attributes:
+      label: Bitcoin Core and Electrum versions
+      description: >
+        `bitcoin-cli --version` and `electrum --version`, or the versions the
+        checksum entries name.
+      placeholder: "Bitcoin Core <version>, Electrum <version>"
+
+  - type: input
+    id: volume
+    attributes:
+      label: Volume and filesystem
+      description: >
+        Where the PortaNode folder lives, how it is formatted, and how it is
+        attached. A portable node is the case this project is built for, and
+        exFAT on a removable disk behaves differently from APFS or NTFS on an
+        internal one — permissions, symlinks, and app bundles most of all.
+      placeholder: "exFAT NVMe, USB 3 enclosure, shared macOS/Windows"
+    validations:
+      required: true
+
+  - type: input
+    id: network
+    attributes:
+      label: Network
+      description: Which of the networks the launchers offer.
+      placeholder: "mainnet, testnet3, regtest (Alice)"
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: >
+        The documentation that says otherwise, a version this last worked on,
+        anything non-default in `bitcoin.conf`.

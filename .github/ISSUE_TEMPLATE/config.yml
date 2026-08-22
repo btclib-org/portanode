@@ -1,0 +1,15 @@
+---
+# blank issues stay on because the bug form is the only form here: a
+# feature request, a question, or a report about the documentation has
+# nowhere else to go, and steering all three into a form that asks which
+# script misbehaves would get worse answers than a blank box does
+blank_issues_enabled: true
+contact_links:
+  - name: Bug in Bitcoin Core itself
+    url: https://github.com/bitcoin/bitcoin/issues
+    about: >
+      The node binaries are upstream's. What a launcher merely starts is
+      reported where it is built.
+  - name: Bug in Electrum itself
+    url: https://github.com/spesmilo/electrum/issues
+    about: The wallet is upstream's, on the same reasoning.
