@@ -82,6 +82,20 @@ repos:
       - id: detect-private-key
       - id: check-yaml
       - id: check-json
+      # the hand-written json -- .claude/settings.json, which is what
+      # `git ls-files '*.json'` answers: section 4 of the standard lists
+      # this hook with the syntax ones, and check-json above asks only
+      # whether the file parses. Not prettier's, whose list below is yaml
+      # and jsonc: one formatter per file, or the two rewrite each other
+      - id: pretty-format-json
+        name: pretty-format-json (in place fixes)
+        args: [--autofix]
+      # the toml here is read by taplo every run, but a format is not a
+      # parse: taplo rewrites what it can read and says nothing the gate
+      # hears about what it cannot, and typos refusing .typos.toml is the
+      # next thing that would, at the point where typos was being run for
+      # another reason. Section 4 puts the question in the gate
+      - id: check-toml
       - id: check-added-large-files
       # there are none, and a submodule is the one dependency that would
       # be pinned by nothing here

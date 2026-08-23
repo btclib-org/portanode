@@ -125,6 +125,18 @@ using YYYY.MM.DD format.
   to sit above the shared part (btclib-org/.github#102). What git
   resolves for every tracked file is the same before and after, which
   `git check-attr -a` over `git ls-files` measures.
+- The gate runs `check-toml` and `pretty-format-json`, the two of
+  section 4's syntax hooks it lacked over files it tracks
+  (btclib-org/.github#153, btclib-org/.github#130). taplo formatted
+  `.taplo.toml` and `.typos.toml` without the gate parsing either, and
+  `.claude/settings.json` — json written by hand, which is the
+  formatter's subject — had `check-json` asking whether it parses and
+  nothing asking how it is written.
+- `links.yml` no longer passes `--cache` (btclib-org/.github#111). No
+  step restored the cache file between runs, so the flag decided nothing
+  across them, and it would decide nothing with the step added: the run
+  is weekly and the cache age passed beside it was a day. Within one run
+  lychee asks each URL once whatever the flag says.
 - Deleted `TODO.md` and `BUG.md`; their contents are issues #3 through #9,
   and the bug report template they carried is now a GitHub issue form at
   `.github/ISSUE_TEMPLATE/bug_report.yml`. README.md and CONTRIBUTING.md
