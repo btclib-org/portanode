@@ -12,7 +12,7 @@ echo 3^) Regtest Alice ^(GUI^)
 echo 4^) Regtest Bob ^(GUI^)
 echo 5^) Regtest Carol ^(GUI^)
 echo 0^) Exit
-set /p choice=Select:
+set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"
 if "%choice%"=="1" set "SCRIPT=%ROOTDIR%win\scripts\bitcoin\mainnet-8333-qt.bat"

@@ -108,8 +108,8 @@ moves `main`.
     git ls-files -s | awk '$1 == "100755" { print $4 }'
     ```
 
-    answers with the `.command` files under `macos/scripts/`, and with
-    two files that are not launchers at all; the root `*.command` and
+    answers with the `.command` files under `macos/scripts/`, and also
+    with files that are not launchers at all; the root `*.command` and
     every `*.sh` are 100644. That is what `README.md`'s `chmod +x` step
     is for. A new `.command` left non-executable does nothing when it is
     double-clicked in Finder, which is the way it is meant to be run.

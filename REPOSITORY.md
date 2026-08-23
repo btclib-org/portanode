@@ -44,7 +44,8 @@ that reaches `main` is `main-integrity`.
 
 ## Rulesets
 
-Three, all `active`, and the whole of the branch and tag rules:
+Every one of them is `active`, and this is the whole of the branch and
+tag rules:
 
 ```shell
 gh api repos/btclib-org/portanode/rulesets --jq '.[].id' | xargs -I{} \
@@ -201,6 +202,10 @@ this list is the whole of them:
 
 ```shell
 gh api repos/btclib-org/portanode --jq '.security_and_analysis'
+# the alerts themselves are not in that object: the endpoint that
+# answers for them has no body, and says so with its status -- 204 for
+# enabled, 404 for not
+gh api -i repos/btclib-org/portanode/vulnerability-alerts | head -1
 gh api repos/btclib-org/portanode/private-vulnerability-reporting
 gh api repos/btclib-org/portanode/code-scanning/default-setup --jq '.state'
 ```
