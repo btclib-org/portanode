@@ -3,6 +3,7 @@
 Configuration and data directory for Bitcoin Core.
 
 For local installation this folder is typically in:
+
 - `~/Library/Application Support/Bitcoin/` (macOs)
 - `%LOCALAPPDATA%\Bitcoin` (Windows)
 - `C:\Users\<YourUsername>\AppData\Local\Bitcoin` (Windows)
@@ -19,6 +20,7 @@ For local installation this folder is typically in:
 ## Configuration
 
 Edit `bitcoin.conf` for settings like:
+
 - `dbcache=4096`: Memory for database (MB).
 - `maxmempool=4096`: Mempool size (MB).
 - `prune=550`: Prune blocks to ~550MB.

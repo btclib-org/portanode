@@ -5,6 +5,7 @@ This directory contains maintenance and utility scripts for PortaNode.
 ## Scripts Overview
 
 ### Updates
+
 - `update-bitcoin.sh`: Downloads and installs the latest Bitcoin Core binaries.
   Detects architecture (x86_64/arm64), backs up old binaries, verifies
   checksums, and updates the checksum file.
@@ -33,8 +34,8 @@ Can be used if an update fails.
 - `rollback-electrum.sh`: Restores Electrum binaries from
   `macos/bin/backup/electrum/`.
 
-
 ### Logging and Maintenance
+
 - `rotate-bitcoin-log.sh`: Rotates `bitcoin-datadir/debug.log` by copying the
   current log file to a backup (debug.log.1, etc.) and starting a new log file.
 - `monitor-bitcoin-log.sh`: Monitors the Bitcoin log for new errors/warnings,
@@ -47,6 +48,7 @@ Can be used if an update fails.
   and `electrum-datadir/` for security.
 
 ## Notes
+
 - Run scripts from the project root (e.g.,
   `./macos/scripts/utilities/script.sh`).
 - Most scripts require internet for downloads; ensure connectivity.
@@ -56,13 +58,13 @@ Can be used if an update fails.
   Bitcoin Core and Electrum downloads. Bad signatures fail. If verification
   cannot be performed (missing keys or no `gpg`), updates continue but checksum
   files are not updated.
-  - Signature files are detached and typically do **not** include public keys.
-    GPG can only validate signatures for keys already in your local keyring.
-    If signer keys are missing, signatures cannot be validated locally.
-  - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
-    repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
-  - **Electrum signing key**: obtain the release signing key from electrum.org
-    (Download page) and import with `gpg --import`.
+    - Signature files are detached and typically do **not** include public keys.
+      GPG can only validate signatures for keys already in your local keyring.
+      If signer keys are missing, signatures cannot be validated locally.
+    - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
+      repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
+    - **Electrum signing key**: obtain the release signing key from electrum.org
+      (Download page) and import with `gpg --import`.
 - Backups are stored in `macos/bin/backup/`; rollbacks depend on these.
 - `macos/checksums.sha256` is append-only: new verified hashes are added with
   `version=<x>` and exact duplicates are pruned.
@@ -77,11 +79,14 @@ Can be used if an update fails.
 - Check script output for errors; refer to main README.md for troubleshooting.
 
 ## Smoke Check (macOS)
+
 Run these in order after updates:
+
 1. `macos/scripts/utilities/verify-binaries.sh`
-2. `macos/scripts/utilities/validate-setup.sh`
-3. `macos/scripts/utilities/health-check.sh`
+1. `macos/scripts/utilities/validate-setup.sh`
+1. `macos/scripts/utilities/health-check.sh`
 
 ## Dependencies
+
 - macOS: `curl`, `shasum`, `hdiutil` (for DMG handling).
 - General: Bash-compatible shell.

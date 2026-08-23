@@ -6,6 +6,7 @@ These are designed for Command Prompt or PowerShell.
 ## Scripts Overview
 
 ### Update
+
 - `update-bitcoin.bat`:
   Downloads and installs the latest Bitcoin Core (win64),
   backs up old binaries, verifies checksums, and updates the checksum file.
@@ -33,6 +34,7 @@ Can be used if an update fails
   Restores Electrum binary from `win/bin/backup/electrum/`.
 
 ### Logging and Maintenance
+
 - `rotate-bitcoin-log.bat`: Rotates `bitcoin-datadir/debug.log` by copying to a
   backup (debug.log.1, etc.) and truncating the current log.
 - `monitor-bitcoin-log.bat`: Scans the Bitcoin log for new errors/warnings.
@@ -42,6 +44,7 @@ Can be used if an update fails
   `electrum-datadir/` for security.
 
 ## Notes
+
 - Run from repo root or double-click in Explorer; scripts resolve paths relative
   to the repo.
 - Most scripts require internet for downloads; ensure connectivity.
@@ -51,13 +54,13 @@ Can be used if an update fails
   Bitcoin Core and Electrum downloads. Bad signatures fail. If verification
   cannot be performed (missing keys or no `gpg`), updates continue but checksum
   files are not updated.
-  - Signature files are detached and typically do **not** include public keys.
-    GPG can only validate signatures for keys already in your local keyring.
-    If signer keys are missing, signatures cannot be validated locally.
-  - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
-    repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
-  - **Electrum signing key**: obtain the release signing key from electrum.org
-    (Download page) and import with `gpg --import`.
+    - Signature files are detached and typically do **not** include public keys.
+      GPG can only validate signatures for keys already in your local keyring.
+      If signer keys are missing, signatures cannot be validated locally.
+    - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
+      repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
+    - **Electrum signing key**: obtain the release signing key from electrum.org
+      (Download page) and import with `gpg --import`.
 - Backups are stored in `win/bin/backup/`; rollbacks depend on these.
 - `win/checksums.sha256` is append-only: new verified hashes are added with
   `version=<x>` and exact duplicates are pruned.
@@ -70,7 +73,9 @@ Can be used if an update fails
   Electrum.
 
 ## Smoke Check
+
 Run these in order after updates:
+
 1. `win/scripts/utilities/verify-binaries.bat`
-2. `win/scripts/utilities/validate-setup.bat`
-3. `win/scripts/utilities/health-check.bat`
+1. `win/scripts/utilities/validate-setup.bat`
+1. `win/scripts/utilities/health-check.bat`

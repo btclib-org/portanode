@@ -26,6 +26,7 @@ localhost. Alice uses the default regtest folder under `bitcoin-datadir`,
 while Bob and Carol use `regtest_bob` and `regtest_carol` subfolders.
 
 Peer connections (addnode targets):
+
 - Alice (18444) connects to Bob (18555) and Carol (18666).
 - Bob (18555) connects to Alice (18444) and Carol (18666).
 - Carol (18666) connects to Alice (18444) and Bob (18555).

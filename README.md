@@ -1,6 +1,6 @@
 # PortaNode
 
-## Portable (external‑disk‑friendly) cross-platform Bitcoin node.
+## Portable (external‑disk‑friendly) cross-platform Bitcoin node
 
 PortaNode bundles scripts, binaries, and data for running Bitcoin Core
 (and Electrum) on macOS and Windows.
@@ -29,14 +29,14 @@ It has been tested with Bitcoin Core 30.2 and Electrum 4.7.0.
 ## Quick Start
 
 1. Mount your external disk and navigate to the PortaNode folder.
-2. For macOS: Double-click a script in `macos/scripts/bitcoin/` or
+1. For macOS: Double-click a script in `macos/scripts/bitcoin/` or
    `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
-3. For Windows: Double-click a script in `win/scripts/bitcoin/` or
+1. For Windows: Double-click a script in `win/scripts/bitcoin/` or
    `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
-4. Root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and
+1. Root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and
    `Utilities-Launcher.*` (choose `.command`, `.bat`, `.ps1`, or `.sh` for your
    OS).
-5. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
+1. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
 ## Launcher Notes
 
@@ -50,34 +50,34 @@ It has been tested with Bitcoin Core 30.2 and Electrum 4.7.0.
 ## Folder Structure
 
 - `macos/`
-  - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
-    - `Bitcoin-Qt.app/`: Bitcoin Core app bundle.
-    - `Electrum.app/`: Electrum app bundle.
-    - `.tmp-downloads/`: Temporary downloads used by update scripts.
-  - `bin/backup/`: macOS backups created by update scripts (see
-    `macos/bin/backup/README.md`).
-  - `checksums.sha256`: macOS checksums (versioned).
-  - `scripts/`
-    - `bitcoin/`: Bitcoin Core launch scripts (.command). See
-      `macos/scripts/bitcoin/README.md`.
-    - `electrum/`: Electrum launch scripts (.command). See
-      `macos/scripts/electrum/README.md`.
-    - `utilities/`: macOS maintenance scripts (updates, verification, cleanup,
-      logs).
+    - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
+        - `Bitcoin-Qt.app/`: Bitcoin Core app bundle.
+        - `Electrum.app/`: Electrum app bundle.
+        - `.tmp-downloads/`: Temporary downloads used by update scripts.
+    - `bin/backup/`: macOS backups created by update scripts (see
+      `macos/bin/backup/README.md`).
+    - `checksums.sha256`: macOS checksums (versioned).
+    - `scripts/`
+        - `bitcoin/`: Bitcoin Core launch scripts (.command). See
+          `macos/scripts/bitcoin/README.md`.
+        - `electrum/`: Electrum launch scripts (.command). See
+          `macos/scripts/electrum/README.md`.
+        - `utilities/`: macOS maintenance scripts (updates, verification, cleanup,
+          logs).
 
 - `win/`
-  - `bin/`: Windows binaries (e.g., `electrum.exe`).
-    - `.tmp-downloads/`: Temporary downloads used by update scripts.
-  - `bin/backup/`: Windows backups created by update scripts (see
-    `win/bin/backup/README.md`).
-  - `checksums.sha256`: Windows checksums (versioned) at `win/checksums.sha256`.
-  - `scripts/`
-    - `bitcoin/`: Bitcoin Core launch scripts (.bat). See
-      `win/scripts/bitcoin/README.md`.
-    - `electrum/`: Electrum launch scripts (.bat). See
-      `win/scripts/electrum/README.md`.
-    - `utilities/`: Windows maintenance scripts (updates, verification, cleanup,
-      logs).
+    - `bin/`: Windows binaries (e.g., `electrum.exe`).
+        - `.tmp-downloads/`: Temporary downloads used by update scripts.
+    - `bin/backup/`: Windows backups created by update scripts (see
+      `win/bin/backup/README.md`).
+    - `checksums.sha256`: Windows checksums (versioned) at `win/checksums.sha256`.
+    - `scripts/`
+        - `bitcoin/`: Bitcoin Core launch scripts (.bat). See
+          `win/scripts/bitcoin/README.md`.
+        - `electrum/`: Electrum launch scripts (.bat). See
+          `win/scripts/electrum/README.md`.
+        - `utilities/`: Windows maintenance scripts (updates, verification, cleanup,
+          logs).
 
 - `bitcoin-datadir/`: Bitcoin Core configuration/data (e.g., `bitcoin.conf`).
 - `electrum-datadir/`: Electrum data (wallets, regtest/testnet data).
@@ -85,6 +85,7 @@ It has been tested with Bitcoin Core 30.2 and Electrum 4.7.0.
 ## Detailed Setup
 
 ### Bitcoin Core
+
 - **Mainnet**: Use `mainnet-8333-qt` scripts for GUI or CLI.
 - **Testnet**: Use `testnet3-18333-qt` for testnet.
 - **Regtest**: Use `regtest-*` scripts for local testing. Clean scripts reset
@@ -92,13 +93,16 @@ It has been tested with Bitcoin Core 30.2 and Electrum 4.7.0.
 - Data is stored in `bitcoin-datadir/`. Configure via `bitcoin.conf`.
 
 ### Electrum
+
 - **Mainnet**: Use `mainnet` or `mainnet-local-server-only` (connects to local
   server).
 - **Testnet/Regtest**: Use respective scripts.
 - Data in `electrum-datadir/`. Wallets are in `wallets/`.
 
 ### Environment Overrides
+
 Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
+
 - macOS: `export PORTANODE_ROOT=/path/to/portanode`
 - Windows: `set PORTANODE_ROOT=C:\path\to\portanode`
 
@@ -116,17 +120,17 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   download carries a valid PGP signature. This requires `gpg` to be installed
   and the signer's key imported. To bypass (installs UNAUTHENTICATED binaries —
   not recommended), set `PORTANODE_ALLOW_UNVERIFIED=1` in the environment.
-  - **Bitcoin Core signing keys**: obtain builder keys from
-    [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys)
-    and import with `gpg --import`.
-  - **Electrum signing key**: obtain the release signing key from electrum.org
-    (Download page) and import with `gpg --import`.
-  - **Key pinning**: `keys/electrum.fingerprints` and
-    `keys/bitcoin-core.fingerprints` list pinned signer fingerprints. If a file
-    lists any fingerprint, the matching download must be signed by one of those
-    keys. Electrum ships pinned to its release key; the Bitcoin Core list is a
-    template you can populate with the builders you choose to trust (without it,
-    any imported builder key that signed `SHA256SUMS` is accepted).
+    - **Bitcoin Core signing keys**: obtain builder keys from
+      [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys)
+      and import with `gpg --import`.
+    - **Electrum signing key**: obtain the release signing key from electrum.org
+      (Download page) and import with `gpg --import`.
+    - **Key pinning**: `keys/electrum.fingerprints` and
+      `keys/bitcoin-core.fingerprints` list pinned signer fingerprints. If a file
+      lists any fingerprint, the matching download must be signed by one of those
+      keys. Electrum ships pinned to its release key; the Bitcoin Core list is a
+      template you can populate with the builders you choose to trust (without it,
+      any imported builder key that signed `SHA256SUMS` is accepted).
 - After update, test with regtest scripts.
 - On macOS, update using `./macos/scripts/utilities/update-bitcoin.sh` or
   `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up
@@ -148,13 +152,13 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
   (detecting corruption/tampering of an already-installed binary), not
   authenticity — authenticity comes from the PGP step above.
 - **Signing Keys**:
-  - Bitcoin Core: import builder keys from
-    [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys).
-    Verify fingerprints before trust; pin trusted ones in
-    `keys/bitcoin-core.fingerprints`.
-  - Electrum: import the release signing key from electrum.org Download page.
-    Verify the fingerprint published there (pinned in
-    `keys/electrum.fingerprints`).
+    - Bitcoin Core: import builder keys from
+      [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys).
+      Verify fingerprints before trust; pin trusted ones in
+      `keys/bitcoin-core.fingerprints`.
+    - Electrum: import the release signing key from electrum.org Download page.
+      Verify the fingerprint published there (pinned in
+      `keys/electrum.fingerprints`).
 
 ### Expected Binaries by OS
 
@@ -167,6 +171,7 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
 ## Troubleshooting
 
 ### Common Issues
+
 - **Script fails with "Binary not found"**: Ensure binaries are in `macos/bin/`
   or `win/bin/`. Check permissions.
 - **Permission denied on macOS**: Run `chmod +x macos/scripts/**/*.command
@@ -180,6 +185,7 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
 - **Path errors**: If moved, use `PORTANODE_ROOT` or adjust scripts.
 
 ### Logs and Debugging
+
 - Bitcoin: `bitcoin-datadir/debug.log`
 - Electrum: Check terminal output or `electrum-datadir/` for logs.
 - Run scripts from terminal for verbose output: `bash
@@ -194,6 +200,7 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
   `win/scripts/utilities/health-check.bat`
 
 ### Getting Help
+
 - Check [Bitcoin Wiki](https://en.bitcoin.it/wiki/Main_Page) or [Electrum
   Docs](https://electrum.readthedocs.io/).
 - Search
@@ -222,7 +229,7 @@ list, and it is the only list.
 - **Binary Integrity**: Verify binaries with
   `macos/scripts/utilities/verify-binaries.sh` (macOS) or
   `win/scripts/utilities/verify-binaries.bat` (Windows) after downloads.
-  - Each verification script checks only its platform’s binaries.
+    - Each verification script checks only its platform’s binaries.
 - **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and
   `electrum-datadir/wallets/`. Use encrypted storage.
 - **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to

@@ -6,6 +6,7 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
+
 - Deleted `TODO.md` and `BUG.md`; their contents are issues #3 through #9,
   and the bug report template they carried is now a GitHub issue form at
   `.github/ISSUE_TEMPLATE/bug_report.yml`. README.md and CONTRIBUTING.md
@@ -135,6 +136,7 @@ using YYYY.MM.DD format.
   PORTANODE_ROOT overrides on macOS and Windows.
 
 ## [2026.01.27] - Initial Release
+
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
 - Cross-platform launchers (root launchers + per-network scripts).
 - Regtest multi-node setups (Alice/Bob/Carol) with clean-start variants.

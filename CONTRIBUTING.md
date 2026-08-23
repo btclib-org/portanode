@@ -5,10 +5,10 @@ Thank you for your interest in contributing to PortaNode!
 ## How to Contribute
 
 1. **Fork the Repository**: Create a fork on GitHub.
-2. **Create a Branch**: Use a descriptive name (e.g., `feature/add-checksums`).
-3. **Make Changes**: Follow the guidelines below.
-4. **Test**: Run scripts on both macOS and Windows.
-5. **Submit a Pull Request**: Include a clear description and reference any
+1. **Create a Branch**: Use a descriptive name (e.g., `feature/add-checksums`).
+1. **Make Changes**: Follow the guidelines below.
+1. **Test**: Run scripts on both macOS and Windows.
+1. **Submit a Pull Request**: Include a clear description and reference any
    issues.
 
 ## Guidelines
@@ -53,7 +53,7 @@ deletion. This is a GitHub ruleset with no bypass actor, not a rule trusted
 to hold on its own — a commit that is unsigned or that rewrites history is
 rejected before it is something to review. Commits need a verified signature
 (GPG, SSH or S/MIME):
-https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification
+<https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification>
 
 ## License
 
