@@ -5,7 +5,7 @@ REM Network: regtest
 REM RPC: allowed from 127.0.0.1
 REM Starts daemon and CLI command prompts.
 REM Connects to: localhost:18555 (Bob), localhost:18666 (Carol)
-REM 
+REM
 set "ROOTDIR=%~dp0..\..\.."
 if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
 echo ROOTDIR is "%ROOTDIR%"

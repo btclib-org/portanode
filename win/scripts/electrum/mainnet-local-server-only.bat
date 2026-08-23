@@ -2,7 +2,7 @@ REM Launch Electrum for mainnet, connecting only to local server.
 REM Data directory: electrum-datadir
 REM Network: mainnet
 REM Server: localhost:50002:s (one server only)
-REM 
+REM
 set "ROOTDIR=%~dp0..\..\.."
 if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
 echo ROOTDIR is "%ROOTDIR%"

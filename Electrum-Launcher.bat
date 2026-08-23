@@ -11,7 +11,7 @@ echo 2^) Testnet
 echo 3^) Regtest
 echo 4^) Mainnet ^(local server only^)
 echo 0^) Exit
-set /p choice=Select: 
+set /p choice=Select:
 
 if "%choice%"=="" set "choice=0"
 if "%choice%"=="1" set "SCRIPT=%ROOTDIR%win\scripts\electrum\mainnet.bat"

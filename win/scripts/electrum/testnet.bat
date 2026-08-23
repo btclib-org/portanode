@@ -1,7 +1,7 @@
 REM Launch Electrum for testnet.
 REM Data directory: electrum-datadir
 REM Network: testnet
-REM 
+REM
 set "ROOTDIR=%~dp0..\..\.."
 if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
 echo ROOTDIR is "%ROOTDIR%"

@@ -1,0 +1,25 @@
+# typos' configuration, in a file of its own because typos has no flag
+# for it: the command line carries --exclude, which blinds a whole file,
+# and nothing that says a particular word is not a misspelling. codespell
+# does have one, so its two entries are written beside its hook in
+# .pre-commit-config.yaml instead of here, and the asymmetry is that
+# difference and not a preference.
+#
+# Every entry below is an identifier the launcher scripts and their
+# prose already use, so writing it differently would mean renaming a
+# variable or misquoting a manual page. What each is:
+#
+#   fpr    gpg's own record name for a fingerprint. `gpg --with-colons`
+#          prints one field per line keyed by a short name, `fpr` being
+#          the fingerprint, and the verification helpers read that key
+#          and name their variables after it
+#   bre    POSIX basic regular expressions, as opposed to the extended
+#          ones grep -E reads. The comments that name it are recording
+#          that BSD grep on macOS does not take GNU's `\|` alternation
+#
+# What each costs is asked in the tree rather than recorded here:
+#
+#   git grep -nwi -e fpr -e bre
+[default.extend-words]
+fpr = "fpr"
+bre = "bre"

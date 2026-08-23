@@ -1,7 +1,7 @@
 REM Launch Bitcoin Core GUI for mainnet.
 REM Data directory: bitcoin-datadir
 REM P2P port: 8333
-REM 
+REM
 set "ROOTDIR=%~dp0..\..\.."
 if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
 echo ROOTDIR is "%ROOTDIR%"
