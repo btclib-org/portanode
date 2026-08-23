@@ -264,10 +264,13 @@ gh api repos/btclib-org/portanode/code-scanning/default-setup --jq '.state'
 rather than in a paragraph.** The endpoint answers `{"enabled": true}`,
 and [the documentation][pvr] is what says the *Report a vulnerability*
 button appears only where it is on. So
-`.github/ISSUE_TEMPLATE/config.yml` links `/security/advisories/new` and
-`SECURITY.md` names it first, with the email address kept beside it: a
-reporter who would rather not use a GitHub account still has somewhere to
-write, and an address needs no setting to keep working.
+`.github/ISSUE_TEMPLATE/config.yml` links `/security/advisories/new`, and
+the policy the Security tab shows — `btclib-org/.github`'s, this
+repository carrying none of its own, section 2 of the standard leaving
+the file to the repositories that publish — names the button first, with
+the email address kept beside it: a reporter who would rather not use a
+GitHub account still has somewhere to write, and an address needs no
+setting to keep working.
 
 Whether the advisory form 404s for somebody without write access was not
 checked — doing so needs a second account — so the email address is not

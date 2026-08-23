@@ -246,3 +246,37 @@ list, and it is the only list.
 - **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are
   ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` or
   `win/scripts/utilities/clean-artifacts.bat` to remove existing ones.
+
+## Limitations, not vulnerabilities
+
+These are known and inherent. They are stated here rather than in a
+security policy because they are a disclosure to whoever is about to run
+this, and this is what that person reads; the policy for reporting
+something that *is* a vulnerability is the organization's, shown on
+[the Security tab](https://github.com/btclib-org/portanode/security/policy).
+
+- **The trust root is the keys in your own GPG keyring**, and this
+  repository cannot establish it for you. `keys/*.fingerprints` pins
+  which signer is accepted once a key is imported; it does not say the
+  key you imported is the publisher's. Verify a fingerprint against the
+  publisher's own site before importing, which is what *Updating
+  Binaries* above asks.
+- **`PORTANODE_ALLOW_UNVERIFIED=1` installs unauthenticated binaries**,
+  and it is documented rather than removed because the alternative is
+  somebody working around the check in a way nobody can see. Setting it
+  is a decision, and it is not a defect in the script that obeyed it.
+- **`checksums.sha256` is integrity and not authenticity.** It detects a
+  binary that changed under you; it says nothing about where the binary
+  came from, that being what the PGP step decides. A checksum entry is
+  appended only after a verified install, which is what keeps the two
+  from being confused.
+- **The folder is unencrypted, and it is portable.** Wallets and cookies
+  sit on a volume that is meant to be unplugged and carried, so the
+  device is the perimeter — full-disk encryption on the volume, or a
+  wallet passphrase, is what stands between a lost drive and the coins on
+  it. Nothing in this repository provides either.
+- **The launchers are not signed or notarized.** macOS Gatekeeper and
+  Windows SmartScreen will treat a `.command` or a `.bat` from this
+  folder as unrecognised, and the way past that is the same click an
+  attacker's script would ask for. Read a launcher before running it;
+  they are short and they are all in the tree.
