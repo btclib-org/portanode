@@ -1,15 +1,153 @@
 # CLAUDE.md
 
-Guidance for Claude Code when working in this repository. See
-README.md and CONTRIBUTING.md for how to build, test and contribute.
+This file provides guidance to Claude Code (claude.ai/code) when working
+with code in this repository.
+
+There is no project here. What this repository ships is launchers — one
+per network and per platform — that start somebody else's binaries from a
+folder that is not the boot disk. `README.md` is what a user reads,
+`CONTRIBUTING.md`'s last section is the environment and the gates, and
+`REPOSITORY.md` is the settings that live outside the tree.
+
+## What is in the tree, and what is not
+
+- **The binaries are not.** `macos/bin/.gitignore` and
+  `win/bin/.gitignore` name Bitcoin Core's and Electrum's executables one
+  by one, and the update scripts are what put them there. So a fresh
+  clone launches nothing until `update-bitcoin` and `update-electrum`
+  have run, and a launcher failing with "binary not found" on a clean
+  checkout is the tree working as designed.
+- **Neither is the chain data.** `bitcoin-datadir/` and
+  `electrum-datadir/` are tracked for their configuration and their
+  `README.md`; blocks, chainstate, wallets and logs are ignored.
+- **The same launcher is written four ways.** `.sh` for a shell,
+  `.command` for a double-click in Finder, `.bat` for cmd.exe and `.ps1`
+  for PowerShell. Nothing generates one from another and nothing checks
+  that they agree, so a change to one is a change owed to the others —
+  where the other exists, which is not everywhere:
+
+    ```shell
+    diff <(git ls-files 'macos/scripts/**' \
+            | sed -E 's,^macos/scripts/,,; s,\.(command|sh)$,,' | sort -u) \
+         <(git ls-files 'win/scripts/**' \
+            | sed -E 's,^win/scripts/,,; s,\.(bat|ps1)$,,' | sort -u)
+    ```
+
+- **The shared code is in `lib`.** `macos/scripts/lib.sh` resolves the
+  root, `macos/scripts/utilities/lib.sh` carries the download and PGP
+  helpers, and `win/scripts/utilities/lib.bat` is the Windows half of the
+  second. A launcher sources one rather than repeating it.
+- **`keys/*.fingerprints` decide what an update will install.**
+  `electrum.fingerprints` pins one key, so an Electrum download signed by
+  anything else is refused; `bitcoin-core.fingerprints` pins none, Core's
+  `SHA256SUMS` being signed by many independent builders, and with no
+  fingerprint listed the updater still requires one good signature from a
+  key already in the keyring. Both files carry the reasoning in their own
+  comments; a diff that empties either one weakens an install path
+  without touching a script.
+- **`*/checksums.sha256` is append-only**, and records integrity rather
+  than authenticity: it detects a binary that changed under you, where
+  the PGP step above is what says the binary was the publisher's. An
+  entry is added after a verified install and never rewritten.
+
+## The primary checkout is the maintainer's
+
+**Never work in it.** No edit, no `git add`, no commit, no branch switch,
+no rebase, no `git stash` — the hooks fix files in place. Reading it is
+fine, and so is `git fetch`, which writes refs and leaves the work tree
+alone.
+
+**Every session works in a worktree**, its own, from the first edit:
+
+```shell
+WT=<scratchpad>/wt<issue>
+git worktree add -b <branch> "$WT" origin/main
+cd "$WT"                              # no uv sync: there is no project
+# edit, gate and commit here, then
+git push origin HEAD:refs/heads/<branch>
+git worktree remove --force "$WT"     # removing it is part of finishing
+```
+
+**Never `git stash` in a worktree either: `refs/stash` is shared.** A
+worktree isolates files, not refs, so `git stash push` pushes onto the
+same stack every other session pops from. Commit to your own branch
+instead.
+
+**Do not rewrite `refs/heads/main`, or advance it with work that is not
+yours.** Your own branch is what you push, and the pull request is what
+moves `main`.
+
+## What will otherwise waste a session
+
+- **There is no `pyproject.toml`**, so the tool configuration that lives
+  in one elsewhere lives in files of its own: `.typos.toml` for typos,
+  `.taplo.toml`, `.yamllint.yaml`, `.markdownlint.jsonc`. codespell's two
+  exceptions are hook arguments instead, that tool taking a flag where
+  typos takes none, and `.pre-commit-config.yaml` says so beside them.
+- **There is no `.python-version` either**, and that is a decision rather
+  than an omission — the organization's standard leaves the file to each
+  repository. `git ls-files '*.py'` is empty here, so the only Python is
+  the interpreter `uvx pre-commit` builds a hook environment with, and
+  pinning one would be a version number nothing in this tree reads and
+  no gate re-derives. What it would buy is the hook environments being
+  the same interpreter on every machine; what it costs is a line that
+  ages on its own. Add it the day a hook is sensitive to which
+  interpreter ran it.
+- **`.bat` files are CRLF in the working tree and LF in the index**,
+  `.gitattributes` declaring `text eol=crlf`. A tool that normalizes one
+  leaves `git diff` empty and the checkout wrong, which is why the
+  line-ending hook excludes them and why `REVIEWING.md` carries a command
+  that reads the file rather than the diff.
+- **`ROOTDIR` is resolved, never assumed.** Every script derives it from
+  its own location or from `PORTANODE_ROOT`, because the folder is
+  mounted at a different point on every machine it is plugged into.
+- **The executable bit is set on some of what is tracked and not on the
+  rest**, and the split does not follow the file type:
+
+    ```shell
+    git ls-files -s | awk '$1 == "100755" { print $4 }'
+    ```
+
+    answers with the `.command` files under `macos/scripts/`, and with
+    two files that are not launchers at all; the root `*.command` and
+    every `*.sh` are 100644. That is what `README.md`'s `chmod +x` step
+    is for. A new `.command` left non-executable does nothing when it is
+    double-clicked in Finder, which is the way it is meant to be run.
 
 ## Model
 
-The default model for this repository is Sonnet. Switch to Opus only
-for architectural decisions with conflicting constraints (design
-choices with non-obvious trade-offs, changes spanning many scripts
-with unclear dependencies, diagnosis where the symptom does not point
-to the cause). Use `/model opus` for the session, then switch back to
-Sonnet.
+The default model for this repository is Sonnet. Switch to Opus only for
+a change to what a launcher decides — a verification path, a rollback, a
+choice two platforms have to make the same way. Use `/model opus` for the
+session, then switch back.
 
 Do not use Fable unless explicitly instructed.
+
+## Conventions to match
+
+- **The prose style is `CONTRIBUTING.md`'s "Documentation and comments"
+  section**: neutral, factual, dry; a comment carries the reasoning
+  *including the negative result*; measure rather than assert; one fact
+  in one place; no history in the prose.
+- **Markdown wraps at 80 columns**, tables included (MD013 is on), so
+  long commands go in fenced blocks split with `\`.
+- **A path is relative to `ROOTDIR`, never absolute.** The one exception
+  is a path outside the folder entirely — a system binary, a user's
+  keyring — and there is no exception for anything the folder carries.
+- **Never state how many of anything a file holds.** A stated count is a
+  line every open branch has to edit, and nothing here checks one.
+- **The version is a date**: `VERSION` holds `YYYY.MM.DD` and a release
+  tag is that string with a `v` in front. `RELEASING.md` is the
+  procedure.
+- **A pull request that closes an issue names it in its title, in
+  parentheses**; one that closes nothing carries no parentheses. The
+  title becomes the landing commit's subject, `squash_merge_commit_title`
+  being `COMMIT_OR_PR_TITLE`.
+
+## How to verify
+
+The lint gate, and what it does not reach, are `CONTRIBUTING.md`'s last
+section. Nothing here runs a launcher, so a change to one is verified by
+running it — on the platform it is for, from a volume that is not the
+boot disk — and a session that could not do that says so rather than
+leaving it to be assumed.
