@@ -4,7 +4,7 @@ Configuration and data directory for Bitcoin Core.
 
 For local installation this folder is typically in:
 
-- `~/Library/Application Support/Bitcoin/` (macOs)
+- `~/Library/Application Support/Bitcoin/` (macOS)
 - `%LOCALAPPDATA%\Bitcoin` (Windows)
 - `C:\Users\<YourUsername>\AppData\Local\Bitcoin` (Windows)
 

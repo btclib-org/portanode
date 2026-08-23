@@ -1,12 +1,17 @@
 # Releasing PortaNode
 
-A release here is a signed tag and a GitHub release, cut by hand. There
-is no workflow that does it — `gh api
-repos/btclib-org/portanode/actions/workflows --jq '.total_count'` answers
-`0` — and there is nothing to publish to an index: what this repository
-ships is scripts and configuration, and the binaries they install are
-downloaded from their own publishers at update time rather than attached
-here.
+A release here is a signed tag and a GitHub release, cut by hand. Nothing
+in `.github/workflows` cuts one —
+
+```shell
+gh api repos/btclib-org/portanode/actions/workflows \
+  --jq '[.workflows[].name]'
+```
+
+is what says which workflows there are — and there is nothing to publish
+to an index either: what this repository ships is scripts and
+configuration, and the binaries they install are downloaded from their
+own publishers at update time rather than attached here.
 
 So the release is an announcement and a fixed point to roll back to, not
 a distribution. What a user takes is a clone or the source archive GitHub

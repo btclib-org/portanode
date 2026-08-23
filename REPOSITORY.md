@@ -1,9 +1,9 @@
 # Repository configuration
 
-Read this before changing a branch rule, a repository setting or the
-absence of a workflow; editing a launcher does not need it. `CLAUDE.md`
-points here rather than carrying it, so that a session fixing a script
-does not hold it in context.
+Read this before changing a branch rule, a repository setting or a
+workflow; editing a launcher does not need it. `CLAUDE.md` points here
+rather than carrying it, so that a session fixing a script does not hold
+it in context.
 
 The branch rules and the repository settings live *outside* the
 repository, so this file is the whole of them: nothing here can be
@@ -14,8 +14,8 @@ command is what says so.
 
 **The repository is public, and that is a prerequisite rather than a
 preference.** Rulesets are a paid feature for a private repository on the
-free plan, and everything below depends on them; Actions being unmetered
-depends on it too, for the day a workflow is added.
+free plan, and everything below depends on them; the workflows depend on
+it too, Actions being unmetered only here.
 
 ```shell
 gh api repos/btclib-org/portanode --jq '{visibility, has_issues}'
@@ -23,21 +23,27 @@ gh api repos/btclib-org/portanode --jq '{visibility, has_issues}'
 
 ## What gates a merge
 
-**Nothing produced by a workflow, because there are none.**
+**Nothing produced by a workflow yet, though one now runs.** `lint.yml`
+answers on every pull request, and no rule waits for its answer:
 
 ```shell
-gh api repos/btclib-org/portanode/actions/workflows --jq '.total_count'
+gh api repos/btclib-org/portanode/actions/workflows --jq '[.workflows[].path]'
 gh api repos/btclib-org/portanode/branches/main/protection \
   --jq 'has("required_status_checks")'
 ```
 
-answer `0` and `false`. So the lint gate `CONTRIBUTING.md` describes is
-run by a person and by nobody else, and a branch that skipped it reaches
-`main` with nothing having looked at it. Adding `lint.yml` is what would
-change that, and adding the check to the rule is a second step: a
-required context that nothing produces blocks every merge with nothing in
-the tree to explain why, so the workflow lands first and the rule follows
-it.
+lists the workflow files, and answers `false`. So a red `Lint` is read by
+whoever looks at the pull request and stops nothing, which is the
+deliberate half of the order: a required context that nothing produces
+blocks every merge with nothing in the tree to explain why, so the
+workflow lands first and the rule follows it once a run of it is green.
+
+Making it follow is one ruleset rule on `main-integrity`, of type
+`required_status_checks`, naming the context `Lint` — the job's name,
+`lint.yml` saying why that name is the context and why renaming it cannot
+be done in a pull request afterwards. `links.yml` and `claude-review.yml`
+must stay out of it: the first reports the internet's weather and the
+second an opinion, and neither is a thing to hold a merge on.
 
 What does hold a pull request is the review, and what holds every commit
 that reaches `main` is `main-integrity`.
@@ -173,6 +179,28 @@ deliberate: a pull request **closed without merging** keeps its head
 branch, GitHub not being able to know whether that work was abandoned or
 is waiting, so those are the ones worth looking at now and then.
 
+## Secrets
+
+`claude-review.yml` is the only workflow here that reads one, and this
+repository holds none of its own:
+
+```shell
+gh api repos/btclib-org/portanode/actions/secrets --jq '[.secrets[].name]'
+gh api orgs/btclib-org/actions/secrets/CLAUDE_CODE_OAUTH_TOKEN \
+  --jq '.visibility'
+gh api orgs/btclib-org/dependabot/secrets/CLAUDE_CODE_OAUTH_TOKEN \
+  --jq '.visibility'
+```
+
+answer with an empty list and `all` twice. **The two organization
+commands are not one asked twice.** A `pull_request` run whose actor is
+`dependabot[bot]` is handed the Dependabot secrets rather than the
+Actions secrets, so a token registered only in the second resolves to the
+empty string on exactly the pull requests `.github/dependabot.yml` opens
+— and `claude-review.yml`'s credential step turns that into a red job
+saying which secret is missing, rather than a review that silently
+reviewed nothing.
+
 ## Token permissions
 
 ```shell
@@ -180,10 +208,14 @@ gh api repos/btclib-org/portanode/actions/permissions/workflow \
   --jq '{default_workflow_permissions, can_approve_pull_request_reviews}'
 ```
 
-answers `read` and `false`. Nothing reads that today, there being no
-workflow, and it is worth knowing before the first one is written: a job
-needing more than `read` must declare it, and the value is a repository
-setting that stops following the organization default once it is set.
+answers `read` and `false`, and that is the floor every workflow here
+starts from. `claude-review.yml` is the only one whose jobs elevate it —
+`pull-requests: write` to post a comment and `id-token: write` for the
+OIDC token the action mints at startup — where the lint hooks fix a
+checkout that is thrown away and lychee only reads one. The value is a
+repository setting that stops following the organization default once it
+is set, so lowering the default here would not lower what those two jobs
+declare.
 
 ```shell
 gh api repos/btclib-org/portanode/actions/permissions \
@@ -192,8 +224,17 @@ gh api repos/btclib-org/portanode/actions/permissions \
 
 answers `true`, `all` and `false`. `sha_pinning_required` being off means
 the forge does not enforce what the standard asks for, so an action
-pinned to a tag rather than to forty hex digits would be accepted here;
-that is a reading rather than a gate until a workflow exists to read.
+pinned to a tag rather than to forty hex digits would be accepted here.
+The pins are kept by the convention instead, and this is what reads them
+back:
+
+```shell
+grep -h 'uses:' .github/workflows/*.yml | grep -v '@[0-9a-f]\{40\} #'
+```
+
+answers with nothing — every `uses:` is forty hex digits with its tag in
+a trailing comment. Turning the setting on is one `PATCH` and would move
+that from a convention to a refusal.
 
 ## Security settings
 
@@ -216,23 +257,23 @@ gh api repos/btclib-org/portanode/code-scanning/default-setup --jq '.state'
 | Dependabot security updates | enabled |
 | Secret scanning | enabled |
 | Secret scanning push protection | enabled |
-| Private vulnerability reporting | **disabled** |
+| Private vulnerability reporting | enabled |
 | Code scanning default setup (CodeQL) | not configured |
 
-**Private vulnerability reporting being off is what `SECURITY.md` is
-written around.** The endpoint answers `{"enabled": false}`, and
-[the documentation][pvr] is what says the *Report a vulnerability* button
-appears only where it is on. Whether the advisory form 404s for somebody
-without write access was not checked — doing so needs a second account —
-so `SECURITY.md` sends a reporter to email, which needs no setting to
-work. Turning this on is what would let it send them somewhere better:
-one `PUT`, and the lines in `SECURITY.md` that name the door.
+**Private vulnerability reporting is what puts the door in the interface
+rather than in a paragraph.** The endpoint answers `{"enabled": true}`,
+and [the documentation][pvr] is what says the *Report a vulnerability*
+button appears only where it is on. So
+`.github/ISSUE_TEMPLATE/config.yml` links `/security/advisories/new` and
+`SECURITY.md` names it first, with the email address kept beside it: a
+reporter who would rather not use a GitHub account still has somewhere to
+write, and an address needs no setting to keep working.
+
+Whether the advisory form 404s for somebody without write access was not
+checked — doing so needs a second account — so the email address is not
+only a preference but the fallback if it does.
 
 [pvr]: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
-
-```shell
-gh api -X PUT repos/btclib-org/portanode/private-vulnerability-reporting
-```
 
 Code scanning is not configured and nothing here asks for it: there is no
 language CodeQL analyses in this tree — `code-quality/setup` answers with
@@ -260,7 +301,3 @@ The standard asks that a repository's topics and its package keywords
 name the same things; there is no package here and so no keyword list to
 agree with, which makes the topics a discoverability question rather than
 an alignment one, and an empty list still answers it badly.
-
-`.github/dependabot.yml` does not exist, and there is no ecosystem in
-this tree for it to watch: no lock file, no manifest, no workflow with an
-action to bump. It becomes owed the day a workflow is added.

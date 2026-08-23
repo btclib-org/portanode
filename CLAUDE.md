@@ -101,18 +101,37 @@ moves `main`.
 - **`ROOTDIR` is resolved, never assumed.** Every script derives it from
   its own location or from `PORTANODE_ROOT`, because the folder is
   mounted at a different point on every machine it is plugged into.
-- **The executable bit is set on some of what is tracked and not on the
-  rest**, and the split does not follow the file type:
+- **The executable bit is set on what macOS runs and on nothing else**,
+  which is the rule and not a description of today's tree:
 
     ```shell
     git ls-files -s | awk '$1 == "100755" { print $4 }'
     ```
 
-    answers with the `.command` files under `macos/scripts/`, and also
-    with files that are not launchers at all; the root `*.command` and
-    every `*.sh` are 100644. That is what `README.md`'s `chmod +x` step
-    is for. A new `.command` left non-executable does nothing when it is
-    double-clicked in Finder, which is the way it is meant to be run.
+    answers with the `.command` and `.sh` launchers, at the root and
+    under `macos/scripts/`, and with nothing else. The `.bat` and `.ps1`
+    halves stay 100644 because Windows does not read a POSIX mode, and
+    the two `lib.sh` are sourced rather than run — an executable bit on
+    either would say a thing about the file that running it does not
+    bear out. A new `.command` left non-executable does nothing when it
+    is double-clicked in Finder, which is the way it is meant to be run.
+
+- **The bit decides nothing on the volume this is built for.** macOS
+  synthesises a mode for exFAT rather than storing one: a file written
+  there reads `rwx------` whatever `chmod` was asked for, and a script
+  runs regardless. Measured on an exFAT image —
+
+    ```shell
+    hdiutil create -size 20m -fs ExFAT -volname T -o /tmp/t.dmg
+    hdiutil attach /tmp/t.dmg
+    printf '#!/bin/bash\necho hi\n' > /Volumes/T/u.sh
+    chmod 644 /Volumes/T/u.sh && ls -l /Volumes/T/u.sh && /Volumes/T/u.sh
+    ```
+
+    — which exits 0 and prints `hi` under `-rwx------`. So what the mode
+    in the index is for is the other cases: a clone or an unpacked source
+    archive on APFS, where GitHub's zipball carries the index mode
+    through `unzip` unchanged.
 
 ## Model
 

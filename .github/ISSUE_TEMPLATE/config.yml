@@ -5,6 +5,16 @@
 # script misbehaves would get worse answers than a blank box does
 blank_issues_enabled: true
 contact_links:
+  # first, because a vulnerability is the one report that must not be
+  # filed as an issue at all, and blank issues are on above: without this
+  # link the nearest thing on offer is a public box
+  - name: Security vulnerability
+    url: https://github.com/btclib-org/portanode/security/advisories/new
+    about: >
+      Never a public issue. This opens a private advisory, visible to the
+      maintainers alone; SECURITY.md gives an email address for anyone
+      who would rather not use it, and says what is this project's to fix
+      and what is upstream's.
   - name: Bug in Bitcoin Core itself
     url: https://github.com/bitcoin/bitcoin/issues
     about: >

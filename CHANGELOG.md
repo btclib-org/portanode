@@ -23,10 +23,61 @@ using YYYY.MM.DD format.
   have to open an agent's file to find them.
 - Added a lint gate: `.pre-commit-config.yaml` with the hooks that have a
   subject in this tree, `uvx pre-commit run --all-files` being the whole
-  of it. Nothing runs it in CI — there are no workflows — so it is run by
-  hand before pushing. `shellcheck` is deliberately not among the hooks;
-  the file says why and carries the command that answers for the bash
-  scripts.
+  of it. `shellcheck` is deliberately not among the hooks; the file says
+  why and carries the command that answers for the bash scripts.
+- The lint gate runs on the forge. `.github/workflows/lint.yml` runs `uvx
+  pre-commit run --all-files` on every pull request and on every push to
+  `main` — the command `CONTRIBUTING.md` gives an author, rather than a
+  second list of the same tools — so a branch that skipped it locally is
+  no longer a branch nothing looked at. Nothing waits for its answer yet:
+  `REPOSITORY.md`'s *What gates a merge* carries the ruleset rule that
+  would make `Lint` a required context, and why that follows a green run
+  instead of arriving with the workflow.
+- `.github/workflows/links.yml` reads every link in the markdown, weekly
+  and on demand. It gates nothing by design — a link rots without anybody
+  touching the tree, and a host answering 502 would be a red merge with
+  nothing to fix.
+- `.github/dependabot.yml` watches the one ecosystem this tree has, the
+  action pins in `.github/workflows`, grouped and weekly with a seven-day
+  cooldown. Without it a SHA pin is frozen for good.
+- `.pre-commit-config.yaml` gained `actionlint`, `zizmor` and
+  `check-dependabot`, which is the rule it already stated: a hook lands
+  the day the tree grows the file it reads. `actionlint` is given
+  `shellcheck-py` so that the shell a workflow inlines is read too, which
+  is a different subject from the launchers that file argues about.
+- There is somewhere private to report a flaw (#10). Private
+  vulnerability reporting is on, so `.github/ISSUE_TEMPLATE/config.yml`
+  links `/security/advisories/new` as its first contact link and
+  `SECURITY.md` names that button rather than describing why it is
+  missing. The email address stays beside it: it needs no GitHub account
+  and no repository setting, which is what makes it the fallback rather
+  than a second-best.
+- `.github/workflows/claude-review.yml` reads a pull request against
+  `REVIEWING.md` and posts the ack of record that file describes, which a
+  solo-maintainer repository has no other way to get. It gates nothing
+  and must not: what it produces is an opinion, and a branch rule waiting
+  on one would make a model's judgement a merge condition. It refuses to
+  report a review it did not run — the action skips, green, when this
+  file differs from the copy on the default branch, so the pull request
+  that lands or edits it is red by construction.
+- The executable bit says what macOS runs, in both directions. The root
+  `*.command` and `*.sh` launchers and the scripts under
+  `macos/scripts/utilities/` carry it; `bitcoin-datadir/bitcoin.conf` and
+  `macos/scripts/electrum/README.md` no longer do. It stays off the
+  `.bat` and `.ps1` halves, Windows not reading a POSIX mode, and off the
+  two `lib.sh`, which are sourced rather than run. No line of any of them
+  changed: what moved is the mode alone.
+- `README.md`'s *Prerequisites* no longer asks a reader to `chmod +x` the
+  launchers. The bit ships set, GitHub's source zip carries it through
+  `unzip` unchanged, and an exFAT volume — which is what this is built
+  for — reports every file as executable whatever its mode. Under
+  *Troubleshooting* the `chmod +x` stays, narrowed to the case those three
+  leave open: a folder that arrived by some route which dropped the bit.
+- `.pre-commit-config.yaml` refuses every case of the operating system's
+  name but Apple's and the all-lower-case directory. `typos` and
+  `codespell` read a known word in another case as a known word, so
+  `bitcoin-datadir/README.md` had carried a wrong one past both; that
+  line is fixed and the hook is what says it stays fixed.
 - The markdown in the tree was brought to the shared markdownlint
   configuration: list indentation, blank lines around headings and lists,
   ordered-list prefixes and headings ending in a full stop. No wording
