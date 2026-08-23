@@ -1,17 +1,15 @@
 ---
 # the lint gate of this repository. What it ships is launcher scripts and
 # prose, so the hooks below are the ones with a subject here: the
-# markdown, the two issue-form yaml files, the json, the toml this file's
-# own spell-checker configuration is written in, and the text every file
-# is made of.
+# markdown, the yaml of the workflows and of the issue forms, the json,
+# the toml this file's own spell-checker configuration is written in, and
+# the text every file is made of.
 #
 # What is absent is absent for a measured reason rather than an
 # oversight. `git ls-files '*.py'` is empty, so ruff and mypy have no
 # file to read and `check-hooks-apply` below would fail on each; there is
-# no project and no `uv.lock`, so `uv-lock` has nothing to keep in step;
-# `git ls-files '.github/workflows/*'` is empty, so actionlint and zizmor
-# have nothing to audit. A hook is added here the day the tree grows the
-# file it reads.
+# no project and no `uv.lock`, so `uv-lock` has nothing to keep in step.
+# A hook is added here the day the tree grows the file it reads.
 #
 # **shellcheck is the absence worth arguing**, this being a tree whose
 # executable half is bash. It is left out because it does not pass today
@@ -182,3 +180,70 @@ repos:
     rev: v1.38.0
     hooks:
       - id: yamllint
+  # .github/dependabot.yml is validated by nothing else here: check-yaml
+  # above asks whether it is yaml, and actionlint below reads workflows
+  # and not this. A typo in a package-ecosystem or a directory is not an
+  # error to GitHub -- it silently updates nothing, and the evidence is a
+  # pull request that never arrives, which on a repository whose only
+  # ecosystem is the action pins means every pin frozen with nothing
+  # saying so.
+  # check-github-workflows is not added beside it: actionlint already
+  # reads every workflow and goes further than the schema does, into
+  # expressions, contexts and runner labels
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.38.0
+    hooks:
+      - id: check-dependabot
+  # the workflows carry expressions and logic no schema reads: an unknown
+  # key, a typo in a context reference, an action input that does not
+  # exist, a job depending on a job that is not there are all things a
+  # run discovers by failing.
+  # The Python packaging of actionlint rather than the upstream hook,
+  # whose only non-docker id is language: golang, i.e. a go toolchain on
+  # every machine that commits and on pre-commit.ci
+  - repo: https://github.com/Mateusz-Grzelinski/actionlint-py
+    rev: v1.7.12.24
+    hooks:
+      - id: actionlint
+        name: actionlint (github workflows)
+        # actionlint delegates the body of a run: step to shellcheck if
+        # it finds one on the PATH, and without it validates the yaml
+        # around a shell script rather than the script. That is a
+        # different subject from the shellcheck this file's header argues
+        # about: this one reads the few lines a workflow inlines, where
+        # the header is about the launchers under macos/scripts, which no
+        # hook here reads yet.
+        # Declared rather than left to the machine, so that a commit and
+        # CI check the same thing -- the runner image happens to carry
+        # shellcheck, so leaving it to chance means CI checking more than
+        # a commit does. Pinned, unlike a rev, because nothing bumps an
+        # additional dependency: pre-commit.ci moves rev, dependabot has
+        # no pre-commit ecosystem. That is the point rather than the cost
+        # -- a shellcheck release adding a check would otherwise turn a
+        # pull request red for having changed nothing
+        additional_dependencies:
+          - shellcheck-py==0.11.0.1
+  # actionlint asks whether a workflow is correct, zizmor whether it is
+  # safe: a token persisted where a later step can read it, an expression
+  # interpolated into a shell script, a trigger that runs a fork's code
+  # with write access. The last of those is what this repository has to
+  # get right -- claude-review.yml holds a credential -- and it is the
+  # one an author is least able to see by reading.
+  # The default persona is the gate; --persona=auditor adds advice, none
+  # of it a defect, and is worth running by hand rather than on every
+  # commit
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.29.0
+    hooks:
+      - id: zizmor
+        # offline is what it does by default, said out loud: it warns
+        # about the implicit choice on every run, and the choice is the
+        # right one. Two audits can query GitHub for the actions a
+        # workflow pins -- impostor-commit and known-vulnerable-actions
+        # -- which would make the hook want a token and report
+        # differently on a machine that has none. Those two therefore
+        # stay unrun, here and in CI.
+        # --no-progress is repeated rather than added: args replaces what
+        # the hook declares, and that flag is the whole of what it
+        # declares, so passing --offline alone would drop it
+        args: [--offline, --no-progress]

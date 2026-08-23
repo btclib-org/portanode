@@ -23,10 +23,28 @@ using YYYY.MM.DD format.
   have to open an agent's file to find them.
 - Added a lint gate: `.pre-commit-config.yaml` with the hooks that have a
   subject in this tree, `uvx pre-commit run --all-files` being the whole
-  of it. Nothing runs it in CI — there are no workflows — so it is run by
-  hand before pushing. `shellcheck` is deliberately not among the hooks;
-  the file says why and carries the command that answers for the bash
-  scripts.
+  of it. `shellcheck` is deliberately not among the hooks; the file says
+  why and carries the command that answers for the bash scripts.
+- The lint gate runs on the forge. `.github/workflows/lint.yml` runs `uvx
+  pre-commit run --all-files` on every pull request and on every push to
+  `main` — the command `CONTRIBUTING.md` gives an author, rather than a
+  second list of the same tools — so a branch that skipped it locally is
+  no longer a branch nothing looked at. Nothing waits for its answer yet:
+  `REPOSITORY.md`'s *What gates a merge* carries the ruleset rule that
+  would make `Lint` a required context, and why that follows a green run
+  instead of arriving with the workflow.
+- `.github/workflows/links.yml` reads every link in the markdown, weekly
+  and on demand. It gates nothing by design — a link rots without anybody
+  touching the tree, and a host answering 502 would be a red merge with
+  nothing to fix.
+- `.github/dependabot.yml` watches the one ecosystem this tree has, the
+  action pins in `.github/workflows`, grouped and weekly with a seven-day
+  cooldown. Without it a SHA pin is frozen for good.
+- `.pre-commit-config.yaml` gained `actionlint`, `zizmor` and
+  `check-dependabot`, which is the rule it already stated: a hook lands
+  the day the tree grows the file it reads. `actionlint` is given
+  `shellcheck-py` so that the shell a workflow inlines is read too, which
+  is a different subject from the launchers that file argues about.
 - The markdown in the tree was brought to the shared markdownlint
   configuration: list indentation, blank lines around headings and lists,
   ordered-list prefixes and headings ending in a full stop. No wording

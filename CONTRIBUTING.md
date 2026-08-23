@@ -181,7 +181,7 @@ uvx pre-commit validate-config .pre-commit-config.yaml
 
 That last one is worth running before pushing a change to the hook
 config: it catches what a wrong `types_or` tag or a malformed entry would
-otherwise turn into a failure a reader has to guess at.
+otherwise turn into a red lint job.
 
 **Check exit codes, not filtered output.** `pre-commit run ... | grep -v
 Passed` hides a failure, and `grep` finding nothing exits 1, which is not
@@ -205,22 +205,28 @@ one a checkout on an internal disk never exercises.
 
 ### What gates a merge, and what only reports
 
-**Nothing gates a merge but the review and the branch rules.** There are
-no workflows here, so there is no required check to name:
+**`lint.yml` runs the gate above on every pull request**, with `uvx
+pre-commit run --all-files`, which is the same command this section gives
+you: one declaration of what the hooks are, so a hook added to
+`.pre-commit-config.yaml` needs no edit to a workflow.
+
+**Whether its answer holds the merge is a separate question**, and the
+command is what says which state we are in:
 
 ```shell
-gh api repos/btclib-org/portanode/actions/workflows --jq '.total_count'
 gh api repos/btclib-org/portanode/branches/main/protection \
   --jq 'has("required_status_checks")'
 ```
 
-answer `0` and `false`. What holds a pull request is an approving review,
-and what holds every commit that reaches `main` — signature, linear
-history, no force push, no deletion — is a ruleset with no bypass actor.
-`REPOSITORY.md` reads both back from the endpoint rather than restating
-them.
+While that answers `false`, a red `Lint` is a thing to read and not a
+thing that stops anything, and `REPOSITORY.md`'s *What gates a merge* has
+the rule that would make it stop something.
 
-So the gate above is run by a person and by nobody else: a branch that
-was not gated locally reaches `main` with nothing having looked at it.
-That is the trade this repository is currently on, and it is what a
-`lint.yml` here would change.
+**`links.yml` only reports, and must go on doing so.** It is weekly and
+reads every link in the markdown, where a third party returning 502 would
+be a red merge with nothing to fix. It does not belong in a branch rule.
+
+What holds a pull request is an approving review, and what holds every
+commit that reaches `main` — signature, linear history, no force push, no
+deletion — is a ruleset with no bypass actor. `REPOSITORY.md` reads both
+back from the endpoint rather than restating them.

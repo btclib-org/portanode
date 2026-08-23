@@ -1,0 +1,45 @@
+---
+# one ecosystem, because one is what this tree has. There is no manifest
+# and no lock file -- `git ls-files 'pyproject.toml' 'uv.lock' 'Gemfile'`
+# is empty -- so the actions the workflows pin are the whole of what
+# dependabot can see here, and the binaries the update scripts install
+# are pinned by `keys/*.fingerprints` and verified by PGP rather than
+# resolved by anybody's resolver.
+#
+# The pre-commit hook revisions are the other thing this repository pins
+# and are not below: dependabot has no pre-commit ecosystem, and the
+# `ci:` block of .pre-commit-config.yaml has pre-commit.ci bumping them
+# weekly instead.
+#
+# Grouped, so an update week is one pull request rather than one per
+# action: every one of them runs the lint gate, and reading a group is
+# the same reading as one entry plus a diff.
+#
+# No target-branch: without one dependabot opens against the default
+# branch, which is the only branch a change lands on -- and a
+# target-branch naming a branch that is not there is not an error
+# anywhere, it is a repository where nothing is ever proposed.
+#
+# The seven-day cooldown is what the weekly interval is really trading
+# against: a compromised release is usually yanked within days, and
+# nothing is offered here before it has been public a week. The interval
+# decides how long after that week the offer arrives, not whether it
+# waits at all
+version: 2
+updates:
+  # every action in .github/workflows is pinned to a commit SHA, and
+  # nothing but this moves one: without it a pin is frozen for good, and
+  # a fix -- or an advisory -- upstream never reaches this repository
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      # Thursday, which is the day section 10 of btclib-org/.github's
+      # README.md gives dependabot across the organization. Actions move
+      # rarely, so a week where none did opens no pull request at all
+      day: thursday
+    groups:
+      actions:
+        patterns: ["*"]
+    cooldown:
+      default-days: 7

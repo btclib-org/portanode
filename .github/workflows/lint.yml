@@ -1,0 +1,125 @@
+---
+name: lint
+
+# what this workflow runs is .pre-commit-config.yaml itself, never a
+# second list of the same tools: a commit and CI then enforce one thing,
+# and a hook added to that file needs no edit here.
+#
+# It is the whole of what a merge here can be gated on. There is no suite
+# and no documentation build in this tree -- what stands in for one is
+# running a launcher on the platform it is for, which no runner does --
+# so the hooks are the only answer a workflow can produce, and
+# CONTRIBUTING.md's last section says what they leave uncovered.
+#
+# The name of the job below becomes the required context, and that is a
+# second step rather than part of this one: a required context nothing
+# produces blocks every merge with nothing in the tree to explain why, so
+# the workflow lands first and REPOSITORY.md's "What gates a merge"
+# follows it once a run is green.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # closed too, though the job below declines the real work on it: a
+    # merge or a close is neither a push nor a synchronize, so a run this
+    # pull request's own concurrency group is still holding survives
+    # either unless the closed event lands in that same group -- which
+    # this type is what makes it do, cancel-in-progress below turning the
+    # landing into the cancellation
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+  # the gates included: a branch whose pull request is not open yet has
+  # no other way to ask
+  workflow_dispatch:
+
+# least privilege for the GITHUB_TOKEN. Nothing here writes anything --
+# the hooks that fix in place fix a checkout that is thrown away, the
+# `ci:` block refusing an autofix commit for the same reason -- so no job
+# elevates it
+permissions:
+  contents: read
+
+concurrency:
+  # named literally, never through github.workflow: in a called workflow
+  # that expression is the *caller's* name, so two workflows called from
+  # one place would share a group and cancel each other.
+  #
+  # Keyed on the pull request's number rather than on github.head_ref.
+  # Not because head_ref would collide with the push trigger's group --
+  # it would not: head_ref is read from the event payload, so it is there
+  # on a closed pull request too, where github.ref has already resolved
+  # to the base branch. What the number survives and head_ref does not is
+  # two pull requests whose head branches carry the same name, two forks
+  # each pushing "patch-1", which share one head_ref group and cancel
+  # each other. This repository is public, so a fork's pull request is a
+  # thing that can arrive.
+  #
+  # A run with no pull request -- a push to main, a dispatch -- has no
+  # number and falls back to github.ref, which is what gives it a group
+  # of its own
+  group: lint-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    # this name is the required check's context, a context being keyed by
+    # name alone. Renaming it cannot be done in a pull request once the
+    # rule names it: the branch stops producing the old name while the
+    # rule still waits for it, so the rule moves first and the pull
+    # request follows
+    name: Lint
+    # a draft pull request is work its author is not asking anyone to
+    # read yet and spends no runner. A closed one spends none either --
+    # the trigger above takes the closed event only to supersede a run
+    # this pull request's own group is still holding
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    # a cold cache builds a node environment for markdownlint and
+    # prettier and a python one for most of the rest before a hook runs
+    # at all; a job past this is hung rather than working
+    timeout-minutes: 20
+    steps:
+      # every action pinned to a commit SHA with the tag in the comment:
+      # a tag, let alone a branch, is a name its owner can move
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # the hooks read the tree and nothing pushes it back
+          persist-credentials: false
+
+      # uv is the only prerequisite here as everywhere, and this is the
+      # step that supplies it
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+
+      # the cache key needs the runner image, not only the OS: a
+      # pre-commit environment built on one image is not always usable on
+      # the next one, and a stale hit fails in the hook rather than here
+      - name: Identify the runner image
+        id: image
+        run: echo "os=${ImageOS:-unknown}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the pre-commit environments
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/pre-commit
+          # the hook config alone, where a repository with a project
+          # hashes .python-version beside it: every environment
+          # pre-commit builds is named by a rev this file pins, and
+          # CLAUDE.md says why there is no .python-version here to hash
+          key: >-
+            pre-commit-${{ runner.os }}-${{ steps.image.outputs.os }}-${{
+            hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-${{ steps.image.outputs.os }}-
+
+      # uvx, which is the command CONTRIBUTING.md's last section gives an
+      # author to run before pushing: running the same one is the point,
+      # a workflow invoking pre-commit some other way being the second
+      # declaration this file's header refuses. There is no project here
+      # for "uv run --locked" to resolve against in any case.
+      # --show-diff-on-failure changes no hook's answer: it prints what
+      # an in-place fixer changed, so a red job says what to apply rather
+      # than only that something is unclean
+      - name: Run every hook
+        run: uvx pre-commit run --all-files --show-diff-on-failure
