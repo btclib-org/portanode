@@ -2,7 +2,7 @@ REM Launch Bitcoin Core GUI for testnet3.
 REM Data directory: bitcoin-datadir
 REM P2P port: 18333
 REM Network: testnet
-REM 
+REM
 set "ROOTDIR=%~dp0..\..\.."
 if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
 echo ROOTDIR is "%ROOTDIR%"

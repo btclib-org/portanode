@@ -4,7 +4,7 @@ REM Data directory: bitcoin-datadir\regtest_carol
 REM P2P port: 18666
 REM Network: regtest
 REM Connects to: localhost:18444 (Alice), localhost:18555 (Bob)
-REM 
+REM
 set "ROOTDIR=%~dp0..\..\.."
 if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
 echo ROOTDIR is "%ROOTDIR%"

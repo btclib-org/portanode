@@ -1,4 +1,4 @@
-# OS-specific binaries and scripts for PortaNode.
+# OS-specific binaries and scripts for PortaNode
 
 ## Binaries (`bin/`)
 
@@ -27,9 +27,10 @@ Root launchers are available for specific areas: `Bitcoin-Launcher.*`,
 ## Utilities Quickstart
 
 Run these in order after updates:
+
 1. `scripts/utilities/verify-binaries.sh`
-2. `scripts/utilities/validate-setup.sh`
-3. `scripts/utilities/health-check.sh`
+1. `scripts/utilities/validate-setup.sh`
+1. `scripts/utilities/health-check.sh`
 
 ## Data Folders
 

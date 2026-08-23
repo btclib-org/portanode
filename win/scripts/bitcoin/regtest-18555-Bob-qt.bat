@@ -4,7 +4,7 @@ REM P2P port: 18555
 REM Network: regtest
 REM Creates data directory if not exists.
 REM Connects to: localhost:18444 (Alice), localhost:18666 (Carol)
-REM 
+REM
 set "ROOTDIR=%~dp0..\..\.."
 if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
 echo ROOTDIR is "%ROOTDIR%"

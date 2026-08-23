@@ -1,0 +1,184 @@
+---
+# the lint gate of this repository. What it ships is launcher scripts and
+# prose, so the hooks below are the ones with a subject here: the
+# markdown, the two issue-form yaml files, the json, the toml this file's
+# own spell-checker configuration is written in, and the text every file
+# is made of.
+#
+# What is absent is absent for a measured reason rather than an
+# oversight. `git ls-files '*.py'` is empty, so ruff and mypy have no
+# file to read and `check-hooks-apply` below would fail on each; there is
+# no project and no `uv.lock`, so `uv-lock` has nothing to keep in step;
+# `git ls-files '.github/workflows/*'` is empty, so actionlint and zizmor
+# have nothing to audit. A hook is added here the day the tree grows the
+# file it reads.
+#
+# **shellcheck is the absence worth arguing**, this being a tree whose
+# executable half is bash. It is left out because it does not pass today
+# and the fixes are not this file's subject:
+#
+#   git ls-files '*.sh' '*.command' \
+#     | xargs uvx --from shellcheck-py shellcheck -x -f gcc
+#
+# answers with findings across the macOS scripts -- an unused variable, a
+# `read` without -r, an `rm -rf` on a path that two empty variables would
+# make `/` -- and with two it is wrong about, a deliberate unquoted
+# expansion that tar needs word-split and a line continuation it reads as
+# accidental concatenation. Adding the hook with those disabled would be
+# asserting each is fine, which two of them are not; adding it at
+# --severity=error reports nothing at all, every finding being info or
+# warning. So the hook lands with the pull request that answers them, and
+# the command above is what says whether that has happened.
+#
+# Skip a hook with SKIP=<id>, or all of them with "git commit -n".
+ci:
+  # a bot committing to a branch is at odds with a setup where no
+  # workflow token can write: a failing hook is fixed by its author
+  autofix_prs: false
+  autoupdate_commit_msg: "Update the pinned pre-commit hook revisions"
+  autoupdate_schedule: weekly
+
+repos:
+  # this file checking itself, and the only two hooks with no environment
+  # to install: a pattern that has stopped matching is a rule that has
+  # quietly stopped running
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+  # and checking the two moves "autoupdate" must not make: a rev naming
+  # only a major follows every future release of it, and a prerelease is
+  # not a release. pre-commit says the first half itself, on stderr, on a
+  # run that then exits zero -- which is the difference between a warning
+  # and a gate. A commit SHA stays acceptable: forty hex characters do not
+  # end in a prerelease marker
+  - repo: local
+    hooks:
+      - id: pinned-rev
+        name: every pre-commit rev names a released version
+        language: pygrep
+        entry: '^ *rev: "?v?([0-9]+|[0-9][0-9.]*(a|b|rc|dev)[0-9]+)"?$'
+        files: ^\.pre-commit-config\.yaml$
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        # the Windows launchers, which .gitattributes checks out as
+        # "text eol=crlf" because cmd.exe reads a .bat line by line and a
+        # lone LF has cost that reader a label before now. Left in this
+        # hook's reach the two fight each other: the fixer rewrites the
+        # working tree to LF, git checks it out as CRLF again, and the
+        # hook reports a fix on every run -- a gate that never closes,
+        # with no diff to show for it, git comparing the normalized index
+        # rather than the file. trailing-whitespace and end-of-file-fixer
+        # above need no such exclusion: both preserve the line ending
+        # they find, which is why only this one is named
+        exclude: \.bat$
+      - id: check-case-conflict
+      - id: fix-byte-order-marker
+      - id: check-merge-conflict
+      - id: check-vcs-permalinks
+      - id: detect-private-key
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+      # there are none, and a submodule is the one dependency that would
+      # be pinned by nothing here
+      - id: forbid-submodules
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      - id: codespell
+        # identifiers rather than misspellings, and the same two
+        # .typos.toml carries: `fpr` is gpg's own --with-colons record
+        # name for a fingerprint, which the verification helpers read and
+        # name their variables after, and `bre` is the POSIX basic
+        # regular expressions the macOS grep comments are about. Written
+        # here rather than in a file of their own because codespell takes
+        # a flag for it where typos takes none
+        args: [-L, "fpr,bre"]
+  # a release tag, not the `v1` beside it: that one is a major-version
+  # alias upstream moves onto each release, so `pre-commit autoupdate`
+  # picks it as the newest tag and the pin stops being one
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.49.0
+    hooks:
+      - id: typos
+  # the credentials of other systems, which is the half of secret
+  # scanning GitHub's free plan does not cover: partner and provider
+  # tokens are scanned server-side, the generic patterns (PEM keys,
+  # connection strings, authentication headers) belong to Secret
+  # Protection, and the API accepts that setting with a 200 and leaves it
+  # disabled. detect-private-key above covers the PEM case, and a wallet
+  # is what this tree starts, so a key pasted into a launcher while
+  # debugging one is the accident worth a hook.
+  # Not gitleaks: all of its hook ids invoke it with --staged, so under
+  # "pre-commit run --all-files" it scans an empty staged set and passes
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: detect-secrets (credentials of other systems)
+  # MD013 at 80 columns, tables included, and the shared configuration is
+  # the one every repository of the organization carries: prose moves
+  # between them, and a paragraph that lints in one has to lint here
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.2
+    hooks:
+      - id: markdownlint-cli2
+  # how a link destination is spelled, which markdownlint has no rule
+  # for. Section 4 of the organization's standard is the rule, why the
+  # prefix and not the extension, and what this cannot see; there is no
+  # shared hook repository to write it in once, so it is the same hook in
+  # each repository, `pinned-rev` above being that arrangement already
+  - repo: local
+    hooks:
+      - id: local-link-prefix
+        name: a local markdown link destination begins with ./
+        language: pygrep
+        # one line, and no literal space in it -- "\x20" is the space the
+        # reference branch allows -- so yamllint reads the value as a
+        # single unbreakable word and its 100-column rule exempts it. A
+        # block scalar rather than a quoted one for the same reason a
+        # folded scalar was rejected: folding joins lines with a space,
+        # which would land inside the regex
+        entry: |-
+          (?<![`!\[])(?:!?\[(?:[^]]|\]\([^)]*\))*\]\(|^\x20{0,3}\[[^]]+\]:\s*)(?!\./|#|[A-Za-z][A-Za-z0-9+.-]*:)[^)\s]
+        types: [markdown]
+      # a line that ends inside a word, at that word's own hyphen.
+      # Section 4 of the organization's standard is the rule: what such a
+      # line renders as, why nothing else here catches it, and what this
+      # pattern cannot see
+      - id: no-hyphen-at-end-of-line
+        name: a word is not wrapped at its own hyphen
+        language: pygrep
+        entry: "[A-Za-z0-9]-$"
+        types: [markdown]
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.9.6
+    hooks:
+      - id: prettier
+        name: prettier (yaml and jsonc, in place fixes)
+        # named by path rather than by type: `jsonc` is not a tag identify
+        # knows, so a types_or entry for it fails the config outright
+        files: ^(.*\.ya?ml|\.markdownlint\.jsonc)$
+  # the toml here is configuration and nothing else: .taplo.toml, which
+  # carries the formatting choices and the reasoning, and .typos.toml,
+  # which the hook above has no flag for. One indent for every toml in
+  # the organization is the point of having a formatter at all. Naming
+  # them here is what .taplo.toml asks of the repository that carries it,
+  # that file being shared and so unable to say which toml any one tree
+  # holds; git ls-files '*.toml' is what says whether this comment has
+  # gone stale
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3
+    hooks:
+      - id: taplo-format
+        name: taplo (toml, in place fixes)
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint

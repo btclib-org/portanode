@@ -18,7 +18,7 @@ echo 9^) Monitor Bitcoin log
 echo 10^) Rotate Bitcoin log
 echo 11^) Clean Windows artifacts
 echo 0^) Exit
-set /p choice=Select: 
+set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"
 if "%choice%"=="1" set "SCRIPT=%ROOTDIR%win\scripts\utilities\update-bitcoin.bat"
