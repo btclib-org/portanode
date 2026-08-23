@@ -1,29 +1,36 @@
-# Git attributes for PortaNode
-# Treat binaries as binary files to avoid diffing
-*.exe binary
-*.app binary
-Bitcoin-Qt binary
-run_electrum binary
-
-# Text files
-*.md text
-*.sh text eol=lf
-*.bat text eol=crlf
-*.conf text
-*.json text
-
 # The changelog and the release notes are append-only lists, and every
 # branch appends to the same few groups: two branches each adding a bullet
 # conflict on the insertion point, which is a conflict with nothing to
 # decide. `union` resolves it by keeping both sides' added lines, in the
-# order base-then-ours, and it is built into git -- nobody has to configure
+# order base-then-ours, and it is built into git — nobody has to configure
 # anything for it to apply.
 #
 # It applies to rebases too, which is where it earns its keep, and it has
 # a price worth knowing: these two files then never conflict at all, so
 # the same existing entry edited on two branches merges in silence rather
-# than being flagged. That is why neither states how many entries it has --
+# than being flagged. That is why neither states how many entries it has —
 # a count is exactly such an edit, and union would have kept both numbers.
-# Section 9 of the organization standard is where this rule is recorded.
+# Section 9 of the organization standard, btclib-org/.github's README.md,
+# is where this rule is recorded.
 CHANGELOG.md merge=union
 RELEASE_NOTES.md merge=union
+## This repository in particular
+
+# The launchers are what this tree ships, to two operating systems.
+# `.bat` is checked out CRLF because cmd.exe reads a batch file line by
+# line and a lone LF has cost that reader a label before now, which is
+# why `.pre-commit-config.yaml` keeps the line-ending fixer off those
+# files and `REVIEWING.md` reads them rather than the diff; `.sh` is
+# checked out LF for the shell on the macOS side. The `binary` lines
+# name what a launcher fetches; nothing tracked matches them today, and
+# the day one is committed by mistake git will not try to diff or
+# normalize it.
+*.exe binary
+*.app binary
+Bitcoin-Qt binary
+run_electrum binary
+*.md text
+*.sh text eol=lf
+*.bat text eol=crlf
+*.conf text
+*.json text
