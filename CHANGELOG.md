@@ -13,6 +13,13 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`REVIEWING.md` is the organization's copy.** A review reads the prose
+  that stays in the tree, treats a commit message or a pull request's
+  body as a finding only where it decides something, and asks a stated
+  count, a measurement nothing re-derives, or the history of the code
+  told in a comment to go — section 14 of the standard, the shared half
+  byte for byte.
+
 - Aligned the repository to the btclib-org standard. The files it copies
   byte for byte arrived: `.markdownlint.jsonc`, `.yamllint.yaml`,
   `.taplo.toml`, `COPYRIGHT`, `CODE_OF_CONDUCT.md`, `LICENSE` and
