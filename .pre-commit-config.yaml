@@ -155,6 +155,30 @@ repos:
         language: pygrep
         entry: "[A-Za-z0-9]-$"
         types: [markdown]
+      # how the operating system is spelled, which neither spell-checker
+      # reads as a misspelling: to `typos` and to `codespell` a known word
+      # in another case is a known word, so a capital M and a small final
+      # letter passed both of them.
+      #
+      # Two spellings are allowed and every other case is refused. `macOS`
+      # is Apple's and is what prose uses; the all-lower-case one is the
+      # directory of this tree and the value `update-electrum.sh` gives
+      # `OS`, so refusing it would be refusing a path.
+      #
+      # `Contents/` before the token is the one exception, that being
+      # Apple's own bundle layout rather than a spelling anybody chose.
+      # Without the lookbehind the hook answers with every launcher and
+      # every checksum line; the alternative, restricting it to markdown,
+      # would leave a comment in a script unread.
+      # An identifier needs no exception: `ELECTRUM_MACOS` has no word
+      # boundary before the token, `_` being a word character.
+      #
+      # This comment is in the hook's own reach, which is why it describes
+      # the refused forms instead of writing them
+      - id: macos-is-spelled-macos
+        name: macOS is spelled the way Apple spells it
+        language: pygrep
+        entry: '(?<!Contents/)\b(?!macOS\b)(?!macos\b)[Mm][Aa][Cc][Oo][Ss]\b'
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.9.6
     hooks:
