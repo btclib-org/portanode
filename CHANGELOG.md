@@ -60,6 +60,24 @@ using YYYY.MM.DD format.
   report a review it did not run — the action skips, green, when this
   file differs from the copy on the default branch, so the pull request
   that lands or edits it is red by construction.
+- The executable bit says what macOS runs, in both directions. The root
+  `*.command` and `*.sh` launchers and the scripts under
+  `macos/scripts/utilities/` carry it; `bitcoin-datadir/bitcoin.conf` and
+  `macos/scripts/electrum/README.md` no longer do. It stays off the
+  `.bat` and `.ps1` halves, Windows not reading a POSIX mode, and off the
+  two `lib.sh`, which are sourced rather than run. No line of any of them
+  changed: what moved is the mode alone.
+- `README.md`'s *Prerequisites* no longer asks a reader to `chmod +x` the
+  launchers. The bit ships set, GitHub's source zip carries it through
+  `unzip` unchanged, and an exFAT volume — which is what this is built
+  for — reports every file as executable whatever its mode. Under
+  *Troubleshooting* the `chmod +x` stays, narrowed to the case those three
+  leave open: a folder that arrived by some route which dropped the bit.
+- `.pre-commit-config.yaml` refuses every case of the operating system's
+  name but Apple's and the all-lower-case directory. `typos` and
+  `codespell` read a known word in another case as a known word, so
+  `bitcoin-datadir/README.md` had carried a wrong one past both; that
+  line is fixed and the hook is what says it stays fixed.
 - The markdown in the tree was brought to the shared markdownlint
   configuration: list indentation, blank lines around headings and lists,
   ordered-list prefixes and headings ending in a full stop. No wording

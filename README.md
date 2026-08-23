@@ -19,10 +19,12 @@ It has been tested with Bitcoin Core 30.2 and Electrum 4.7.0.
 - **Operating System**: fairly recent macOS or Windows versions.
 - **Disk Space**: At least 700GB free for Bitcoin Core data (mainnet) full sync.
   Regtest/testnet require less.
-- **Permissions**: Ensure the external disk is mounted and writable. On macOS,
-  scripts may need executable permissions (run `chmod +x
-  macos/scripts/**/*.command macos/bin/Electrum.app/Contents/MacOS/run_electrum`
-  if needed).
+- **Permissions**: Ensure the external disk is mounted and writable. A folder
+  taken with `git clone`, or unzipped from a release's source archive, needs
+  nothing made runnable by hand: the launchers carry the executable bit in the
+  repository and both of those routes keep it, and an exFAT volume reports every
+  file as executable whatever its mode. A folder that reached the disk some
+  other way is under *Troubleshooting*.
 - **Dependencies**: None required beyond standard OS tools. For advanced use,
   ensure Python (for Electrum) and command-line tools are available.
 
@@ -174,8 +176,11 @@ Validate setup with `win/scripts/utilities/validate-setup.bat`.
 
 - **Script fails with "Binary not found"**: Ensure binaries are in `macos/bin/`
   or `win/bin/`. Check permissions.
-- **Permission denied on macOS**: Run `chmod +x macos/scripts/**/*.command
-  macos/bin/Electrum.app/Contents/MacOS/run_electrum`.
+- **Permission denied on macOS**: The folder reached this disk through
+  something that dropped the executable bit — a copy, or an archive
+  unpacked by a tool that does not restore it. `chmod +x` the launcher you
+  ran, or take the folder again with `git clone` or by unzipping the
+  release's source archive, both of which keep it.
 - **Disk space errors**: Free up space or use pruning in `bitcoin.conf`
   (`prune=550` for ~550MB blocks).
 - **Sync issues**: Check logs in `bitcoin-datadir/debug.log`. For Electrum,
