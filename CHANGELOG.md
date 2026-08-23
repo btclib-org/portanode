@@ -13,6 +13,13 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`.gitattributes`'s shared half carries the paragraph saying both
+  `merge=union` lines are in every repository's copy, a tree with no
+  `RELEASE_NOTES.md` included.** The organization's copy, shared half
+  byte for byte (section 14): an attribute on a path the tree does not
+  hold matches nothing, which is the reason the two lines need no
+  per-repository condition (btclib-org/.github#192).
+
 - **`REVIEWING.md`'s *The gates are the evidence* excepts no gate from
   the run a reviewer may rely on, the test suite included.** The
   organization's copy, shared half byte for byte (section 14): a run is
