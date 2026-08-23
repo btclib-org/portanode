@@ -111,6 +111,13 @@ using YYYY.MM.DD format.
 - `.gitattributes` marks `CHANGELOG.md` and `RELEASE_NOTES.md`
   `merge=union`, so two branches each appending an entry no longer
   conflict on the insertion point.
+- `.gitattributes` is the organization's copy down to
+  `## This repository in particular`, with this tree's own lines — the
+  `binary` ones, and the `text` and `eol` ones the launchers need —
+  under that heading with their reasoning beside them, where they used
+  to sit above the shared part (btclib-org/.github#102). What git
+  resolves for every tracked file is the same before and after, which
+  `git check-attr -a` over `git ls-files` measures.
 - Deleted `TODO.md` and `BUG.md`; their contents are issues #3 through #9,
   and the bug report template they carried is now a GitHub issue form at
   `.github/ISSUE_TEMPLATE/bug_report.yml`. README.md and CONTRIBUTING.md
