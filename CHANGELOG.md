@@ -1,3 +1,9 @@
+<!-- markdownlint-disable MD022 MD032 -->
+<!-- This file is merge=union, so a rebase joins two sections and drops
+     the blank line between them without a conflict: the rule is off
+     here for the duration of btclib-org/.github#33, and goes back on
+     when that queue is empty. btclib-org/.github#138 is the record. -->
+
 # Changelog
 
 All notable changes to PortaNode will be documented in this file.
@@ -60,6 +66,24 @@ using YYYY.MM.DD format.
   report a review it did not run — the action skips, green, when this
   file differs from the copy on the default branch, so the pull request
   that lands or edits it is red by construction.
+- `claude-review.yml` is red unless the last verdict `claude[bot]`
+  posted is an ack naming the head under review, the step being
+  `btclib-org/.github`'s (btclib-org/.github#146). The earlier guard
+  answers whether the action started; a run that starts, finishes green
+  and posts nothing walks through it — measured on btclib-org/.github#139
+  — and so would an ack naming a sha the branch has moved past. Still
+  not a required check.
+- Deleted `CODE_OF_CONDUCT.md` (btclib-org/.github#123): the standard
+  keeps one copy, in `btclib-org/.github`, and GitHub shows it here. No
+  file in this tree linked it.
+- Deleted `SECURITY.md` (btclib-org/.github#116). Nothing is published
+  from this repository, so the policy is the one the organization's
+  `.github` shows on the Security tab; what that policy cannot state —
+  the trust root, `PORTANODE_ALLOW_UNVERIFIED=1`, what `checksums.sha256`
+  does and does not say, the unencrypted volume, the unsigned launchers —
+  is `README.md`'s *Limitations, not vulnerabilities*, where whoever is
+  about to run this reads. `.github/ISSUE_TEMPLATE/config.yml` and
+  `REPOSITORY.md` name the inherited policy where they named the file.
 - The executable bit says what macOS runs, in both directions. The root
   `*.command` and `*.sh` launchers and the scripts under
   `macos/scripts/utilities/` carry it; `bitcoin-datadir/bitcoin.conf` and

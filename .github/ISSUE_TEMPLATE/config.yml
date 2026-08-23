@@ -12,9 +12,9 @@ contact_links:
     url: https://github.com/btclib-org/portanode/security/advisories/new
     about: >
       Never a public issue. This opens a private advisory, visible to the
-      maintainers alone; SECURITY.md gives an email address for anyone
-      who would rather not use it, and says what is this project's to fix
-      and what is upstream's.
+      maintainers alone; the security policy on the Security tab, which
+      this repository inherits from the organization, gives an email
+      address for anyone who would rather not use it.
   - name: Bug in Bitcoin Core itself
     url: https://github.com/bitcoin/bitcoin/issues
     about: >
