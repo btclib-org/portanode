@@ -14,6 +14,7 @@
 # is where this rule is recorded.
 CHANGELOG.md merge=union
 RELEASE_NOTES.md merge=union
+
 ## This repository in particular
 
 # The launchers are what this tree ships, to two operating systems.
