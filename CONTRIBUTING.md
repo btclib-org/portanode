@@ -222,9 +222,11 @@ While that answers `false`, a red `Lint` is a thing to read and not a
 thing that stops anything, and `REPOSITORY.md`'s *What gates a merge* has
 the rule that would make it stop something.
 
-**`links.yml` only reports, and must go on doing so.** It is weekly and
-reads every link in the markdown, where a third party returning 502 would
-be a red merge with nothing to fix. It does not belong in a branch rule.
+**`links.yml` and `claude-review.yml` only report, and must go on doing
+so.** The first is weekly and reads every link in the markdown, where a
+third party returning 502 would be a red merge with nothing to fix; the
+second posts the ack of record `REVIEWING.md` describes, which is an
+opinion for you to weigh. Neither belongs in a branch rule.
 
 What holds a pull request is an approving review, and what holds every
 commit that reaches `main` — signature, linear history, no force push, no

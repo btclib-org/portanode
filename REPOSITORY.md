@@ -41,8 +41,9 @@ workflow lands first and the rule follows it once a run of it is green.
 Making it follow is one ruleset rule on `main-integrity`, of type
 `required_status_checks`, naming the context `Lint` — the job's name,
 `lint.yml` saying why that name is the context and why renaming it cannot
-be done in a pull request afterwards. `links.yml` must stay out of it: it
-reports the internet's weather, which is not a thing to hold a merge on.
+be done in a pull request afterwards. `links.yml` and `claude-review.yml`
+must stay out of it: the first reports the internet's weather and the
+second an opinion, and neither is a thing to hold a merge on.
 
 What does hold a pull request is the review, and what holds every commit
 that reaches `main` is `main-integrity`.
@@ -178,6 +179,28 @@ deliberate: a pull request **closed without merging** keeps its head
 branch, GitHub not being able to know whether that work was abandoned or
 is waiting, so those are the ones worth looking at now and then.
 
+## Secrets
+
+`claude-review.yml` is the only workflow here that reads one, and this
+repository holds none of its own:
+
+```shell
+gh api repos/btclib-org/portanode/actions/secrets --jq '[.secrets[].name]'
+gh api orgs/btclib-org/actions/secrets/CLAUDE_CODE_OAUTH_TOKEN \
+  --jq '.visibility'
+gh api orgs/btclib-org/dependabot/secrets/CLAUDE_CODE_OAUTH_TOKEN \
+  --jq '.visibility'
+```
+
+answer with an empty list and `all` twice. **The two organization
+commands are not one asked twice.** A `pull_request` run whose actor is
+`dependabot[bot]` is handed the Dependabot secrets rather than the
+Actions secrets, so a token registered only in the second resolves to the
+empty string on exactly the pull requests `.github/dependabot.yml` opens
+— and `claude-review.yml`'s credential step turns that into a red job
+saying which secret is missing, rather than a review that silently
+reviewed nothing.
+
 ## Token permissions
 
 ```shell
@@ -186,10 +209,13 @@ gh api repos/btclib-org/portanode/actions/permissions/workflow \
 ```
 
 answers `read` and `false`, and that is the floor every workflow here
-starts from: neither of them elevates it, the hooks fixing a checkout
-that is thrown away and lychee reading one. A job that needs more than
-`read` declares it, and the value is a repository setting that stops
-following the organization default once it is set.
+starts from. `claude-review.yml` is the only one whose jobs elevate it —
+`pull-requests: write` to post a comment and `id-token: write` for the
+OIDC token the action mints at startup — where the lint hooks fix a
+checkout that is thrown away and lychee only reads one. The value is a
+repository setting that stops following the organization default once it
+is set, so lowering the default here would not lower what those two jobs
+declare.
 
 ```shell
 gh api repos/btclib-org/portanode/actions/permissions \

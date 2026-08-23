@@ -52,6 +52,14 @@ using YYYY.MM.DD format.
   missing. The email address stays beside it: it needs no GitHub account
   and no repository setting, which is what makes it the fallback rather
   than a second-best.
+- `.github/workflows/claude-review.yml` reads a pull request against
+  `REVIEWING.md` and posts the ack of record that file describes, which a
+  solo-maintainer repository has no other way to get. It gates nothing
+  and must not: what it produces is an opinion, and a branch rule waiting
+  on one would make a model's judgement a merge condition. It refuses to
+  report a review it did not run — the action skips, green, when this
+  file differs from the copy on the default branch, so the pull request
+  that lands or edits it is red by construction.
 - The markdown in the tree was brought to the shared markdownlint
   configuration: list indentation, blank lines around headings and lists,
   ordered-list prefixes and headings ending in a full stop. No wording
