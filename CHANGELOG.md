@@ -45,6 +45,13 @@ using YYYY.MM.DD format.
   the day the tree grows the file it reads. `actionlint` is given
   `shellcheck-py` so that the shell a workflow inlines is read too, which
   is a different subject from the launchers that file argues about.
+- There is somewhere private to report a flaw (#10). Private
+  vulnerability reporting is on, so `.github/ISSUE_TEMPLATE/config.yml`
+  links `/security/advisories/new` as its first contact link and
+  `SECURITY.md` names that button rather than describing why it is
+  missing. The email address stays beside it: it needs no GitHub account
+  and no repository setting, which is what makes it the fallback rather
+  than a second-best.
 - The markdown in the tree was brought to the shared markdownlint
   configuration: list indentation, blank lines around headings and lists,
   ordered-list prefixes and headings ending in a full stop. No wording

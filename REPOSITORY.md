@@ -231,23 +231,23 @@ gh api repos/btclib-org/portanode/code-scanning/default-setup --jq '.state'
 | Dependabot security updates | enabled |
 | Secret scanning | enabled |
 | Secret scanning push protection | enabled |
-| Private vulnerability reporting | **disabled** |
+| Private vulnerability reporting | enabled |
 | Code scanning default setup (CodeQL) | not configured |
 
-**Private vulnerability reporting being off is what `SECURITY.md` is
-written around.** The endpoint answers `{"enabled": false}`, and
-[the documentation][pvr] is what says the *Report a vulnerability* button
-appears only where it is on. Whether the advisory form 404s for somebody
-without write access was not checked — doing so needs a second account —
-so `SECURITY.md` sends a reporter to email, which needs no setting to
-work. Turning this on is what would let it send them somewhere better:
-one `PUT`, and the lines in `SECURITY.md` that name the door.
+**Private vulnerability reporting is what puts the door in the interface
+rather than in a paragraph.** The endpoint answers `{"enabled": true}`,
+and [the documentation][pvr] is what says the *Report a vulnerability*
+button appears only where it is on. So
+`.github/ISSUE_TEMPLATE/config.yml` links `/security/advisories/new` and
+`SECURITY.md` names it first, with the email address kept beside it: a
+reporter who would rather not use a GitHub account still has somewhere to
+write, and an address needs no setting to keep working.
+
+Whether the advisory form 404s for somebody without write access was not
+checked — doing so needs a second account — so the email address is not
+only a preference but the fallback if it does.
 
 [pvr]: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
-
-```shell
-gh api -X PUT repos/btclib-org/portanode/private-vulnerability-reporting
-```
 
 Code scanning is not configured and nothing here asks for it: there is no
 language CodeQL analyses in this tree — `code-quality/setup` answers with

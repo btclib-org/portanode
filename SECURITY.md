@@ -6,13 +6,17 @@ If you have found a security vulnerability, please do not open a GitHub
 issue: an issue is public from the moment it is filed, and so is the
 window between filing it and a fix being released.
 
-Report it by email to *security at btclib dot org* instead.
+Use [*Report a vulnerability*][advisory] instead. It opens a private
+advisory visible to the maintainers alone, and it is a thread you are in
+— what is asked and what is fixed reaches you without anybody having to
+remember to write.
 
-The usual door — GitHub's *Report a vulnerability* button — is not open
-here: private vulnerability reporting is disabled on this repository, and
-`REPOSITORY.md` records the setting and the one `PUT` that would turn it
-on. Until it is, email is what works, and there is no advisory thread to
-be invited to.
+[advisory]: https://github.com/btclib-org/portanode/security/advisories/new
+
+If you would rather not, or the form does not open for you, email
+*security at btclib dot org*. An address needs no GitHub account and no
+repository setting to work, which is why it is kept beside the button
+rather than replaced by it.
 
 ## What belongs here, and what belongs upstream
 
