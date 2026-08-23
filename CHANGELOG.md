@@ -7,6 +7,35 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- Aligned the repository to the btclib-org standard. The files it copies
+  byte for byte arrived: `.markdownlint.jsonc`, `.yamllint.yaml`,
+  `.taplo.toml`, `COPYRIGHT`, `CODE_OF_CONDUCT.md`, `LICENSE` and
+  `.claude/commands/review.md`. `CONTRIBUTING.md` and a new `REVIEWING.md`
+  are that file's shared half up to `## This repository in particular`,
+  with this tree's own facts under it. `AUTHORS.md`, `SECURITY.md`,
+  `REPOSITORY.md`, `RELEASING.md` and `RELEASE_NOTES.md` are new, and
+  `REPOSITORY.md` is read back from the GitHub endpoints rather than
+  copied from a sibling.
+- `CLAUDE.md` keeps only what no document for humans can hold: the shape
+  of the tree, the worktree rule, the model, the conventions, and the
+  facts that otherwise cost a session. The environment and the gates
+  moved to `CONTRIBUTING.md`'s last section, where a contributor does not
+  have to open an agent's file to find them.
+- Added a lint gate: `.pre-commit-config.yaml` with the hooks that have a
+  subject in this tree, `uvx pre-commit run --all-files` being the whole
+  of it. Nothing runs it in CI — there are no workflows — so it is run by
+  hand before pushing. `shellcheck` is deliberately not among the hooks;
+  the file says why and carries the command that answers for the bash
+  scripts.
+- The markdown in the tree was brought to the shared markdownlint
+  configuration: list indentation, blank lines around headings and lists,
+  ordered-list prefixes and headings ending in a full stop. No wording
+  changed. Trailing whitespace and missing final newlines were fixed in
+  the `.bat` launchers, which keep their CRLF line endings — the
+  line-ending hook excludes them for that reason.
+- `.gitattributes` marks `CHANGELOG.md` and `RELEASE_NOTES.md`
+  `merge=union`, so two branches each appending an entry no longer
+  conflict on the insertion point.
 - Deleted `TODO.md` and `BUG.md`; their contents are issues #3 through #9,
   and the bug report template they carried is now a GitHub issue form at
   `.github/ISSUE_TEMPLATE/bug_report.yml`. README.md and CONTRIBUTING.md
