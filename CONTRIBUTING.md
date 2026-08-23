@@ -1,60 +1,226 @@
-# Contributing to PortaNode
+# Contributing
 
-Thank you for your interest in contributing to PortaNode!
+What this repository holds in common with the others of the organization
+— the toolchain, the lint gate, the tool tables behind it, the workflow
+set and the branch rules — is stated once in the
+[btclib-org repository standard](https://github.com/btclib-org/.github),
+each rule with the alternative it was decided against. It binds this
+repository, so a change departing from it is a divergence, and one filed
+as an issue in that repository rather than here: a difference between two
+repositories belongs to neither of them.
 
-## How to Contribute
+**This file is the same in every repository of the organization up to
+its last section.** What is true of one tree only — the commands that
+build its environment, the gates it runs, which of its workflows decide
+a merge — is under that heading, and the comparison stops there.
 
-1. **Fork the Repository**: Create a fork on GitHub.
-1. **Create a Branch**: Use a descriptive name (e.g., `feature/add-checksums`).
-1. **Make Changes**: Follow the guidelines below.
-1. **Test**: Run scripts on both macOS and Windows.
-1. **Submit a Pull Request**: Include a clear description and reference any
-   issues.
+## The issue tracker
 
-## Guidelines
+Where an issue is filed, and what an alignment finding has to name, is
+[the standard's *What this repository is*][s-what]: an issue spanning
+repositories, or whose subject is the standard, goes to
+[btclib-org/.github](https://github.com/btclib-org/.github/issues), and
+one about this tree alone stays here.
 
-- **Code Style**: Use consistent naming (e.g., `ROOTDIR` for paths) and
-  paths relative to it, never absolute ones — the folder's mount point
-  changes with the machine it is plugged into. Add comments for complex
-  logic.
-- **Error Handling**: Include checks for paths, binaries, and user
-  confirmations.
-- **Documentation**: Update READMEs for any changes. Add examples.
-- **Security**: Never commit sensitive data. Verify binaries with checksums.
-- **Compatibility**: Test on macOS 10.15+ and Windows 10+.
-- **Versioning**: This project uses Calendar Versioning (CalVer) with YYYY.MM.DD
-  format.
+A finding noticed while doing something else is filed, not carried.
+`REVIEWING.md`'s *Every collateral finding becomes an issue* is the whole
+of what to do with one, and it applies to an author as much as to a
+reviewer: a pull request answering two questions cannot be accepted for
+either.
 
-## Reporting Issues
+## Documentation and comments
 
-The issue tracker is where unfinished work lives — a bug, a missing
-feature, a paragraph of documentation that describes something the scripts
-do not do. Nothing is tracked in a file in the tree, because a file cannot
-be searched, assigned, or closed by the pull request that fixes it.
+[Section 9 of the standard][s9] is the prose style, and it governs the
+prose this tree ships — comments, docstrings and markdown. It is not
+restated here: a second wording is the one that goes stale, which is
+that section's own *One fact in one place*.
 
-Open a bug through
-[the form](https://github.com/btclib-org/portanode/issues/new/choose). It
-asks for what a reproduction needs, the volume and filesystem the folder
-lives on included: on a portable node that is the difference between most
-reports and the ones that reproduce.
+A commit message is prose this tree ships too, though section 9 does not
+say so: squash is the only merge method and the landing commit carries
+the messages, so what is written in one is read on `main` long after the
+branch is gone.
 
-Anything that is not a bug goes in a blank issue.
+## Pull requests
 
-## Review and Merging
+What `main` accepts, and what it refuses to everyone, is [section 11 of
+the standard][s11]. Run the gates locally before opening anything —
+the last section of this file says which they are — because CI runs
+exactly them, so a red run there is a local run that was not done.
 
-Every change starts with an open issue. A pull request needs an approving
-review from somebody other than its author before it can merge — GitHub does
-not allow a self-approval. Use `Closes #N` in the pull request's description:
-that is what closes the issue once the reviewed pull request merges.
+What a pull request's title and description have to say about the issues
+it closes, and why a manual link in the Development panel is a trap
+neither of them shows, is [the standard's *What a pull request says it
+is*][s-title]. Read it before opening one; it is the rule most often
+found broken after the fact.
 
-`main` also enforces four things on every commit that reaches it, not only
-on review: a verified signature, linear history, no force pushes, no branch
-deletion. This is a GitHub ruleset with no bypass actor, not a rule trusted
-to hold on its own — a commit that is unsigned or that rewrites history is
-rejected before it is something to review. Commits need a verified signature
-(GPG, SSH or S/MIME):
-<https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification>
+`REVIEWING.md` is the standard a review is written against, and is this
+file's other half. Read before opening a pull request, it is what the
+pull request will be answered against.
 
-## License
+`CHANGELOG.md` gets an entry for anything a reader would notice, and the
+release notes move only for something a user has to *act* on, in the
+repositories that publish.
 
-By contributing, you agree to the MIT License.
+### One subject, opened as soon as it is written
+
+A pull request answers one question. Issues that share a subject are one
+pull request, closing each of them; issues that do not are one pull
+request each, however small either of them is.
+
+It is opened the moment it is written and verified — not held for the
+previous one to be reviewed or to land, and not batched with the next. A
+batch arrives as one reviewing job with several subjects, which is the
+shape that costs the most to read; a finished pull request held back is
+review that could have started and did not.
+
+Working this way stacks branches, which is fine and costs one rule: a
+child whose base was amended is moved with the old base named,
+
+```shell
+git rebase --onto <new-base> <old-base-sha> <child>
+```
+
+because a plain rebase replays the base's old commit inside the child,
+and the forge then shows the base's old text as additions with nothing
+red anywhere. Read the child's diff afterwards rather than trusting the
+rebase, and retarget each child onto `main` as its parent lands.
+
+### The review
+
+A review is given promptly and on local evidence. It does not wait for
+CI, does not report a check as a finding, and does not discuss a run at
+all: whether CI is green is the author's business, once, at landing time.
+
+The exchange is anchored to a sha rather than to a branch, a branch being
+free to move under a review:
+
+- the author hands off by naming the sha pushed and the evidence run
+  against it, then leaves that head alone;
+- the reviewer answers with findings — where, what is wrong, how they
+  know it, and whether each is blocking;
+- the author accepts what is reasonable, declines the rest with a reason
+  in the thread, and pushes the answer without waiting for CI;
+- the reviewer resolves the threads they opened, that being what says a
+  finding is closed, and re-reviews the delta rather than the branch.
+
+**What ends the loop is the ack of record**, and the author does not
+supply their own. A reading that says what it found and delivers no
+verdict is a review too and ends nothing; [the standard's *Review*][s-rev]
+has which is which, and `REVIEWING.md` has how each is written. A
+disagreement that survives a second exchange goes to the maintainer
+instead of into a third round.
+
+### Landing it
+
+CI is read once, and this is where. Rebase onto `main`'s tip, push that
+head so the checks run on the tree that will land, and only then wait for
+them: checks read before a rebase describe a tree nobody is landing. A
+rebase that moved nothing but the base leaves the ack standing; one that
+resolved a conflict does not, that resolution being a change no reviewer
+has seen.
+
+Then squash, [the only method the rule accepts][s11].
+
+**The maintainer's bypass is not automatic — it has to be invoked, and
+`gh pr merge` cannot invoke it**, refusing client-side before it asks
+GitHub anything:
+
+```text
+Pull request is not mergeable: the base branch policy prohibits the merge
+```
+
+The merge endpoint applies it server-side, and it is the same endpoint
+the merge button asks:
+
+```shell
+gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge \
+  -f merge_method=squash
+```
+
+**Verify what landed rather than trusting the answer**, the signature
+[the standard asks for][s-sigs] being a valid one rather than a
+particular signer's:
+
+```shell
+gh api repos/{owner}/{repo}/commits/main \
+  --jq '.commit.verification | {verified, reason}'
+```
+
+The forge deletes the head branch itself, per the setting section 11
+names. What is still yours is bringing every checkout sitting on `main`
+up to date,
+that being where the next session starts from and a stale one being where
+a branch gets built on a base that has moved. `REPOSITORY.md` carries the
+settings and why they are what they are.
+
+[s-what]: https://github.com/btclib-org/.github#what-this-repository-is
+[s11]: https://github.com/btclib-org/.github#11-github-settings
+[s9]: https://github.com/btclib-org/.github#9-prose-comments-and-docstrings
+[s-title]: https://github.com/btclib-org/.github#what-a-pull-request-says-it-is
+[s-rev]: https://github.com/btclib-org/.github#review
+[s-sigs]: https://github.com/btclib-org/.github#signatures
+
+## This repository in particular
+
+Everything above is the same file in every repository of the
+organization; everything below is this one's, and the comparison stops at
+this heading.
+
+### The environment and the gates
+
+uv is the only thing that has to be installed; it fetches interpreters
+and tools itself. There is no project here — no `pyproject.toml`, no lock
+file, no Python at all — so nothing is synced and every command is a
+`uvx`:
+
+```shell
+uvx pre-commit run --all-files          # the whole gate
+uvx pre-commit run markdownlint-cli2    # one hook
+uvx pre-commit validate-config .pre-commit-config.yaml
+```
+
+That last one is worth running before pushing a change to the hook
+config: it catches what a wrong `types_or` tag or a malformed entry would
+otherwise turn into a failure a reader has to guess at.
+
+**Check exit codes, not filtered output.** `pre-commit run ... | grep -v
+Passed` hides a failure, and `grep` finding nothing exits 1, which is not
+the gate's answer to anything.
+
+**The gate is not installed as a git hook.** `pre-commit install` writes
+into the common git directory, which every worktree of this repository
+shares: `git -C <worktree> rev-parse --git-path hooks` answers with the
+maintainer's checkout, so one session installing it installs it for every
+other. Run the gate by hand before committing.
+
+**What the gate does not reach is the thing this repository ships.** The
+hooks read prose and configuration; the launchers are `.sh`, `.command`,
+`.bat` and `.ps1`, and nothing here runs one. `.pre-commit-config.yaml`
+says why `shellcheck` is not among the hooks and carries the command that
+answers for the bash half. The `.bat` and `.ps1` halves have no such
+command at all, so what stands in for a suite is running the launcher on
+both a macOS and a Windows machine, from a volume that is not the boot
+disk — which is the case the paths in these scripts exist for, and the
+one a checkout on an internal disk never exercises.
+
+### What gates a merge, and what only reports
+
+**Nothing gates a merge but the review and the branch rules.** There are
+no workflows here, so there is no required check to name:
+
+```shell
+gh api repos/btclib-org/portanode/actions/workflows --jq '.total_count'
+gh api repos/btclib-org/portanode/branches/main/protection \
+  --jq 'has("required_status_checks")'
+```
+
+answer `0` and `false`. What holds a pull request is an approving review,
+and what holds every commit that reaches `main` — signature, linear
+history, no force push, no deletion — is a ruleset with no bypass actor.
+`REPOSITORY.md` reads both back from the endpoint rather than restating
+them.
+
+So the gate above is run by a person and by nobody else: a branch that
+was not gated locally reaches `main` with nothing having looked at it.
+That is the trade this repository is currently on, and it is what a
+`lint.yml` here would change.
