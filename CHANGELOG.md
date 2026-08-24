@@ -50,6 +50,12 @@ using YYYY.MM.DD format.
   them in CRLF — a `.command` in CRLF not running on macOS at all, the
   one failure this tree exists to avoid. `.ps1` takes LF rather than
   `.bat`'s CRLF because PowerShell, unlike cmd.exe, reads either.
+- **The two utilities `README.md` describe PGP verification as failing
+  open** (#14). `macos/scripts/utilities/README.md` and
+  `win/scripts/utilities/README.md` said a missing `gpg` or missing keys
+  let an update continue with checksums left unwritten; `lib.sh` and
+  `lib.bat` both abort the update on exactly that condition, unless
+  `PORTANODE_ALLOW_UNVERIFIED=1` is set. Both files now say so.
 
 - **`CLAUDE.md`'s primary-checkout paragraph names the read that cannot
   go stale** (btclib-org/.github#255). It said reading the checkout was
