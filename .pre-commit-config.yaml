@@ -55,7 +55,7 @@ repos:
   # Pinned to the shellcheck-py version already used below as actionlint's
   # additional_dependency, so one shellcheck runs across the tree.
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
+    rev: v0.11.0.1-1
     hooks:
       - id: shellcheck
         args: [-x]
@@ -129,7 +129,7 @@ repos:
   # alias upstream moves onto each release, so `pre-commit autoupdate`
   # picks it as the newest tag and the pin stops being one
   - repo: https://github.com/crate-ci/typos
-    rev: v1.49.0
+    rev: v1
     hooks:
       - id: typos
   # the credentials of other systems, which is the half of secret
