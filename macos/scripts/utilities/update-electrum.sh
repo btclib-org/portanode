@@ -6,6 +6,26 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=macos/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+
+VERSION_OVERRIDE=""
+DRY_RUN=0
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --version)
+            VERSION_OVERRIDE="$2"
+            shift 2
+            ;;
+        --dry-run)
+            DRY_RUN=1
+            shift
+            ;;
+        *)
+            echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" >&2
+            exit 1
+            ;;
+    esac
+done
+
 # Download/verify/mount on the local (APFS) temp dir, never on the removable
 # exFAT volume; only the final, verified Electrum.app is copied onto exFAT.
 TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-electrum.XXXXXX")"
@@ -32,22 +52,64 @@ else
     exit 1
 fi
 
-INDEX_HTML="$(curl -fsSL -H "User-Agent: PortaNode" https://download.electrum.org/)"
-VERSION="$(
-  echo "$INDEX_HTML" \
-    | sed -nE 's/.*href="([0-9]+\.[0-9]+\.[0-9]+)\/".*/\1/p' \
-    | sort -t. -k1,1n -k2,2n -k3,3n \
-    | tail -n 1
-)"
-if [ -z "$VERSION" ]; then
-    echo "Failed to determine latest Electrum version from electrum.org."
-    exit 1
+if [ -n "$VERSION_OVERRIDE" ]; then
+    VERSION="$VERSION_OVERRIDE"
+    echo "Requested Electrum version: ${VERSION}"
+else
+    INDEX_HTML="$(curl -fsSL -H "User-Agent: PortaNode" https://download.electrum.org/)"
+    VERSION="$(
+      echo "$INDEX_HTML" \
+        | sed -nE 's/.*href="([0-9]+\.[0-9]+\.[0-9]+)\/".*/\1/p' \
+        | sort -t. -k1,1n -k2,2n -k3,3n \
+        | tail -n 1
+    )"
+    if [ -z "$VERSION" ]; then
+        echo "Failed to determine latest Electrum version from electrum.org."
+        exit 1
+    fi
 fi
 
 BASE_URL="https://download.electrum.org/${VERSION}"
 URL="${BASE_URL}/electrum-${VERSION}.dmg"
 OUT_FILE="electrum-${VERSION}.dmg"
 SIG_FILE="${OUT_FILE}.asc"
+
+if [ "$DRY_RUN" -eq 1 ]; then
+    CURRENT="$(installed_version \
+      "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+      "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+      "$ROOTDIR/macos/checksums.sha256")"
+    echo "--dry-run: nothing will be downloaded, verified or installed."
+    echo "Would install Electrum ${VERSION} (currently installed: ${CURRENT})."
+    echo "Would fetch: $URL"
+    if command -v gpg >/dev/null 2>&1; then
+        FPR="$(grep -m1 -E '^[0-9A-Fa-f]{40}$' "$ROOTDIR/keys/electrum.fingerprints" \
+          2>/dev/null || true)"
+        if [ -n "$FPR" ]; then
+            if gpg --list-keys "$FPR" >/dev/null 2>&1; then
+                echo "gpg: found, pinned key $FPR is in the local keyring."
+            else
+                echo "gpg: found, but pinned key $FPR is NOT in the local" \
+                     "keyring -- verification would fail closed unless" \
+                     "PORTANODE_ALLOW_UNVERIFIED=1 is set."
+            fi
+        else
+            echo "gpg: found, no pinned fingerprint in" \
+                 "keys/electrum.fingerprints."
+        fi
+    else
+        echo "gpg: not found -- verification would fail closed unless" \
+             "PORTANODE_ALLOW_UNVERIFIED=1 is set."
+    fi
+    ARCHIVE_LEN="$(curl -fsIL "$URL" \
+      | tr -d '\r' | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')"
+    if [ -n "$ARCHIVE_LEN" ]; then
+        echo "Archive size: $((ARCHIVE_LEN / 1024 / 1024)) MB" \
+             "(downloaded to local temp storage, not the removable disk)."
+    fi
+    df -h "$ROOTDIR" | awk -v r="$ROOTDIR" 'NR==2 {print "Free space at " r ": " $4}'
+    exit 0
+fi
 
 mkdir -p "$TMPDIR"
 echo "Downloading $URL..."

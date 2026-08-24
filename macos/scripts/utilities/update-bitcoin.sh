@@ -8,6 +8,25 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 cd "$ROOTDIR"
 
+VERSION_OVERRIDE=""
+DRY_RUN=0
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --version)
+            VERSION_OVERRIDE="$2"
+            shift 2
+            ;;
+        --dry-run)
+            DRY_RUN=1
+            shift
+            ;;
+        *)
+            echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" >&2
+            exit 1
+            ;;
+    esac
+done
+
 # Detect OS/arch (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="apple-darwin"
@@ -25,11 +44,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     APP_NAME="Bitcoin-Qt.app"
     APP_DIR="$ROOTDIR/macos/bin"
     APP_BACKUP_DIR="$APP_DIR/backup/bitcoin"
-    # Download/verify/extract on the local (APFS) temp dir, never on the
-    # removable exFAT volume: macOS's fskit exFAT driver can silently corrupt
-    # files written during extraction. Only the final, verified binaries are
-    # copied onto exFAT (see install_verified).
-    TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-bitcoin.XXXXXX")"
 else
     echo "Unsupported OS (macOS only)."
     exit 1
@@ -38,36 +52,42 @@ fi
 # Release archive name for a given version.
 release_file() { echo "bitcoin-$1-${ARCH_TAG}-${OS}.${EXT}"; }
 
-# Pick the newest release on bitcoincore.org that actually ships a macOS
-# archive (mirrors how update-electrum.sh auto-detects the latest Electrum).
-# The index can list version directories that are empty (a release not yet
-# published) or that lack macOS builds, so we probe newest-first and skip any
-# candidate whose archive is missing. Legacy 0.x releases are excluded so the
-# numeric sort picks a modern version.
-echo "Determining latest Bitcoin Core version..."
-INDEX_HTML="$(curl -fsSL -H "User-Agent: PortaNode" https://bitcoincore.org/bin/)"
-CANDIDATES="$(
-  echo "$INDEX_HTML" \
-    | sed -nE 's/.*href="bitcoin-core-([0-9]+\.[0-9]+(\.[0-9]+)?)\/".*/\1/p' \
-    | grep -vE '^0\.' \
-    | sort -t. -k1,1nr -k2,2nr -k3,3nr
-)"
-VERSION=""
-for candidate in $CANDIDATES; do
-    candidate_url="https://bitcoincore.org/bin/bitcoin-core-${candidate}/$(release_file "$candidate")"
-    if curl -fsIL -o /dev/null "$candidate_url"; then
-        VERSION="$candidate"
-        break
+if [ -n "$VERSION_OVERRIDE" ]; then
+    VERSION="$VERSION_OVERRIDE"
+    FILE="$(release_file "$VERSION")"
+    echo "Requested Bitcoin Core version: ${VERSION}"
+else
+    # Pick the newest release on bitcoincore.org that actually ships a macOS
+    # archive (mirrors how update-electrum.sh auto-detects the latest
+    # Electrum). The index can list version directories that are empty (a
+    # release not yet published) or that lack macOS builds, so we probe
+    # newest-first and skip any candidate whose archive is missing. Legacy
+    # 0.x releases are excluded so the numeric sort picks a modern version.
+    echo "Determining latest Bitcoin Core version..."
+    INDEX_HTML="$(curl -fsSL -H "User-Agent: PortaNode" https://bitcoincore.org/bin/)"
+    CANDIDATES="$(
+      echo "$INDEX_HTML" \
+        | sed -nE 's/.*href="bitcoin-core-([0-9]+\.[0-9]+(\.[0-9]+)?)\/".*/\1/p' \
+        | grep -vE '^0\.' \
+        | sort -t. -k1,1nr -k2,2nr -k3,3nr
+    )"
+    VERSION=""
+    for candidate in $CANDIDATES; do
+        candidate_url="https://bitcoincore.org/bin/bitcoin-core-${candidate}/$(release_file "$candidate")"
+        if curl -fsIL -o /dev/null "$candidate_url"; then
+            VERSION="$candidate"
+            break
+        fi
+        echo "Skipping ${candidate} (no macOS archive published)."
+    done
+    if [ -z "$VERSION" ]; then
+        echo "Failed to find a Bitcoin Core release with a macOS archive on" \
+             "bitcoincore.org."
+        exit 1
     fi
-    echo "Skipping ${candidate} (no macOS archive published)."
-done
-if [ -z "$VERSION" ]; then
-    echo "Failed to find a Bitcoin Core release with a macOS archive on" \
-         "bitcoincore.org."
-    exit 1
+    FILE="$(release_file "$VERSION")"
+    echo "Latest Bitcoin Core with a macOS build: ${VERSION}"
 fi
-FILE="$(release_file "$VERSION")"
-echo "Latest Bitcoin Core with a macOS build: ${VERSION}"
 
 # The ".app" zip ships only the GUI; the command-line tools (bitcoind,
 # bitcoin-cli, etc.) live in the loose-binary tarball, so fetch that too and
@@ -96,8 +116,43 @@ CHECKSUM_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS"
 CHECKSUM_SIG_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/"\
 "SHA256SUMS.asc"
 
+if [ "$DRY_RUN" -eq 1 ]; then
+    CURRENT="$(installed_version \
+      "$APP_DIR/${APP_NAME}/Contents/MacOS/Bitcoin-Qt" \
+      "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+      "$ROOTDIR/macos/checksums.sha256")"
+    echo "--dry-run: nothing will be downloaded, verified or installed."
+    echo "Would install Bitcoin Core ${VERSION} (currently installed: ${CURRENT})."
+    echo "Would fetch: $URL"
+    echo "Would verify against: $CHECKSUM_URL (signed by $CHECKSUM_SIG_URL)"
+    if command -v gpg >/dev/null 2>&1; then
+        PUBKEYS="$(gpg --list-keys --with-colons 2>/dev/null | grep -c '^pub')"
+        echo "gpg: found, ${PUBKEYS} public key(s) in the local keyring."
+        if [ "$PUBKEYS" -eq 0 ]; then
+            echo "Warning: with none imported, verification would fail closed" \
+                 "unless PORTANODE_ALLOW_UNVERIFIED=1 is set."
+        fi
+    else
+        echo "gpg: not found -- verification would fail closed unless" \
+             "PORTANODE_ALLOW_UNVERIFIED=1 is set."
+    fi
+    ARCHIVE_LEN="$(curl -fsIL "$URL" \
+      | tr -d '\r' | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')"
+    if [ -n "$ARCHIVE_LEN" ]; then
+        echo "Archive size: $((ARCHIVE_LEN / 1024 / 1024)) MB" \
+             "(downloaded to local temp storage, not the removable disk)."
+    fi
+    df -h "$ROOTDIR" | awk -v r="$ROOTDIR" 'NR==2 {print "Free space at " r ": " $4}'
+    exit 0
+fi
+
+# Download/verify/extract on the local (APFS) temp dir, never on the
+# removable exFAT volume: macOS's fskit exFAT driver can silently corrupt
+# files written during extraction. Only the final, verified binaries are
+# copied onto exFAT (see install_verified). Created here, after the
+# --dry-run exit above, so a dry run never leaves an empty directory behind.
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-bitcoin.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
-mkdir -p "$TMP_DIR"
 
 echo "Downloading $URL..."
 curl -fL -o "$TMP_DIR/$FILE" "$URL"

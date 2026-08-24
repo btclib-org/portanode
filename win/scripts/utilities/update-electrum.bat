@@ -4,18 +4,33 @@ REM Update Electrum version (Windows)
 
 set SCRIPT_DIR=%~dp0
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+
+set "VERSION_OVERRIDE="
+set "DRY_RUN=0"
+:parse_args
+if "%~1"=="" goto :args_done
+if "%~1"=="--version" (
+    set "VERSION_OVERRIDE=%~2"
+    shift
+    shift
+    goto :parse_args
+)
+if "%~1"=="--dry-run" (
+    set "DRY_RUN=1"
+    shift
+    goto :parse_args
+)
+echo Usage: %~nx0 [--version ^<v^>] [--dry-run]
+exit /b 1
+:args_done
+
 pushd "%ROOTDIR%" >nul 2>&1
 
 set "BIN_DIR=%ROOTDIR%\win\bin"
 set "BACKUP_DIR=%BIN_DIR%\backup\electrum"
 set CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256
-REM Download/verify on the local disk (%TEMP%), never on the removable volume;
-REM only the final, verified electrum.exe is copied onto win\bin.
 set "TMPDIR=%TEMP%\portanode-electrum"
 set STATUS=0
-
-if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
-mkdir "%TMPDIR%"
 
 echo Updating Electrum...
 
@@ -26,24 +41,70 @@ if %errorlevel%==0 (
     exit /b 1
 )
 
-for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command ^
-    "& { $html = (Invoke-WebRequest -Uri 'https://download.electrum.org/' ^
-    -UseBasicParsing).Content; ^
-    $versions = [regex]::Matches($html, 'href=\"(\\d+\\.\\d+\\.\\d+)/\"') ^
-      | ForEach-Object { $_.Groups[1].Value }; ^
-    $versions = $versions | Sort-Object -Unique | Sort-Object {[version]$_}; ^
-    if ($versions) { $versions | Select-Object -Last 1 } }"`) ^
-do set VERSION=%%V
+if defined VERSION_OVERRIDE (
+    set "VERSION=%VERSION_OVERRIDE%"
+    echo Requested Electrum version: !VERSION!
+) else (
+    for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command ^
+        "& { $html = (Invoke-WebRequest -Uri 'https://download.electrum.org/' ^
+        -UseBasicParsing).Content; ^
+        $versions = [regex]::Matches($html, 'href=\"(\\d+\\.\\d+\\.\\d+)/\"') ^
+          | ForEach-Object { $_.Groups[1].Value }; ^
+        $versions = $versions | Sort-Object -Unique | Sort-Object {[version]$_}; ^
+        if ($versions) { $versions | Select-Object -Last 1 } }"`) ^
+    do set VERSION=%%V
 
-if "%VERSION%"=="" (
-    echo Error: Failed to determine latest Electrum version.
-    goto :error
+    if "%VERSION%"=="" (
+        echo Error: Failed to determine latest Electrum version.
+        goto :error
+    )
+    echo Latest Electrum version: !VERSION!
 )
 
 set FILE=electrum-%VERSION%-portable.exe
 set SIG_FILE=%FILE%.asc
 set BASE_URL=https://download.electrum.org/%VERSION%/
 set URL=%BASE_URL%%FILE%
+
+if "%DRY_RUN%"=="1" (
+    call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
+    echo --dry-run: nothing will be downloaded, verified or installed.
+    echo Would install Electrum %VERSION% ^(currently installed: !CURRENT!^).
+    echo Would fetch: %URL%
+    where gpg >nul 2>&1
+    if %errorlevel%==0 (
+        echo gpg: found.
+        call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
+    ) else (
+        echo gpg: not found -- verification would fail closed unless
+        echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
+    )
+    set ARCHIVE_LEN=
+    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command ^
+      "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head ^
+      -UseBasicParsing).Headers['Content-Length'] } catch { '' } }"`) ^
+      do set ARCHIVE_LEN=%%L
+    if defined ARCHIVE_LEN (
+        set /a ARCHIVE_MB=!ARCHIVE_LEN!/1024/1024
+        echo Archive size: !ARCHIVE_MB! MB ^(downloaded to local temp
+        echo storage, not the removable disk^).
+    )
+    for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
+      findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
+    if defined FREE_BYTES (
+        set /a FREE_GB=!FREE_BYTES!/1024/1024/1024
+        echo Free space at %ROOTDIR%: !FREE_GB! GB
+    )
+    popd >nul 2>&1
+    exit /b 0
+)
+
+REM Download/verify on the local disk (%TEMP%), never on the removable volume;
+REM only the final, verified electrum.exe is copied onto win\bin. Created
+REM here, after the --dry-run exit above, so a dry run never leaves an empty
+REM directory behind.
+if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
+mkdir "%TMPDIR%"
 
 echo Downloading %URL%...
 set PGP_OK=0
