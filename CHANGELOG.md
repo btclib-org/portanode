@@ -28,6 +28,15 @@ using YYYY.MM.DD format.
   Every launcher that sources `lib.sh` through a dynamic
   `$SCRIPT_DIR`-built path now also carries a `shellcheck source=` at
   that line, so `-x` can follow it.
+- **`check-shebang-scripts-are-executable` is now in
+  `.pre-commit-config.yaml`** (#17), excluding the two `lib.sh` that are
+  sourced rather than run. Every tracked file with a shebang already
+  carried the executable bit the hook asks for, so it lands with no
+  further change. `macos/README.md`'s Troubleshooting section no longer
+  offers `chmod +x scripts/**/*.command` for a state the repository does
+  not produce; it points instead at the root `README.md`'s own
+  "Permission denied on macOS" bullet, which names the one route by
+  which the bit can actually go missing and what to do about it (#18).
 
 - **`CLAUDE.md`'s primary-checkout paragraph names the read that cannot
   go stale** (btclib-org/.github#255). It said reading the checkout was

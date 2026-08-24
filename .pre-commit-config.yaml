@@ -77,6 +77,17 @@ repos:
         # above need no such exclusion: both preserve the line ending
         # they find, which is why only this one is named
         exclude: \.bat$
+      # CLAUDE.md's own invariant: the executable bit is set on what macOS
+      # runs -- the root and macos/scripts/ .command and .sh launchers --
+      # and on nothing else. The two lib.sh are excluded because they are
+      # sourced rather than run, and a bit on either would say a thing
+      # about the file that running it does not bear out; the .bat and
+      # .ps1 halves carry no shebang and so never reach this hook. Windows
+      # does not store the git file mode at all, so a bit lost on that
+      # platform is invisible to it there and caught here on whichever
+      # platform commits
+      - id: check-shebang-scripts-are-executable
+        exclude: ^macos/scripts/(lib\.sh|utilities/lib\.sh)$
       - id: check-case-conflict
       - id: fix-byte-order-marker
       - id: check-merge-conflict
