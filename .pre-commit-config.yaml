@@ -11,23 +11,6 @@
 # no project and no `uv.lock`, so `uv-lock` has nothing to keep in step.
 # A hook is added here the day the tree grows the file it reads.
 #
-# **shellcheck is the absence worth arguing**, this being a tree whose
-# executable half is bash. It is left out because it does not pass today
-# and the fixes are not this file's subject:
-#
-#   git ls-files '*.sh' '*.command' \
-#     | xargs uvx --from shellcheck-py shellcheck -x -f gcc
-#
-# answers with findings across the macOS scripts -- an unused variable, a
-# `read` without -r, an `rm -rf` on a path that two empty variables would
-# make `/` -- and with two it is wrong about, a deliberate unquoted
-# expansion that tar needs word-split and a line continuation it reads as
-# accidental concatenation. Adding the hook with those disabled would be
-# asserting each is fine, which two of them are not; adding it at
-# --severity=error reports nothing at all, every finding being info or
-# warning. So the hook lands with the pull request that answers them, and
-# the command above is what says whether that has happened.
-#
 # Skip a hook with SKIP=<id>, or all of them with "git commit -n".
 ci:
   # a bot committing to a branch is at odds with a setup where no
@@ -57,6 +40,25 @@ repos:
         language: pygrep
         entry: '^ *rev: "?v?([0-9]+|[0-9][0-9.]*(a|b|rc|dev)[0-9]+)"?$'
         files: ^\.pre-commit-config\.yaml$
+  # the executable half of the tree: identify reads a shebang on an
+  # executable file, so .command launchers are typed "shell" here the same
+  # as .sh, and nothing further is needed to reach both. -x follows a
+  # sourced file that is not itself among the files being checked, which
+  # every launcher needs for lib.sh; each source line carries its own
+  # "shellcheck source=" so -x knows where to look rather than guessing
+  # from the dynamic $SCRIPT_DIR path shellcheck cannot evaluate. The two
+  # findings shellcheck is wrong about -- a deliberate unquoted expansion
+  # tar needs word-split and a line continuation that is not accidental
+  # concatenation -- are disabled at their own line in update-bitcoin.sh,
+  # with the reasoning beside them, rather than here: a global disable
+  # would silence a real instance of either alongside the false one.
+  # Pinned to the shellcheck-py version already used below as actionlint's
+  # additional_dependency, so one shellcheck runs across the tree.
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        args: [-x]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:

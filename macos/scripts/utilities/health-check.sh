@@ -2,6 +2,7 @@
 # Health check for PortaNode
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=macos/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 
@@ -39,7 +40,6 @@ BTC_RUNNING="no"
 BTC_METHOD=""
 BLOCKCHAIN_INFO=""
 ARTIFACT_NOTE=""
-ARTIFACTS_FOUND=0
 if [ -n "$BTC_CLI" ]; then
     BLOCKCHAIN_INFO=$(
       "$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" \
@@ -64,11 +64,9 @@ if [ "$BTC_RUNNING" != "yes" ]; then
     # whether Bitcoin is running and flagging it produced false "maybe" alarms.
     if [ -f "$ROOTDIR/bitcoin-datadir/.cookie" ]; then
         ARTIFACTS+=(".cookie")
-        ARTIFACTS_FOUND=1
     fi
     if [ -f "$ROOTDIR/bitcoin-datadir/bitcoind.pid" ]; then
         ARTIFACTS+=("bitcoind.pid")
-        ARTIFACTS_FOUND=1
         PID="$(cat "$ROOTDIR/bitcoin-datadir/bitcoind.pid" 2>/dev/null || true)"
         # Confirm the PID is actually a Bitcoin process: after a crash the pid
         # file can be left behind and its number reused by something unrelated,

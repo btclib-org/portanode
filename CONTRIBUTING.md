@@ -193,13 +193,12 @@ shares: `git -C <worktree> rev-parse --git-path hooks` answers with the
 maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
-**What the gate does not reach is the thing this repository ships.** The
-hooks read prose and configuration; the launchers are `.sh`, `.command`,
-`.bat` and `.ps1`, and nothing here runs one. `.pre-commit-config.yaml`
-says why `shellcheck` is not among the hooks and carries the command that
-answers for the bash half. The `.bat` and `.ps1` halves have no such
-command at all, so what stands in for a suite is running the launcher on
-both a macOS and a Windows machine, from a volume that is not the boot
+**What the gate does not reach is running the thing this repository
+ships.** The hooks read prose, configuration and, through `shellcheck`,
+the `.sh` and `.command` launchers themselves — but nothing here runs
+one. The `.bat` and `.ps1` halves have no such hook at all, so what
+stands in for a suite is running the launcher on both a macOS and a
+Windows machine, from a volume that is not the boot
 disk — which is the case the paths in these scripts exist for, and the
 one a checkout on an internal disk never exercises.
 

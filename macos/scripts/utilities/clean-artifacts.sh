@@ -2,6 +2,7 @@
 # Clean macOS artifacts
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=macos/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 

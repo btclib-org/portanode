@@ -281,8 +281,8 @@ only a preference but the fallback if it does.
 Code scanning is not configured and nothing here asks for it: there is no
 language CodeQL analyses in this tree — `code-quality/setup` answers with
 an empty `languages` list, which is the same finding said twice — and
-what would read the launchers is `shellcheck`, which
-`.pre-commit-config.yaml` argues about where the hooks are.
+what reads the launchers instead is `shellcheck`, in
+`.pre-commit-config.yaml`'s own hooks.
 
 ## Plan-gated settings
 

@@ -3,6 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=macos/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 cd "$ROOTDIR"
@@ -90,6 +91,8 @@ echo "Updating Bitcoin Core..."
 
 URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/${FILE}"
 CHECKSUM_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS"
+# shellcheck disable=SC2140 # a line continuation building one URL, not
+# the "A"B"C" concatenation shellcheck reads it as
 CHECKSUM_SIG_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/"\
 "SHA256SUMS.asc"
 
@@ -168,6 +171,8 @@ TAR_MEMBERS=""
 for b in $BIN_NAMES; do
     TAR_MEMBERS="$TAR_MEMBERS bitcoin-${VERSION}/bin/$b"
 done
+# shellcheck disable=SC2086 # unquoted on purpose: word-splits TAR_MEMBERS
+# into the several member names tar is meant to receive
 tar -xzf "$TMP_DIR/$CLI_ARCHIVE" -C "$TMP_DIR" $TAR_MEMBERS
 for b in $BIN_NAMES; do
     if [ ! -x "$TMP_BIN_DIR/$b" ]; then
@@ -197,7 +202,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     mkdir -p "$APP_DIR"
     if [ -d "$APP" ]; then
         mkdir -p "$APP_BACKUP_DIR"
-        rm -rf "$APP_BACKUP_DIR/${APP_NAME}"
+        rm -rf "${APP_BACKUP_DIR:?}/${APP_NAME:?}"
         cp -R "$APP" "$APP_BACKUP_DIR/${APP_NAME}"
     fi
 

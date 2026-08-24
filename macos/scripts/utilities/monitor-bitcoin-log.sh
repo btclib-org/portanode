@@ -2,6 +2,7 @@
 # Monitor Bitcoin log for errors and send notifications
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=macos/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 LOG_FILE="$ROOTDIR/bitcoin-datadir/debug.log"
