@@ -38,6 +38,13 @@ using YYYY.MM.DD format.
   "Permission denied on macOS" bullet, which names the one route by
   which the bit can actually go missing and what to do about it (#18).
 
+- **`detect-secrets` now runs against a committed `.secrets.baseline`**
+  (#16), rather than with nothing to record a finding against. Generated
+  with every plugin at its default: `keys/*.fingerprints` and
+  `*/checksums.sha256` are the hex this tree carries, and none of it
+  reaches `HexHighEntropyString`'s threshold, so the baseline's own
+  `results` is empty.
+
 - **`CLAUDE.md`'s primary-checkout paragraph names the read that cannot
   go stale** (btclib-org/.github#255). It said reading the checkout was
   fine and so was `git fetch`, without saying `git fetch` moves
