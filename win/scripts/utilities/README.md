@@ -37,7 +37,12 @@ Can be used if an update fails
 
 - `rotate-bitcoin-log.bat`: Rotates `bitcoin-datadir/debug.log` by copying to a
   backup (debug.log.1, etc.) and truncating the current log.
-- `monitor-bitcoin-log.bat`: Scans the Bitcoin log for new errors/warnings.
+- `monitor-bitcoin-log.bat`: Scans the Bitcoin log for new errors/warnings,
+  showing a toast (or a MessageBox where toast notifications are
+  unavailable) if issues are detected. `--no-notify` (or
+  `PORTANODE_NO_NOTIFY=1`) suppresses it for a scheduled run — needed under
+  Task Scheduler, since the MessageBox fallback is modal and would block a
+  scheduled run indefinitely.
 - `health-check.bat`: Disk space + basic process checks.
 - `clean-artifacts.bat`: Removes Windows artifact files from the repo.
 - `set-permissions.bat`: Sets restrictive ACLs on `bitcoin-datadir/` and
