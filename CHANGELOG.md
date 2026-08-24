@@ -13,6 +13,16 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`CLAUDE.md`'s primary-checkout paragraph names the read that cannot
+  go stale** (btclib-org/.github#255). It said reading the checkout was
+  fine and so was `git fetch`, without saying `git fetch` moves
+  `refs/remotes/origin/main` and leaves the work tree where it was, so a
+  `grep` or a `Read` against the checkout answered for whenever it was
+  last brought forward. The paragraph now names `git show
+  origin/main:<path>` as the read that does not go stale, and gives the
+  fast-forward that brings a clean checkout forward without working in
+  it.
+
 - **`.gitattributes`'s shared half carries the paragraph saying both
   `merge=union` lines are in every repository's copy, a tree with no
   `RELEASE_NOTES.md` included.** The organization's copy, shared half
