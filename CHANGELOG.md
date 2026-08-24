@@ -354,6 +354,18 @@ using YYYY.MM.DD format.
   instead of scraping electrum.org HTML.
 - Root resolution is now centralized per OS, and utilities/launchers honor
   PORTANODE_ROOT overrides on macOS and Windows.
+- **`update-bitcoin`, `update-electrum`, `rollback-bitcoin` and
+  `rollback-electrum` take `--dry-run` on macOS and Windows** (#7), and
+  the updaters also take `--version <v>` to install a specific release
+  instead of the latest one (#6). An updater's `--dry-run` runs before
+  any download begins: it reports the requested version against the one
+  `checksums.sha256` recognizes as currently installed, the URL it would
+  fetch, whether a signing key is present in the local keyring, the
+  archive's size from a `HEAD` request, and free space at the mount
+  point, without fetching, verifying or writing anything. A rollback's
+  `--dry-run` runs the real checksum check against the backup, since
+  that step is already read-only, and only skips the file replacement
+  itself.
 
 ## [2026.01.27] - Initial Release
 

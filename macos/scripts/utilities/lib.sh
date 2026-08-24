@@ -215,3 +215,43 @@ verify_checksum_entry() {
     fi
     return 0
 }
+
+# installed_version FILE ENTRY_PATH [CHECKSUM_FILE] — the "version=" label of
+# the checksums.sha256 entry matching FILE's current hash, for a --dry-run
+# plan's "currently installed" line. Echoes "unknown" rather than failing:
+# nothing here gates an install, so a missing file or an unrecorded hash is
+# reported, not an error.
+installed_version() {
+    local file="$1"
+    local entry_path="$2"
+    local checksum_file="${3:-$ROOTDIR/macos/checksums.sha256}"
+    local hash=""
+
+    if [ ! -f "$file" ] || [ ! -f "$checksum_file" ]; then
+        echo "unknown"
+        return 0
+    fi
+
+    if command -v shasum >/dev/null 2>&1; then
+        hash="$(shasum -a 256 "$file" | awk '{print $1}')"
+    elif command -v sha256sum >/dev/null 2>&1; then
+        hash="$(sha256sum "$file" | awk '{print $1}')"
+    else
+        echo "unknown"
+        return 0
+    fi
+
+    awk -v h="$hash" -v p="$entry_path" '
+        $1 == h && index($0, p) {
+            for (i = 1; i <= NF; i++) {
+                if ($i ~ /^version=/) {
+                    sub(/^version=/, "", $i)
+                    print $i
+                    found = 1
+                    exit
+                }
+            }
+        }
+        END { if (!found) print "unknown" }
+    ' "$checksum_file"
+}

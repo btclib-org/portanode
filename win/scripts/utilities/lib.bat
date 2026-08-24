@@ -127,6 +127,31 @@ powershell -Command ^
 if errorlevel 1 exit /b 1
 exit /b 0
 
+REM :installed_version FILE ENTRY_PATH CHECKSUM_FILE OUTVAR
+REM Sets OUTVAR to the "version=" label of the checksum entry matching
+REM FILE's current hash, or "unknown". For a --dry-run plan's "currently
+REM installed" line; never fails the caller, only reports.
+:installed_version
+set "IV_FILE_RAW=%~1"
+set "IV_ENTRY_RAW=%~2"
+set "IV_CHECKSUM=%~3"
+set "IV_OUTVAR=%~4"
+call :normalize_fs_path "%IV_FILE_RAW%" IV_FILE_FS
+call :normalize_entry_path "%IV_ENTRY_RAW%" IV_ENTRY_ENTRY
+set "%IV_OUTVAR%=unknown"
+if not exist "%IV_FILE_FS%" exit /b 0
+if not exist "%IV_CHECKSUM%" exit /b 0
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command ^
+  "& { $hash = (Get-FileHash -Algorithm SHA256 '%IV_FILE_FS%').Hash.ToLower(); ^
+  $path = '%IV_ENTRY_ENTRY%'.ToLower(); ^
+  $lines = Get-Content '%IV_CHECKSUM%'; ^
+  foreach ($l in $lines) { ^
+    $line = $l.ToLower().Replace('\','/'); ^
+    if ($line.StartsWith($hash) -and $line.Contains($path)) { ^
+      if ($l -match 'version=(\S+)') { Write-Output $matches[1] } ^
+      break } } }"`) do set "%IV_OUTVAR%=%%V"
+exit /b 0
+
 :normalize_fs_path
 set "RAW=%~1"
 set "OUTVAR=%~2"

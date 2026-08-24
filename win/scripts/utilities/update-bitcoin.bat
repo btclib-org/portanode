@@ -4,21 +4,46 @@ REM Update Bitcoin Core binaries (Windows)
 
 set SCRIPT_DIR=%~dp0
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+
+set "VERSION_OVERRIDE="
+set "DRY_RUN=0"
+:parse_args
+if "%~1"=="" goto :args_done
+if "%~1"=="--version" (
+    set "VERSION_OVERRIDE=%~2"
+    shift
+    shift
+    goto :parse_args
+)
+if "%~1"=="--dry-run" (
+    set "DRY_RUN=1"
+    shift
+    goto :parse_args
+)
+echo Usage: %~nx0 [--version ^<v^>] [--dry-run]
+exit /b 1
+:args_done
+
 pushd "%ROOTDIR%" >nul 2>&1
 
 set "BIN_DIR=%ROOTDIR%\\win\\bin"
 set "BACKUP_DIR=%BIN_DIR%\\backup\\bitcoin"
 
-echo Determining latest Bitcoin Core version...
-set VERSION=
-for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-  -File "%SCRIPT_DIR%latest-bitcoin-version.ps1"`) do set VERSION=%%V
-if not defined VERSION (
-    echo Error: could not determine a Bitcoin Core release with a win64 build.
-    popd >nul 2>&1
-    exit /b 1
+if defined VERSION_OVERRIDE (
+    set "VERSION=%VERSION_OVERRIDE%"
+    echo Requested Bitcoin Core version: !VERSION!
+) else (
+    echo Determining latest Bitcoin Core version...
+    set VERSION=
+    for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+      -File "%SCRIPT_DIR%latest-bitcoin-version.ps1"`) do set VERSION=%%V
+    if not defined VERSION (
+        echo Error: could not determine a Bitcoin Core release with a win64 build.
+        popd >nul 2>&1
+        exit /b 1
+    )
+    echo Latest Bitcoin Core with a win64 build: !VERSION!
 )
-echo Latest Bitcoin Core with a win64 build: %VERSION%
 set FILE=bitcoin-%VERSION%-win64.zip
 set BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/
 set URL=%BASE_URL%%FILE%
@@ -47,6 +72,41 @@ if %errorlevel%==0 (
     popd >nul 2>&1
     exit /b 1
 )
+
+if "%DRY_RUN%"=="1" (
+    call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENT
+    echo --dry-run: nothing will be downloaded, verified or installed.
+    echo Would install Bitcoin Core %VERSION% ^(currently installed: !CURRENT!^).
+    echo Would fetch: %URL%
+    echo Would verify against: %CHECKSUM_URL% ^(signed by %CHECKSUM_SIG_URL%^)
+    where gpg >nul 2>&1
+    if %errorlevel%==0 (
+        echo gpg: found.
+        call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
+    ) else (
+        echo gpg: not found -- verification would fail closed unless
+        echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
+    )
+    set ARCHIVE_LEN=
+    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command ^
+      "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head ^
+      -UseBasicParsing).Headers['Content-Length'] } catch { '' } }"`) ^
+      do set ARCHIVE_LEN=%%L
+    if defined ARCHIVE_LEN (
+        set /a ARCHIVE_MB=!ARCHIVE_LEN!/1024/1024
+        echo Archive size: !ARCHIVE_MB! MB ^(downloaded to local temp
+        echo storage, not the removable disk^).
+    )
+    for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
+      findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
+    if defined FREE_BYTES (
+        set /a FREE_GB=!FREE_BYTES!/1024/1024/1024
+        echo Free space at %ROOTDIR%: !FREE_GB! GB
+    )
+    popd >nul 2>&1
+    exit /b 0
+)
+
 echo Downloading %URL%...
 set PGP_OK=0
 powershell -Command ^
