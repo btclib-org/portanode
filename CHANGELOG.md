@@ -56,6 +56,12 @@ using YYYY.MM.DD format.
   let an update continue with checksums left unwritten; `lib.sh` and
   `lib.bat` both abort the update on exactly that condition, unless
   `PORTANODE_ALLOW_UNVERIFIED=1` is set. Both files now say so.
+- **`validate-setup` required only 100GB free, where an unpruned mainnet
+  full sync needs 700GB** (#4). It now reads `prune=` from
+  `bitcoin-datadir/bitcoin.conf`: unpruned and below 700GB free warns
+  rather than passing silently, and below 100GB still fails outright
+  either way. README.md's Prerequisites is the one place both figures
+  are stated.
 
 - **`CLAUDE.md`'s primary-checkout paragraph names the read that cannot
   go stale** (btclib-org/.github#255). It said reading the checkout was
