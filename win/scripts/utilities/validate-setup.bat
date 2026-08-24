@@ -31,7 +31,10 @@ REM unpruned mainnet full sync, 100GB otherwise (pruned, testnet, or
 REM regtest) -- changing either belongs there first, this comment
 REM second. Pruning is read from bitcoin-datadir\bitcoin.conf rather
 REM than assumed: an active, non-zero "prune=" anywhere in the file
-REM (any network section) lowers the requirement.
+REM (any network section) lowers the requirement. The pattern matches a
+REM leading space, not a tab -- this tree's own bitcoin.conf indents
+REM with neither, so a tab-indented "prune=" would be missed here where
+REM the macOS script's [[:space:]] class would still catch it.
 set PRUNED=0
 if exist "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" (
     findstr /R /I "^[ ]*prune[ ]*=[ ]*[1-9]" ^
