@@ -24,4 +24,9 @@ done
 cp "$LOG_FILE" "${LOG_FILE}.1"
 : > "$LOG_FILE"
 
+# The monitor's stored offset is now past the end of the truncated file; clear
+# it here rather than leaving the monitor to catch the mismatch on its next
+# run, which is a race it can lose (see monitor-bitcoin-log.sh).
+rm -f "$ROOTDIR/.last_log_offset"
+
 echo "Log rotated: $LOG_FILE"

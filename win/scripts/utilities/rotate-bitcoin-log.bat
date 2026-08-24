@@ -24,5 +24,11 @@ for /l %%I in (%START%,-1,1) do (
 powershell -Command ^
   "& { Copy-Item -Force '%LOG_FILE%' '%LOG_FILE%.1'; ^
   Clear-Content -Path '%LOG_FILE%' }"
+
+REM The monitor's stored offset is now past the end of the truncated file;
+REM clear it here rather than leaving the monitor to catch the mismatch on
+REM its next run, which is a race it can lose (see monitor-bitcoin-log.ps1).
+if exist "%ROOTDIR%\.last_log_offset" del /f /q "%ROOTDIR%\.last_log_offset"
+
 echo Log rotated: %LOG_FILE%
 exit /b 0

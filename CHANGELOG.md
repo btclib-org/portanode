@@ -374,6 +374,23 @@ using YYYY.MM.DD format.
   longer states a tested version — one had already drifted twice from
   what `checksums.sha256` records, since nothing re-derives a number
   written into prose.
+- **The log monitor's rotation-detection was a race, and it read the whole
+  log to find its own end** (#9). `rotate-bitcoin-log` now clears the
+  monitor's stored state as part of rotating, rather than leaving the
+  monitor to notice on its next run — a run that lands after the node has
+  already written past the pre-rotation length otherwise scans from the
+  stale offset and silently skips the start of the new log, exactly where
+  a restart records why it restarted. The monitor also tracks a byte
+  offset and seeks to it, rather than a line count read by walking the
+  file from byte zero every run; the state file is renamed
+  `.last_log_offset` so an old line-count file is never read as one.
+- **The log monitor's desktop notification has no way to turn off** (#8),
+  which is wrong under a scheduler with no desktop to draw on, and on
+  Windows the MessageBox fallback is modal and blocks a scheduled run
+  indefinitely. `--no-notify` (or `PORTANODE_NO_NOTIFY=1`, easier to set
+  than an argument list from `launchd` or Task Scheduler) suppresses only
+  the notification; findings still go to stdout and the exit status is
+  unchanged.
 
 ## [2026.01.27] - Initial Release
 

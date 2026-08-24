@@ -205,7 +205,10 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   `win/scripts/utilities/rotate-bitcoin-log.bat`
 - Monitor logs: `./macos/scripts/utilities/monitor-bitcoin-log.sh` or
   `win/scripts/utilities/monitor-bitcoin-log.bat` (run periodically to check for
-  errors)
+  errors). Under `cron`, `launchd` or Task Scheduler, add `--no-notify` (or
+  set `PORTANODE_NO_NOTIFY=1`) to suppress the desktop notification, which a
+  headless or logged-out session cannot show and which blocks on Windows
+  until someone dismisses it.
 - Health check: `./macos/scripts/utilities/health-check.sh` or
   `win/scripts/utilities/health-check.bat`
 

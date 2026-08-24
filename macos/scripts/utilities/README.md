@@ -39,8 +39,9 @@ Can be used if an update fails.
 - `rotate-bitcoin-log.sh`: Rotates `bitcoin-datadir/debug.log` by copying the
   current log file to a backup (debug.log.1, etc.) and starting a new log file.
 - `monitor-bitcoin-log.sh`: Monitors the Bitcoin log for new errors/warnings,
-  sending macOS notifications if issues are detected. Tracks progress to avoid
-  duplicates.
+  sending macOS notifications if issues are detected. Tracks progress by
+  byte offset to avoid re-scanning or duplicating; `--no-notify` (or
+  `PORTANODE_NO_NOTIFY=1`) suppresses the notification for a scheduled run.
 - `health-check.sh`: Disk space + basic process checks.
 - `clean-artifacts.sh`: Removes macOS artifact files (`._*`, `.DS_Store`) from
   the repo.
