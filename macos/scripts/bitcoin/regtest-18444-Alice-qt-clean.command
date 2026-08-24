@@ -30,7 +30,7 @@ fi
 
 echo "WARNING: This will delete regtest data."
 echo "Press Enter to continue or Ctrl+C to cancel."
-read
+read -r
 
 rm -rf "${ROOTDIR}/bitcoin-datadir/regtest"
 

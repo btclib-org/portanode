@@ -3,6 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=macos/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 # Download/verify/mount on the local (APFS) temp dir, never on the removable
@@ -25,8 +26,6 @@ fi
 
 # Detect OS (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    OS="macos"
-    EXT="dmg"
     BACKUP_DIR="$ROOTDIR/macos/bin/backup/electrum"
 else
     echo "Unsupported OS (macOS only)."

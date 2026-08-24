@@ -13,6 +13,22 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`shellcheck` is now in `.pre-commit-config.yaml`** (#13), against
+  every `.sh` and `.command` launcher. Landing it needed the findings it
+  had been left out for answered first: a `rm -rf` in `update-bitcoin.sh`
+  that two empty variables would turn into `rm -rf /` now guards both
+  with `${var:?}`; three regtest clean launchers' confirmation `read`
+  now takes `-r`; `lib.sh`'s `debug_list_dir` lists a directory with
+  `find` rather than parsing `ls`; and a handful of variables set and
+  never read are gone. The two findings shellcheck is wrong about — an
+  intentionally unquoted expansion in `update-bitcoin.sh` that hands
+  `tar` several members, and a line continuation building one URL rather
+  than concatenating three — are disabled at their own line, with the
+  reasoning beside them, rather than asserted away for the whole tree.
+  Every launcher that sources `lib.sh` through a dynamic
+  `$SCRIPT_DIR`-built path now also carries a `shellcheck source=` at
+  that line, so `-x` can follow it.
+
 - **`CLAUDE.md`'s primary-checkout paragraph names the read that cannot
   go stale** (btclib-org/.github#255). It said reading the checkout was
   fine and so was `git fetch`, without saying `git fetch` moves

@@ -2,12 +2,16 @@
 # Shared helpers for macOS utility scripts.
 
 _UTILS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=macos/scripts/lib.sh
 . "$_UTILS_LIB_DIR/../lib.sh"
 unset _UTILS_LIB_DIR
 
 debug_list_dir() {
     local dir="$1"
-    echo "Debug: $dir contents: $(ls -a "$dir" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+    local entries
+    entries="$(find "$dir" -mindepth 1 -maxdepth 1 -exec basename {} \; \
+        2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+    echo "Debug: $dir contents: $entries"
 }
 
 # tree_hash PATH — deterministic content hash of a file or of every regular
