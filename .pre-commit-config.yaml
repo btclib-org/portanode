@@ -147,6 +147,16 @@ repos:
     hooks:
       - id: detect-secrets
         name: detect-secrets (credentials of other systems)
+        # against a committed baseline rather than an exclusion: a
+        # finding recorded there is one somebody has read, where an
+        # excluded file is unwatched from then on. `keys/*.fingerprints`
+        # and `*/checksums.sha256` are the hex this tree carries, and
+        # `detect-secrets scan` with every plugin at its default,
+        # HexHighEntropyString included, answers with no finding
+        # anywhere in the tree -- unlike a sibling whose genesis-block
+        # constants needed that plugin off, nothing here is close enough
+        # to that threshold to need the same exception
+        args: [--baseline, .secrets.baseline]
   # MD013 at 80 columns, tables included, and the shared configuration is
   # the one every repository of the organization carries: prose moves
   # between them, and a paragraph that lints in one has to lint here
