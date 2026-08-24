@@ -44,6 +44,12 @@ using YYYY.MM.DD format.
   `*/checksums.sha256` are the hex this tree carries, and none of it
   reaches `HexHighEntropyString`'s threshold, so the baseline's own
   `results` is empty.
+- **`.gitattributes` now checks out `*.command` and `*.ps1` as LF**
+  (#15), joining `*.sh`. Both were unspecified before, which travels
+  fine until a checkout on a machine with `core.autocrlf=true` takes
+  them in CRLF — a `.command` in CRLF not running on macOS at all, the
+  one failure this tree exists to avoid. `.ps1` takes LF rather than
+  `.bat`'s CRLF because PowerShell, unlike cmd.exe, reads either.
 
 - **`CLAUDE.md`'s primary-checkout paragraph names the read that cannot
   go stale** (btclib-org/.github#255). It said reading the checkout was
