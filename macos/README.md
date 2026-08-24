@@ -38,5 +38,8 @@ Data folders live at the repo root: `bitcoin-datadir/` and `electrum-datadir/`.
 
 ## Troubleshooting
 
-- If scripts fail, check permissions: `chmod +x scripts/**/*.command`.
+- If a script fails to launch with a permission error, see the root
+  `README.md`'s Troubleshooting section, under "Permission denied on
+  macOS", for the one route by which that happens and what to do about
+  it.
 - For GUI issues, ensure XQuartz is installed if needed.
