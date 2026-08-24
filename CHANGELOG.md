@@ -366,6 +366,14 @@ using YYYY.MM.DD format.
   `--dry-run` runs the real checksum check against the backup, since
   that step is already read-only, and only skips the file replacement
   itself.
+- **`README.md`'s "Updating Binaries" led with a hand-replace procedure
+  and named a tested Bitcoin Core and Electrum version in prose** (#3).
+  The section now leads with the update scripts, which back up, verify
+  and record a checksum that hand-replacing does not; the hand-replace
+  steps remain as what to do when an updater cannot run. The intro no
+  longer states a tested version — one had already drifted twice from
+  what `checksums.sha256` records, since nothing re-derives a number
+  written into prose.
 
 ## [2026.01.27] - Initial Release
 

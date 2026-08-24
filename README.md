@@ -12,8 +12,6 @@ you know the kinds of problems this is meant to address.
 It works best on an exFAT-formatted NVMe drive
 in a portable USB 3 / Thunderbolt enclosure.
 
-It has been tested with Bitcoin Core 30.2 and Electrum 4.7.0.
-
 ## Prerequisites
 
 - **Operating System**: fairly recent macOS or Windows versions.
@@ -110,14 +108,21 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 
 ## Updating Binaries
 
-- **Bitcoin Core**: Download latest from
-  [bitcoincore.org](https://bitcoincore.org/en/download/). Replace files in
-  `macos/bin/` (Bitcoin-Qt.app) or in `win/bin/` (e.g., `bitcoin-qt.exe`,
-  `bitcoind.exe`, `bitcoin-cli.exe`, `bitcoin-tx.exe`, `bitcoin-util.exe`,
-  `bitcoin-wallet.exe`, `bitcoin.exe`).
-- **Electrum**: Download from [electrum.org](https://electrum.org/#download).
-  Replace files in `macos/bin/Electrum.app/` or `win/bin/electrum.exe`.
-- Verify checksums from official sources to ensure integrity.
+- On macOS, update using `./macos/scripts/utilities/update-bitcoin.sh` or
+  `./macos/scripts/utilities/update-electrum.sh`; on Windows, use
+  `win/scripts/utilities/update-bitcoin.bat` or
+  `win/scripts/utilities/update-electrum.bat`. Both platforms' updaters
+  back up the version they replace, verify the download's PGP signature,
+  and record the new binary's checksum.
+- Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or
+  `./macos/scripts/utilities/rollback-electrum.sh` on macOS, or
+  `win/scripts/utilities/rollback-bitcoin.bat` and
+  `win/scripts/utilities/rollback-electrum.bat` on Windows, if an update
+  causes issues. Rollback needs the backup an update created, so it is
+  only available after one has run.
+- Validate setup with `./macos/scripts/utilities/validate-setup.sh` or
+  `win/scripts/utilities/validate-setup.bat` after updating, and test
+  with the regtest scripts.
 - **PGP verification fails closed.** Update scripts abort the install unless the
   download carries a valid PGP signature. This requires `gpg` to be installed
   and the signer's key imported. To bypass (installs UNAUTHENTICATED binaries —
@@ -133,20 +138,20 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
       keys. Electrum ships pinned to its release key; the Bitcoin Core list is a
       template you can populate with the builders you choose to trust (without it,
       any imported builder key that signed `SHA256SUMS` is accepted).
-- After update, test with regtest scripts.
-- On macOS, update using `./macos/scripts/utilities/update-bitcoin.sh` or
-  `./macos/scripts/utilities/update-electrum.sh` for automated updates (backs up
-  old versions).
-Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or
-`./macos/scripts/utilities/rollback-electrum.sh` if issues occur.
-Validate setup with `./macos/scripts/utilities/validate-setup.sh` after updates.
-- On Windows, update using `win/scripts/utilities/update-bitcoin.bat` and
-  `win/scripts/utilities/update-electrum.bat`.
-Rollback with `win/scripts/utilities/rollback-bitcoin.bat` and
-`win/scripts/utilities/rollback-electrum.bat`.
-Validate setup with `win/scripts/utilities/validate-setup.bat`.
-- **Backup/Rollback**: Rollback scripts depend on backups created by update
-  scripts.
+- **If an updater cannot run** — no network access to bitcoincore.org or
+  electrum.org, or a release the updater's scraper does not find — download
+  the binary by hand from
+  [bitcoincore.org](https://bitcoincore.org/en/download/) or
+  [electrum.org](https://electrum.org/#download) and verify its checksum
+  against the official source yourself, then replace `macos/bin/`
+  (`Bitcoin-Qt.app`, or `bitcoind`, `bitcoin-cli`, `bitcoin-tx`,
+  `bitcoin-util`, `bitcoin-wallet`, `bitcoin-qt`) or `win/bin/`
+  (`bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`, `bitcoin-tx.exe`,
+  `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`) for Bitcoin
+  Core, or `macos/bin/Electrum.app/` or `win/bin/electrum.exe` for
+  Electrum. A hand-replaced binary carries no updater backup and no
+  checksum entry, so rollback and `validate-setup`'s checksum check do
+  not see it until an updater run records one.
 - **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep
   ever-growing lists of acceptable hashes labeled by version; update scripts
   append new entries (only after a successful PGP verification) and deduplicate
