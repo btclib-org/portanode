@@ -44,11 +44,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     APP_NAME="Bitcoin-Qt.app"
     APP_DIR="$ROOTDIR/macos/bin"
     APP_BACKUP_DIR="$APP_DIR/backup/bitcoin"
-    # Download/verify/extract on the local (APFS) temp dir, never on the
-    # removable exFAT volume: macOS's fskit exFAT driver can silently corrupt
-    # files written during extraction. Only the final, verified binaries are
-    # copied onto exFAT (see install_verified).
-    TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-bitcoin.XXXXXX")"
 else
     echo "Unsupported OS (macOS only)."
     exit 1
@@ -151,8 +146,13 @@ if [ "$DRY_RUN" -eq 1 ]; then
     exit 0
 fi
 
+# Download/verify/extract on the local (APFS) temp dir, never on the
+# removable exFAT volume: macOS's fskit exFAT driver can silently corrupt
+# files written during extraction. Only the final, verified binaries are
+# copied onto exFAT (see install_verified). Created here, after the
+# --dry-run exit above, so a dry run never leaves an empty directory behind.
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-bitcoin.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
-mkdir -p "$TMP_DIR"
 
 echo "Downloading $URL..."
 curl -fL -o "$TMP_DIR/$FILE" "$URL"

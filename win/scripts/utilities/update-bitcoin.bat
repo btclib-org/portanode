@@ -51,12 +51,7 @@ set CHECKSUM_URL=%BASE_URL%SHA256SUMS
 set CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc
 set CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256
 
-REM Download/verify/extract on the local disk (%TEMP%), never on the removable
-REM volume; only the final, verified .exe files are copied onto win\bin.
-set "TMPDIR=%TEMP%\portanode-bitcoin"
 set STATUS=0
-if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
-mkdir "%TMPDIR%"
 
 echo Updating Bitcoin Core to %VERSION%...
 
@@ -106,6 +101,14 @@ if "%DRY_RUN%"=="1" (
     popd >nul 2>&1
     exit /b 0
 )
+
+REM Download/verify/extract on the local disk (%TEMP%), never on the removable
+REM volume; only the final, verified .exe files are copied onto win\bin.
+REM Created here, after the --dry-run exit above, so a dry run never leaves
+REM an empty directory behind.
+set "TMPDIR=%TEMP%\portanode-bitcoin"
+if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
+mkdir "%TMPDIR%"
 
 echo Downloading %URL%...
 set PGP_OK=0

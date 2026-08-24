@@ -29,13 +29,8 @@ pushd "%ROOTDIR%" >nul 2>&1
 set "BIN_DIR=%ROOTDIR%\win\bin"
 set "BACKUP_DIR=%BIN_DIR%\backup\electrum"
 set CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256
-REM Download/verify on the local disk (%TEMP%), never on the removable volume;
-REM only the final, verified electrum.exe is copied onto win\bin.
 set "TMPDIR=%TEMP%\portanode-electrum"
 set STATUS=0
-
-if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
-mkdir "%TMPDIR%"
 
 echo Updating Electrum...
 
@@ -103,6 +98,13 @@ if "%DRY_RUN%"=="1" (
     popd >nul 2>&1
     exit /b 0
 )
+
+REM Download/verify on the local disk (%TEMP%), never on the removable volume;
+REM only the final, verified electrum.exe is copied onto win\bin. Created
+REM here, after the --dry-run exit above, so a dry run never leaves an empty
+REM directory behind.
+if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
+mkdir "%TMPDIR%"
 
 echo Downloading %URL%...
 set PGP_OK=0
