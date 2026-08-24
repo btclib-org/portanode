@@ -24,14 +24,33 @@ else
     echo "WARNING: Data directories not found"
 fi
 
-# Check disk space (require at least 100GB free)
+# Check disk space. The two figures are README.md's Prerequisites: 700GB
+# for an unpruned mainnet full sync, 100GB otherwise (pruned, testnet, or
+# regtest) -- changing either belongs there first, this comment second.
+# Pruning is read from bitcoin-datadir/bitcoin.conf rather than assumed:
+# an active, non-zero "prune=" anywhere in the file (any network section)
+# lowers the requirement; its absence, or "prune=0", is unpruned.
+PRUNED_MIN_KB=$((100 * 1024 * 1024))
+MAINNET_MIN_KB=$((700 * 1024 * 1024))
 DISK_FREE_KB=$(df -Pk "$ROOTDIR" | awk 'NR==2 {print $4}')
 DISK_FREE_HUMAN=$(df -h "$ROOTDIR" | awk 'NR==2 {print $4}')
-REQUIRED_KB=$((100 * 1024 * 1024))
 echo "Disk free space: $DISK_FREE_HUMAN"
-if [ "$DISK_FREE_KB" -lt "$REQUIRED_KB" ]; then
+
+BITCOIN_CONF="$ROOTDIR/bitcoin-datadir/bitcoin.conf"
+PRUNED=0
+if [ -f "$BITCOIN_CONF" ] && \
+   grep -qE '^[[:space:]]*prune[[:space:]]*=[[:space:]]*[1-9]' "$BITCOIN_CONF"
+then
+    PRUNED=1
+fi
+
+if [ "$DISK_FREE_KB" -lt "$PRUNED_MIN_KB" ]; then
     echo "ERROR: Less than 100GB free."
     exit 1
+elif [ "$PRUNED" -eq 0 ] && [ "$DISK_FREE_KB" -lt "$MAINNET_MIN_KB" ]; then
+    echo "WARNING: Less than 700GB free, and bitcoin-datadir/bitcoin.conf" \
+         "has no active prune=. An unpruned mainnet full sync needs 700GB;" \
+         "enable pruning, or use testnet/regtest, if this is not one."
 fi
 
 echo "Setup validation completed."

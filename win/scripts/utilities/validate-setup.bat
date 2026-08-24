@@ -26,6 +26,19 @@ if exist "bitcoin-datadir" if exist "electrum-datadir" (
     echo WARNING: Data directories not found
 )
 
+REM The two figures are README.md's Prerequisites: 700GB for an
+REM unpruned mainnet full sync, 100GB otherwise (pruned, testnet, or
+REM regtest) -- changing either belongs there first, this comment
+REM second. Pruning is read from bitcoin-datadir\bitcoin.conf rather
+REM than assumed: an active, non-zero "prune=" anywhere in the file
+REM (any network section) lowers the requirement.
+set PRUNED=0
+if exist "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" (
+    findstr /R /I "^[ ]*prune[ ]*=[ ]*[1-9]" ^
+      "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" >nul 2>&1
+    if not errorlevel 1 set PRUNED=1
+)
+
 for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
 findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
 if not defined FREE_BYTES (
@@ -37,6 +50,12 @@ if not defined FREE_BYTES (
         echo ERROR: Less than 100GB free.
         popd >nul 2>&1
         exit /b 1
+    )
+    if !PRUNED!==0 if !FREE_GB! lss 700 (
+        echo WARNING: Less than 700GB free, and
+        echo bitcoin-datadir\bitcoin.conf has no active prune=. An
+        echo unpruned mainnet full sync needs 700GB; enable pruning,
+        echo or use testnet/regtest, if this is not one.
     )
 )
 
