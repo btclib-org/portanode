@@ -52,8 +52,12 @@ Can be used if an update fails.
 - `health-check.sh`: Disk space + basic process checks.
 - `clean-artifacts.sh`: Removes macOS artifact files (`._*`, `.DS_Store`) from
   the repo.
-- `set-permissions.sh`: Sets restrictive permissions (700) on `bitcoin-datadir/`
-  and `electrum-datadir/` for security.
+- `set-permissions.sh`: Restricts `bitcoin-datadir/` and
+  `electrum-datadir/` to the owner (`chmod 700`) on a filesystem that
+  stores permissions (APFS). On exFAT or FAT32, macOS synthesises a fixed
+  mode for every file regardless of what `chmod` asks, so the `chmod`
+  calls change nothing there; the script reports which case it found
+  instead of claiming success on a volume it cannot restrict.
 
 ## Notes
 
