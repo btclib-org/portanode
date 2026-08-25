@@ -19,6 +19,23 @@ echo Usage: %~nx0 [--dry-run]
 exit /b 1
 :args_done
 
+REM A rollback replaces the files update-bitcoin.bat installs, so it refuses on
+REM the same condition: replacing an .exe under a running process is the same
+REM operation whichever script does it, and a rollback is run when something has
+REM just gone wrong, which is when the node is most likely to still be up. The
+REM filters are that script's, repeated here rather than shared, so a change to
+REM one is owed to the other.
+tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
+if %errorlevel%==0 (
+    echo Error: Bitcoin Core is running. Stop it before rolling back.
+    exit /b 1
+)
+tasklist /fi "imagename eq bitcoin-qt.exe" | find /i "bitcoin-qt.exe" >nul
+if %errorlevel%==0 (
+    echo Error: Bitcoin Core is running. Stop it before rolling back.
+    exit /b 1
+)
+
 pushd "%ROOTDIR%" >nul 2>&1
 
 if not exist "%BACKUP_DIR%" (
@@ -107,16 +124,54 @@ if "%DRY_RUN%"=="1" (
     exit /b 0
 )
 
-move /y "%BACKUP_DIR%\bitcoin-qt.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
-move /y "%BACKUP_DIR%\bitcoind.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
-move /y "%BACKUP_DIR%\bitcoin-cli.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
-move /y "%BACKUP_DIR%\bitcoin-wallet.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
-move /y "%BACKUP_DIR%\bitcoin-tx.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
-move /y "%BACKUP_DIR%\bitcoin-util.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
-move /y "%BACKUP_DIR%\bitcoin.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
+REM The backup is moved rather than copied, so a rollback consumes it: the slot
+REM holds the version installed before the last update, and a copy left behind
+REM would hold the version that is now installed. A slot that swapped its
+REM contents instead would make a second rollback move forward again, where
+REM update-bitcoin.bat brings the newer release back and verifies its PGP
+REM signature on the way.
+REM What is restored is what update-bitcoin.bat backs up, which is the
+REM command-line tools as well as bitcoin-qt.exe; the macOS half restores
+REM Bitcoin-Qt.app alone because update-bitcoin.sh backs up the app alone.
+call :restore_one bitcoin-qt.exe
+if errorlevel 1 goto :restore_failed
+call :restore_one bitcoind.exe
+if errorlevel 1 goto :restore_failed
+call :restore_one bitcoin-cli.exe
+if errorlevel 1 goto :restore_failed
+call :restore_one bitcoin-wallet.exe
+if errorlevel 1 goto :restore_failed
+call :restore_one bitcoin-tx.exe
+if errorlevel 1 goto :restore_failed
+call :restore_one bitcoin-util.exe
+if errorlevel 1 goto :restore_failed
+call :restore_one bitcoin.exe
+if errorlevel 1 goto :restore_failed
 if exist "%BACKUP_DIR%" rmdir "%BACKUP_DIR%" >nul 2>&1
 
 echo Rollback complete.
+echo The backup in win\bin\backup\bitcoin is consumed: a second rollback has nothing to restore.
+echo update-bitcoin.bat is what installs the current release again.
 
 popd >nul 2>&1
+exit /b 0
+
+:restore_failed
+echo Error: the rollback stopped before restoring every binary. Re-run this
+echo script once the cause is cleared, or run update-bitcoin.bat to install the
+echo current release over what win\bin holds.
+popd >nul 2>&1
+exit /b 1
+
+REM Nothing is deleted before the move, so a move that fails leaves win\bin
+REM holding the version that was installed and there is nothing to put back;
+REM what a failure needs is to be reported. >nul redirects stdout alone, so
+REM what move writes to stderr reaches the console.
+:restore_one
+if not exist "%BACKUP_DIR%\%~1" exit /b 0
+move /y "%BACKUP_DIR%\%~1" "%ROOTDIR%\win\bin\" >nul
+if errorlevel 1 (
+    echo Error: restoring win\bin\%~1 from the backup failed.
+    exit /b 1
+)
 exit /b 0

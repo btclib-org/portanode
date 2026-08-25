@@ -35,6 +35,30 @@ using YYYY.MM.DD format.
   `win/scripts/utilities/free-space-gb.ps1`, which asks
   `System.IO.DriveInfo` and divides in 64-bit arithmetic before the
   figure reaches cmd.exe.
+- **A rollback now refuses to run while Bitcoin Core or Electrum is up**
+  (#49). It replaces the files an update installs, and it is run when
+  something has just gone wrong, which is when the node is most likely to
+  still be running. The detection is the update scripts' own — the same
+  `pgrep -f -i` pattern on macOS, the same `tasklist` filters on Windows —
+  written out in each script rather than shared, so a change to one is
+  owed to the other.
+- **A rollback that could not restore now says so and exits non-zero**
+  (#48), where `Rollback complete` and an exit of 0 followed a failed
+  `mv` as readily as a successful one. `rollback-bitcoin.sh` and
+  `rollback-electrum.sh` run under `set -euo pipefail` and rename the
+  installed app aside rather than deleting it before the restore, so a
+  move that fails leaves `macos/bin` holding the version that was
+  installed instead of nothing at all; `rollback-bitcoin.bat` and
+  `rollback-electrum.bat` check every `move` and leave its error text on
+  stderr. Each of them also says, on the way out, that the backup is
+  consumed and a second rollback has nothing to restore — that being the
+  point of moving the backup rather than copying it, since a copy left
+  behind would hold the version that is now installed and a slot that
+  swapped its contents would make a second rollback move forward again.
+  `rollback-bitcoin.sh` says too that the command-line tools beside the
+  app are not rolled back: `update-bitcoin.sh` backs up the app alone,
+  where `update-bitcoin.bat` copies the command-line tools too.
+
 - **Every hook with a fix mode now runs with it turned on.**
   `markdownlint-cli2` gains `--fix` and `codespell` gains
   `--write-changes`; `typos` already fixes in place through its own
