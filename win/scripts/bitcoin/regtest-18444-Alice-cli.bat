@@ -32,13 +32,21 @@ if not exist "%ROOTDIR%\win\bin\bitcoind.exe" (
 
 rem rmdir "%ROOTDIR%\bitcoin-datadir\regtest" /s /q
 
-start "" cmd /k ^
-  ""%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0 ^
-  -datadir="%DATADIR%" ^
-  -regtest -rpcallowip=127.0.0.1 ^
-  -addnode=localhost:18555 ^
-  -addnode=localhost:18666"
-start "" cmd /k ^
-  "cd /d "%ROOTDIR%\win\bin" & ^
-  title %~n0 & ^
-  doskey btc=bitcoin-cli.exe -regtest -datadir="%DATADIR%" $*"
+REM Measured on windows-latest: a "^" at the end of a line continues a
+REM batch file's line to the next only while cmd's quote state is closed
+REM -- inside an open quote a "^" is a literal character instead, and the
+REM logical line ends right there. This block's own quoting leaves the
+REM state open partway through, so the caret split below was swallowed as
+REM text rather than read as a continuation: cmd ran the fragment that
+REM left it with, caret included, instead of bitcoind.exe with its
+REM arguments, and no bitcoind process started at all. Built in a
+REM variable instead, so the whole argument is one physical line and no
+REM "^" is ever read inside an open quote.
+set BITCOIND_CMD=""%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0
+set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
+set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1
+set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
+set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666"
+start "" cmd /k %BITCOIND_CMD%
+set CLI_CMD="cd /d "%ROOTDIR%\win\bin" & title %~n0 & doskey btc=bitcoin-cli.exe -regtest -datadir="%DATADIR%" $*"
+start "" cmd /k %CLI_CMD%
