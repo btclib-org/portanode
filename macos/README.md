@@ -17,8 +17,10 @@ chmod +x \
 The Bitcoin updater also installs `bitcoind`, `bitcoin-cli`, `bitcoin-qt`,
 `bitcoin-tx`, `bitcoin-util` and `bitcoin-wallet` here, which the `.app`
 bundle does not ship, and sets their executable bit itself as part of
-installing them; the root `README.md`'s *Permission denied on macOS* is
-where a bit lost some other way is fixed.
+installing them. The root `README.md`'s *Permission denied on macOS*
+names how a bit goes missing some other way; for these six — absent
+from a clone or a source archive, so not restored by taking the folder
+again — re-running the updater is what restores it.
 
 ## Scripts (`scripts/`)
 
