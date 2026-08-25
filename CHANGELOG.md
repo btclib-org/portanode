@@ -7,6 +7,20 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`git show origin/main:<path>` is current without being faithful for
+  a path git filters on checkout**, where `CLAUDE.md` had named it the
+  read that cannot go stale and said nothing of its content. `.bat`
+  carries `text eol=crlf`, so the blob is LF and
+  `git show` hands back line endings that are an artefact of the
+  extraction, as do `git cat-file blob` and the contents API. A batch
+  linter reported a tracked `.bat` as LF-only on exactly that basis,
+  from a file that is CRLF wherever it is actually read. `git archive`
+  applies the attribute, so it is current and faithful at once, and
+  `CLAUDE.md` now names it in the bullet on those files, with a pointer
+  from the rule it is the exception to, and `CONTRIBUTING.md`'s own
+  instruction to measure a `.bat` points there rather than restating the
+  mechanism and sending the reader to a checkout.
+
 - **Nothing reads the `.ps1` and `.bat` launchers as a language, and
   that is now recorded as a decision rather than as an omission**
   (closes #54). The generic hooks read both as text — `mixed-line-ending`

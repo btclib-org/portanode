@@ -60,7 +60,9 @@ Reading it is fine, but `git fetch` moves `refs/remotes/origin/main` and
 leaves the work tree where it was, so a `grep` or a `Read` against the
 checkout answers for whenever it was last brought forward, not for now.
 The read that cannot go stale is `git show origin/main:<path>`: it
-answers from the ref `git fetch` just moved, never from the tree.
+answers from the ref `git fetch` just moved, never from the tree. For a
+path git filters on checkout — `.bat` here — it is current without being
+faithful, and the bullet on those below names the read that is both.
 
 Where the checkout has to be current rather than merely readable, a
 fast-forward of a clean `main` brings it up:
@@ -131,7 +133,22 @@ moves `main`.
   `.gitattributes` declaring `text eol=crlf`. A tool that normalizes one
   leaves `git diff` empty and the checkout wrong, which is why the
   line-ending hook excludes them and why `REVIEWING.md` carries a command
-  that reads the file rather than the diff.
+  that reads the file rather than the diff. It is also why
+  `git show origin/main:<path>` is the wrong read for one of these: it
+  hands back the blob, so a `.bat` arrives LF and any line-ending
+  measurement taken from it describes the extraction rather than the
+  file. `git cat-file blob` and the contents API answer LF for the same
+  reason. `git archive` applies the attribute, so it is the read that is
+  both current and faithful:
+
+    ```shell
+    git archive origin/main -- <path> | tar -xO
+    ```
+
+    Measured against a checkout of the same commit, that returns the
+    file's carriage returns where the reads above return none — which is
+    how a batch linter came to report a tracked `.bat` as LF-only, from
+    a file that is CRLF everywhere it is actually read.
 - **`ROOTDIR` is resolved, never assumed.** Every script derives it from
   its own location or from `PORTANODE_ROOT`, because the folder is
   mounted at a different point on every machine it is plugged into.
