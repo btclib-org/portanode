@@ -8,7 +8,7 @@ using YYYY.MM.DD format.
 ## [2026.01.29] - git main branch
 
 - **`update-bitcoin.bat` compared a whole `SHA256SUMS` line against a
-  bare hash, so a Windows update could never install** (#43). The split
+  bare hash, so a Windows update could never install** (closes #43). The split
   pattern is now written `\s+`. Doubled, it reached the .NET regex engine
   as a literal backslash followed by one or more `s`: cmd.exe passes a
   backslash through untouched, and powershell.exe splits its command
@@ -16,7 +16,7 @@ using YYYY.MM.DD format.
   unless it precedes a double quote. No `SHA256SUMS` line holds a
   backslash, so the split returned the line unbroken and the comparison
   against `Get-FileHash` could not succeed.
-- **`update-electrum.bat` could not find a version by itself** (#44).
+- **`update-electrum.bat` could not find a version by itself** (closes #44).
   The scrape moves to `win/scripts/utilities/latest-electrum-version.ps1`,
   invoked with `-File` the way `update-bitcoin.bat` invokes
   `latest-bitcoin-version.ps1`, so PowerShell is the only reader of its
@@ -25,7 +25,7 @@ using YYYY.MM.DD format.
   is parsed. Either defect alone left `--version <v>` the only way to
   reach an install.
 - **The Windows free-space checks read a word where the number is, and
-  overflowed the arithmetic that followed** (#45). `validate-setup.bat`
+  overflowed the arithmetic that followed** (closes #45). `validate-setup.bat`
   exited 1 with `ERROR: Less than 100GB free.` on a healthy volume:
   `findstr` without `/C:` is an OR search that matched every line
   `fsutil volume diskfree` prints, `tokens=3` named a word of the label
