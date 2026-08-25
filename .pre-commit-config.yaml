@@ -117,6 +117,7 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
+        name: codespell (in place fixes)
         # identifiers rather than misspellings, and the same two
         # .typos.toml carries: `fpr` is gpg's own --with-colons record
         # name for a fingerprint, which the verification helpers read and
@@ -124,13 +125,18 @@ repos:
         # regular expressions the macOS grep comments are about. Written
         # here rather than in a file of their own because codespell takes
         # a flag for it where typos takes none
-        args: [-L, "fpr,bre"]
+        args: [--write-changes, -L, "fpr,bre"]
   # a release tag, not the `v1` beside it: that one is a major-version
   # alias upstream moves onto each release, so `pre-commit autoupdate`
   # picks it as the newest tag and the pin stops being one
   - repo: https://github.com/crate-ci/typos
     rev: v1.49.0
     hooks:
+      # in place fixes already, by upstream's own .pre-commit-hooks.yaml:
+      # args: [--write-changes, --force-exclude], inherited because this
+      # file passes no args: of its own. An args: added here later for a
+      # different reason would silently drop that default and turn the
+      # fixing off
       - id: typos
   # the credentials of other systems, which is the half of secret
   # scanning GitHub's free plan does not cover: partner and provider
@@ -164,6 +170,8 @@ repos:
     rev: v0.23.2
     hooks:
       - id: markdownlint-cli2
+        name: markdownlint-cli2 (in place fixes)
+        args: [--fix]
   # how a link destination is spelled, which markdownlint has no rule
   # for. Section 4 of the organization's standard is the rule, why the
   # prefix and not the extension, and what this cannot see; there is no
@@ -237,6 +245,7 @@ repos:
     hooks:
       - id: taplo-format
         name: taplo (toml, in place fixes)
+  # check-only: yamllint has no fix mode, and its own README names none
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
     hooks:
