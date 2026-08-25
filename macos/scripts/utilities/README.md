@@ -20,8 +20,9 @@ Usually run after setup or updates.
 - `verify-binaries.sh`: Verifies all binaries against `macos/checksums.sha256`
   using `shasum`. Supports multiple acceptable hashes per file with version
   labels.
-**Note**: `verify-binaries.sh` uses `bash` features (associative arrays). Run it
-with `bash` if your system’s default `sh` is not bash.
+**Note**: `verify-binaries.sh` uses `bash` features (indexed arrays, not
+associative arrays: macOS ships bash 3.2). Run it with `bash` if your
+system's default `sh` is not bash.
 - `validate-setup.sh`: Checks for binaries, verifies checksums, confirms data
   directories, and reports disk space.
 
@@ -53,20 +54,16 @@ Can be used if an update fails.
 - Run scripts from the project root (e.g.,
   `./macos/scripts/utilities/script.sh`).
 - Most scripts require internet for downloads; ensure connectivity.
-- Update scripts place temporary downloads under `macos/bin/.tmp-downloads/` and
-  clean them on exit.
+- Update scripts download, verify and extract or mount on the local
+  temp directory, never on the removable volume, and clean up on exit.
 - Update scripts verify PGP signatures for Bitcoin Core and Electrum
   downloads before installing, and fail closed: a bad signature, a missing
   signer key, or no `gpg` at all aborts the update rather than installing
   unverified binaries. Set `PORTANODE_ALLOW_UNVERIFIED=1` to bypass
-  verification (not recommended).
-    - Signature files are detached and typically do **not** include public keys.
-      GPG can only validate signatures for keys already in your local keyring.
-      If signer keys are missing, signatures cannot be validated locally.
-    - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
-      repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
-    - **Electrum signing key**: obtain the release signing key from electrum.org
-      (Download page) and import with `gpg --import`.
+  verification (not recommended). `README.md`'s *Updating Binaries*
+  section has where to obtain each project's signing key, why a missing
+  key rather than a missing signature is the usual cause of a validation
+  failure, and how key pinning works.
 - Backups are stored in `macos/bin/backup/`; rollbacks depend on these.
 - `macos/checksums.sha256` is append-only: new verified hashes are added with
   `version=<x>` and exact duplicates are pruned.
