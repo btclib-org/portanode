@@ -658,6 +658,34 @@ using YYYY.MM.DD format.
   false of one already open before the script started — a typed
   invocation, or `Bitcoin-Launcher.bat`'s own `call`, which runs in the
   launcher's own console and returns to its menu rather than closing.
+- **`macos/scripts/utilities/lib.sh`'s `update_checksum` rewrote and
+  deduped the whole `macos/checksums.sha256` on every call** (closes
+  #85), an `awk '!seen[$0]++' | mv` pair run after the append regardless
+  of whether a duplicate existed, dropping any exact repeated line,
+  comments included. It is the macOS counterpart of the
+  `Set-Content`/`Select-Object -Unique` defect #50/#53/#55/#68/#75
+  already fixed in `lib.bat`'s `:update_checksum`. It now only appends,
+  matching what `macos/scripts/utilities/README.md` documents this file
+  as; that file's own "exact duplicates are pruned" clause goes too, no
+  longer being true either.
+- **`update-bitcoin.sh` installed six CLI tools and not the `bitcoin`
+  multi-call wrapper the loose-binary tarball also ships** (closes #52),
+  confirmed against the published `bitcoin-31.0-arm64-apple-darwin.tar.gz`
+  with `tar -tzf`; `win/scripts/utilities/update-bitcoin.bat` already
+  installs its Windows counterpart, `bitcoin.exe`, through its
+  `bin\*.exe` wildcard copy. `BIN_NAMES` now names `bitcoin` too, and
+  `macos/bin/.gitignore` gains an entry for it. Adding it makes
+  `macos/bin/bitcoin` a prefix of `macos/bin/bitcoin-cli`, so
+  `verify_checksum_entry` and `installed_version` in `lib.sh` now match
+  a checksum entry on its own path field (`$2 == p`) rather than with
+  `index($0, p)`, under which a `bitcoin` lookup would have matched the
+  `bitcoin-cli` entry's own line too -- the reverse cannot happen, the
+  longer path never occurring inside a line that only carries the
+  shorter one. Naming the new binary also falsified every other place
+  naming the six by hand, in `README.md`, `macos/bin/README.md` and
+  `macos/README.md`; each now points at `macos/bin/README.md`'s own
+  list, or drops the count entirely, rather than keeping its own copy
+  in sync.
 
 - **`win/scripts/utilities/*.bat` had the same unpaused-console defect
   #79 fixed for `win/scripts/bitcoin/` and `win/scripts/electrum/`**

@@ -14,13 +14,12 @@ chmod +x \
   bin/Electrum.app/Contents/MacOS/run_electrum
 ```
 
-The Bitcoin updater also installs `bitcoind`, `bitcoin-cli`, `bitcoin-qt`,
-`bitcoin-tx`, `bitcoin-util` and `bitcoin-wallet` here, which the `.app`
-bundle does not ship, and sets their executable bit itself as part of
-installing them. The root `README.md`'s *Permission denied on macOS*
-names how a bit goes missing some other way; for these six — absent
-from a clone or a source archive, so not restored by taking the folder
-again — re-running the updater is what restores it.
+The Bitcoin updater also installs the command-line tools `bin/README.md` lists
+here, which the `.app` bundle does not ship, and sets their executable bit
+itself as part of installing them. The root `README.md`'s *Permission denied on
+macOS* names how a bit goes missing some other way; for those tools — absent
+from a clone or a source archive, so not restored by taking the folder again —
+re-running the updater is what restores it.
 
 ## Scripts (`scripts/`)
 

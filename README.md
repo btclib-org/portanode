@@ -143,28 +143,25 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   [bitcoincore.org](https://bitcoincore.org/en/download/) or
   [electrum.org](https://electrum.org/#download) and verify its checksum
   against the official source yourself, then replace `macos/bin/`
-  (`Bitcoin-Qt.app`, or `bitcoind`, `bitcoin-cli`, `bitcoin-tx`,
-  `bitcoin-util`, `bitcoin-wallet`, `bitcoin-qt`) or `win/bin/`
-  (`bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`, `bitcoin-tx.exe`,
-  `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`) for Bitcoin
-  Core, or `macos/bin/Electrum.app/` or `win/bin/electrum.exe` for
-  Electrum. A hand-replaced binary carries no updater backup and no
-  checksum entry, so rollback and `validate-setup`'s checksum check do
-  not see it until an updater run records one.
+  (`Bitcoin-Qt.app`, or the command-line tools `macos/bin/README.md` lists) or
+  `win/bin/` (`bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`,
+  `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`)
+  for Bitcoin Core, or `macos/bin/Electrum.app/` or `win/bin/electrum.exe` for
+  Electrum. A hand-replaced binary carries no updater backup and no checksum
+  entry, so rollback and `validate-setup`'s checksum check do not see it until
+  an updater run records one.
 - **Checksums**: `macos/checksums.sha256` and `win/checksums.sha256` keep
   ever-growing lists of acceptable hashes labeled by version; update scripts
-  append new entries (only after a successful PGP verification) and deduplicate
-  exact duplicates. These files provide **integrity and rollback** checks
-  (detecting corruption/tampering of an already-installed binary), not
-  authenticity — authenticity comes from the PGP step above. Where to get
-  each project's signing key is the *PGP verification fails closed*
-  bullet above.
+  append a new entry (only after a successful PGP verification) and never
+  rewrite an existing one. These files provide **integrity and rollback**
+  checks (detecting corruption/tampering of an already-installed binary), not
+  authenticity — authenticity comes from the PGP step above. Where to get each
+  project's signing key is the *PGP verification fails closed* bullet above.
 
 ### Expected Binaries by OS
 
-- **macOS (`macos/bin/`)**: `Bitcoin-Qt.app/`, `Electrum.app/`, `bitcoind`,
-  `bitcoin-cli`, `bitcoin-qt`, `bitcoin-tx`, `bitcoin-util`,
-  `bitcoin-wallet` (see `macos/bin/README.md`)
+- **macOS (`macos/bin/`)**: `Bitcoin-Qt.app/`, `Electrum.app/`, and the Bitcoin
+  Core command-line tools (see `macos/bin/README.md`)
 - **Windows (`win/bin/`)**: `bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`,
   `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`,
   `electrum.exe` (see `win/bin/README.md`)
