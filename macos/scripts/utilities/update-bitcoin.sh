@@ -178,22 +178,8 @@ if ! pgp_verify_or_fail \
   "$ROOTDIR/keys/bitcoin-core.fingerprints"; then
     exit 1
 fi
-if command -v shasum >/dev/null 2>&1; then
-    grep -F -e "$FILE" -e "$CLI_ARCHIVE" "$TMP_DIR/SHA256SUMS" \
-      > "$TMP_DIR/SHA256SUMS.filtered"
-    if ! (cd "$TMP_DIR" && shasum -a 256 -c SHA256SUMS.filtered); then
-        echo "Checksum failed"
-        exit 1
-    fi
-elif command -v sha256sum >/dev/null 2>&1; then
-    grep -F -e "$FILE" -e "$CLI_ARCHIVE" "$TMP_DIR/SHA256SUMS" \
-      > "$TMP_DIR/SHA256SUMS.filtered"
-    if ! (cd "$TMP_DIR" && sha256sum -c SHA256SUMS.filtered); then
-        echo "Checksum failed"
-        exit 1
-    fi
-else
-    echo "Error: Neither shasum nor sha256sum found."
+if ! verify_sha256sums "$TMP_DIR" SHA256SUMS "$FILE" "$CLI_ARCHIVE"; then
+    echo "Checksum failed"
     exit 1
 fi
 

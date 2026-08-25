@@ -7,6 +7,30 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`update-bitcoin` installs Bitcoin Core on Linux, choosing the
+  architecture from the machine, verifying the same multi-signed
+  `SHA256SUMS` the other two platforms already check, and leaving a
+  failed update recoverable** (closes #117).
+  `linux/scripts/utilities/update-bitcoin.sh` downloads the single
+  `x86_64-linux-gnu` or `aarch64-linux-gnu` tarball bitcoincore.org
+  publishes for Linux, verifies it against `SHA256SUMS.asc` through
+  `pgp_verify_or_fail`, and installs `bitcoind`, `bitcoin-cli`,
+  `bitcoin-qt`, `bitcoin-tx`, `bitcoin-util`, `bitcoin-wallet` and
+  `bitcoin` into `linux/bin/` through the same `install_verified` retry
+  loop the other platforms use for a removable install target.
+  `linux/scripts/utilities/rollback-bitcoin.sh` restores the previous
+  binaries from `linux/bin/backup/bitcoin`, refusing to move any of
+  them unless every backup binary present carries a checksum
+  `linux/checksums.sha256` recognizes. `linux/scripts/lib.sh` and
+  `linux/scripts/utilities/lib.sh` are Linux's own forwarders onto
+  `shared/lib.sh` and `shared/utilities/lib.sh`, matching the macOS
+  pair; `keys/bitcoin-core.fingerprints` is unchanged, this being no
+  new trust decision. `shared/utilities/lib.sh` gains
+  `verify_sha256sums`, the checksum-command choice both platforms'
+  `update-bitcoin.sh` now call instead of each picking between
+  `shasum` and `sha256sum` on its own, and `tree_hash` makes that same
+  choice too rather than assuming `shasum`, which a Linux install
+  without it would otherwise hit silently.
 - **The shared shell library lives in platform-nameless `shared/`, so a
   Linux script can source it without a path component naming another
   platform** (closes #116). `shared/lib.sh` resolves the root and

@@ -114,20 +114,21 @@ repos:
         # they find, which is why only this one is named
         exclude: \.bat$
       # CLAUDE.md's own invariant: the executable bit is set on what
-      # macOS and Linux run -- the root and macos/scripts/ .command and
-      # .sh launchers -- and on nothing else. Every lib.sh is excluded
-      # because it is sourced rather than run, and a bit on any of them
-      # would say a thing about the file that running it does not bear
-      # out: shared/lib.sh and shared/utilities/lib.sh hold the
-      # implementation, macos/scripts/lib.sh and its utilities/ sibling
-      # are forwarders to them kept at their old path for callers
-      # outside this exclusion's own reach. The .bat and .ps1
-      # halves reach this hook and carry no shebang for it to flag.
-      # Windows does not store the git file mode at all, so a bit lost on
-      # that platform is invisible to it there and caught here on
-      # whichever platform commits
+      # macOS and Linux run -- the root, and the macos/scripts/ and
+      # linux/scripts/ .command and .sh launchers -- and on nothing else.
+      # Every lib.sh is excluded because it is sourced rather than run,
+      # and a bit on any of them would say a thing about the file that
+      # running it does not bear out: shared/lib.sh and
+      # shared/utilities/lib.sh hold the implementation, and
+      # macos/scripts/lib.sh and linux/scripts/lib.sh (and each one's
+      # utilities/ sibling) are forwarders to them kept at their own
+      # path for callers outside this exclusion's own reach. The .bat
+      # and .ps1 halves reach this hook and carry no shebang for it to
+      # flag. Windows does not store the git file mode at all, so a bit
+      # lost on that platform is invisible to it there and caught here
+      # on whichever platform commits
       - id: check-shebang-scripts-are-executable
-        exclude: ^(macos/scripts|shared)/(lib\.sh|utilities/lib\.sh)$
+        exclude: ^(macos/scripts|linux/scripts|shared)/(lib\.sh|utilities/lib\.sh)$
       - id: check-case-conflict
       - id: fix-byte-order-marker
       - id: check-merge-conflict
