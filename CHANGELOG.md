@@ -549,6 +549,33 @@ using YYYY.MM.DD format.
   is classic branch protection, coexisting with the rulesets rather than
   folded into one, and its `strict` flag is what asks for a rebase before
   every landing.
+- **`clean-artifacts.sh` no longer walks `bitcoin-datadir/` or
+  `electrum-datadir/` to find a `.DS_Store`** (closes #56). Both can hold
+  a synced chain's blocks, chainstate and indexes, so an unqualified
+  `find` rooted at `$ROOTDIR` read a whole mainnet node, every run, to
+  find a handful of Finder sidecars that never appear inside either. The
+  four `find`s now `-prune` both directories, and delete through
+  `-exec rm -f {} +` rather than `-delete`, which implies `-depth` and
+  makes `-prune` a no-op when the two are combined. `clean-artifacts.bat`
+  gets the same exclusion, built from `$root`'s own children rather than
+  a name filter that would still have to read both directories to apply
+  one, and no longer walks `$root` and `Join-Path $root 'win'` as two
+  separate targets when the second was already inside the first.
+- **`update-electrum.sh` no longer names its scratch directory
+  `TMPDIR`** (closes #57). `TMPDIR` is the variable every child process
+  here — `gpg`, `hdiutil`, `curl`, the `mktemp` inside
+  `pgp_verify_or_fail` — reads to decide where its own temporary files
+  go, so the assignment redirected all of them into the directory the
+  script's own `trap` removes on exit. It is `TMP_DIR` now, matching
+  `update-bitcoin.sh`.
+- **`update-electrum.sh`'s backup `rm -rf` now guards against an empty
+  `BACKUP_DIR`** (closes #66), with the same `${BACKUP_DIR:?}` expansion
+  `update-bitcoin.sh` carries on the same operation since #13.
+  `BACKUP_DIR` is derived from `resolve_root` and is never empty today,
+  so there was no live defect; `install_verified` in `lib.sh` holds a
+  third `rm -rf` of this shape, already safe because an empty
+  destination there makes the command a no-op error rather than a
+  delete.
 
 ## [2026.01.27] - Initial Release
 
