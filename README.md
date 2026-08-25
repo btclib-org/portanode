@@ -35,6 +35,12 @@ you know the kinds of problems this is meant to address.
 It works best on an exFAT-formatted NVMe drive
 in a portable USB 3 / Thunderbolt enclosure.
 
+exFAT is the choice rather than an incidental default: it is the one
+filesystem both macOS and Windows read and write natively, with
+nothing else to install. NTFS needs a third-party driver to write from
+macOS; APFS is not readable from Windows at all. *Limitations, not
+vulnerabilities* below has what that choice costs.
+
 ## Prerequisites
 
 - **Operating System**: fairly recent macOS or Windows versions.
@@ -200,6 +206,9 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   unpacked by a tool that does not restore it. `chmod +x` the launcher you
   ran, or take the folder again with `git clone` or by unzipping the
   release's source archive, both of which keep it.
+- **"The ... path uses exFAT" warning on macOS**: expected, from
+  Bitcoin Core itself, not from a launcher here — see *Limitations, not
+  vulnerabilities* below.
 - **Disk space errors**: Free up space or use pruning in `bitcoin.conf`
   (`prune=550` for ~550MB blocks).
 - **Sync issues**: Check logs in `bitcoin-datadir/debug.log`. For Electrum,
@@ -302,6 +311,17 @@ something that *is* a vulnerability is the organization's, shown on
   device is the perimeter — full-disk encryption on the volume, or a
   wallet passphrase, is what stands between a lost drive and the coins on
   it. Nothing in this repository provides either.
+- **exFAT is what makes the drive portable between macOS and Windows,
+  and Bitcoin Core warns against it on macOS.** On every launch, Bitcoin
+  Core's own startup check detects an exFAT data or blocks directory and
+  warns that exFAT is known to have intermittent corruption problems
+  there; Windows carries no equivalent check. The warning is upstream's
+  and cannot be suppressed from a launcher here — there is no flag for
+  it — and silencing it would mean either patching Bitcoin Core, which
+  breaks the PGP-verified binary this repository depends on, or moving
+  the data off exFAT, which breaks the Windows interoperability exFAT
+  exists here for. Nothing in this repository mitigates the underlying
+  risk beyond what a regular backup of the drive already would.
 - **The launchers are not signed or notarized.** macOS Gatekeeper and
   Windows SmartScreen will treat a `.command` or a `.bat` from this
   folder as unrecognised, and the way past that is the same click an
