@@ -1,13 +1,13 @@
 #!/bin/bash
 # Shared helpers for download, PGP verification and checksum bookkeeping.
 # Platform-nameless like shared/lib.sh beside it: macos/scripts/utilities/
-# lib.sh forwards to it rather than holding the implementation, and a
-# future linux/scripts/utilities/lib.sh forwards to it the same way, so
-# the path arithmetic into shared/ lives in one forwarder per platform
-# instead of in every utility script. debug_list_dir, tree_hash,
-# install_verified and pgp_verify_or_fail read no platform-specific
-# path -- curl, gpg, a checksum command chosen at run time, and a retry
-# loop that exists because the install target may be exFAT.
+# lib.sh and linux/scripts/utilities/lib.sh each forward to it rather than
+# holding the implementation, so the path arithmetic into shared/ lives in
+# one forwarder per platform instead of in every utility script.
+# debug_list_dir, tree_hash, install_verified, pgp_verify_or_fail and
+# verify_sha256sums read no platform-specific path -- curl, gpg, a
+# checksum command chosen at run time, and a retry loop that exists
+# because the install target may be exFAT.
 # update_checksum, verify_checksum_entry and installed_version are not
 # that case: each defaults checksum_file to macos/checksums.sha256,
 # because every caller today is macOS's own and omits the argument. A
@@ -34,15 +34,31 @@ debug_list_dir() {
 # tree_hash PATH — deterministic content hash of a file or of every regular
 # file under a directory. AppleDouble sidecars (._*) are ignored so a source on
 # APFS and a copy on exFAT (which materialises ._* files) compare equal.
+#
+# The checksum command is picked at run time rather than fixed to shasum:
+# macOS always has shasum, but a bare Linux install is not guaranteed to
+# (it ships from Perl's Digest::SHA, not from coreutils), where sha256sum
+# always is. update_checksum, verify_checksum_entry and installed_version
+# below already pick between the two the same way; this is that choice
+# made once so tree_hash's two callsites do not each repeat it.
 tree_hash() {
     local path="$1"
+    local -a sha_cmd
+    if command -v shasum >/dev/null 2>&1; then
+        sha_cmd=(shasum -a 256)
+    elif command -v sha256sum >/dev/null 2>&1; then
+        sha_cmd=(sha256sum)
+    else
+        echo "Error: neither shasum nor sha256sum found." >&2
+        return 1
+    fi
     if [ -d "$path" ]; then
         ( cd "$path" && find . -type f ! -name '._*' -print0 \
             | LC_ALL=C sort -z \
-            | xargs -0 shasum -a 256 2>/dev/null \
-            | shasum -a 256 | awk '{print $1}' )
+            | xargs -0 "${sha_cmd[@]}" 2>/dev/null \
+            | "${sha_cmd[@]}" | awk '{print $1}' )
     else
-        shasum -a 256 "$path" 2>/dev/null | awk '{print $1}'
+        "${sha_cmd[@]}" "$path" 2>/dev/null | awk '{print $1}'
     fi
 }
 
@@ -71,6 +87,35 @@ install_verified() {
     echo "Error: $(basename "$dest") still corrupt after 5 attempts."
     echo "The destination filesystem may be unreliable (e.g. exFAT/fskit)."
     return 1
+}
+
+# verify_sha256sums TMP_DIR SUMS_FILE ARCHIVE...
+#
+# Filters SUMS_FILE, already downloaded into TMP_DIR, down to the named
+# ARCHIVE entries and checks them with whichever of shasum or sha256sum is
+# on PATH. macOS's updater always finds shasum, so before a second caller
+# existed the sha256sum branch had never run; sharing this one function
+# between platforms means a real Linux run is what exercises it, rather
+# than a macOS-only code path carrying a branch nothing takes.
+verify_sha256sums() {
+    local tmp_dir="$1"
+    local sums_file="$2"
+    shift 2
+    local filtered="${sums_file}.filtered"
+    local -a grep_args=()
+    local name
+    for name in "$@"; do
+        grep_args+=(-e "$name")
+    done
+    grep -F "${grep_args[@]}" "$tmp_dir/$sums_file" > "$tmp_dir/$filtered"
+    if command -v shasum >/dev/null 2>&1; then
+        (cd "$tmp_dir" && shasum -a 256 -c "$filtered")
+    elif command -v sha256sum >/dev/null 2>&1; then
+        (cd "$tmp_dir" && sha256sum -c "$filtered")
+    else
+        echo "Error: Neither shasum nor sha256sum found."
+        return 1
+    fi
 }
 
 # pgp_verify_or_fail SIG_FILE DATA_FILE LABEL OUT_VAR [FPR_FILE]
