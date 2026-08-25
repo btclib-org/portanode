@@ -122,5 +122,5 @@ echo "update-bitcoin.sh is what installs the current release again."
 # rather than letting "Rollback complete" imply they moved too. The Windows half
 # restores the command-line tools too, update-bitcoin.bat copying them into the
 # backup.
-echo "The command-line tools in macos/bin are not rolled back: the backup holds" \
-     "the app alone."
+echo "The command-line tools in macos/bin are not rolled back: the backup" \
+     "holds the app alone."

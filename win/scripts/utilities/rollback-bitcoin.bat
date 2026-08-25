@@ -21,10 +21,10 @@ exit /b 1
 
 REM A rollback replaces the files update-bitcoin.bat installs, so it refuses on
 REM the same condition: replacing an .exe under a running process is the same
-REM operation whichever script does it, and a rollback is run when something has
-REM just gone wrong, which is when the node is most likely to still be up. The
-REM filters are that script's, repeated here rather than shared, so a change to
-REM one is owed to the other.
+REM operation whichever script does it, and a rollback is run when something
+REM has just gone wrong, which is when the node is most likely to still be up.
+REM The filters are that script's, repeated here rather than shared, so a
+REM change to one is owed to the other.
 tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
 if %errorlevel%==0 (
     echo Error: Bitcoin Core is running. Stop it before rolling back.
@@ -157,9 +157,10 @@ popd >nul 2>&1
 exit /b 0
 
 :restore_failed
-echo Error: the rollback stopped before restoring every binary. Re-run this
-echo script once the cause is cleared, or run update-bitcoin.bat to install the
-echo current release over what win\bin holds.
+echo Error: the rollback stopped before restoring every binary. What it did not
+echo move is still in win\bin\backup\bitcoin. Once the cause is cleared, move
+echo what is left there into win\bin by hand, or run update-bitcoin.bat to
+echo install the current release over whatever win\bin now holds.
 popd >nul 2>&1
 exit /b 1
 
@@ -167,6 +168,11 @@ REM Nothing is deleted before the move, so a move that fails leaves win\bin
 REM holding the version that was installed and there is nothing to put back;
 REM what a failure needs is to be reported. >nul redirects stdout alone, so
 REM what move writes to stderr reaches the console.
+REM The skip below is for a backup that does not hold the file at all:
+REM update-bitcoin.bat copies only what win\bin held when it ran. It is not for
+REM resuming a partial restore -- bitcoin-qt.exe is restored first, so once it
+REM has moved out of the backup the "Backup files not found" gate above stops
+REM any re-run.
 :restore_one
 if not exist "%BACKUP_DIR%\%~1" exit /b 0
 move /y "%BACKUP_DIR%\%~1" "%ROOTDIR%\win\bin\" >nul
