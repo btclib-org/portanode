@@ -1,6 +1,21 @@
 #!/bin/bash
 ROOTDIR="${PORTANODE_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd -P)}"
 echo ROOTDIR is "${ROOTDIR}"
+DATADIR="${ROOTDIR}/bitcoin-datadir/regtest_bob"
+NETDIR="${DATADIR}/regtest"
+BLOCKCHAINDIR="${NETDIR}/blocks"
+# Bitcoin Core creates the wallets subfolder along with the network directory
+# itself, and wallet code then uses it; wallet code never creates one, so the
+# network directory is the wallet directory only where it already exists
+# without a wallets subfolder beside it.
+if [ -d "${NETDIR}" ] && [ ! -d "${NETDIR}/wallets" ]; then
+    WALLETDIR="${NETDIR}"
+else
+    WALLETDIR="${NETDIR}/wallets"
+fi
+echo DATADIR is "${DATADIR}"
+echo BLOCKCHAINDIR is "${BLOCKCHAINDIR}"
+echo WALLETDIR is "${WALLETDIR}"
 BIN_DIR="${ROOTDIR}/macos/bin"
 BTC_D="${BIN_DIR}/bitcoind"
 BTC_CLI="${BIN_DIR}/bitcoin-cli"
@@ -23,7 +38,6 @@ fi
 # rm -rf "${ROOTDIR}/bitcoin-datadir/regtest_bob"
 mkdir -p "${ROOTDIR}/bitcoin-datadir/regtest_bob"
 
-DATADIR="${ROOTDIR}/bitcoin-datadir/regtest_bob"
 BASENAME="$(basename "$0")"
 FILENAME="${BASENAME%.*}"
 # Bitcoin Core's regtest RPC port defaults to 18443 regardless of -port, so

@@ -37,6 +37,24 @@ using YYYY.MM.DD format.
   it, so only a directory predating that behaviour holds wallets at its
   own root. The launchers that already exist echo none of these; #104 is
   that.
+- **Every Bitcoin Core launcher echoes its datadir, blocks directory and
+  wallet directory, alongside the `ROOTDIR` it already echoed** (closes
+  #104), by the rule and in the shape
+  `testnet4-48333-qt(.command|.bat)` already follows: the network
+  subfolder nested inside that launcher's own datadir — none for
+  mainnet, `testnet3` for testnet3, `regtest` for regtest — then
+  `blocks/` under it, and `wallets/` under it except where that network
+  directory already exists without one. Alice's launchers run on
+  `bitcoin-datadir` itself, Bob's and Carol's on their own isolated
+  datadirs, each nesting its own `regtest/` inside.
+  The launchers that wipe their data before starting compute the three
+  paths after the wipe rather than beside the `ROOTDIR` echo: a network
+  directory standing there without a `wallets/` subfolder is the one
+  state that answers with the directory itself, and the wipe is what
+  takes that state away.
+  Each launcher also passes `-datadir` from the variable it echoes, so
+  the path it prints and the path it hands the binary cannot drift
+  apart.
 - **Bob and Carol get a CLI launcher pair each, on macOS and Windows**
   (closes #90), alongside their existing GUI ones:
   `regtest-18555-Bob-cli(.command|.bat)`,
