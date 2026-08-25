@@ -28,9 +28,13 @@ done
 
 # Download/verify/mount on the local (APFS) temp dir, never on the removable
 # exFAT volume; only the final, verified Electrum.app is copied onto exFAT.
-TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-electrum.XXXXXX")"
+# TMP_DIR, not TMPDIR: the latter is the variable every child process here
+# -- gpg, hdiutil, curl, the mktemp inside pgp_verify_or_fail -- reads to
+# decide where to put its own scratch files, and this script does not own
+# it.
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-electrum.XXXXXX")"
 cd "$ROOTDIR"
-trap 'rm -rf "$TMPDIR"' EXIT
+trap 'rm -rf "$TMP_DIR"' EXIT
 
 echo "Updating Electrum..."
 
@@ -111,15 +115,15 @@ if [ "$DRY_RUN" -eq 1 ]; then
     exit 0
 fi
 
-mkdir -p "$TMPDIR"
+mkdir -p "$TMP_DIR"
 echo "Downloading $URL..."
-curl -fL -o "$TMPDIR/$OUT_FILE" "$URL"
-curl -fL -o "$TMPDIR/$SIG_FILE" "${URL}.asc"
+curl -fL -o "$TMP_DIR/$OUT_FILE" "$URL"
+curl -fL -o "$TMP_DIR/$SIG_FILE" "${URL}.asc"
 
 PGP_OK=0
 if ! pgp_verify_or_fail \
-  "$TMPDIR/$SIG_FILE" \
-  "$TMPDIR/$OUT_FILE" \
+  "$TMP_DIR/$SIG_FILE" \
+  "$TMP_DIR/$OUT_FILE" \
   "Electrum" \
   PGP_OK \
   "$ROOTDIR/keys/electrum.fingerprints"; then
@@ -128,11 +132,15 @@ fi
 
 mkdir -p "$ROOTDIR/macos/bin"
 mkdir -p "$BACKUP_DIR"
-rm -rf "$BACKUP_DIR/Electrum.app"
+# ${VAR:?} refuses an empty value instead of expanding it, so an empty
+# BACKUP_DIR (it never is today, being derived from resolve_root) cannot
+# turn this into "rm -rf /Electrum.app" -- the same guard update-bitcoin.sh
+# carries on its own backup rm -rf.
+rm -rf "${BACKUP_DIR:?}/Electrum.app"
 if [ -d "$ROOTDIR/macos/bin/Electrum.app" ]; then
     cp -R "$ROOTDIR/macos/bin/Electrum.app" "$BACKUP_DIR/Electrum.app"
 fi
-MOUNT_INFO="$(hdiutil attach -nobrowse "$TMPDIR/$OUT_FILE")"
+MOUNT_INFO="$(hdiutil attach -nobrowse "$TMP_DIR/$OUT_FILE")"
 MOUNT_POINT="$(echo "$MOUNT_INFO" | tail -n 1 | awk '{print $3}')"
 if [ -z "$MOUNT_POINT" ]; then
     echo "Failed to mount Electrum DMG."
@@ -170,7 +178,7 @@ else
 fi
 
 # Cleanup
-rm -rf "$TMPDIR"
+rm -rf "$TMP_DIR"
 trap - EXIT
 
 echo "Electrum updated to $VERSION"

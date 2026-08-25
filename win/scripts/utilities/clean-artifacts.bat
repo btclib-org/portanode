@@ -9,16 +9,23 @@ pushd "%ROOTDIR%" >nul 2>&1
 
 echo Cleaning artifacts...
 
+REM Windows Explorer artifacts (ehthumbs.db, Thumbs.db, *.stackdump) appear
+REM where an Explorer window has been -- the launcher and script
+REM directories -- and never inside bitcoin-datadir\ or electrum-datadir\,
+REM which hold a synced chain's blocks, chainstate and indexes: hundreds of
+REM thousands of files on a USB volume. $skip keeps Get-ChildItem from ever
+REM enumerating into either, rather than filtering their contents out after
+REM walking them. $root is not walked a second time as "win": it is
+REM already one of $root's own children.
 powershell -Command ^
   "& { $root = '%ROOTDIR%'; ^
-  $targets = @($root, (Join-Path $root 'win')); ^
-  foreach ($t in $targets) { ^
-    if (Test-Path $t) { ^
-      Get-ChildItem -Path $t -Recurse -Force ^
-        -ErrorAction SilentlyContinue ^
-        -Include 'ehthumbs.db','Thumbs.db','*.stackdump' ^
-        | Remove-Item -Force -ErrorAction SilentlyContinue ^
-    } ^
+  $skip = @('bitcoin-datadir','electrum-datadir'); ^
+  $paths = (Get-ChildItem -LiteralPath $root -Force -ErrorAction SilentlyContinue | ^
+    Where-Object { $skip -notcontains $_.Name }).FullName; ^
+  if ($paths) { ^
+    Get-ChildItem -Path $paths -Recurse -Force -ErrorAction SilentlyContinue ^
+      -Include 'ehthumbs.db','Thumbs.db','*.stackdump' ^
+      | Remove-Item -Force -ErrorAction SilentlyContinue ^
   } }"
 
 echo Cleanup complete.
