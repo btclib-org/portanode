@@ -7,6 +7,23 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **Nothing reads the `.ps1` and `.bat` launchers as a language, and
+  that is now recorded as a decision rather than as an omission**
+  (closes #54). The generic hooks read both as text — `mixed-line-ending`
+  is the one that excludes `.bat`, for the reason its own comment gives —
+  so what that half is short of is a parser rather than coverage, and
+  `shellcheck` is that parser for the `.sh` and `.command` half.
+  PSScriptAnalyzer is PowerShell's and is a PowerShell module, so a hook
+  wrapping it needs `pwsh` on the PATH or a container runtime to supply
+  one, and uv is the only prerequisite this tree asks of a machine that
+  commits. `.pre-commit-config.yaml`'s header carries that reasoning
+  beside the absences it already records, and `CONTRIBUTING.md`'s last
+  section drops "no such hook at all" for the invocation that runs
+  PSScriptAnalyzer by hand. `.bat` has Blinter, which installs under uv
+  alone and so turns on a different question: not one of the findings
+  the rules that set its exit code produce here is a defect, and it
+  suppresses by rule code rather than by line, so the header records it
+  as weighed and refused rather than as missing.
 - **A binary that is not there passed verification, on both platforms**
   (issue #50). `verify-binaries.sh` and `verify-binaries.ps1` printed
   `MISSING` for an absent file and moved on without counting it against
