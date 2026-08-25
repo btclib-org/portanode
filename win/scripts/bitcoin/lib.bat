@@ -88,3 +88,24 @@ if "%ERRORLEVEL%"=="2" (
     exit /b 1
 )
 exit /b 0
+
+:require_deleted
+REM Deletes the directory named by the first argument and refuses to go on
+REM where it is still there afterward.
+REM
+REM rmdir exits nonzero when the directory did not exist to begin with, which
+REM is the ordinary case on a first clean start, so what this checks is the
+REM state left behind rather than rmdir's own exit code. A file another
+REM process holds open, a volume gone read-only, or an exFAT directory the
+REM driver refuses to remove all leave the directory standing afterward, and
+REM that is what a caller sees as the failure -- the running-node guard above
+REM catches the common case of the first, and this catches what gets past it
+REM and every other cause besides.
+setlocal
+set "WIPE_DIR=%~1"
+rmdir "%WIPE_DIR%" /s /q
+if exist "%WIPE_DIR%\" (
+    echo Error: could not delete "%WIPE_DIR%".
+    exit /b 1
+)
+exit /b 0
