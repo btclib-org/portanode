@@ -2,20 +2,21 @@
 ROOTDIR="${PORTANODE_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd -P)}"
 echo ROOTDIR is "${ROOTDIR}"
 BIN_DIR="${ROOTDIR}/macos/bin"
-BTC_QT="${BIN_DIR}/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
+BTC_D="${BIN_DIR}/bitcoind"
+BTC_CLI="${BIN_DIR}/bitcoin-cli"
 
 if [ ! -d "$BIN_DIR" ]; then
     echo "Error: Binaries directory not found at $BIN_DIR"
     exit 1
 fi
 
-if [ ! -e "$BTC_QT" ]; then
-    echo "Error: Binary not found at $BTC_QT"
+if [ ! -e "$BTC_D" ]; then
+    echo "Error: Binary not found at $BTC_D"
     exit 1
 fi
 
-if [ ! -x "$BTC_QT" ]; then
-    echo "Error: Binary not executable at $BTC_QT"
+if [ ! -x "$BTC_D" ]; then
+    echo "Error: Binary not executable at $BTC_D"
     exit 1
 fi
 
@@ -44,11 +45,30 @@ FILENAME="${BASENAME%.*}"
 # Alice's default and from Carol's, following the P2P-minus-one spacing
 # Bitcoin Core itself uses between a network's own P2P and RPC ports
 # (8333/8332, 18333/18332, 18444/18443).
-"$BTC_QT" \
+RPCPORT=18554
+"$BTC_D" \
+  -daemon \
   -uacomment="${FILENAME}" \
-  -datadir="${ROOTDIR}/bitcoin-datadir/regtest_bob" \
+  -datadir="${DATADIR}" \
   -regtest \
   -port=18555 \
-  -rpcport=18554 \
+  -rpcport="${RPCPORT}" \
+  -rpcallowip=127.0.0.1 \
   -addnode=localhost:18444 \
   -addnode=localhost:18666
+
+# Unix bitcoind supports -daemon; Windows bitcoind.exe does not, which is
+# why the Windows counterpart opens a second console with a doskey alias
+# instead. Here the daemon forks and returns, so this window is free to
+# become the CLI session itself, with btc a function rather than an
+# alias: an alias is flat text re-split on every space when expanded, so
+# a ROOTDIR containing one breaks it, where a function's "$@" does not.
+export BTC_CLI DATADIR RPCPORT
+RCFILE="$(mktemp -t portanode-bob-cli-rc)"
+# BTC_CLI, DATADIR and RPCPORT are meant to expand inside the shell this
+# rcfile starts, not here: they are read from the exported environment
+# above.
+# shellcheck disable=SC2016
+echo 'btc() { "$BTC_CLI" -regtest -datadir="$DATADIR" -rpcport="$RPCPORT" "$@"; }' > "$RCFILE"
+echo "btc is a function for bitcoin-cli on this datadir for this session."
+exec bash --rcfile "$RCFILE" -i
