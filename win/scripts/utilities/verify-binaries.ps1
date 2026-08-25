@@ -55,9 +55,9 @@ foreach ($path in $map.Keys) {
   }
   if (-not (Test-Path $filePath)) {
     if ($expectedText) {
-      Write-Host "$path: MISSING (expected versions: $expectedText)"
+      Write-Host "${path}: MISSING (expected versions: $expectedText)"
     } else {
-      Write-Host "$path: MISSING"
+      Write-Host "${path}: MISSING"
     }
     $fail++
     continue
@@ -70,12 +70,12 @@ foreach ($path in $map.Keys) {
       Select-Object -ExpandProperty Version |
       Select-Object -Unique
     $versions = $versions -join ', '
-    Write-Host "$path: OK (version: $versions)"
+    Write-Host "${path}: OK (version: $versions)"
   } else {
     if ($expectedText) {
-      Write-Host "$path: FAILED (expected versions: $expectedText)"
+      Write-Host "${path}: FAILED (expected versions: $expectedText)"
     } else {
-      Write-Host "$path: FAILED"
+      Write-Host "${path}: FAILED"
     }
     $fail++
   }
