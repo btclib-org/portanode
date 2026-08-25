@@ -36,15 +36,15 @@ using YYYY.MM.DD format.
   `System.IO.DriveInfo` and divides in 64-bit arithmetic before the
   figure reaches cmd.exe.
 - **A rollback now refuses to run while Bitcoin Core or Electrum is up**
-  (#49). It replaces the files an update installs, and it is run when
-  something has just gone wrong, which is when the node is most likely to
-  still be running. The detection is the update scripts' own — the same
-  `pgrep -f -i` pattern on macOS, the same `tasklist` filters on Windows —
-  written out in each script rather than shared, so a change to one is
-  owed to the other.
+  (closes #49). It replaces the files an update installs, and it is run
+  when something has just gone wrong, which is when the node is most
+  likely to still be running. The detection is the update scripts' own —
+  the same `pgrep -f -i` pattern on macOS, the same `tasklist` filters on
+  Windows — written out in each script rather than shared, so a change to
+  one is owed to the other.
 - **A rollback that could not restore now says so and exits non-zero**
-  (#48), where `Rollback complete` and an exit of 0 followed a failed
-  `mv` as readily as a successful one. `rollback-bitcoin.sh` and
+  (closes #48), where `Rollback complete` and an exit of 0 followed a
+  failed `mv` as readily as a successful one. `rollback-bitcoin.sh` and
   `rollback-electrum.sh` run under `set -euo pipefail` and rename the
   installed app aside rather than deleting it before the restore, so a
   move that fails leaves `macos/bin` holding the version that was
