@@ -6,17 +6,19 @@ $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
 $Scripts = @{
     "1" = Join-Path $Root "win\scripts\electrum\mainnet.bat"
-    "2" = Join-Path $Root "win\scripts\electrum\testnet.bat"
-    "3" = Join-Path $Root "win\scripts\electrum\regtest.bat"
-    "4" = Join-Path $Root "win\scripts\electrum\mainnet-local-server-only.bat"
+    "2" = Join-Path $Root "win\scripts\electrum\testnet3.bat"
+    "3" = Join-Path $Root "win\scripts\electrum\testnet4.bat"
+    "4" = Join-Path $Root "win\scripts\electrum\regtest.bat"
+    "5" = Join-Path $Root "win\scripts\electrum\mainnet-local-server-only.bat"
 }
 
 while ($true) {
     Write-Host "Electrum Launcher"
     Write-Host "1) Mainnet"
-    Write-Host "2) Testnet"
-    Write-Host "3) Regtest"
-    Write-Host "4) Mainnet (local server only)"
+    Write-Host "2) Testnet3"
+    Write-Host "3) Testnet4"
+    Write-Host "4) Regtest"
+    Write-Host "5) Mainnet (local server only)"
     Write-Host "0) Exit"
     $choice = Read-Host "Select"
 

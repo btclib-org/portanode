@@ -7,6 +7,36 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **A testnet4 launcher joins testnet3 on Bitcoin Core and Electrum, both
+  platforms** (closes #103), alongside Electrum's testnet3 launcher
+  gaining a network-specific name of its own.
+  `testnet4-48333-qt(.command|.bat)` starts Bitcoin-Qt on `-testnet4`
+  (chain name `testnet4`, RPC port 48332, P2P port 48333), structured
+  like `testnet3-18333-qt(.command|.bat)`; `bitcoin-datadir/bitcoin.conf`
+  gains a `[testnet4]` section mirroring `[test]`'s
+  `dbcache=4096` and `acceptnonstdtxn=1`, testnet4 sharing testnet3's own
+  convention of relaying non-standard transactions on a public test
+  network. On the Electrum side, `macos/scripts/electrum/testnet.command`
+  and `win/scripts/electrum/testnet.bat` are renamed to
+  `testnet3(.command|.bat)`, content unchanged, so the name says which
+  network it launches now that `testnet4(.command|.bat)` exists beside
+  it, running Electrum on `--testnet4`. Every README under
+  `macos/scripts/`, `win/scripts/` and the root names the new and
+  renamed launchers, and `electrum-datadir/README.md` names the
+  `testnet4/` folder Electrum nests that network's wallets under.
+  `Electrum-Launcher(.command|.bat|.ps1)` follow the rename, a menu entry
+  still pointing at the old path having found no script at all; both
+  launcher menus gain a testnet4 entry beside their testnet3 one, since a
+  launcher the menu cannot reach is only half added.
+  `testnet4-48333-qt(.command|.bat)` also echoes the datadir, the blocks
+  directory and the wallet directory it is about to use. The wallet
+  directory is the network directory's `wallets/` subfolder, except where
+  that network directory already exists without one: Bitcoin Core creates
+  the subfolder along with the network directory in `InitConfig`, and
+  wallet code in `GetWalletDir` uses it where it exists but never creates
+  it, so only a directory predating that behaviour holds wallets at its
+  own root. The launchers that already exist echo none of these; #104 is
+  that.
 - **Bob and Carol get a CLI launcher pair each, on macOS and Windows**
   (closes #90), alongside their existing GUI ones:
   `regtest-18555-Bob-cli(.command|.bat)`,

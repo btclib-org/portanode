@@ -6,7 +6,8 @@ whether it restricts connections to a local Electrum server only.
 ## Differences by script
 
 - `mainnet.command`: Mainnet, standard server connections.
-- `testnet.command`: Testnet, standard server connections.
+- `testnet3.command`: Testnet3, standard server connections.
+- `testnet4.command`: Testnet4, standard server connections.
 - `regtest.command`: Regtest, standard server connections (typically local).
 - `mainnet-local-server-only.command`: Mainnet, connects only to a local
   Electrum server.

@@ -58,10 +58,12 @@ vulnerabilities* below has what that choice costs.
 ## Quick Start
 
 1. Mount your external disk and navigate to the PortaNode folder.
-1. For macOS: Double-click a script in `macos/scripts/bitcoin/` or
-   `macos/scripts/electrum/` (e.g., `mainnet-8333-qt.command`).
-1. For Windows: Double-click a script in `win/scripts/bitcoin/` or
-   `win/scripts/electrum/` (e.g., `mainnet-8333-qt.bat`).
+1. For macOS: Double-click a script in `macos/scripts/bitcoin/` (e.g.,
+   `mainnet-8333-qt.command`) or `macos/scripts/electrum/` (e.g.,
+   `mainnet.command`).
+1. For Windows: Double-click a script in `win/scripts/bitcoin/` (e.g.,
+   `mainnet-8333-qt.bat`) or `win/scripts/electrum/` (e.g.,
+   `mainnet.bat`).
 1. Root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and
    `Utilities-Launcher.*` (choose `.command`, `.bat`, `.ps1`, or `.sh` for your
    OS).
@@ -112,6 +114,7 @@ vulnerabilities* below has what that choice costs.
 
 - **Mainnet**: Use `mainnet-8333-qt` scripts for the GUI.
 - **Testnet**: Use `testnet3-18333-qt` for testnet.
+- **Testnet4**: Use `testnet4-48333-qt` for testnet4.
 - **Regtest**: Use `regtest-*` scripts for local testing. Clean scripts reset
   data.
 - Data is stored in `bitcoin-datadir/`. Configure via `bitcoin.conf`.
@@ -120,7 +123,9 @@ vulnerabilities* below has what that choice costs.
 
 - **Mainnet**: Use `mainnet` or `mainnet-local-server-only` (connects to local
   server).
-- **Testnet/Regtest**: Use respective scripts.
+- **Testnet3**: Use `testnet3` for testnet3.
+- **Testnet4**: Use `testnet4` for testnet4.
+- **Regtest**: Use `regtest` for regtest.
 - Data in `electrum-datadir/`. Wallets are in `wallets/`.
 
 ### Environment Overrides

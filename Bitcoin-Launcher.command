@@ -24,9 +24,10 @@ while true; do
   echo "Bitcoin Launcher ($ROOTDIR)"
   echo "1) Mainnet (GUI)"
   echo "2) Testnet3 (GUI)"
-  echo "3) Regtest Alice (GUI)"
-  echo "4) Regtest Bob (GUI)"
-  echo "5) Regtest Carol (GUI)"
+  echo "3) Testnet4 (GUI)"
+  echo "4) Regtest Alice (GUI)"
+  echo "5) Regtest Bob (GUI)"
+  echo "6) Regtest Carol (GUI)"
   echo "0) Exit"
   printf "Select: "
   read -r choice
@@ -38,9 +39,10 @@ while true; do
   case "$choice" in
     1) run_script "$ROOTDIR/macos/scripts/bitcoin/mainnet-8333-qt.command" ;;
     2) run_script "$ROOTDIR/macos/scripts/bitcoin/testnet3-18333-qt.command" ;;
-    3) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-qt.command" ;;
-    4) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt.command" ;;
-    5) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt.command" ;;
+    3) run_script "$ROOTDIR/macos/scripts/bitcoin/testnet4-48333-qt.command" ;;
+    4) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-qt.command" ;;
+    5) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt.command" ;;
+    6) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt.command" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac
