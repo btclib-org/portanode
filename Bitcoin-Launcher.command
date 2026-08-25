@@ -26,8 +26,17 @@ while true; do
   echo "2) Testnet3 (GUI)"
   echo "3) Testnet4 (GUI)"
   echo "4) Regtest Alice (GUI)"
-  echo "5) Regtest Bob (GUI)"
-  echo "6) Regtest Carol (GUI)"
+  echo "5) Regtest Alice (GUI, clean)"
+  echo "6) Regtest Alice (CLI)"
+  echo "7) Regtest Alice (CLI, clean)"
+  echo "8) Regtest Bob (GUI)"
+  echo "9) Regtest Bob (GUI, clean)"
+  echo "10) Regtest Bob (CLI)"
+  echo "11) Regtest Bob (CLI, clean)"
+  echo "12) Regtest Carol (GUI)"
+  echo "13) Regtest Carol (GUI, clean)"
+  echo "14) Regtest Carol (CLI)"
+  echo "15) Regtest Carol (CLI, clean)"
   echo "0) Exit"
   printf "Select: "
   read -r choice
@@ -41,8 +50,17 @@ while true; do
     2) run_script "$ROOTDIR/macos/scripts/bitcoin/testnet3-18333-qt.command" ;;
     3) run_script "$ROOTDIR/macos/scripts/bitcoin/testnet4-48333-qt.command" ;;
     4) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-qt.command" ;;
-    5) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt.command" ;;
-    6) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt.command" ;;
+    5) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-qt-clean.command" ;;
+    6) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-cli.command" ;;
+    7) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-cli-clean.command" ;;
+    8) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt.command" ;;
+    9) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt-clean.command" ;;
+    10) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-cli.command" ;;
+    11) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-cli-clean.command" ;;
+    12) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt.command" ;;
+    13) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt-clean.command" ;;
+    14) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-cli.command" ;;
+    15) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-cli-clean.command" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac

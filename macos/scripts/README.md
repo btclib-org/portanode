@@ -9,6 +9,7 @@ Entry point for launch scripts.
     - `testnet3-18333-qt.command`: GUI for testnet3.
     - `testnet4-48333-qt.command`: GUI for testnet4.
     - `regtest-*-qt.command`: GUI for regtest (Alice/Bob/Carol).
+    - `regtest-*-cli.command`: Daemon + CLI for regtest.
     - `-clean` variants: Reset data before launch.
 - `electrum/`: Electrum scripts (.command).
     - `mainnet.command`: Standard mainnet.
