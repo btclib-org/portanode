@@ -179,9 +179,39 @@ moves `main`.
   a `.ps1` change being read for correctness without ever being parsed.
   `Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser` once
   `pwsh` is there.
+- **`blinter`'s exit code is not the gate's signal, and neither is a rule
+  code's count across the whole tree.** `.pre-commit-config.yaml`'s own
+  header says it is run by hand and does not gate; `uvx blinter . --no-config
+  --summary` still exits non-zero against an unmodified tree:
+
+    ```shell
+    git archive origin/main | tar -x -C <tmpdir> && cd <tmpdir>
+    uvx blinter . --no-config --summary; echo $?
+    ```
+
+    So a session reading only that exit code cannot tell its own red from
+    the tree's. What a diff is judged on is the findings its own changed
+    lines produce, read by file and by the `Context:` line blinter
+    attaches to each finding — not the exit code, and not a rule code's
+    count, because the same code fires independently elsewhere: a file
+    can carry two unrelated findings under one code, one on a line a diff
+    removes and one that stays, and the code's count in that file is then
+    identical before and after even though the diff's own finding is
+    gone.
 - **`ROOTDIR` is resolved, never assumed.** Every script derives it from
   its own location or from `PORTANODE_ROOT`, because the folder is
   mounted at a different point on every machine it is plugged into.
+- **`resolve_root` fails silently, not loudly.** `shared/lib.sh` walks
+  upward from `start_dir` looking for a directory holding `VERSION` plus
+  a platform directory, and where the walk finds none it returns
+  `start_dir` itself rather than an error — so a caller whose probe never
+  finds a real root is handed back a directory as plausible as one that
+  was found, and every path built on it afterwards is wrong the same
+  way. This is what makes the loop's own probe — `VERSION` plus *any
+  one* of `macos/`, `win/` or `linux/`, rather than all three — a real
+  decision and not a cosmetic one: read the comment beside the loop
+  before loosening or tightening it, since either changes how often a
+  caller ends up at the fallback above instead of at a real root.
 - **The executable bit is set on what macOS and Linux run, and on
   nothing else**, which is the rule and not a description of today's
   tree:
@@ -259,3 +289,18 @@ section. Nothing here runs a launcher, so a change to one is verified by
 running it — on the platform it is for, from a volume that is not the
 boot disk — and a session that could not do that says so rather than
 leaving it to be assumed.
+
+For Linux, "could not do that" is narrower than it reads: GitHub Actions
+runs `ubuntu-latest`, and a workflow using `on: push` runs from whatever
+branch carries it rather than needing to sit on the default branch first
+— that requirement is `workflow_dispatch`'s alone. A scratch branch
+holding a throwaway workflow file therefore produces a real run without
+that workflow ever landing on `main`; `gh run list` and
+`gh run view --log` retrieve the output, and deleting the branch
+afterwards (`git push origin --delete <branch>`) is a remote ref, not a
+file, so it leaves nothing behind to clean up. What that run cannot
+establish: `ubuntu-latest` carries no desktop session, so a `.desktop`
+file's trust behaviour in a file manager is not reachable there, and
+exFAT-on-a-removable-drive behaviour is only reachable through a
+loopback image, which is not the same thing as a drive plugged into a
+running machine.
