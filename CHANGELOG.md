@@ -80,6 +80,28 @@ using YYYY.MM.DD format.
   `macos/README.md`'s own *Binaries* section now name the same CLI
   tools already correct in `macos/bin/README.md` and in `README.md`'s
   *Expected Binaries by OS*, rather than the two app bundles alone.
+- **Documentation describing a tree that is not there is corrected** (#59, #60,
+  #61, #62, #69). `README.md`, `macos/bin/README.md` and `win/bin/README.md` no
+  longer place the updaters' downloads in a `.tmp-downloads/` directory nothing
+  creates — both updaters download and verify on local temp storage instead,
+  extracting or mounting there too where the download needs it, precisely to
+  keep off the removable volume — and the two `bin/.gitignore` no longer list
+  that directory. `macos/scripts/utilities/README.md` no longer tells
+  `verify-binaries.sh` to use associative arrays it was written to avoid, macOS
+  shipping bash 3.2. Both utilities `README.md` point at `README.md`'s own
+  signing-key paragraph instead of restating it around a
+  `contrib/builder-keys/keys.txt` path Bitcoin Core no longer has, and no longer
+  duplicate between themselves the explanation of why a missing key fails a
+  detached signature. `README.md` no longer names two `bin/backup/README.md` an
+  ignored `backup/` can never hold, no longer offers a mainnet CLI script the
+  tree has never shipped, and folds its own duplicated *Signing Keys* bullet
+  into the paragraph above it. `README.md`'s *Expected Binaries by OS* now names
+  the six CLI tools beside the two macOS app bundles, matching what
+  `macos/bin/README.md` already said, and its *Folder Structure* macOS `bin/`
+  line now describes the binaries generically instead of enumerating them by
+  name. `macos/README.md`'s own *Binaries* section gains the same six tools in a
+  paragraph of its own: the updater sets their executable bit itself, so the
+  `chmod` block above still covers only the two app bundles.
 
 - **Every hook with a fix mode now runs with it turned on.**
   `markdownlint-cli2` gains `--fix` and `codespell` gains

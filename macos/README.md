@@ -3,9 +3,6 @@
 ## Binaries (`bin/`)
 
 - `Bitcoin-Qt.app`: Bitcoin Core GUI.
-- `bitcoind`, `bitcoin-cli`, `bitcoin-qt`, `bitcoin-tx`, `bitcoin-util`,
-  `bitcoin-wallet`: Bitcoin Core command-line tools, installed alongside
-  the GUI bundle.
 - `Electrum.app`: Electrum wallet.
 
 Ensure these are executable. If not, run:
@@ -16,6 +13,12 @@ chmod +x \
   bin/Electrum.app/Contents/MacOS/Electrum \
   bin/Electrum.app/Contents/MacOS/run_electrum
 ```
+
+The Bitcoin updater also installs `bitcoind`, `bitcoin-cli`, `bitcoin-qt`,
+`bitcoin-tx`, `bitcoin-util` and `bitcoin-wallet` here, which the `.app`
+bundle does not ship, and sets their executable bit itself as part of
+installing them; the root `README.md`'s *Permission denied on macOS* is
+where a bit lost some other way is fixed.
 
 ## Scripts (`scripts/`)
 
