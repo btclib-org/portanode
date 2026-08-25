@@ -1,9 +1,3 @@
-<!-- markdownlint-disable MD022 MD032 -->
-<!-- This file is merge=union, so a rebase joins two sections and drops
-     the blank line between them without a conflict: the rule is off
-     here for the duration of btclib-org/.github#33, and goes back on
-     when that queue is empty. btclib-org/.github#138 is the record. -->
-
 # Changelog
 
 All notable changes to PortaNode will be documented in this file.
@@ -12,6 +6,20 @@ The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
+
+- **Every hook with a fix mode now runs with it turned on.**
+  `markdownlint-cli2` gains `--fix` and `codespell` gains
+  `--write-changes`; `typos` already fixes in place through its own
+  upstream default, now stated so a later `args:` cannot silently turn
+  it off; `yamllint` is noted where it is configured as having no fix
+  mode to turn on.
+- **With `markdownlint-cli2` fixing in place, this file's own directive
+  disabling MD022 and MD032 no longer has anything to absorb: a rebase
+  joining two entries under `merge=union` and dropping the blank line
+  between them is repaired on the next hook run instead of failing a
+  gate with nothing to fix it.** The two-comment directive at the head
+  of this file is gone, and the two rules apply to it again (closes
+  #40).
 
 - **`shellcheck` is now in `.pre-commit-config.yaml`** (#13), against
   every `.sh` and `.command` launcher. Landing it needed the findings it
