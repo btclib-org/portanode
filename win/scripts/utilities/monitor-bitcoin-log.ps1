@@ -56,8 +56,9 @@ if ($currentSize -gt $lastOffset) {
     if (-not $NoNotify) {
       $toastShown = $false
       try {
-        [Windows.UI.Notifications.ToastNotificationManager,
-         Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+        # The type literal cannot wrap: PowerShell's tokenizer rejects an
+        # assembly-qualified type name split across lines.
+        [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
         $template =
           [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent(
             [Windows.UI.Notifications.ToastTemplateType]::ToastText02)

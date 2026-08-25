@@ -21,6 +21,16 @@ using YYYY.MM.DD format.
   instruction to measure a `.bat` points there rather than restating the
   mechanism and sending the reader to a checkout.
 
+- **`verify-binaries.ps1` and `monitor-bitcoin-log.ps1` did not parse, so
+  neither ran on Windows** (closes #93). `verify-binaries.ps1` wrote
+  `"$path: MISSING"`, and PowerShell reads `$path:` inside a
+  double-quoted string as a drive-qualified variable reference rather
+  than as the variable followed by a colon; it now reads `"${path}:
+  MISSING"` at every site. `monitor-bitcoin-log.ps1` split an
+  assembly-qualified type literal across two lines, which PowerShell's
+  tokenizer does not accept; it is now one line, however long, a type
+  literal being unsplittable. PowerShell's own parser rejected both
+  files before the fix and accepts every `.ps1` in the tree after it.
 - **Nothing reads the `.ps1` and `.bat` launchers as a language, and
   that is now recorded as a decision rather than as an omission**
   (closes #54). The generic hooks read both as text — `mixed-line-ending`
