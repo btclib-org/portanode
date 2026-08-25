@@ -23,30 +23,46 @@ gh api repos/btclib-org/portanode --jq '{visibility, has_issues}'
 
 ## What gates a merge
 
-**Nothing produced by a workflow yet, though one now runs.** `lint.yml`
-answers on every pull request, and no rule waits for its answer:
+**`lint.yml` runs on every pull request, and a red run of it stops the
+merge:**
 
 ```shell
-gh api repos/btclib-org/portanode/actions/workflows --jq '[.workflows[].path]'
 gh api repos/btclib-org/portanode/branches/main/protection \
-  --jq 'has("required_status_checks")'
+  --jq '.required_status_checks | {checks, contexts, strict}'
 ```
 
-lists the workflow files, and answers `false`. So a red `Lint` is read by
-whoever looks at the pull request and stops nothing, which is the
-deliberate half of the order: a required context that nothing produces
-blocks every merge with nothing in the tree to explain why, so the
-workflow lands first and the rule follows it once a run of it is green.
+```json
+{"checks":[{"app_id":15368,"context":"Lint"}],"contexts":["Lint"],"strict":true}
+```
 
-Making it follow is one ruleset rule on `main-integrity`, of type
-`required_status_checks`, naming the context `Lint` — the job's name,
-`lint.yml` saying why that name is the context and why renaming it cannot
-be done in a pull request afterwards. `links.yml` and `claude-review.yml`
-must stay out of it: the first reports the internet's weather and the
-second an opinion, and neither is a thing to hold a merge on.
+names the context `Lint` — the job's name, `lint.yml` saying why that name
+is the context and why renaming it cannot be done in a pull request
+afterwards — as a required status check.
 
-What does hold a pull request is the review, and what holds every commit
-that reaches `main` is `main-integrity`.
+**The requirement lives in classic branch protection, not in a ruleset
+rule.** None of the rulesets below carries a `required_status_checks`
+rule:
+
+```shell
+gh api repos/btclib-org/portanode/rules/branches/main \
+  --jq '[.[] | {type, ruleset_id}]'
+```
+
+lists only `main-integrity`'s four rules and `main-self-merge`'s one;
+`Lint` is required through the older `branches/main/protection` endpoint,
+which this repository keeps active alongside the rulesets rather than
+folding into one of them.
+
+**`strict` is on**, so a pull request also has to be up to date with
+`main` before GitHub will merge it — a rebase before every landing, not
+only a green `Lint`.
+
+`links.yml` and `claude-review.yml` are not part of the required check:
+the first reports the internet's weather and the second an opinion, and
+neither is a thing to hold a merge on.
+
+What holds a pull request is the review and `Lint`; what holds every
+commit that reaches `main` is `main-integrity`.
 
 ## Rulesets
 

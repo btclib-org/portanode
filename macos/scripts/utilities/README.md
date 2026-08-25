@@ -30,10 +30,16 @@ system's default `sh` is not bash.
 
 Can be used if an update fails.
 
-- `rollback-bitcoin.sh`: Restores Bitcoin binaries from
-  `macos/bin/backup/bitcoin/`.
-- `rollback-electrum.sh`: Restores Electrum binaries from
-  `macos/bin/backup/electrum/`.
+- `rollback-bitcoin.sh`: Restores `Bitcoin-Qt.app` from
+  `macos/bin/backup/bitcoin/`, moving it into place rather than copying it,
+  so the restore consumes the backup and a second rollback has nothing left
+  to restore. The command-line tools in `macos/bin` are not part of the
+  restore: `update-bitcoin.sh` overwrites them with no backup, so they stay
+  at whatever version the last update installed. `update-bitcoin.sh` is
+  what brings the app back to that same version.
+- `rollback-electrum.sh`: Restores Electrum from
+  `macos/bin/backup/electrum/`, moving it into place and consuming the
+  backup the same way.
 
 ### Logging and Maintenance
 

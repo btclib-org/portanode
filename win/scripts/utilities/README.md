@@ -29,9 +29,15 @@ Usually run after setup or updates.
 Can be used if an update fails
 
 - `rollback-bitcoin.bat`:
-  Restores Bitcoin binaries from `win/bin/backup/bitcoin/`.
+  Restores `bitcoin-qt.exe` and the command-line tools from
+  `win/bin/backup/bitcoin/`, moving each into place rather than copying it,
+  so the restore consumes the backup and a second rollback has nothing
+  left to restore. `update-bitcoin.bat` backs up the command-line tools
+  alongside the app, unlike the macOS half, so all of them come back
+  together.
 - `rollback-electrum.bat`:
-  Restores Electrum binary from `win/bin/backup/electrum/`.
+  Restores `electrum.exe` from `win/bin/backup/electrum/`, moving it into
+  place and consuming the backup the same way.
 
 ### Logging and Maintenance
 

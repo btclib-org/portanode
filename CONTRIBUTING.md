@@ -247,9 +247,9 @@ gh api repos/btclib-org/portanode/branches/main/protection \
   --jq 'has("required_status_checks")'
 ```
 
-While that answers `false`, a red `Lint` is a thing to read and not a
-thing that stops anything, and `REPOSITORY.md`'s *What gates a merge* has
-the rule that would make it stop something.
+That answers `true`: a red `Lint` stops the merge. `REPOSITORY.md`'s
+*What gates a merge* has the setting, that it is classic branch
+protection rather than a ruleset rule, and what its `strict` flag costs.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a
@@ -257,7 +257,8 @@ third party returning 502 would be a red merge with nothing to fix; the
 second posts the ack of record `REVIEWING.md` describes, which is an
 opinion for you to weigh. Neither belongs in a branch rule.
 
-What holds a pull request is an approving review, and what holds every
-commit that reaches `main` — signature, linear history, no force push, no
-deletion — is a ruleset with no bypass actor. `REPOSITORY.md` reads both
-back from the endpoint rather than restating them.
+What holds a pull request is the review and a green `Lint`, and what
+holds every commit that reaches `main` — signature, linear history, no
+force push, no deletion — is a ruleset with no bypass actor.
+`REPOSITORY.md` reads all of it back from the endpoint rather than
+restating it.
