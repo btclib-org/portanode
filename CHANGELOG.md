@@ -7,6 +7,24 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **The shared shell library lives in platform-nameless `shared/`, so a
+  Linux script can source it without a path component naming another
+  platform** (closes #116). `shared/lib.sh` resolves the root and
+  `shared/utilities/lib.sh` carries the download, PGP and checksum
+  helpers. `macos/scripts/lib.sh` and `macos/scripts/utilities/lib.sh`
+  are forwarders to them, kept at their old path so
+  `Bitcoin-Launcher.command`, `Electrum-Launcher.command`,
+  `Utilities-Launcher.command` and every script under
+  `macos/scripts/utilities/` keep working unchanged. `resolve_root`'s
+  root probe accepts `VERSION` plus any one of `macos/`, `win/` or
+  `linux/`, so it matches once `linux/` exists without failing on a
+  checkout that does not have it yet. `Bitcoin-Launcher.sh`,
+  `Electrum-Launcher.sh` and `Utilities-Launcher.sh` refuse by name on
+  Linux instead of falling through to the macOS `.command`, which runs a
+  menu of Mach-O binaries that do not exist there. `linux/bin/.gitignore`
+  and `linux/checksums.sha256` exist on the same terms as their macOS
+  and Windows siblings, and `CLAUDE.md`'s parity check and
+  executable-bit rule each read three platforms.
 - **`Bitcoin-Launcher.*`'s menu now reaches every Bitcoin Core script,
   and `README.md` leads with the root launchers rather than mentioning
   them fourth** (closes #107). `Bitcoin-Launcher.command`, `.bat` and

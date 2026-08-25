@@ -35,15 +35,15 @@ moves it. That is worth knowing before editing it for any other reason:
 **`VERSION` is also the marker the launchers find the root by.**
 
 ```shell
-grep -rn 'VERSION' macos/scripts/lib.sh win/scripts/root.bat \
-  win/scripts/root.ps1
+grep -rn 'VERSION' shared/lib.sh win/scripts/root.bat win/scripts/root.ps1
 ```
 
 Each walks up from its own location until it finds a directory holding a
-`VERSION` file — on macOS, one that also holds `macos/` and `win/` —
-before falling back. Renaming that file, or deleting it, breaks every
-launcher that was not given `PORTANODE_ROOT`, and does so with a "binary
-not found" rather than with anything naming the cause.
+`VERSION` file and at least one platform directory beside it — `shared/`
+being sourced by every platform's own `lib.sh`, `macos/scripts/lib.sh`
+included — before falling back. Renaming that file, or deleting it,
+breaks every launcher that was not given `PORTANODE_ROOT`, and does so
+with a "binary not found" rather than with anything naming the cause.
 
 `CHANGELOG.md` names the version being worked on in its top heading,
 where `VERSION` still names the one before it. The two agree only between

@@ -27,16 +27,34 @@ folder that is not the boot disk. `README.md` is what a user reads,
   where the other exists, which is not everywhere:
 
     ```shell
-    diff <(git ls-files 'macos/scripts/**' \
-            | sed -E 's,^macos/scripts/,,; s,\.(command|sh)$,,' | sort -u) \
-         <(git ls-files 'win/scripts/**' \
-            | sed -E 's,^win/scripts/,,; s,\.(bat|ps1)$,,' | sort -u)
+    macos_list=$(git ls-files 'macos/scripts/**' \
+      | sed -E 's,^macos/scripts/,,; s,\.(command|sh)$,,' | sort -u)
+    win_list=$(git ls-files 'win/scripts/**' \
+      | sed -E 's,^win/scripts/,,; s,\.(bat|ps1)$,,' | sort -u)
+    linux_list=$(git ls-files 'linux/scripts/**' \
+      | sed -E 's,^linux/scripts/,,; s,\.sh$,,' | sort -u)
+    diff <(echo "$macos_list") <(echo "$win_list")
+    diff <(echo "$macos_list") <(echo "$linux_list")
     ```
 
-- **The shared code is in `lib`.** `macos/scripts/lib.sh` resolves the
-  root, `macos/scripts/utilities/lib.sh` carries the download and PGP
-  helpers, and `win/scripts/utilities/lib.bat` is the Windows half of the
-  second. A launcher sources one rather than repeating it.
+- **The shared code is platform-nameless, in `shared/`.** `shared/lib.sh`
+  resolves the root and `shared/utilities/lib.sh` carries the download
+  and PGP helpers; `win/scripts/utilities/lib.bat` is the Windows half of
+  the second, `.bat` and `.ps1` being genuinely different languages from
+  `bash` where the shared library is not. `macos/scripts/lib.sh` and
+  `macos/scripts/utilities/lib.sh` still exist, each a forwarder to the
+  file of the same name under `shared/` — kept at their old paths
+  because `Bitcoin-Launcher.command`, `Electrum-Launcher.command` and
+  `Utilities-Launcher.command` source the first by that path, every
+  script under `macos/scripts/utilities/` sources one or the other of
+  the two, and a forwarder keeps the relative-path arithmetic into
+  `shared/` in one file per platform instead of in every caller that
+  reaches it through this one. A future `linux/scripts/lib.sh` and
+  `linux/scripts/utilities/lib.sh` will forward the same way, for the
+  same reason, rather than every `linux/scripts/utilities/` script doing
+  that arithmetic itself, and
+  rather than copying the helpers or sourcing across into `macos/`. A
+  launcher sources one rather than repeating it.
 - **`keys/*.fingerprints` decide what an update will install.**
   `electrum.fingerprints` pins one key, so an Electrum download signed by
   anything else is refused; `bitcoin-core.fingerprints` pins none, Core's
@@ -164,20 +182,28 @@ moves `main`.
 - **`ROOTDIR` is resolved, never assumed.** Every script derives it from
   its own location or from `PORTANODE_ROOT`, because the folder is
   mounted at a different point on every machine it is plugged into.
-- **The executable bit is set on what macOS runs and on nothing else**,
-  which is the rule and not a description of today's tree:
+- **The executable bit is set on what macOS and Linux run, and on
+  nothing else**, which is the rule and not a description of today's
+  tree:
 
     ```shell
     git ls-files -s | awk '$1 == "100755" { print $4 }'
     ```
 
     answers with the `.command` and `.sh` launchers, at the root and
-    under `macos/scripts/`, and with nothing else. The `.bat` and `.ps1`
-    halves stay 100644 because Windows does not read a POSIX mode, and
-    the two `lib.sh` are sourced rather than run — an executable bit on
-    either would say a thing about the file that running it does not
-    bear out. A new `.command` left non-executable does nothing when it
-    is double-clicked in Finder, which is the way it is meant to be run.
+    under `macos/scripts/`, and with nothing else. The root `.sh`
+    launchers are Linux's own entry point too — dispatching or refusing
+    by `uname -s`, not macOS-exclusive — so they earn the bit on both
+    platforms' terms rather than only macOS's; a future
+    `linux/scripts/`'s own `.sh` utilities get the same bit for the same
+    reason macOS's do, a shell reading the file directly. The `.bat` and
+    `.ps1` halves stay 100644 because Windows does not read a POSIX
+    mode, and every `lib.sh` — the two under `shared/` and the two
+    `macos/scripts/` forwarders that source them by their old path — is
+    sourced rather than run; an executable bit on any of them would say
+    a thing about the file that running it does not bear out. A new
+    `.command` left non-executable does nothing when it is
+    double-clicked in Finder, which is the way it is meant to be run.
 
 - **The bit decides nothing on the volume this is built for.** macOS
   synthesises a mode for exFAT rather than storing one: a file written

@@ -1,0 +1,14 @@
+bitcoind
+bitcoin-cli
+bitcoin-qt
+bitcoin-tx
+bitcoin-util
+bitcoin-wallet
+bitcoin
+# electrum.AppImage: a fixed, version-independent name, matching
+# Electrum.app and electrum.exe on the other two platforms. Whether a
+# future Linux updater keeps the download in this shape or extracts it
+# and runs its contents directly is not decided here; this name is a
+# placeholder for whichever shape lands.
+electrum.AppImage
+backup/

@@ -1,31 +1,13 @@
 #!/bin/bash
-# Shared helpers for macOS scripts.
+# macOS's own entry point for the platform-nameless root-resolution
+# helper. The implementation lives in shared/lib.sh; this file stays at
+# this path, as a forwarder rather than being deleted, because
+# Bitcoin-Launcher.command, Electrum-Launcher.command and
+# Utilities-Launcher.command source it by this exact path, and because a
+# forwarder keeps the relative-path arithmetic into shared/ in one file
+# instead of in every caller that reaches it through this one.
 
-resolve_root() {
-    local start_dir="$1"
-
-    if [ -n "${PORTANODE_ROOT:-}" ]; then
-        if [ -d "$PORTANODE_ROOT" ]; then
-            (cd "$PORTANODE_ROOT" && pwd -P)
-            return 0
-        fi
-        printf "%s" "$PORTANODE_ROOT"
-        return 0
-    fi
-
-    local dir="$start_dir"
-    while [ -n "$dir" ]; do
-        if [ -f "$dir/VERSION" ] && [ -d "$dir/macos" ] && [ -d "$dir/win" ]; then
-            (cd "$dir" && pwd -P)
-            return 0
-        fi
-        local parent
-        parent="$(cd "$dir/.." && pwd -P)"
-        if [ "$parent" = "$dir" ]; then
-            break
-        fi
-        dir="$parent"
-    done
-
-    (cd "$start_dir" && pwd -P)
-}
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=shared/lib.sh
+. "$_LIB_DIR/../../shared/lib.sh"
+unset _LIB_DIR

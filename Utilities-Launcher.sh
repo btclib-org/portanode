@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-. "$SCRIPT_DIR/macos/scripts/lib.sh"
+. "$SCRIPT_DIR/shared/lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 UNAME="$(uname -s 2>/dev/null || true)"
 
@@ -17,6 +17,13 @@ case "$UNAME" in
       fi
       exit 0
     fi
+    ;;
+  Linux)
+    # No linux/Utilities-Launcher of its own yet: refuse rather than
+    # fall through to the .command below, which runs macOS's own menu
+    # against tooling that does not exist on this platform.
+    echo "Linux is not supported yet by Utilities-Launcher.sh."
+    exit 1
     ;;
 esac
 
