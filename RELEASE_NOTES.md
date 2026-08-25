@@ -15,6 +15,21 @@ discovered on the next double-click.
 
 ## [2026.01.29] - git main branch, not released yet
 
+**A rollback now refuses to run while the node it replaces is up.** Stop
+Bitcoin Core or Electrum before running `rollback-bitcoin` or
+`rollback-electrum` on either platform: a rollback replaces the same files
+an update does, and the update scripts refuse on the same condition.
+
+**A rollback that could not restore now reports it and exits non-zero**,
+where `Rollback complete` and an exit of 0 followed either outcome. On
+macOS the installed app is renamed aside rather than deleted, so a restore
+that fails leaves the version that was installed in place. Each rollback
+also says on the way out that it has consumed the backup: there is nothing
+to roll back to a second time, and `update-bitcoin` or `update-electrum`
+is what installs the current release again. On macOS the command-line
+tools beside `Bitcoin-Qt.app` are not rolled back with it, the backup
+holding the app alone.
+
 **An update now refuses to install a binary it could not verify.** Both
 platforms' update scripts abort unless the download carries a valid PGP
 signature from a key already in your keyring; before, a missing `gpg` or

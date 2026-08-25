@@ -19,6 +19,18 @@ echo Usage: %~nx0 [--dry-run]
 exit /b 1
 :args_done
 
+REM A rollback replaces the file update-electrum.bat installs, so it refuses on
+REM the same condition: replacing an .exe under a running process is the same
+REM operation whichever script does it, and a rollback is run when something has
+REM just gone wrong, which is when Electrum is most likely to still be up. The
+REM filter is that script's, repeated here rather than shared, so a change to
+REM one is owed to the other.
+tasklist /fi "imagename eq electrum.exe" | find /i "electrum.exe" >nul
+if %errorlevel%==0 (
+    echo Error: Electrum is running. Stop it before rolling back.
+    exit /b 1
+)
+
 pushd "%ROOTDIR%" >nul 2>&1
 
 if not exist "%BACKUP_DIR%" (
@@ -59,10 +71,27 @@ if "%DRY_RUN%"=="1" (
     exit /b 0
 )
 
-move /y "%BACKUP_DIR%\electrum.exe" "%ROOTDIR%\win\bin\" >nul 2>&1
+REM The backup is moved rather than copied, so a rollback consumes it: the slot
+REM holds the version installed before the last update, and a copy left behind
+REM would hold the version that is now installed. A slot that swapped its
+REM contents instead would make a second rollback move forward again, where
+REM update-electrum.bat brings the newer release back and verifies its PGP
+REM signature on the way.
+REM Nothing is deleted before the move, so a move that fails leaves win\bin
+REM holding the version that was installed and there is nothing to put back;
+REM what a failure needs is to be reported. >nul redirects stdout alone, so
+REM what move writes to stderr reaches the console.
+move /y "%BACKUP_DIR%\electrum.exe" "%ROOTDIR%\win\bin\" >nul
+if errorlevel 1 (
+    echo Error: restoring win\bin\electrum.exe from the backup failed.
+    popd >nul 2>&1
+    exit /b 1
+)
 if exist "%BACKUP_DIR%" rmdir "%BACKUP_DIR%" >nul 2>&1
 
 echo Rollback complete.
+echo The backup in win\bin\backup\electrum is consumed: a second rollback has nothing to restore.
+echo update-electrum.bat is what installs the current release again.
 
 popd >nul 2>&1
 exit /b 0
