@@ -1,0 +1,290 @@
+#!/bin/bash
+# Shared helpers for download, PGP verification and checksum bookkeeping.
+# Platform-nameless like shared/lib.sh beside it: macos/scripts/utilities/
+# lib.sh forwards to it rather than holding the implementation, and a
+# future linux/scripts/utilities/lib.sh forwards to it the same way, so
+# the path arithmetic into shared/ lives in one forwarder per platform
+# instead of in every utility script. debug_list_dir, tree_hash,
+# install_verified and pgp_verify_or_fail read no platform-specific
+# path -- curl, gpg, a checksum command chosen at run time, and a retry
+# loop that exists because the install target may be exFAT.
+# update_checksum, verify_checksum_entry and installed_version are not
+# that case: each defaults checksum_file to macos/checksums.sha256,
+# because every caller today is macOS's own and omits the argument. A
+# non-macOS caller has to pass checksum_file explicitly -- see the
+# comment on each default.
+
+_UTILS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=shared/lib.sh
+. "$_UTILS_LIB_DIR/../lib.sh"
+unset _UTILS_LIB_DIR
+
+debug_list_dir() {
+    local dir="$1"
+    local entries
+    # find exits 1 when $dir does not exist, and pipefail (set by every
+    # caller) carries that through the pipeline into the assignment; "||
+    # true" keeps a missing directory a listing (of nothing) rather than a
+    # death of the caller, which is the case this helper exists for.
+    entries="$(find "$dir" -mindepth 1 -maxdepth 1 -exec basename {} \; \
+        2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')" || true
+    echo "Debug: $dir contents: $entries"
+}
+
+# tree_hash PATH — deterministic content hash of a file or of every regular
+# file under a directory. AppleDouble sidecars (._*) are ignored so a source on
+# APFS and a copy on exFAT (which materialises ._* files) compare equal.
+tree_hash() {
+    local path="$1"
+    if [ -d "$path" ]; then
+        ( cd "$path" && find . -type f ! -name '._*' -print0 \
+            | LC_ALL=C sort -z \
+            | xargs -0 shasum -a 256 2>/dev/null \
+            | shasum -a 256 | awk '{print $1}' )
+    else
+        shasum -a 256 "$path" 2>/dev/null | awk '{print $1}'
+    fi
+}
+
+# install_verified SRC DEST — replace DEST with a copy of SRC, then verify the
+# copy is byte-identical (content) and retry on mismatch. Defends against
+# removable filesystems (notably macOS's fskit exFAT) that can silently corrupt
+# files on write. Returns non-zero if still corrupt after several attempts.
+install_verified() {
+    local src="$1" dest="$2" want got i
+    want="$(tree_hash "$src")"
+    if [ -z "$want" ]; then
+        echo "Error: cannot hash source $src"
+        return 1
+    fi
+    for i in 1 2 3 4 5; do
+        rm -rf "$dest"
+        cp -R "$src" "$dest"
+        sync 2>/dev/null || true
+        got="$(tree_hash "$dest")"
+        if [ "$got" = "$want" ]; then
+            return 0
+        fi
+        echo "Warning: $(basename "$dest") corrupted on write" \
+             "(attempt $i/5); retrying..."
+    done
+    echo "Error: $(basename "$dest") still corrupt after 5 attempts."
+    echo "The destination filesystem may be unreliable (e.g. exFAT/fskit)."
+    return 1
+}
+
+# pgp_verify_or_fail SIG_FILE DATA_FILE LABEL OUT_VAR [FPR_FILE]
+#
+# Verifies DATA_FILE against the detached SIG_FILE. FAILS CLOSED: returns
+# non-zero (so the caller aborts the install) unless a good signature is found.
+# If FPR_FILE is given and non-empty, additionally requires a VALIDSIG whose
+# fingerprint is listed there (key pinning); otherwise any GOODSIG is accepted.
+# On success sets OUT_VAR to 1 (the caller uses it to gate checksum recording).
+#
+# Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass verification entirely (installs
+# unauthenticated binaries — NOT recommended, intended only as an escape hatch).
+pgp_verify_or_fail() {
+    local sig_file="$1"
+    local data_file="$2"
+    local label="$3"
+    local out_var="$4"
+    local fpr_file="${5:-}"
+
+    if [ -n "$out_var" ]; then
+        printf -v "$out_var" '%s' 0
+    fi
+
+    if [ "${PORTANODE_ALLOW_UNVERIFIED:-0}" = "1" ]; then
+        echo "Warning: PORTANODE_ALLOW_UNVERIFIED=1 set; skipping PGP" \
+             "verification of ${label}. Installing UNAUTHENTICATED binaries."
+        return 0
+    fi
+
+    if ! command -v gpg >/dev/null 2>&1; then
+        echo "Error: gpg not found; cannot verify ${label}."
+        echo "Install gpg (e.g. 'brew install gnupg') and import the signing" \
+             "key, or set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT" \
+             "recommended)."
+        return 1
+    fi
+
+    echo "Verifying ${label} signature..."
+    local status_file
+    status_file="$(mktemp)"
+    gpg --status-fd 1 --verify "$sig_file" "$data_file" 1> "$status_file" \
+        2>/dev/null || true
+
+    if grep -q '^\[GNUPG:\] BADSIG' "$status_file"; then
+        echo "Error: BAD PGP signature on ${label}."
+        rm -f "$status_file"
+        return 1
+    fi
+    if ! grep -q '^\[GNUPG:\] GOODSIG' "$status_file"; then
+        echo "Error: no valid PGP signature on ${label}" \
+             "(is the signer's key imported?)."
+        echo "Import the signing key, or set PORTANODE_ALLOW_UNVERIFIED=1 to" \
+             "bypass (NOT recommended)."
+        rm -f "$status_file"
+        return 1
+    fi
+
+    # Optional fingerprint pinning: require a VALIDSIG from a listed key. The
+    # VALIDSIG status line carries both the signing-key and primary-key
+    # fingerprints, so match a pinned fingerprint anywhere on those lines.
+    if [ -n "$fpr_file" ] && [ -s "$fpr_file" ] && \
+       grep -qiE '^[[:space:]]*[0-9A-Fa-f]{40}[[:space:]]*$' "$fpr_file"; then
+        local validsig_lines fpr matched=0 line
+        validsig_lines="$(grep '^\[GNUPG:\] VALIDSIG' "$status_file")"
+        while IFS= read -r line; do
+            case "$line" in ''|\#*) continue ;; esac
+            fpr="$(echo "$line" | tr -d '[:space:]')"
+            [ ${#fpr} -eq 40 ] || continue
+            if echo "$validsig_lines" | grep -qi -- "$fpr"; then
+                matched=1
+                break
+            fi
+        done < "$fpr_file"
+        if [ "$matched" -ne 1 ]; then
+            echo "Error: ${label} is signed, but not by a pinned key listed" \
+                 "in $(basename "$fpr_file")."
+            rm -f "$status_file"
+            return 1
+        fi
+    fi
+
+    rm -f "$status_file"
+    if [ -n "$out_var" ]; then
+        printf -v "$out_var" '%s' 1
+    fi
+    return 0
+}
+
+update_checksum() {
+    local file="$1"
+    local entry_path="$2"
+    local version="$3"
+    # This default is macOS's own path. A non-macOS caller (a future
+    # linux/scripts/utilities/update-bitcoin.sh, for one) must pass
+    # checksum_file explicitly, or it writes into macos/checksums.sha256
+    # -- silently, since omitting the argument is exactly what every
+    # macOS caller does today.
+    local checksum_file="${4:-$ROOTDIR/macos/checksums.sha256}"
+    local hash=""
+
+    if [ ! -f "$file" ]; then
+        echo "Error: checksum source not found at $file"
+        debug_list_dir "$(dirname "$file")"
+        exit 1
+    fi
+
+    if command -v shasum >/dev/null 2>&1; then
+        hash="$(shasum -a 256 "$file" | awk '{print $1}')"
+    elif command -v sha256sum >/dev/null 2>&1; then
+        hash="$(sha256sum "$file" | awk '{print $1}')"
+    else
+        echo "Warning: shasum/sha256sum not found;"
+        echo "checksums not updated."
+        return 0
+    fi
+
+    if [ ! -f "$checksum_file" ]; then
+        echo "Warning: $checksum_file not found;"
+        debug_list_dir "$(dirname "$checksum_file")"
+        echo "checksums not updated."
+        return 0
+    fi
+
+    # Appends the one new entry and nothing else: */checksums.sha256 is
+    # documented append-only, and a whole-file rewrite here previously
+    # deduped every line with awk, silently dropping any exact repeat,
+    # comments included, on every call rather than only where one existed.
+    local entry="$hash  $entry_path  version=$version"
+    if ! grep -Fxq "$entry" "$checksum_file"; then
+        echo "$entry" >> "$checksum_file"
+    fi
+}
+
+verify_checksum_entry() {
+    local file="$1"
+    local entry_path="$2"
+    # macOS's own path, as update_checksum's default above explains; a
+    # non-macOS caller must pass checksum_file explicitly.
+    local checksum_file="${3:-$ROOTDIR/macos/checksums.sha256}"
+    local label="${4:-backup binary}"
+    local hash=""
+
+    if [ ! -f "$file" ]; then
+        echo "Error: ${label} not found at $file"
+        debug_list_dir "$(dirname "$file")"
+        return 2
+    fi
+    if [ ! -f "$checksum_file" ]; then
+        echo "Error: $checksum_file not found."
+        debug_list_dir "$(dirname "$checksum_file")"
+        return 2
+    fi
+
+    if command -v shasum >/dev/null 2>&1; then
+        hash="$(shasum -a 256 "$file" | awk '{print $1}')"
+    elif command -v sha256sum >/dev/null 2>&1; then
+        hash="$(sha256sum "$file" | awk '{print $1}')"
+    else
+        echo "Error: Neither shasum nor sha256sum found."
+        return 2
+    fi
+
+    # $2 (the entry's own path field) is matched exactly rather than with
+    # index($0, p): a substring match reads a line as matching any path it
+    # is a prefix of, e.g. "macos/bin/bitcoin" would also match a
+    # "macos/bin/bitcoin-cli" line.
+    if ! awk -v h="$hash" \
+        -v p="$entry_path" \
+        '$1 == h && $2 == p { found=1 } END { exit found ? 0 : 1 }' \
+        "$checksum_file"; then
+        return 1
+    fi
+    return 0
+}
+
+# installed_version FILE ENTRY_PATH [CHECKSUM_FILE] — the "version=" label of
+# the checksums.sha256 entry matching FILE's current hash, for a --dry-run
+# plan's "currently installed" line. Echoes "unknown" rather than failing:
+# nothing here gates an install, so a missing file or an unrecorded hash is
+# reported, not an error.
+installed_version() {
+    local file="$1"
+    local entry_path="$2"
+    # macOS's own path, as update_checksum's default above explains; a
+    # non-macOS caller must pass checksum_file explicitly.
+    local checksum_file="${3:-$ROOTDIR/macos/checksums.sha256}"
+    local hash=""
+
+    if [ ! -f "$file" ] || [ ! -f "$checksum_file" ]; then
+        echo "unknown"
+        return 0
+    fi
+
+    if command -v shasum >/dev/null 2>&1; then
+        hash="$(shasum -a 256 "$file" | awk '{print $1}')"
+    elif command -v sha256sum >/dev/null 2>&1; then
+        hash="$(sha256sum "$file" | awk '{print $1}')"
+    else
+        echo "unknown"
+        return 0
+    fi
+
+    # $2 == p, not index($0, p): see verify_checksum_entry's own comment.
+    awk -v h="$hash" -v p="$entry_path" '
+        $1 == h && $2 == p {
+            for (i = 1; i <= NF; i++) {
+                if ($i ~ /^version=/) {
+                    sub(/^version=/, "", $i)
+                    print $i
+                    found = 1
+                    exit
+                }
+            }
+        }
+        END { if (!found) print "unknown" }
+    ' "$checksum_file"
+}
