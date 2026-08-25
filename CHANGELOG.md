@@ -850,6 +850,12 @@ using YYYY.MM.DD format.
   under a `ROOTDIR` containing one. Exercised on this machine with
   stand-in `bitcoind`/`bitcoin-cli` scripts, daemon start, the `btc`
   function, and a `ROOTDIR` containing a space all passing.
+- **`scorecard.yml`'s opening comment stated how many checks Scorecard
+  runs** (closes #108), a total two authoritative sources disagree on:
+  Scorecard's own check-definition file and the dataset its published
+  badge reads from report different counts for a repository of this
+  shape. The comment now says the sentinel checks this repository's
+  supply-chain posture without naming a total.
 
 ## [2026.01.27] - Initial Release
 
