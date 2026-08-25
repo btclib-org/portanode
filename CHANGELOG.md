@@ -42,6 +42,21 @@ using YYYY.MM.DD format.
   no review from this workflow, and shows red rather than green, until
   the change is on `main` -- the honest shape of "no review happened"
   the file's own header names, not a defect in the change.
+- **`README.md` carried no badges, and `REVIEWING.md`'s own account of
+  what an ack is had gone one sentence stale** (issue #95). `README.md`
+  now opens with one badge per property this tree has, in the fixed
+  order `btclib-org/.github`'s standard gives — the licence, the `lint`
+  workflow, then the sentinels this tree runs, `links` and the new
+  `scorecard.yml`, which runs the OpenSSF Scorecard against this
+  repository on every push to `main` and publishes its score; a weekly
+  schedule follows once `btclib-org/.github#363` gives the sentinel a
+  row on section 10's calendar. `REVIEWING.md`'s *The verdict* takes the
+  converged wording from `btclib-org/.github`'s own copy: the sentence
+  explaining why a forge approval is not an ack now says the refusal is
+  to the pull request's own author, section 11 having made the ack of
+  record an approving review from somebody else. `claude-review.yml`
+  itself is untouched here and still posts a comment; that change is
+  btclib-org/.github#340's, in a pull request of its own.
 
 - **`git show origin/main:<path>` is current without being faithful for
   a path git filters on checkout**, where `CLAUDE.md` had named it the
