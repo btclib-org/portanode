@@ -51,8 +51,12 @@ Can be used if an update fails
   scheduled run indefinitely.
 - `health-check.bat`: Disk space + basic process checks.
 - `clean-artifacts.bat`: Removes Windows artifact files from the repo.
-- `set-permissions.bat`: Sets restrictive ACLs on `bitcoin-datadir/` and
-  `electrum-datadir/` for security.
+- `set-permissions.bat`: Restricts `bitcoin-datadir/` and
+  `electrum-datadir/` to `%USERDOMAIN%\%USERNAME%` (`icacls`) on a
+  filesystem that stores ACLs (NTFS). exFAT and FAT32 hold no ACL at
+  all, so `icacls` there writes nothing and exits 0 regardless; the
+  script reports which case it found instead of claiming success on a
+  volume it cannot restrict.
 
 ## Notes
 

@@ -242,9 +242,14 @@ list, and it is the only list.
 - **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to
   localhost only and use strong passwords. Configure firewall to restrict
   access.
-- **Permissions**: Set restrictive permissions on data directories:
-  `./macos/scripts/utilities/set-permissions.sh` or
-  `win/scripts/utilities/set-permissions.bat`.
+- **Permissions**: `./macos/scripts/utilities/set-permissions.sh` or
+  `win/scripts/utilities/set-permissions.bat` restrict data-directory
+  access to the owner, on a filesystem that stores permissions (APFS,
+  NTFS). Neither restricts anything on exFAT or FAT32 — the filesystem
+  this folder is built for — and each script reports which case it
+  found; see *The folder is unencrypted, and it is portable* under
+  *Limitations, not vulnerabilities* for what actually protects data on
+  that volume.
 - **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are
   ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` or
   `win/scripts/utilities/clean-artifacts.bat` to remove existing ones.

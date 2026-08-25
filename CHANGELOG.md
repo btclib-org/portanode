@@ -576,6 +576,26 @@ using YYYY.MM.DD format.
   third `rm -rf` of this shape, already safe because an empty
   destination there makes the command a no-op error rather than a
   delete.
+- **`bitcoin-datadir/bitcoin.conf`'s global section no longer sets
+  `daemon=1`/`daemonwait=1`** (closes #46). `bitcoind` refuses `-daemon`
+  on Windows before any initialisation, which stopped both regtest CLI
+  launchers there; every other launcher in the tree starts `bitcoin-qt`
+  instead, which never reads the option. No launcher benefited from the
+  pair.
+- **`set-permissions.sh` and `set-permissions.bat` now say whether the
+  `chmod`/`icacls` they just ran actually restricted anything** (closes
+  #51). macOS synthesises a fixed `u=rwx,go=` mode for exFAT and FAT32
+  rather than storing what `chmod` is asked for, and exFAT/FAT32 hold no
+  ACL at all for `icacls` to write, so both scripts ran and reported
+  success on a volume they did not restrict. Each now reads back the
+  data directory's own filesystem (`diskutil info`, a new
+  `filesystem-type.ps1` DriveInfo helper) and reports which case it
+  found, instead of an unconditional "Permissions set." `icacls`'s
+  grantee is now `%USERDOMAIN%\%USERNAME%`, qualifying the account
+  rather than the bare `%USERNAME%` the two calls used before.
+  `README.md`'s *Permissions* bullet and both utilities `README.md`
+  describe the same two cases instead of presenting the call as the
+  answer to a portable, unencrypted volume.
 
 ## [2026.01.27] - Initial Release
 
