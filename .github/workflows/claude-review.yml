@@ -12,9 +12,30 @@ name: claude-review
 # this repository has one maintainer -- so without this the only reading
 # a pull request can get is the one its author wrote.
 #
-# Not a required check, and it must not become one. What it produces is a
-# comment, which is an opinion for the author to weigh; a review that
-# gated a merge would make a model's judgement a branch rule.
+# The verdict is posted as a review, APPROVE carrying the ACK <sha> body
+# and REQUEST_CHANGES carrying the CHANGES REQUESTED <sha> one, not as a
+# comment. GitHub refuses a self-approval, which is why an author's own
+# verdict is a comment and can be nothing else; that refusal does not
+# reach this workflow, which never runs as the pull request's author. A
+# comment left the forge holding no record of the review section 11
+# requires. The OpenSSF Scorecard's Code-Review check credits an
+# approval the forge recorded or a merger different from the committer,
+# and a comment is neither: an organization repository the check has
+# scored this way reads as merging unreviewed on evidence that is
+# accurate about the comment and wrong about the review.
+#
+# Still not a required check, and posting a review does not make it one.
+# REPOSITORY.md's main-self-merge rule counts one approving review before
+# it lets a pull request merge, and an APPROVE from this workflow is one
+# route to that count -- but fametrano bypasses the whole rule in
+# pull_request mode, and he is the only account that ever merges here, so
+# the count this workflow can supply never decides whether a pull request
+# lands. What holds a merge is Lint, the required status check
+# REPOSITORY.md names, and this review stays outside it. What it buys
+# instead is the reading a human weighs before pressing merge, chosen
+# over a second human approving every pull request because nothing would
+# land while nobody is available, and because the model is already the
+# reviewer of record in substance.
 
 on:
   pull_request:
@@ -172,14 +193,23 @@ jobs:
             against this pull request, and a person decides whether it
             becomes one.
 
-            Post GitHub comments only, never review text as a message.
-            `gh pr comment` for the summary,
+            Post the summary as a review, never as a message: `gh pr
+            review --approve --body "..."` when the verdict is
+            `ACK <sha>`, `gh pr review --request-changes --body "..."`
+            when it is `CHANGES REQUESTED <sha>`, the body being the
+            summary comment REVIEWING.md's "The verdict" describes,
+            ending with that line as its last. A reading that reaches no
+            verdict has nothing to approve or request changes on, so it
+            has no review to post; use `gh pr comment` for it instead.
+            Post an inline finding with
             `mcp__github_inline_comment__create_inline_comment` (with
-            `confirmed: true`) for a finding a line is the subject of.
-          # folded rather than literal, and `gh pr` rather than the three
-          # subcommands spelled out: the flag has to reach the CLI as one
-          # line, and the line that spells out comment, diff and view is
-          # past the 100 columns yamllint holds this file to
+            `confirmed: true`) for a finding a line is the subject of --
+            that is a comment on the diff and not the ack of record, so
+            it stays a comment whichever the verdict is.
+          # folded rather than literal, and `gh pr` rather than each
+          # subcommand spelled out: the flag has to reach the CLI as one
+          # line, and the line that spells out comment, diff, view and
+          # review is past the 100 columns yamllint holds this file to
           claude_args: >-
             --allowedTools
             "mcp__github_inline_comment__create_inline_comment,Bash(gh pr:*),Read,Grep,Glob"
@@ -218,13 +248,15 @@ jobs:
       #           | {id, conclusion, run_started_at, updated_at}'
       #
       # So what is read here is what was posted rather than what the
-      # action produced: the verdict is the last line of a comment on
-      # the pull request, which is where section 11 of the organization's
-      # standard puts the ack of record, and only what claude[bot] wrote
-      # is one -- an author's own ack is not.
+      # action produced: the verdict is the last line of a review's own
+      # body, which is where section 11 of the organization's standard
+      # puts the ack of record, and only a review claude[bot] submitted
+      # is one -- an author's own ack is not, and neither is an inline
+      # finding, which the review API also records as a review but whose
+      # body never carries that last line.
       #
-      #   gh api repos/btclib-org/.github/issues/139/comments \
-      #     --jq '.[] | "\(.user.login) \(.body | split("\n") | last)"'
+      #   gh api repos/btclib-org/.github/pulls/139/reviews \
+      #     --jq '.[] | "\(.user.login) \(.state) \(.body | split("\n") | last)"'
       #
       # The last verdict decides, rather than any verdict naming the
       # head: a second reading of the same tree can refuse what an
@@ -240,9 +272,16 @@ jobs:
       # having nothing new to say. An abbreviation names the same commit
       # as the forty characters do, so a prefix of it counts.
       #
+      # The review's own state has to agree with what its body says. `gh
+      # pr review` passes --approve or --request-changes and --body as
+      # two separate arguments, so a mismatched pair -- an APPROVE
+      # carrying a "CHANGES REQUESTED" body, say -- is not a shape the
+      # endpoint that accepts a review refuses on its own; this is the
+      # one place either is read back against the other.
+      #
       # Red, and gating nothing: this check is not required, and what
       # the colour buys is a reader who sees a refusal in the checks
-      # instead of under the fold at the foot of a comment.
+      # instead of under the fold at the foot of a review.
       - name: Refuse to report anything but an ack of this head
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -250,30 +289,48 @@ jobs:
           NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          # --paginate because the API pages at thirty comments and the
-          # newest sit on the last page; --jq answers once per page, so
-          # the last line of the output is the last verdict posted.
-          verdict=$(gh api "repos/$REPO/issues/$NUMBER/comments" --paginate \
+          # --paginate because the API pages and the newest reviews sit
+          # on the last page; --jq answers once per page, so the last
+          # line of the output is the last verdict posted. Each line
+          # carries the review's state ahead of its verdict, tab
+          # separated, so the two travel together rather than the state
+          # being re-derived from the body afterwards.
+          record=$(gh api "repos/$REPO/pulls/$NUMBER/reviews" --paginate \
             --jq '[ .[]
                     | select(.user.login == "claude[bot]")
-                    | .body
-                    | split("\n")
-                    | map(sub("\\s+$"; ""))
-                    | map(select(length > 0))
-                    | last // empty
-                    | select(test("^(ACK|CHANGES REQUESTED) [0-9a-f]{7,40}$"))
+                    | {state, verdict: (.body | split("\n")
+                                 | map(sub("\\s+$"; ""))
+                                 | map(select(length > 0))
+                                 | last // empty)}
+                    | select(.verdict
+                              | test("^(ACK|CHANGES REQUESTED) [0-9a-f]{7,40}$"))
+                    | "\(.state)\t\(.verdict)"
                   ] | last // empty' | tail -1)
-          if [ -z "$verdict" ]; then
+          if [ -z "$record" ]; then
             echo "::error::the review posted no verdict on this pull" \
                  "request, so nothing says whether $HEAD_SHA was read at" \
                  "all. A job that finishes green having written no" \
-                 "comment is what this reports."
+                 "review is what this reports."
             exit 1
           fi
+          state=${record%%$'\t'*}
+          verdict=${record#*$'\t'}
           sha=${verdict##* }
           case "$verdict" in
-            "ACK "*) ;;
+            "ACK "*)
+              if [ "$state" != "APPROVED" ]; then
+                echo "::error::the verdict on $sha reads ACK but the" \
+                     "review was submitted as $state, not an approval."
+                exit 1
+              fi
+              ;;
             *)
+              if [ "$state" != "CHANGES_REQUESTED" ]; then
+                echo "::error::the verdict on $sha reads CHANGES" \
+                     "REQUESTED but the review was submitted as $state," \
+                     "not a request for changes."
+                exit 1
+              fi
               echo "::error::the review requested changes on $sha."
               exit 1
               ;;

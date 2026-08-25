@@ -34,6 +34,14 @@ using YYYY.MM.DD format.
   `-rpcport`, the collision reaching them as much as the new CLI pair.
   Both `bitcoin/README.md` files document the port assignment and the
   new launchers.
+- **`claude-review.yml` posts the ack of record as a GitHub review, not
+  a comment** (issue #95). `APPROVE` carries the `ACK <sha>` body,
+  `REQUEST_CHANGES` carries the `CHANGES REQUESTED <sha>` one, and the
+  workflow's own guard against running under an edited copy of itself
+  means this is exactly the pull request that guard applies to: it gets
+  no review from this workflow, and shows red rather than green, until
+  the change is on `main` -- the honest shape of "no review happened"
+  the file's own header names, not a defect in the change.
 
 - **`git show origin/main:<path>` is current without being faithful for
   a path git filters on checkout**, where `CLAUDE.md` had named it the
