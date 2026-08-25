@@ -50,9 +50,8 @@ in a portable USB 3 / Thunderbolt enclosure.
 ## Folder Structure
 
 - `macos/`
-    - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
-        - `Bitcoin-Qt.app/`: Bitcoin Core app bundle.
-        - `Electrum.app/`: Electrum app bundle.
+    - `bin/`: macOS binaries for Bitcoin Core and Electrum (e.g.,
+      `Bitcoin-Qt.app/`).
     - `bin/backup/`: macOS backups created by update scripts.
     - `checksums.sha256`: macOS checksums (versioned).
     - `scripts/`

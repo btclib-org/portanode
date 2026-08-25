@@ -53,8 +53,9 @@ Can be used if an update fails
 - Run from repo root or double-click in Explorer; scripts resolve paths relative
   to the repo.
 - Most scripts require internet for downloads; ensure connectivity.
-- Update scripts download and verify on the local disk (`%TEMP%`), never
-  on the removable volume, and clean up on exit.
+- Update scripts download, verify and (for Bitcoin Core) extract on
+  the local disk (`%TEMP%`), never on the removable volume, and clean up
+  on exit.
 - Update scripts verify PGP signatures for Bitcoin Core and Electrum
   downloads before installing, and fail closed: a bad signature, a missing
   signer key, or no `gpg` at all aborts the update rather than installing

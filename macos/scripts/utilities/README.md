@@ -54,8 +54,8 @@ Can be used if an update fails.
 - Run scripts from the project root (e.g.,
   `./macos/scripts/utilities/script.sh`).
 - Most scripts require internet for downloads; ensure connectivity.
-- Update scripts download and verify on the local temp directory, never
-  on the removable volume, and clean up on exit.
+- Update scripts download, verify and extract or mount on the local
+  temp directory, never on the removable volume, and clean up on exit.
 - Update scripts verify PGP signatures for Bitcoin Core and Electrum
   downloads before installing, and fail closed: a bad signature, a missing
   signer key, or no `gpg` at all aborts the update rather than installing

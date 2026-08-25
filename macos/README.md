@@ -3,6 +3,9 @@
 ## Binaries (`bin/`)
 
 - `Bitcoin-Qt.app`: Bitcoin Core GUI.
+- `bitcoind`, `bitcoin-cli`, `bitcoin-qt`, `bitcoin-tx`, `bitcoin-util`,
+  `bitcoin-wallet`: Bitcoin Core command-line tools, installed alongside
+  the GUI bundle.
 - `Electrum.app`: Electrum wallet.
 
 Ensure these are executable. If not, run:
