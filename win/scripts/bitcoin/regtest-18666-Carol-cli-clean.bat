@@ -34,13 +34,31 @@ pause
 rmdir "%ROOTDIR%\bitcoin-datadir\regtest_carol" /s /q
 mkdir "%ROOTDIR%\bitcoin-datadir\regtest_carol"
 
+set "DATADIR=%ROOTDIR%\bitcoin-datadir\regtest_carol"
+set "NETDIR=%DATADIR%\regtest"
+set "BLOCKCHAINDIR=%NETDIR%\blocks"
+REM Bitcoin Core creates the wallets subfolder along with the network
+REM directory itself, and wallet code then uses it; wallet code never
+REM creates one, so the network directory is the wallet directory only
+REM where it already exists without a wallets subfolder beside it.
+REM Computed after the wipe above rather than beside the ROOTDIR echo: a
+REM network directory standing there without a wallets subfolder is the one
+REM state that answers with the directory itself, and the wipe is what takes
+REM that state away, so reading it earlier would answer for a directory about
+REM to be deleted.
+set "WALLETDIR=%NETDIR%\wallets"
+if exist "%NETDIR%\" if not exist "%NETDIR%\wallets\" set "WALLETDIR=%NETDIR%"
+echo DATADIR is "%DATADIR%"
+echo BLOCKCHAINDIR is "%BLOCKCHAINDIR%"
+echo WALLETDIR is "%WALLETDIR%"
+
 start "" cmd /k ^
   ""%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0 ^
-  -datadir="%ROOTDIR%\bitcoin-datadir\regtest_carol" ^
+  -datadir="%DATADIR%" ^
   -regtest -port=18666 -rpcport=18665 -rpcallowip=127.0.0.1 ^
   -addnode=localhost:18444 ^
   -addnode=localhost:18555"
 start "" cmd /k ^
   "cd /d "%ROOTDIR%\win\bin" & ^
   title %~n0 & ^
-  doskey btc=bitcoin-cli.exe -regtest -datadir="%ROOTDIR%\bitcoin-datadir\regtest_carol" -rpcport=18665 $*"
+  doskey btc=bitcoin-cli.exe -regtest -datadir="%DATADIR%" -rpcport=18665 $*"

@@ -36,6 +36,25 @@ read -r
 rm -rf "${DATADIR}"
 mkdir -p "${DATADIR}"
 
+NETDIR="${DATADIR}/regtest"
+BLOCKCHAINDIR="${NETDIR}/blocks"
+# Bitcoin Core creates the wallets subfolder along with the network directory
+# itself, and wallet code then uses it; wallet code never creates one, so the
+# network directory is the wallet directory only where it already exists
+# without a wallets subfolder beside it.
+# Computed after the wipe above rather than beside the ROOTDIR echo: a network
+# directory standing there without a wallets subfolder is the one state that
+# answers with the directory itself, and the wipe is what takes that state
+# away, so reading it earlier would answer for a directory about to be deleted.
+if [ -d "${NETDIR}" ] && [ ! -d "${NETDIR}/wallets" ]; then
+    WALLETDIR="${NETDIR}"
+else
+    WALLETDIR="${NETDIR}/wallets"
+fi
+echo DATADIR is "${DATADIR}"
+echo BLOCKCHAINDIR is "${BLOCKCHAINDIR}"
+echo WALLETDIR is "${WALLETDIR}"
+
 BASENAME="$(basename "$0")"
 FILENAME="${BASENAME%.*}"
 # Bitcoin Core's regtest RPC port defaults to 18443 regardless of -port, so
@@ -46,7 +65,7 @@ FILENAME="${BASENAME%.*}"
 # (8333/8332, 18333/18332, 18444/18443).
 "$BTC_QT" \
   -uacomment="${FILENAME}" \
-  -datadir="${ROOTDIR}/bitcoin-datadir/regtest_carol" \
+  -datadir="${DATADIR}" \
   -regtest \
   -port=18666 \
   -rpcport=18665 \
