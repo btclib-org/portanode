@@ -7,6 +7,34 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`update-bitcoin.bat` compared a whole `SHA256SUMS` line against a
+  bare hash, so a Windows update could never install** (#43). The split
+  pattern is now written `\s+`. Doubled, it reached the .NET regex engine
+  as a literal backslash followed by one or more `s`: cmd.exe passes a
+  backslash through untouched, and powershell.exe splits its command
+  line by the Windows argument rules, where a backslash is literal
+  unless it precedes a double quote. No `SHA256SUMS` line holds a
+  backslash, so the split returned the line unbroken and the comparison
+  against `Get-FileHash` could not succeed.
+- **`update-electrum.bat` could not find a version by itself** (#44).
+  The scrape moves to `win/scripts/utilities/latest-electrum-version.ps1`,
+  invoked with `-File` the way `update-bitcoin.bat` invokes
+  `latest-bitcoin-version.ps1`, so PowerShell is the only reader of its
+  regex; and the emptiness test after it is `if not defined VERSION`,
+  which is evaluated when it runs rather than when the enclosing block
+  is parsed. Either defect alone left `--version <v>` the only way to
+  reach an install.
+- **The Windows free-space checks read a word where the number is, and
+  overflowed the arithmetic that followed** (#45). `validate-setup.bat`
+  exited 1 with `ERROR: Less than 100GB free.` on a healthy volume:
+  `findstr` without `/C:` is an OR search that matched every line
+  `fsutil volume diskfree` prints, `tokens=3` named a word of the label
+  rather than a figure, and `set /a` is 32-bit signed where a free-byte
+  count is not. `validate-setup.bat`, `health-check.bat` and the
+  `--dry-run` block of each updater now read
+  `win/scripts/utilities/free-space-gb.ps1`, which asks
+  `System.IO.DriveInfo` and divides in 64-bit arithmetic before the
+  figure reaches cmd.exe.
 - **Every hook with a fix mode now runs with it turned on.**
   `markdownlint-cli2` gains `--fix` and `codespell` gains
   `--write-changes`; `typos` already fixes in place through its own

@@ -45,16 +45,16 @@ if defined VERSION_OVERRIDE (
     set "VERSION=%VERSION_OVERRIDE%"
     echo Requested Electrum version: !VERSION!
 ) else (
-    for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command ^
-        "& { $html = (Invoke-WebRequest -Uri 'https://download.electrum.org/' ^
-        -UseBasicParsing).Content; ^
-        $versions = [regex]::Matches($html, 'href=\"(\\d+\\.\\d+\\.\\d+)/\"') ^
-          | ForEach-Object { $_.Groups[1].Value }; ^
-        $versions = $versions | Sort-Object -Unique | Sort-Object {[version]$_}; ^
-        if ($versions) { $versions | Select-Object -Last 1 } }"`) ^
-    do set VERSION=%%V
-
-    if "%VERSION%"=="" (
+    set VERSION=
+    for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+      -File "%SCRIPT_DIR%latest-electrum-version.ps1"`) do set VERSION=%%V
+    REM "if not defined", not a string test on an expanded VERSION:
+    REM cmd.exe expands a percent variable when it parses the whole else
+    REM block, before the for /f above has run, so a string test reads
+    REM what VERSION held on entry and takes this branch whatever the
+    REM scrape returned. Clearing VERSION above is what leaves "defined"
+    REM answering for the scrape and not for an inherited environment.
+    if not defined VERSION (
         echo Error: Failed to determine latest Electrum version.
         goto :error
     )
@@ -89,10 +89,10 @@ if "%DRY_RUN%"=="1" (
         echo Archive size: !ARCHIVE_MB! MB ^(downloaded to local temp
         echo storage, not the removable disk^).
     )
-    for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
-      findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
-    if defined FREE_BYTES (
-        set /a FREE_GB=!FREE_BYTES!/1024/1024/1024
+    set FREE_GB=
+    for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+      -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR%"`) do set FREE_GB=%%F
+    if defined FREE_GB (
         echo Free space at %ROOTDIR%: !FREE_GB! GB
     )
     popd >nul 2>&1
