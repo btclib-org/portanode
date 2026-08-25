@@ -149,6 +149,18 @@ moves `main`.
     file's carriage returns where the reads above return none — which is
     how a batch linter came to report a tracked `.bat` as LF-only, from
     a file that is CRLF everywhere it is actually read.
+- **PowerShell for the `.ps1` half is installable, not merely
+  referenced.** `CONTRIBUTING.md` names
+  `pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'` as what stands
+  in for a `.ps1` gate, but not how to get `pwsh` itself on a machine
+  that lacks it: `brew install powershell` on macOS gets PowerShell
+  7.6.5, letting
+  `[System.Management.Automation.Language.Parser]::ParseFile` and
+  PSScriptAnalyzer both run for real — a positive control against the
+  unmodified tree first, then a clean run against the fix — rather than
+  a `.ps1` change being read for correctness without ever being parsed.
+  `Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser` once
+  `pwsh` is there.
 - **`ROOTDIR` is resolved, never assumed.** Every script derives it from
   its own location or from `PORTANODE_ROOT`, because the folder is
   mounted at a different point on every machine it is plugged into.
