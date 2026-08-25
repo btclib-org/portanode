@@ -7,6 +7,33 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **A binary that is not there passed verification, on both platforms**
+  (issue #50). `verify-binaries.sh` and `verify-binaries.ps1` printed
+  `MISSING` for an absent file and moved on without counting it against
+  the run, so a fresh clone — which launches nothing until the updaters
+  have run — verified clean and exited 0. Both now count a `MISSING`
+  file the same as a checksum mismatch, converging on the behaviour
+  `macos/scripts/utilities/lib.sh`'s `verify_checksum_entry` already had:
+  a binary that is not there is a failure, not a silent pass.
+  `update-bitcoin.bat`'s post-install gate has the same shape in
+  `lib.bat`'s `:verify_checksum`, which is outside this change and
+  leaves the issue open.
+- **`validate-setup.sh` skipped the whole checksum check when
+  `verify-binaries.sh` had lost its executable bit** (closes #58). The
+  guard tested `-x`, so the one case it warned about — a copy, or an
+  archive extraction, that drops the mode `README.md`'s *Troubleshooting*
+  already documents as reachable — was also the only case under which
+  `bash "$SCRIPT_DIR/verify-binaries.sh"` would have worked without it.
+  The test is now `-f`, matching what the branch actually does and the
+  Windows half's own `if exist`.
+- **`debug_list_dir` died instead of listing when the directory was
+  missing, under `set -euo pipefail`** (closes #71). `find` on a
+  nonexistent directory exits 1, and `pipefail` carried that through
+  `tr` and `sed` into the assignment, so every caller — the archive and
+  mount-point diagnostics in `update-bitcoin.sh` and
+  `update-electrum.sh` among them — died inside the helper before its
+  own `Debug:` line printed, in exactly the case the helper exists for.
+  The assignment now tolerates that exit with `|| true`.
 - **`update-bitcoin.bat` compared a whole `SHA256SUMS` line against a
   bare hash, so a Windows update could never install** (closes #43). The split
   pattern is now written `\s+`. Doubled, it reached the .NET regex engine

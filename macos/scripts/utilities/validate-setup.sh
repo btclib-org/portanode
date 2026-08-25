@@ -9,8 +9,11 @@ ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 
 echo "Validating setup at $ROOTDIR"
 
-# Check binaries and checksums
-if [ -x "$SCRIPT_DIR/verify-binaries.sh" ]; then
+# Check binaries and checksums. The script is invoked with "bash", which
+# does not need the executable bit, so the test is "does the file exist",
+# not "is it executable" -- a copy or an archive extraction can lose the
+# bit without the file itself being gone.
+if [ -f "$SCRIPT_DIR/verify-binaries.sh" ]; then
     bash "$SCRIPT_DIR/verify-binaries.sh"
 else
     echo "WARNING: verify-binaries.sh not found, skipping checksum check"
