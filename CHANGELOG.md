@@ -532,6 +532,23 @@ using YYYY.MM.DD format.
   than an argument list from `launchd` or Task Scheduler) suppresses only
   the notification; findings still go to stdout and the exit status is
   unchanged.
+- **The two utilities `README.md` now say what a rollback restores and
+  that it consumes the backup** (closes #67). On macOS a rollback moves
+  back `Bitcoin-Qt.app` alone, the command-line tools staying at whatever
+  `update-bitcoin.sh` last installed, since that script backs up the app
+  alone; on Windows `rollback-bitcoin.bat` restores the command-line
+  tools too, `update-bitcoin.bat` backing them up alongside the app. Both
+  platforms move the backup into place rather than copying it, so a
+  second rollback has nothing left to restore.
+- **`CONTRIBUTING.md` and `REPOSITORY.md` say `Lint` holds the merge**
+  (closes #72), `branches/main/protection` now answering `true` to
+  `has("required_status_checks")` where both files still read `false`.
+  `REPOSITORY.md` also drops its account of the requirement as a
+  `main-integrity` ruleset rule: `rules/branches/main` lists no
+  `required_status_checks` rule on any active ruleset, so the requirement
+  is classic branch protection, coexisting with the rulesets rather than
+  folded into one, and its `strict` flag is what asks for a rebase before
+  every landing.
 
 ## [2026.01.27] - Initial Release
 
