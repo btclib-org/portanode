@@ -11,6 +11,42 @@
 # no project and no `uv.lock`, so `uv-lock` has nothing to keep in step.
 # A hook is added here the day the tree grows the file it reads.
 #
+# The Windows launchers are the case that rule does not settle, the tree
+# holding those files already. What that half is short of is a parser
+# rather than coverage: the generic hooks below read a `.ps1` and a
+# `.bat` as text like any other file, and `mixed-line-ending` excludes
+# `.bat` for the reason written at that hook rather than for want of a
+# subject. `shellcheck` is the parser for the `.sh` and `.command` half.
+# PowerShell's is PSScriptAnalyzer, which is a PowerShell module, so a
+# hook wrapping it needs either `pwsh` on the PATH or a container
+# runtime to supply one -- `pre-commit try-repo` answers "PowerShell not
+# found" for the first shape and cannot find `docker` for the second.
+# uv is the only prerequisite CONTRIBUTING.md asks of a machine that
+# commits here, and a hook that cannot bootstrap turns every run red
+# without having read anything, so PSScriptAnalyzer is run by hand:
+# CONTRIBUTING.md's last section carries the invocation, beside what
+# else the gate does not reach.
+#
+# `.bat` has a linter, and it was weighed rather than wished for.
+# Blinter installs under uv alone, wanting neither `pwsh` nor a
+# container, so the reason above is not the reason here. What decides it
+# is the report: the rules that set its exit code are the Error and
+# Security ones, not one of the findings they produce here is a defect,
+# and disabling exactly those rules makes it exit 0. Examples rather
+# than the whole of it -- a `%VAR%` next to a redirection, a pipe or an
+# `&` reads as command injection; the `^` continuation these scripts
+# wrap with leaves `for /f` looking like it lost its `do` and a quoted
+# string looking unterminated; `-ExecutionPolicy Bypass` is how a
+# launcher runs the PowerShell beside it; a doubled backslash reads as a
+# UNC path, of which the tree has none, and those sit both inside quoted
+# PowerShell and, more often, in plain batch paths; English prose inside
+# a `REM` is read as code, comments not being stripped. Blinter
+# suppresses by rule code and not by line, so adopting it means turning
+# off the rules that gate or rewriting every `.bat` to suit it. It is
+# also AGPL-3.0-or-later, young, and written by one author, which a
+# required gate would inherit. Run it by hand, as above; reconsider it
+# when it reads a `^` continuation.
+#
 # Skip a hook with SKIP=<id>, or all of them with "git commit -n".
 ci:
   # a bot committing to a branch is at odds with a setup where no
@@ -82,10 +118,10 @@ repos:
       # and on nothing else. The two lib.sh are excluded because they are
       # sourced rather than run, and a bit on either would say a thing
       # about the file that running it does not bear out; the .bat and
-      # .ps1 halves carry no shebang and so never reach this hook. Windows
-      # does not store the git file mode at all, so a bit lost on that
-      # platform is invisible to it there and caught here on whichever
-      # platform commits
+      # .ps1 halves reach this hook and carry no shebang for it to flag.
+      # Windows does not store the git file mode at all, so a bit lost on
+      # that platform is invisible to it there and caught here on
+      # whichever platform commits
       - id: check-shebang-scripts-are-executable
         exclude: ^macos/scripts/(lib\.sh|utilities/lib\.sh)$
       - id: check-case-conflict
@@ -279,10 +315,9 @@ repos:
         # actionlint delegates the body of a run: step to shellcheck if
         # it finds one on the PATH, and without it validates the yaml
         # around a shell script rather than the script. That is a
-        # different subject from the shellcheck this file's header argues
-        # about: this one reads the few lines a workflow inlines, where
-        # the header is about the launchers under macos/scripts, which no
-        # hook here reads yet.
+        # different subject from the shellcheck hook above: this one
+        # reads the lines a workflow inlines, where that one reads the
+        # launchers themselves.
         # Declared rather than left to the machine, so that a commit and
         # CI check the same thing -- the runner image happens to carry
         # shellcheck, so leaving it to chance means CI checking more than

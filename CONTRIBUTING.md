@@ -226,11 +226,36 @@ other. Run the gate by hand before committing.
 **What the gate does not reach is running the thing this repository
 ships.** The hooks read prose, configuration and, through `shellcheck`,
 the `.sh` and `.command` launchers themselves — but nothing here runs
-one. The `.bat` and `.ps1` halves have no such hook at all, so what
-stands in for a suite is running the launcher on both a macOS and a
-Windows machine, from a volume that is not the boot
+one. So what stands in for a suite is running the launcher on both a
+macOS and a Windows machine, from a volume that is not the boot
 disk — which is the case the paths in these scripts exist for, and the
 one a checkout on an internal disk never exercises.
+
+**The `.bat` and `.ps1` halves are read by the generic hooks and by no
+parser.** PowerShell's is PSScriptAnalyzer, and
+`.pre-commit-config.yaml`'s header says why it is not a hook here; run it
+by hand, against a `pwsh` that carries the module:
+
+```shell
+pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
+```
+
+Its `ParseError` severity is PowerShell's own parser refusing the file,
+which is a different answer from a style finding.
+
+`.bat` has Blinter, which installs under uv alone:
+
+```shell
+uvx blinter . --no-config --summary
+```
+
+It exits non-zero here, and `.pre-commit-config.yaml`'s header says why
+that is not a hook: not one of the findings the rules that set its exit
+code produce here is a defect, and it suppresses by rule code rather
+than by line. Read what it reports before believing it, and measure a
+`.bat` from a checkout — `.gitattributes` makes the index copy LF, so
+`git show origin/main:<path>` hands you a file whose line endings are an
+artifact of the extraction.
 
 ### What gates a merge, and what only reports
 
