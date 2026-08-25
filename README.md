@@ -58,19 +58,19 @@ vulnerabilities* below has what that choice costs.
 ## Quick Start
 
 1. Mount your external disk and navigate to the PortaNode folder.
-1. For macOS: Double-click a script in `macos/scripts/bitcoin/` (e.g.,
-   `mainnet-8333-qt.command`) or `macos/scripts/electrum/` (e.g.,
-   `mainnet.command`).
-1. For Windows: Double-click a script in `win/scripts/bitcoin/` (e.g.,
-   `mainnet-8333-qt.bat`) or `win/scripts/electrum/` (e.g.,
-   `mainnet.bat`).
-1. Root launchers: `Bitcoin-Launcher.*`, `Electrum-Launcher.*`, and
-   `Utilities-Launcher.*` (choose `.command`, `.bat`, `.ps1`, or `.sh` for your
-   OS).
+1. For macOS: Double-click `Bitcoin-Launcher.command`,
+   `Electrum-Launcher.command`, or `Utilities-Launcher.command`.
+1. For Windows: Double-click `Bitcoin-Launcher.bat`,
+   `Electrum-Launcher.bat`, or `Utilities-Launcher.bat` (or the matching
+   `.ps1` from PowerShell).
+1. Pick the numbered menu entry for the network and mode you want.
 1. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
 ## Launcher Notes
 
+- `Bitcoin-Launcher.*`, `Electrum-Launcher.*` and `Utilities-Launcher.*`
+  are the entry points: one file per task, with a numbered menu reaching
+  every per-network script under `macos/scripts/` and `win/scripts/`.
 - `.command` files are intended for double‑clicking in Finder on macOS.
 - `.sh` files are intended for running from a shell (macOS/Linux or Windows
   MSYS/Cygwin).
@@ -112,20 +112,21 @@ vulnerabilities* below has what that choice costs.
 
 ### Bitcoin Core
 
-- **Mainnet**: Use `mainnet-8333-qt` scripts for the GUI.
-- **Testnet**: Use `testnet3-18333-qt` for testnet.
-- **Testnet4**: Use `testnet4-48333-qt` for testnet4.
-- **Regtest**: Use `regtest-*` scripts for local testing. Clean scripts reset
-  data.
+- **Mainnet**: `Bitcoin-Launcher.*`'s menu runs `mainnet-8333-qt` (GUI).
+- **Testnet3**: `Bitcoin-Launcher.*`'s menu runs `testnet3-18333-qt`.
+- **Testnet4**: `Bitcoin-Launcher.*`'s menu runs `testnet4-48333-qt`.
+- **Regtest**: `Bitcoin-Launcher.*`'s menu runs the `regtest-*` scripts,
+  GUI or CLI, for Alice, Bob and Carol. Clean entries reset data before
+  starting.
 - Data is stored in `bitcoin-datadir/`. Configure via `bitcoin.conf`.
 
 ### Electrum
 
-- **Mainnet**: Use `mainnet` or `mainnet-local-server-only` (connects to local
-  server).
-- **Testnet3**: Use `testnet3` for testnet3.
-- **Testnet4**: Use `testnet4` for testnet4.
-- **Regtest**: Use `regtest` for regtest.
+- **Mainnet**: `Electrum-Launcher.*`'s menu runs `mainnet` or
+  `mainnet-local-server-only` (connects to local server).
+- **Testnet3**: `Electrum-Launcher.*`'s menu runs `testnet3`.
+- **Testnet4**: `Electrum-Launcher.*`'s menu runs `testnet4`.
+- **Regtest**: `Electrum-Launcher.*`'s menu runs `regtest`.
 - Data in `electrum-datadir/`. Wallets are in `wallets/`.
 
 ### Environment Overrides
@@ -216,15 +217,18 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   vulnerabilities* below.
 - **Disk space errors**: Free up space or use pruning in `bitcoin.conf`
   (`prune=550` for ~550MB blocks).
-- **Sync issues**: Check logs in `bitcoin-datadir/debug.log`. For Electrum,
-  check console output.
+- **Sync issues**: Check logs in `bitcoin-datadir/debug.log` for mainnet,
+  or `bitcoin-datadir/<network>/debug.log` for testnet3, testnet4 or
+  regtest. For Electrum, check console output.
 - **Regtest not connecting**: Ensure all regtest scripts are run (Alice, Bob,
   Carol) and ports are open.
 - **Path errors**: If moved, use `PORTANODE_ROOT` or adjust scripts.
 
 ### Logs and Debugging
 
-- Bitcoin: `bitcoin-datadir/debug.log`
+- Bitcoin: `bitcoin-datadir/debug.log` for mainnet, or
+  `bitcoin-datadir/<network>/debug.log` for testnet3, testnet4 or
+  regtest.
 - Electrum: Check terminal output or `electrum-datadir/` for logs.
 - Run scripts from terminal for verbose output: `bash
   macos/scripts/bitcoin/mainnet-8333-qt.command` or
@@ -271,8 +275,13 @@ list, and it is the only list.
   `macos/scripts/utilities/verify-binaries.sh` (macOS) or
   `win/scripts/utilities/verify-binaries.bat` (Windows) after downloads.
     - Each verification script checks only its platform’s binaries.
-- **Data Backups**: Regularly backup `bitcoin-datadir/wallets/` and
-  `electrum-datadir/wallets/`. Use encrypted storage.
+- **Data Backups**: Regularly back up your Bitcoin Core wallets and
+  `electrum-datadir/wallets/`. Bitcoin Core wallets are not all under one
+  fixed path: mainnet keeps each wallet directly under
+  `bitcoin-datadir/`, since that directory already exists before Bitcoin
+  Core starts, while testnet3, testnet4 and regtest each get their own
+  `bitcoin-datadir/<network>/wallets/` — see `bitcoin-datadir/README.md`.
+  Use encrypted storage.
 - **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to
   localhost only and use strong passwords. Configure firewall to restrict
   access.

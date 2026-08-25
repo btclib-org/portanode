@@ -7,6 +7,32 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`Bitcoin-Launcher.*`'s menu now reaches every Bitcoin Core script,
+  and `README.md` leads with the root launchers rather than mentioning
+  them fourth** (closes #107). `Bitcoin-Launcher.command`, `.bat` and
+  `.ps1` gain the `-clean` and `-cli` menu entries for Alice, Bob and
+  Carol beside the GUI ones already there, so the menu reaches every
+  script under `macos/scripts/bitcoin/` and `win/scripts/bitcoin/`;
+  `Electrum-Launcher.*` already reached every script under
+  `macos/scripts/electrum/` and `win/scripts/electrum/`. `README.md`'s
+  *Quick Start* now double-clicks a root launcher as its first action on
+  each platform instead of a per-network script, *Launcher Notes* names
+  the three launchers before the four file extensions, and *Detailed
+  Setup* names the per-network scripts as what a launcher's own menu
+  runs rather than as the first way to reach them.
+- **`README.md` and `bitcoin-datadir/README.md` back up wallets where
+  Bitcoin Core actually keeps them** (closes #109). Bitcoin Core creates
+  a `wallets/` subfolder only inside a network directory it creates
+  itself; `bitcoin-datadir/` is tracked and so already exists before
+  Bitcoin Core ever starts, and for mainnet the network directory *is*
+  `bitcoin-datadir/` itself, so a mainnet wallet's own file or folder
+  sits directly under `bitcoin-datadir/`, never under a `wallets/`
+  subfolder there. Testnet3, testnet4 and regtest each get a network
+  directory created fresh, `wallets/` created along with it, so their
+  wallets stay under `bitcoin-datadir/<network>/wallets/`. Both files'
+  backup instructions, and `bitcoin-datadir/README.md`'s own file
+  listing, now say so; `README.md`'s Electrum backup instruction was
+  already correct and is unchanged.
 - **A testnet4 launcher joins testnet3 on Bitcoin Core and Electrum, both
   platforms** (closes #103), alongside Electrum's testnet3 launcher
   gaining a network-specific name of its own.
