@@ -9,8 +9,12 @@ unset _UTILS_LIB_DIR
 debug_list_dir() {
     local dir="$1"
     local entries
+    # find exits 1 when $dir does not exist, and pipefail (set by every
+    # caller) carries that through the pipeline into the assignment; "||
+    # true" keeps a missing directory a listing (of nothing) rather than a
+    # death of the caller, which is the case this helper exists for.
     entries="$(find "$dir" -mindepth 1 -maxdepth 1 -exec basename {} \; \
-        2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+        2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')" || true
     echo "Debug: $dir contents: $entries"
 }
 

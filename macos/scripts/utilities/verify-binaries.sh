@@ -91,6 +91,7 @@ for path in ${upaths[@]+"${upaths[@]}"}; do
         else
             echo "$path: MISSING"
         fi
+        fail=$((fail + 1))
         continue
     fi
     if command -v shasum >/dev/null 2>&1; then
