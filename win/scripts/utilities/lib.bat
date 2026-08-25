@@ -92,6 +92,11 @@ call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
 call :normalize_entry_path "%FILEPATH_RAW%" FILEPATH_ENTRY
 if not exist "%FILEPATH_FS%" exit /b 0
 if "%CHECKSUM_FILE%"=="" exit /b 0
+REM Appends the one new entry with Add-Content rather than rewriting the file
+REM with Set-Content, matching what README.md documents this file as:
+REM append-only. A rewrite of every line on each call -- and Select-Object
+REM -Unique silently dropping any repeated one, comments included -- is what
+REM this converges away from.
 powershell -Command ^
   "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; ^
   $checksum = '%CHECKSUM_FILE%'; ^
@@ -100,10 +105,9 @@ powershell -Command ^
     exit 0 } ^
   $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
   $entry = "$hash  %FILEPATH_ENTRY%  version=$version"; ^
-  $lines = Get-Content $checksum; ^
-  if ($lines -notcontains $entry) { $lines += $entry } ^
-  $lines = $lines | Select-Object -Unique; ^
-  Set-Content -Encoding ASCII $checksum $lines }"
+  $existing = Get-Content $checksum; ^
+  if ($existing -notcontains $entry) { ^
+    Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
 exit /b 0
 
 :verify_checksum
@@ -111,7 +115,13 @@ set "FILEPATH_RAW=%~1"
 set "CHECKPATH_RAW=%~2"
 call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
 call :normalize_entry_path "%CHECKPATH_RAW%" CHECKPATH_ENTRY
-if not exist "%FILEPATH_FS%" exit /b 0
+REM Fails CLOSED on a missing file, converging on
+REM macos/scripts/utilities/lib.sh's verify_checksum_entry, which already
+REM returns non-zero here; a missing binary used to pass this gate silently.
+if not exist "%FILEPATH_FS%" (
+    echo Error: %FILEPATH_FS% not found.
+    exit /b 1
+)
 if "%CHECKSUM_FILE%"=="" exit /b 1
 powershell -Command ^
   "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; ^
@@ -150,6 +160,23 @@ for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command ^
     if ($line.StartsWith($hash) -and $line.Contains($path)) { ^
       if ($l -match 'version=(\S+)') { Write-Output $matches[1] } ^
       break } } }"`) do set "%IV_OUTVAR%=%%V"
+exit /b 0
+
+REM :rootdir_arg ROOTDIR OUTVAR
+REM ROOTDIR carries no trailing separator except at a drive root
+REM (win/scripts/root.bat), and that one case is what this guards: handed
+REM straight to a quoted "%ROOTDIR%" argument for a spawned process --
+REM powershell.exe reads its argv by the Windows rules, where a backslash
+REM immediately before a closing quote escapes the quote instead of ending
+REM it -- a trailing "E:\" would run the argument on past the intended end
+REM of the line. Doubling that one backslash keeps it: an even count before
+REM the quote parses back to one literal backslash and a real close, where
+REM ROOTDIR's ordinary no-trailing-separator case has nothing to double.
+:rootdir_arg
+set "RA_ROOTDIR=%~1"
+set "RA_OUTVAR=%~2"
+if "%RA_ROOTDIR:~-1%"=="\" set "RA_ROOTDIR=%RA_ROOTDIR%\"
+set "%RA_OUTVAR%=%RA_ROOTDIR%"
 exit /b 0
 
 :normalize_fs_path

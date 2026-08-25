@@ -4,6 +4,7 @@ REM Validate setup
 
 set SCRIPT_DIR=%~dp0
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 
 pushd "%ROOTDIR%" >nul 2>&1
 
@@ -44,7 +45,7 @@ if exist "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" (
 
 set FREE_GB=
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-  -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR%"`) do set FREE_GB=%%F
+  -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR_ARG%"`) do set FREE_GB=%%F
 if not defined FREE_GB (
     echo WARNING: Could not determine disk free space.
 ) else (

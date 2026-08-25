@@ -596,6 +596,47 @@ using YYYY.MM.DD format.
   `README.md`'s *Permissions* bullet and both utilities `README.md`
   describe the same two cases instead of presenting the call as the
   answer to a portable, unencrypted volume.
+- **`lib.bat`'s `:verify_checksum` passed a binary that is not there**
+  (closes #50), the Windows half of the same defect
+  `verify-binaries.sh` and `verify-binaries.ps1` had. It now fails
+  closed on a missing file, converging on
+  `macos/scripts/utilities/lib.sh`'s `verify_checksum_entry`, which
+  already does. This is what `update-bitcoin.bat`'s post-install gate
+  and every rollback script's pre-restore check call, so a copy or an
+  extraction that never landed a file now stops the caller instead of
+  reading as verified.
+- **`lib.bat`'s `:update_checksum` rewrote all of `win/checksums.sha256`
+  with `Set-Content`, and `Select-Object -Unique` dropped any repeated
+  line, comments included** (closes #53). It now appends the one new
+  entry with `Add-Content` instead, matching what `README.md` documents
+  as append-only. `macos/scripts/utilities/lib.sh`'s `update_checksum`
+  also rewrites the whole file after appending to it, on every call; that
+  half of the same defect is issue #85, outside this change's region.
+  `.gitattributes` also gains `eol=lf` for `*/checksums.sha256` and
+  `keys/*.fingerprints`, neither previously attributed, so a write from
+  either platform normalizes to the same line ending instead of git
+  storing whichever last touched the file.
+- **`win/scripts/utilities/validate-setup.ps1` had no caller** (closes
+  #55). It printed a per-file installed-version listing and always
+  exited 0, which had drifted from `verify-binaries.ps1`'s `OK`/
+  `FAILED`/`MISSING` verdict and non-zero exit on a mismatch — the file
+  `validate-setup.bat` actually calls, through `verify-binaries.bat`. It
+  is removed rather than wired in, `validate-setup.bat` already
+  delegating the checksum check the same way `verify-binaries.bat` does.
+- **A trailing backslash in `ROOTDIR` escaped the closing quote of every
+  `powershell -File` argument under `win/scripts/utilities/`** (closes
+  #68), the case left open once #65 settled `ROOTDIR` as carrying no
+  trailing separator except at a drive root. `lib.bat` gains
+  `:rootdir_arg`, which doubles that one trailing backslash so an even
+  count survives Windows' argv splitting rather than escaping the
+  closing quote; every `-RootDir`/`-Path "%ROOTDIR%"` argument in this
+  directory now reads the doubled form instead.
+- **`verify-binaries.bat` left `SCRIPT_DIR`, `ROOTDIR`, `ROOTDIR_ARG` and
+  `CHECKSUM_FILE` in the environment of whatever ran it** (closes #75),
+  the one utility script under `win/scripts/utilities/` opening with no
+  `setlocal`. It now opens with one, like every sibling but `lib.bat`,
+  which is called for its side effects on the caller rather than run
+  directly.
 
 ## [2026.01.27] - Initial Release
 

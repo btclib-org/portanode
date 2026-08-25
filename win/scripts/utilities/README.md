@@ -75,8 +75,9 @@ Can be used if an update fails
   key rather than a missing signature is the usual cause of a validation
   failure, and how key pinning works.
 - Backups are stored in `win/bin/backup/`; rollbacks depend on these.
-- `win/checksums.sha256` is append-only: new verified hashes are added with
-  `version=<x>` and exact duplicates are pruned.
+- `win/checksums.sha256` is append-only: a new verified hash is added with
+  `version=<x>`, and an entry already present is left as it is rather than
+  being added again.
 - Log monitoring attempts to show a Windows toast notification; if unavailable,
   it falls back to a MessageBox or console warning.
 - Cleanup scripts are OS-specific; Windows cleanup only targets Windows

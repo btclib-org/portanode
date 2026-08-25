@@ -45,3 +45,15 @@ run_electrum binary
 *.ps1 text eol=lf
 *.conf text
 *.json text
+
+# */checksums.sha256 is the one file both updaters write to: the macOS half
+# appends an LF line, the Windows half appends whatever line ending its
+# writer defaults to. Without an eol here git stores whichever one last
+# touched the file rather than converging them, so eol=lf normalizes every
+# write to the format the macOS appender and shasum already produce.
+# keys/*.fingerprints is never written by a script, but is the same kind of
+# plain text list and gets the same treatment for the same reason -- a
+# second unattributed text format in the tree is one more thing to notice
+# missing.
+*/checksums.sha256 text eol=lf
+keys/*.fingerprints text eol=lf
