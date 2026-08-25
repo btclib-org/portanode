@@ -17,6 +17,7 @@ if "%~1"=="--no-notify" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--no-notify]
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 

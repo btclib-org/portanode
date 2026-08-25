@@ -16,6 +16,7 @@ if "%~1"=="--dry-run" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--dry-run]
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
@@ -28,6 +29,7 @@ REM one is owed to the other.
 tasklist /fi "imagename eq electrum.exe" | find /i "electrum.exe" >nul
 if %errorlevel%==0 (
     echo Error: Electrum is running. Stop it before rolling back.
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -36,6 +38,7 @@ pushd "%ROOTDIR%" >nul 2>&1
 if not exist "%BACKUP_DIR%" (
     echo No backup found in %BACKUP_DIR%
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -44,6 +47,7 @@ echo Rolling back Electrum binaries...
 if not exist "%CHECKSUM_FILE%" (
     echo Error: %CHECKSUM_FILE% not found.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -51,12 +55,14 @@ call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\electrum.exe" "win/bin
 if errorlevel 1 (
     echo Error: backup binary checksum not recognized for electrum.exe.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 if not exist "%BACKUP_DIR%\electrum.exe" (
     echo Backup files not found in %BACKUP_DIR%
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -85,6 +91,7 @@ move /y "%BACKUP_DIR%\electrum.exe" "%ROOTDIR%\win\bin\" >nul
 if errorlevel 1 (
     echo Error: restoring win\bin\electrum.exe from the backup failed.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 if exist "%BACKUP_DIR%" rmdir "%BACKUP_DIR%" >nul 2>&1

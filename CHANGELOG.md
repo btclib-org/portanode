@@ -659,6 +659,15 @@ using YYYY.MM.DD format.
   invocation, or `Bitcoin-Launcher.bat`'s own `call`, which runs in the
   launcher's own console and returns to its menu rather than closing.
 
+- **`win/scripts/utilities/*.bat` had the same unpaused-console defect
+  #79 fixed for `win/scripts/bitcoin/` and `win/scripts/electrum/`**
+  (closes #86), and `win/scripts/utilities/README.md` documents
+  double-click as a supported way to run them too. Every echoed error
+  exit now calls `win/scripts/root.bat`'s `:pause_if_own_console`
+  first, `lib.bat`'s own PGP and checksum guards included where a
+  caller funnels their failure into its own echoed message before
+  exiting.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

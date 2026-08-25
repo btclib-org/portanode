@@ -14,6 +14,7 @@ echo Verifying binaries against %CHECKSUM_FILE%
 if not exist "%ROOTDIR%\%CHECKSUM_FILE%" (
     echo Error: %CHECKSUM_FILE% not found.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -23,4 +24,5 @@ powershell -NoProfile -ExecutionPolicy Bypass ^
 
 set ERR=%ERRORLEVEL%
 popd >nul 2>&1
+if not "%ERR%"=="0" call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b %ERR%

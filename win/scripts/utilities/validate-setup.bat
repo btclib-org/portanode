@@ -15,6 +15,7 @@ if exist "%SCRIPT_DIR%verify-binaries.bat" (
     call "%SCRIPT_DIR%verify-binaries.bat"
     if errorlevel 1 (
         popd >nul 2>&1
+        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
         exit /b 1
     )
 ) else (
@@ -53,6 +54,7 @@ if not defined FREE_GB (
     if !FREE_GB! lss 100 (
         echo ERROR: Less than 100GB free.
         popd >nul 2>&1
+        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
         exit /b 1
     )
     if !PRUNED!==0 if !FREE_GB! lss 700 (
