@@ -4,6 +4,7 @@ REM Monitor Bitcoin log for errors (Windows)
 
 set SCRIPT_DIR=%~dp0
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 
 set LOG_FILE=%ROOTDIR%\bitcoin-datadir\debug.log
 
@@ -26,6 +27,6 @@ if not exist "%LOG_FILE%" (
 
 powershell -NoProfile -ExecutionPolicy Bypass ^
   -File "%SCRIPT_DIR%monitor-bitcoin-log.ps1" ^
-  -RootDir "%ROOTDIR%" %NO_NOTIFY_ARG%
+  -RootDir "%ROOTDIR_ARG%" %NO_NOTIFY_ARG%
 
 exit /b 0
