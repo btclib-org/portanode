@@ -94,7 +94,11 @@ fi
 # install them next to the app in macos/bin/ (putting them inside the signed
 # .app bundle would invalidate the bundle's code signature).
 CLI_ARCHIVE="bitcoin-${VERSION}-${ARCH_TAG}-${OS}.tar.gz"
-BIN_NAMES="bitcoind bitcoin-cli bitcoin-qt bitcoin-tx bitcoin-util bitcoin-wallet"
+# bitcoin is the multi-call dispatch binary the loose-binary tarball ships
+# alongside the other tools above (confirmed against the published archive
+# with tar -tzf); win/scripts/utilities/update-bitcoin.bat already installs
+# its Windows counterpart, bitcoin.exe, via its bin\*.exe wildcard copy.
+BIN_NAMES="bitcoind bitcoin-cli bitcoin-qt bitcoin-tx bitcoin-util bitcoin-wallet bitcoin"
 
 # Prevent updates while running. pgrep on macOS/BSD uses extended regular
 # expressions, so alternation is "|" (a GNU-BRE "\|" matches a literal pipe and

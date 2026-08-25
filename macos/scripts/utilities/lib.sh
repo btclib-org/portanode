@@ -176,12 +176,14 @@ update_checksum() {
         return 0
     fi
 
+    # Appends the one new entry and nothing else: */checksums.sha256 is
+    # documented append-only, and a whole-file rewrite here previously
+    # deduped every line with awk, silently dropping any exact repeat,
+    # comments included, on every call rather than only where one existed.
     local entry="$hash  $entry_path  version=$version"
     if ! grep -Fxq "$entry" "$checksum_file"; then
         echo "$entry" >> "$checksum_file"
     fi
-    awk '!seen[$0]++' "$checksum_file" > "${checksum_file}.tmp"
-    mv "${checksum_file}.tmp" "$checksum_file"
 }
 
 verify_checksum_entry() {
@@ -211,9 +213,13 @@ verify_checksum_entry() {
         return 2
     fi
 
+    # $2 (the entry's own path field) is matched exactly rather than with
+    # index($0, p): a substring match reads a line as matching any path it
+    # is a prefix of, e.g. "macos/bin/bitcoin" would also match a
+    # "macos/bin/bitcoin-cli" line.
     if ! awk -v h="$hash" \
         -v p="$entry_path" \
-        '$1 == h && index($0, p) { found=1 } END { exit found ? 0 : 1 }' \
+        '$1 == h && $2 == p { found=1 } END { exit found ? 0 : 1 }' \
         "$checksum_file"; then
         return 1
     fi
@@ -245,8 +251,9 @@ installed_version() {
         return 0
     fi
 
+    # $2 == p, not index($0, p): see verify_checksum_entry's own comment.
     awk -v h="$hash" -v p="$entry_path" '
-        $1 == h && index($0, p) {
+        $1 == h && $2 == p {
             for (i = 1; i <= NF; i++) {
                 if ($i ~ /^version=/) {
                     sub(/^version=/, "", $i)

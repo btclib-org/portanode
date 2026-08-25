@@ -75,8 +75,9 @@ Can be used if an update fails.
   key rather than a missing signature is the usual cause of a validation
   failure, and how key pinning works.
 - Backups are stored in `macos/bin/backup/`; rollbacks depend on these.
-- `macos/checksums.sha256` is append-only: new verified hashes are added with
-  `version=<x>` and exact duplicates are pruned.
+- `macos/checksums.sha256` is append-only: a new verified hash is added with
+  `version=<x>`, and an entry already present is left as it is rather than
+  being added again.
 - Cleanup scripts are OS-specific; macOS cleanup only targets macOS artifacts.
 - Health checks rely on process listing; some sandboxed environments may
   restrict this and reduce detection accuracy.
