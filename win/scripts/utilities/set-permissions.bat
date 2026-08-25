@@ -10,10 +10,12 @@ set EDD=%ROOTDIR%\electrum-datadir
 
 if not exist "%BDD%" (
     echo Error: bitcoin-datadir not found.
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 if not exist "%EDD%" (
     echo Error: electrum-datadir not found.
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 

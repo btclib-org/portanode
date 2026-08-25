@@ -22,6 +22,7 @@ if "%~1"=="--dry-run" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--version ^<v^>] [--dry-run]
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
@@ -41,6 +42,7 @@ if defined VERSION_OVERRIDE (
     if not defined VERSION (
         echo Error: could not determine a Bitcoin Core release with a win64 build.
         popd >nul 2>&1
+        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
         exit /b 1
     )
     echo Latest Bitcoin Core with a win64 build: !VERSION!
@@ -60,12 +62,14 @@ tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
 if %errorlevel%==0 (
     echo Error: Bitcoin Core is running. Stop it before updating.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 tasklist /fi "imagename eq bitcoin-qt.exe" | find /i "bitcoin-qt.exe" >nul
 if %errorlevel%==0 (
     echo Error: Bitcoin Core is running. Stop it before updating.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -206,6 +210,7 @@ goto :cleanup
 
 :error
 echo Update failed.
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 set STATUS=1
 
 :cleanup

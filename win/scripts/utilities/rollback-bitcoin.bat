@@ -16,6 +16,7 @@ if "%~1"=="--dry-run" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--dry-run]
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
@@ -28,11 +29,13 @@ REM change to one is owed to the other.
 tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
 if %errorlevel%==0 (
     echo Error: Bitcoin Core is running. Stop it before rolling back.
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 tasklist /fi "imagename eq bitcoin-qt.exe" | find /i "bitcoin-qt.exe" >nul
 if %errorlevel%==0 (
     echo Error: Bitcoin Core is running. Stop it before rolling back.
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -41,6 +44,7 @@ pushd "%ROOTDIR%" >nul 2>&1
 if not exist "%BACKUP_DIR%" (
     echo No backup found in %BACKUP_DIR%
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -49,6 +53,7 @@ echo Rolling back Bitcoin binaries...
 if not exist "%CHECKSUM_FILE%" (
     echo Error: %CHECKSUM_FILE% not found.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -56,6 +61,7 @@ call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\bitcoin-qt.exe" "win/b
 if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-qt.exe.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 if exist "%BACKUP_DIR%\bitcoind.exe" (
@@ -63,6 +69,7 @@ if exist "%BACKUP_DIR%\bitcoind.exe" (
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoind.exe.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
@@ -71,6 +78,7 @@ if exist "%BACKUP_DIR%\bitcoin-cli.exe" (
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-cli.exe.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
@@ -79,6 +87,7 @@ if exist "%BACKUP_DIR%\bitcoin-wallet.exe" (
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-wallet.exe.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
@@ -87,6 +96,7 @@ if exist "%BACKUP_DIR%\bitcoin-tx.exe" (
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-tx.exe.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
@@ -95,6 +105,7 @@ if exist "%BACKUP_DIR%\bitcoin-util.exe" (
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-util.exe.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
@@ -103,6 +114,7 @@ if exist "%BACKUP_DIR%\bitcoin.exe" (
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin.exe.
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
@@ -110,6 +122,7 @@ if exist "%BACKUP_DIR%\bitcoin.exe" (
 if not exist "%BACKUP_DIR%\bitcoin-qt.exe" (
     echo Backup files not found in %BACKUP_DIR%
     popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -162,6 +175,7 @@ echo move is still in win\bin\backup\bitcoin. Once the cause is cleared, move
 echo what is left there into win\bin by hand, or run update-bitcoin.bat to
 echo install the current release over whatever win\bin now holds.
 popd >nul 2>&1
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 
 REM Nothing is deleted before the move, so a move that fails leaves win\bin
