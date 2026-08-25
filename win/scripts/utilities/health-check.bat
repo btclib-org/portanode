@@ -15,10 +15,10 @@ if not "%errorlevel%"=="0" (
 )
 
 set "MOUNT_PATH=%ROOTDIR%"
-for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
-findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
-if defined FREE_BYTES (
-    set /a FREE_GB=%FREE_BYTES%/1024/1024/1024
+set FREE_GB=
+for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+  -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR%"`) do set FREE_GB=%%F
+if defined FREE_GB (
     if defined MOUNT_PATH (
         echo Disk free: !FREE_GB! GB (%MOUNT_PATH%)
     ) else (

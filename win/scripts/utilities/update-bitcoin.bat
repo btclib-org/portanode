@@ -92,10 +92,10 @@ if "%DRY_RUN%"=="1" (
         echo Archive size: !ARCHIVE_MB! MB ^(downloaded to local temp
         echo storage, not the removable disk^).
     )
-    for /f "tokens=3" %%F in ('fsutil volume diskfree "%ROOTDIR%" ^| ^
-      findstr /i "Total # of free bytes"') do set FREE_BYTES=%%F
-    if defined FREE_BYTES (
-        set /a FREE_GB=!FREE_BYTES!/1024/1024/1024
+    set FREE_GB=
+    for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+      -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR%"`) do set FREE_GB=%%F
+    if defined FREE_GB (
         echo Free space at %ROOTDIR%: !FREE_GB! GB
     )
     popd >nul 2>&1
@@ -130,11 +130,18 @@ powershell -Command ^
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK "%ROOTDIR%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
 
+REM One backslash, not two: cmd.exe passes a backslash through untouched,
+REM and powershell.exe splits its command line by the Windows argument
+REM rules, where a backslash is literal unless it precedes a double
+REM quote. A doubled \\s+ therefore reaches the .NET regex engine as a
+REM literal backslash followed by one or more s, and no SHA256SUMS line
+REM holds a backslash. The doubling in the paths is a separate case and
+REM harmless: Windows collapses a repeated path separator.
 powershell -Command ^
   "& { $sum = Get-Content '%TMPDIR%\\SHA256SUMS' ^
   | Select-String -Pattern '%FILE%' | Select-Object -First 1; ^
   if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } ^
-  $expected = ($sum -split '\\s+')[0].ToLower(); ^
+  $expected = ($sum -split '\s+')[0].ToLower(); ^
   $actual = (Get-FileHash -Algorithm SHA256 ^
     '%TMPDIR%\\%FILE%').Hash.ToLower(); ^
   if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } ^
