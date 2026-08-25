@@ -14,6 +14,8 @@ and whether it starts with a clean data folder.
 - `regtest-18444-Alice-qt.command`: Regtest GUI for Alice, port 18444.
 - `regtest-18444-Alice-qt-clean.command`: Same as above, but deletes the
   data directory before starting.
+- `regtest-18444-Alice-cli.command`: Regtest CLI for Alice, port 18444.
+- `regtest-18444-Alice-cli-clean.command`: Same as above, clean start.
 - `regtest-18555-Bob-qt.command`: Regtest GUI for Bob, port 18555.
 - `regtest-18555-Bob-qt-clean.command`: Same as above, clean start.
 - `regtest-18666-Carol-qt.command`: Regtest GUI for Carol, port 18666.
@@ -32,3 +34,5 @@ Peer connections (addnode targets):
 ## Prerequisites
 
 - Bitcoin Core app bundle in `macos/bin/Bitcoin-Qt.app`.
+- `bitcoind` and `bitcoin-cli` in `macos/bin/`, for the two CLI
+  launchers; the updater installs both alongside the app bundle.
