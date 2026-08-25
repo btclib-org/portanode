@@ -3,6 +3,7 @@ setlocal
 REM Launch Bitcoin Core GUI for regtest as Carol.
 REM Data directory: bitcoin-datadir\regtest_carol
 REM P2P port: 18666
+REM RPC port: 18665
 REM Network: regtest
 REM Creates data directory if not exists.
 REM Connects to: localhost:18444 (Alice), localhost:18555 (Bob)
@@ -22,10 +23,17 @@ if not exist "%ROOTDIR%\bitcoin-datadir\regtest_carol\" (
 )
 
 
+REM Bitcoin Core's regtest RPC port defaults to 18443 regardless of -port, so
+REM Alice, Bob and Carol running concurrently would each try to bind RPC on
+REM 18443 without an explicit -rpcport. This one is Carol's, distinct from
+REM Alice's default and from Bob's, following the P2P-minus-one spacing
+REM Bitcoin Core itself uses between a network's own P2P and RPC ports
+REM (8333/8332, 18333/18332, 18444/18443).
 start "" "%ROOTDIR%\win\bin\bitcoin-qt.exe" ^
   -uacomment=%~n0 ^
   -datadir="%ROOTDIR%\bitcoin-datadir\regtest_carol" ^
   -regtest ^
   -port=18666 ^
+  -rpcport=18665 ^
   -addnode=localhost:18444 ^
   -addnode=localhost:18555

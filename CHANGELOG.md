@@ -7,6 +7,34 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **Bob and Carol get a CLI launcher pair each, on macOS and Windows**
+  (closes #90), alongside their existing GUI ones:
+  `regtest-18555-Bob-cli(.command|.bat)`,
+  `regtest-18555-Bob-cli-clean(.command|.bat)`,
+  `regtest-18666-Carol-cli(.command|.bat)` and
+  `regtest-18666-Carol-cli-clean(.command|.bat)`, structured like
+  `regtest-18444-Alice-cli(.command|.bat)` — a backgrounded `bitcoind`
+  (or, on Windows, a second console) and a `bitcoin-cli` session on that
+  node's own datadir. `win/scripts/bitcoin/` carries no `.ps1` launcher
+  for any node, Alice's own `-cli` pair included, so none is added here.
+  Bitcoin Core's regtest RPC port defaults to 18443 regardless of the
+  P2P port passed with `-port` — confirmed from `src/chainparamsbase.cpp`
+  and `src/httpserver.cpp` in Bitcoin Core's own source, `-rpcport`
+  falling back to `BaseParams().RPCPort()`, which is 18443 for every
+  regtest node — so Alice, Bob and Carol running at once would each try
+  to bind RPC on the same port, and `AppInitServers` fails the node that
+  loses the race. Bob and Carol now pass an explicit `-rpcport`, one
+  less than their own P2P port, matching the spacing Bitcoin Core uses
+  between a network's own P2P and RPC ports elsewhere (8333/8332,
+  18333/18332, 18444/18443); Alice is unchanged, keeping the regtest
+  default. `regtest-18555-Bob-qt(.command|.bat)`,
+  `regtest-18555-Bob-qt-clean(.command|.bat)`,
+  `regtest-18666-Carol-qt(.command|.bat)` and
+  `regtest-18666-Carol-qt-clean(.command|.bat)` carry the same
+  `-rpcport`, the collision reaching them as much as the new CLI pair.
+  Both `bitcoin/README.md` files document the port assignment and the
+  new launchers.
+
 - **`git show origin/main:<path>` is current without being faithful for
   a path git filters on checkout**, where `CLAUDE.md` had named it the
   read that cannot go stale and said nothing of its content. `.bat`

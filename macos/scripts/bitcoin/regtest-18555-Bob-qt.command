@@ -24,10 +24,17 @@ mkdir -p "${ROOTDIR}/bitcoin-datadir/regtest_bob"
 
 BASENAME="$(basename "$0")"
 FILENAME="${BASENAME%.*}"
+# Bitcoin Core's regtest RPC port defaults to 18443 regardless of -port, so
+# Alice, Bob and Carol running concurrently would each try to bind RPC on
+# 18443 without an explicit -rpcport. This one is Bob's, distinct from
+# Alice's default and from Carol's, following the P2P-minus-one spacing
+# Bitcoin Core itself uses between a network's own P2P and RPC ports
+# (8333/8332, 18333/18332, 18444/18443).
 "$BTC_QT" \
   -uacomment="${FILENAME}" \
   -datadir="${ROOTDIR}/bitcoin-datadir/regtest_bob" \
   -regtest \
   -port=18555 \
+  -rpcport=18554 \
   -addnode=localhost:18444 \
   -addnode=localhost:18666
