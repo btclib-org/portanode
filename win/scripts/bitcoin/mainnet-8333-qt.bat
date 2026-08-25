@@ -10,11 +10,15 @@ echo ROOTDIR is "%ROOTDIR%"
 
 if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
     echo Error: Binary not found at "%ROOTDIR%\win\bin\bitcoin-qt.exe"
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 call "%SCRIPT_DIR%lib.bat" :require_no_mainnet_node
-if errorlevel 1 exit /b 1
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 start "" "%ROOTDIR%\win\bin\bitcoin-qt.exe" -uacomment=%~n0 ^
 -datadir="%ROOTDIR%\bitcoin-datadir"

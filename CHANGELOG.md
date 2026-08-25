@@ -637,6 +637,27 @@ using YYYY.MM.DD format.
   `setlocal`. It now opens with one, like every sibling but `lib.bat`,
   which is called for its side effects on the caller rather than run
   directly.
+- **The two Alice CLI regtest launchers built their nested `cmd /k`
+  command line with backslash-escaped quotes** (closes #76), which
+  cmd.exe does not read as escapes: a backslash before a quote is an
+  ordinary character to it, only the quote itself toggles quoting, so
+  the daemon window's command began `\"C:\...\bitcoind.exe\"`, a token
+  naming no file. Both now wrap the nested command in a single pair of
+  quotes, doubled where the wrapped text itself opens with one — the
+  idiom `cmd /k` documents for exactly this case — which is also what
+  lets the `cd`/`title`/`doskey` chain in the second window use a plain
+  `&` instead of the `^&` that, once outside the stripped quotes, was
+  escaping the separator into a literal character and running the three
+  as one `cd` command instead of three.
+- **Every `.bat` under `win/scripts/bitcoin/` and `win/scripts/electrum/`
+  wrote an error to a console that a double-click closes on exit, before
+  the user could read it** (closes #79). `win/scripts/root.bat` gains
+  `:pause_if_own_console`, called with the script's own `%~nx0` right
+  before each `exit /b 1`: it pauses only where `%CMDCMDLINE%` names that
+  script, which is true of a console a double-click opened to run it and
+  false of one already open before the script started — a typed
+  invocation, or `Bitcoin-Launcher.bat`'s own `call`, which runs in the
+  launcher's own console and returns to its menu rather than closing.
 
 ## [2026.01.27] - Initial Release
 
