@@ -81,6 +81,10 @@ using YYYY.MM.DD format.
   same six tools in a paragraph of its own: the updater sets their executable
   bit itself, so the `chmod` block above still covers only the two app bundles.
 
+- **`CONTRIBUTING.md`'s shared half matches `btclib-org/.github`'s copy
+  byte for byte**, gaining *The landing queue* under *Pull requests* and
+  a rewritten paragraph on what a commit message becomes once it lands
+  (#39).
 - **Every hook with a fix mode now runs with it turned on.**
   `markdownlint-cli2` gains `--fix` and `codespell` gains
   `--write-changes`; `typos` already fixes in place through its own
