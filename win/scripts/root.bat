@@ -36,3 +36,29 @@ for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
 if "%ROOTDIR:~-1%"=="\" if not "%ROOTDIR:~-2%"==":\" set "ROOTDIR=%ROOTDIR:~0,-1%"
 if not "%OUTVAR%"=="" set "%OUTVAR%=%ROOTDIR%"
 exit /b 0
+
+:pause_if_own_console
+REM Pauses before returning, but only where the console this script is
+REM running in was opened specifically to run it. A double-click of a
+REM .bat runs it as "cmd.exe /c <that .bat>", and that console closes the
+REM instant the script exits -- discarding whatever it just echoed. A
+REM console that was already open before the script started -- a typed
+REM invocation, or Bitcoin-Launcher.bat's own "call", which runs in the
+REM launcher's own console and returns to its menu instead of closing --
+REM is not this console's origin and gets no pause: CMDCMDLINE is fixed
+REM when a console is created and does not change across a "call" within
+REM it, so it names the script that console was opened for, not
+REM whichever script a chain of "call"s has reached since.
+REM
+REM The first argument is the caller's own %~nx0, read by the caller
+REM before this call -- %0 inside this file names root.bat, not the
+REM caller, the same reason :resolve_root's own caller reads %~dp0 into
+REM SCRIPT_DIR beforehand rather than after.
+set "SELF=%~1"
+echo "%CMDCMDLINE%" | find /I "%SELF%" >nul
+if not errorlevel 1 (
+    echo.
+    echo Press any key to close this window.
+    pause >nul
+)
+exit /b 0
