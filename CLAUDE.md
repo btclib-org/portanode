@@ -290,17 +290,22 @@ running it — on the platform it is for, from a volume that is not the
 boot disk — and a session that could not do that says so rather than
 leaving it to be assumed.
 
-For Linux, "could not do that" is narrower than it reads: GitHub Actions
-runs `ubuntu-latest`, and a workflow using `on: push` runs from whatever
-branch carries it rather than needing to sit on the default branch first
-— that requirement is `workflow_dispatch`'s alone. A scratch branch
-holding a throwaway workflow file therefore produces a real run without
-that workflow ever landing on `main`; `gh run list` and
-`gh run view --log` retrieve the output, and deleting the branch
-afterwards (`git push origin --delete <branch>`) is a remote ref, not a
-file, so it leaves nothing behind to clean up. What that run cannot
-establish: `ubuntu-latest` carries no desktop session, so a `.desktop`
-file's trust behaviour in a file manager is not reachable there, and
-exFAT-on-a-removable-drive behaviour is only reachable through a
-loopback image, which is not the same thing as a drive plugged into a
-running machine.
+"Could not do that" is narrower than it reads: the mechanism belongs to
+GitHub Actions, not to any one runner it offers. A workflow using
+`on: push` runs from whatever branch carries it rather than needing to
+sit on the default branch first — that requirement is
+`workflow_dispatch`'s alone — so a scratch branch holding a throwaway
+workflow file produces a real run on `ubuntu-latest`, `windows-latest`,
+or any other label it offers, without that workflow ever landing on
+`main`. `gh run list` and `gh run view --log` retrieve the output, and
+deleting the branch afterwards (`git push origin --delete <branch>`) is
+a remote ref, not a file, so it leaves nothing behind to clean up.
+
+What such a run cannot establish is a property of the runner it lands
+on, not of GitHub Actions itself. Neither `ubuntu-latest` nor
+`windows-latest` carries a desktop session, so a `.desktop` file's trust
+behaviour in a file manager is out of reach on the first and a GUI
+launcher's own double-click through Explorer is out of reach on the
+second, for the same underlying reason. exFAT-on-a-removable-drive
+behaviour is only reachable through a loopback image, on any runner,
+which is not the same thing as a drive plugged into a running machine.
