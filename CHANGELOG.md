@@ -667,6 +667,21 @@ using YYYY.MM.DD format.
   first, `lib.bat`'s own PGP and checksum guards included where a
   caller funnels their failure into its own echoed message before
   exiting.
+- **The two regtest CLI launchers existed on Windows and nowhere
+  else** (closes #64). `macos/bin/` has held `bitcoind` and
+  `bitcoin-cli` since the updater started installing them, so
+  `macos/scripts/bitcoin/regtest-18444-Alice-cli.command` and its
+  `-clean` variant now start Alice's daemon and a `btc` CLI session
+  the same way the `.bat` pair does, for Alice alone: Bob
+  and Carol stay GUI-only on both platforms, unchanged by this.
+  Unix `bitcoind` supports `-daemon`, unlike `bitcoind.exe`, so the
+  daemon forks into the background and the launcher's own window
+  becomes the CLI session directly, with no second console to open;
+  `btc` is a shell function rather than an alias, an alias being
+  flat text re-split on every space when expanded, which breaks
+  under a `ROOTDIR` containing one. Exercised on this machine with
+  stand-in `bitcoind`/`bitcoin-cli` scripts, daemon start, the `btc`
+  function, and a `ROOTDIR` containing a space all passing.
 
 ## [2026.01.27] - Initial Release
 
