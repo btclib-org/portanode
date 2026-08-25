@@ -35,9 +35,8 @@ if [ ! -x "$BTC_QT" ]; then
 fi
 
 if ps -ax -o command= 2>/dev/null | awk '
-  BEGIN { IGNORECASE=1 }
-  /bitcoin-qt|bitcoind/ {
-    cmd = tolower($0)
+  { cmd = tolower($0) }
+  cmd ~ /bitcoin-qt|bitcoind/ {
     if (cmd ~ /-testnet/ || cmd ~ /-regtest/ ||
         cmd ~ /-signet/ || cmd ~ /-chain=(testnet|testnet3|regtest|signet)/) {
       next

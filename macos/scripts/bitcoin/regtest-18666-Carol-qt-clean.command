@@ -33,7 +33,10 @@ echo "WARNING: This will delete regtest data."
 echo "Press Enter to continue or Ctrl+C to cancel."
 read -r
 
-rm -rf "${DATADIR}"
+if ! rm -rf "${DATADIR}"; then
+    echo "Error: could not delete ${DATADIR}."
+    exit 1
+fi
 mkdir -p "${DATADIR}"
 
 NETDIR="${DATADIR}/regtest"

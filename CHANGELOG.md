@@ -882,6 +882,35 @@ using YYYY.MM.DD format.
   badge reads from report different counts for a repository of this
   shape. The comment now says the sentinel checks this repository's
   supply-chain posture without naming a total.
+- **`mainnet-8333-qt.command`'s second-instance guard never matched the
+  process it exists to catch** (closes #106). Its `awk` `BEGIN` block set
+  `IGNORECASE=1`, a `gawk` extension that macOS's system `awk` -- BWK
+  awk, not gawk -- silently ignores, so `/bitcoin-qt|bitcoind/` matched
+  case-sensitively against the unlowercased `$0` while the block's own
+  `tolower($0)` ran only after that match, on the process name
+  `Bitcoin-Qt` this same launcher starts. The match now runs against
+  `cmd`, computed before it: `{ cmd = tolower($0) } cmd ~
+  /bitcoin-qt|bitcoind/ { ... }`. Verified against a real running
+  mainnet `Bitcoin-Qt` process on this machine: the guard as it stood
+  read `ps -ax -o command=` piped through it as exit 1 (no mainnet
+  process found), the fixed guard as exit 0. The Windows counterpart,
+  `lib.bat`'s `:require_no_mainnet_node`, matches with PowerShell's
+  `-in`, case-insensitive already, and needed no change.
+- **A `-clean` regtest launcher whose wipe failed started the node
+  anyway, on the data it was asked to delete** (closes #114), with no
+  sign beyond a line of `rm` or `rmdir` output above the launcher's own
+  banner. Every macOS `-clean` launcher under `macos/scripts/bitcoin/`
+  now stops, naming the directory, where its `rm -rf` does not succeed;
+  every Windows counterpart calls a new `lib.bat` label,
+  `:require_deleted`, which runs `rmdir /s /q`
+  and then checks the directory is actually gone rather than trusting
+  `rmdir`'s own exit code -- that code is nonzero already on the
+  ordinary first clean start, where the directory does not exist yet
+  to be removed, so what decides success is the state left behind, not
+  the attempt. Reproduced end to end on macOS with a permission-denied
+  regtest directory: the launcher as it stood printed the `rm` error and
+  started `Bitcoin-Qt` on the old data anyway; the fixed launcher stops
+  with the directory it could not delete named in its own error.
 
 ## [2026.01.27] - Initial Release
 

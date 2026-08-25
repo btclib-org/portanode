@@ -32,7 +32,10 @@ echo "WARNING: This will delete regtest data."
 echo "Press Enter to continue or Ctrl+C to cancel."
 read -r
 
-rm -rf "${ROOTDIR}/bitcoin-datadir/regtest"
+if ! rm -rf "${ROOTDIR}/bitcoin-datadir/regtest"; then
+    echo "Error: could not delete ${ROOTDIR}/bitcoin-datadir/regtest."
+    exit 1
+fi
 
 DATADIR="${ROOTDIR}/bitcoin-datadir"
 NETDIR="${DATADIR}/regtest"
