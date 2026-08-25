@@ -10,7 +10,8 @@ For local installation this folder is typically in:
 ## Folders
 
 - `wallets/`: Mainnet wallets (default and named).
-- `testnet/`: Testnet wallets and data.
+- `testnet/`: Testnet3 wallets and data.
+- `testnet4/`: Testnet4 wallets and data.
 - `regtest/`: Regtest wallets and data.
 
 ## Configuration

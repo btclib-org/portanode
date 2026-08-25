@@ -11,6 +11,7 @@ and whether it starts with a clean data folder.
 
 - `mainnet-8333-qt.bat`: Mainnet, GUI (QT), P2P port 8333.
 - `testnet3-18333-qt.bat`: Testnet3, GUI (QT), P2P port 18333.
+- `testnet4-48333-qt.bat`: Testnet4, GUI (QT), P2P port 48333.
 - `regtest-18444-Alice-qt.bat`: Regtest GUI for Alice, port 18444.
 - `regtest-18444-Alice-qt-clean.bat`: Same as above, but deletes the
   data directory before starting.

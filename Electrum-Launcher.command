@@ -23,9 +23,10 @@ run_script() {
 while true; do
   echo "Electrum Launcher ($ROOTDIR)"
   echo "1) Mainnet"
-  echo "2) Testnet"
-  echo "3) Regtest"
-  echo "4) Mainnet (local server only)"
+  echo "2) Testnet3"
+  echo "3) Testnet4"
+  echo "4) Regtest"
+  echo "5) Mainnet (local server only)"
   echo "0) Exit"
   printf "Select: "
   read -r choice
@@ -36,9 +37,10 @@ while true; do
 
   case "$choice" in
     1) run_script "$ROOTDIR/macos/scripts/electrum/mainnet.command" ;;
-    2) run_script "$ROOTDIR/macos/scripts/electrum/testnet.command" ;;
-    3) run_script "$ROOTDIR/macos/scripts/electrum/regtest.command" ;;
-    4) run_script "$ROOTDIR/macos/scripts/electrum/mainnet-local-server-only.command" ;;
+    2) run_script "$ROOTDIR/macos/scripts/electrum/testnet3.command" ;;
+    3) run_script "$ROOTDIR/macos/scripts/electrum/testnet4.command" ;;
+    4) run_script "$ROOTDIR/macos/scripts/electrum/regtest.command" ;;
+    5) run_script "$ROOTDIR/macos/scripts/electrum/mainnet-local-server-only.command" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac

@@ -6,14 +6,16 @@ Entry point for launch scripts.
 
 - `bitcoin/`: Bitcoin Core scripts (.bat).
     - `mainnet-8333-qt.bat`: GUI for mainnet.
-    - `testnet3-18333-qt.bat`: GUI for testnet.
+    - `testnet3-18333-qt.bat`: GUI for testnet3.
+    - `testnet4-48333-qt.bat`: GUI for testnet4.
     - `regtest-*-qt.bat`: GUI for regtest (Alice/Bob/Carol).
     - `regtest-*-cli.bat`: Daemon + CLI for regtest.
     - `-clean` variants: Reset data before launch.
 - `electrum/`: Electrum scripts (.bat).
     - `mainnet.bat`: Standard mainnet.
     - `mainnet-local-server-only.bat`: Connects to local server.
-    - `testnet.bat`, `regtest.bat`: For test/regtest networks.
+    - `testnet3.bat`, `testnet4.bat`, `regtest.bat`: For test and regtest
+      networks.
 - `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
 
 ## Usage
