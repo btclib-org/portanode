@@ -31,6 +31,23 @@ using YYYY.MM.DD format.
   importing its own standard library, which would silently invalidate a
   checksum recorded right after installation the first time Electrum
   actually runs.
+- **`linux/scripts/bitcoin/` launches Bitcoin Core on Linux, at parity
+  with the macOS launchers it is transliterated from** (closes #119).
+  Every network and node `macos/scripts/bitcoin/` launches has a Linux
+  counterpart: mainnet, testnet3, testnet4, and the three named regtest
+  nodes each with a GUI, a CLI and a `-clean` variant. `linux/bin/`
+  carries `bitcoin-qt` as a plain executable rather than an app bundle,
+  so every launcher points at it directly instead of at a bundle's
+  `Contents/MacOS/` path. `mainnet-8333-qt.sh`'s second-instance guard
+  reads `ps -eo command=` — the GNU/procps form, `ps -ax -o command=`
+  being BSD-specific — into the same `tolower()`-based `awk` match the
+  macOS launcher already carries after #106; a Linux `bitcoin-qt`
+  process is already lowercase, so the match does not depend on that
+  fix the way the macOS one does. `-clean` launchers stop when their
+  wipe fails, matching #114 on the other two platforms, and the
+  regtest nodes keep the distinct `-rpcport` values (18443 default for
+  Alice, 18554 for Bob, 18665 for Carol) that stop a later node from
+  binding an earlier one's RPC port.
 - **`update-bitcoin` installs Bitcoin Core on Linux, choosing the
   architecture from the machine, verifying the same multi-signed
   `SHA256SUMS` the other two platforms already check, and leaving a
