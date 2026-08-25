@@ -31,6 +31,16 @@ using YYYY.MM.DD format.
   `shasum` and `sha256sum` on its own, and `tree_hash` makes that same
   choice too rather than assuming `shasum`, which a Linux install
   without it would otherwise hit silently.
+- **`CLAUDE.md`'s CI-evidence paragraph names GitHub Actions, not
+  `ubuntu-latest`, as what its scratch-branch mechanism belongs to**
+  (closes #132). A throwaway `on: push` workflow on a scratch branch,
+  `gh run list` and `gh run view --log`, and `git push origin --delete`
+  to clean up are properties of GitHub Actions and reach `windows-latest`
+  exactly as they reach `ubuntu-latest`, confirmed by running the same
+  mechanism on a `windows-latest` scratch job. What such a run cannot
+  establish is now attributed to the runner rather than to Linux: neither
+  `ubuntu-latest` nor `windows-latest` carries a desktop session, and a
+  loopback image is not a plugged-in drive on either.
 - **The shared shell library lives in platform-nameless `shared/`, so a
   Linux script can source it without a path component naming another
   platform** (closes #116). `shared/lib.sh` resolves the root and
