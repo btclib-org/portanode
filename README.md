@@ -2,22 +2,23 @@
 
 <!-- The badges are what the reader decides with, one property of the
 tree per badge, in the fixed order btclib-org/.github's README.md
-section 2 gives: the licence, the lint workflow, then the sentinels
-this tree runs, in section 10's calendar order -- links, then
-Scorecard. Scorecard has no row in section 10's calendar today because
-no repository in the organization had adopted the workflow before this
-one, not because the sentinel is structurally exempt from the grid --
-btclib-org/.github#363 proposes the row, and .github/workflows/
-scorecard.yml's own header has why the workflow ships without a
-schedule: trigger in the meantime. Placed after links on the reading
-that a sentinel the calendar does not yet order takes the position
-after everything the calendar does order, not before it. One badge per
-line keeps a change to one line and every line inside MD013; the site
-renders the line break as a space, its kramdown having hard_wrap
-off. -->
+section 2 gives: the licence, the lint workflow, pre-commit.ci, then
+the sentinels this tree runs, in section 10's calendar order -- links,
+then Scorecard. Scorecard has no row in section 10's calendar today
+because no repository in the organization had adopted the workflow
+before this one, not because the sentinel is structurally exempt from
+the grid -- btclib-org/.github#363 proposes the row, and
+.github/workflows/scorecard.yml's own header has why the workflow
+ships without a schedule: trigger in the meantime. Placed after links
+on the reading that a sentinel the calendar does not yet order takes
+the position after everything the calendar does order, not before it.
+One badge per line keeps a change to one line and every line inside
+MD013; the site renders the line break as a space, its kramdown
+having hard_wrap off. -->
 [![license](https://img.shields.io/github/license/btclib-org/portanode.svg)](https://github.com/btclib-org/portanode/blob/main/LICENSE)
 
 [![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
 [![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/links.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/btclib-org/portanode/badge)](https://scorecard.dev/viewer/?uri=github.com/btclib-org/portanode)
 

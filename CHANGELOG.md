@@ -911,6 +911,11 @@ using YYYY.MM.DD format.
   regtest directory: the launcher as it stood printed the `rm` error and
   started `Bitcoin-Qt` on the old data anyway; the fixed launcher stops
   with the directory it could not delete named in its own error.
+- **`README.md`'s badge row gains the pre-commit.ci badge the repository
+  earns** (closes #115), between the lint workflow badge and the
+  sentinels, the position `btclib-org/.github`'s README.md section 2
+  fixes for it; the head comment enumerating that order now names it
+  too.
 
 ## [2026.01.27] - Initial Release
 
