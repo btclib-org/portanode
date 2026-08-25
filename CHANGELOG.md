@@ -85,6 +85,34 @@ using YYYY.MM.DD format.
   byte for byte**, gaining *The landing queue* under *Pull requests* and
   a rewritten paragraph on what a commit message becomes once it lands
   (closes #39, issue btclib-org/.github#281).
+- **The Windows regtest clean launchers refuse to delete a data directory
+  a node is using, and `mainnet-8333-qt.bat` refuses to start a second
+  mainnet node** (closes #47). `win/scripts/bitcoin/lib.bat` carries both
+  guards, which read the data directory from the running process's command
+  line where the macOS half reads it with `pgrep`. Windows refuses to
+  delete a file another process holds open rather than deleting it, so what
+  an unguarded clean start leaves under a live node is a data directory
+  emptied of everything except that node's own open files, with the node
+  writing on into what is left; on macOS `rm -rf` deletes them instead. A
+  check that cannot run counts as a node for the clean launchers and not
+  for the mainnet one: deleting on a question nothing answered is what the
+  first guard is for, and starting a node deletes nothing.
+- **The Windows network launchers open with `@echo off` and `setlocal`,
+  and resolve the root through `win/scripts/root.bat`** (closes #63).
+  Double-clicked, they print what they are doing rather than themselves;
+  `ROOTDIR` stays inside the launcher that set it, and it reaches the user
+  as a resolved path rather than one carrying `..\..\..`.
+- **`win/scripts/root.bat` returns the root with no trailing separator,
+  and says so where it returns it** (closes #65). That is the shape
+  `resolve_root` in `macos/scripts/lib.sh` and `Resolve-PortaNodeRoot` in
+  `win/scripts/root.ps1` return, and the shape every caller under
+  `win/scripts/utilities/` is written for; the three root `.bat` launchers
+  concatenated `%ROOTDIR%win\scripts\...` with no separator, and now write
+  one. `PORTANODE_ROOT=D:\PortaNode`, the form `README.md`'s *Environment
+  Overrides* shows, sent every menu entry of those launchers to `Script not
+  found:`. A drive root keeps its backslash, `E:` alone naming the current
+  directory of that drive rather than its root.
+
 - **Every hook with a fix mode now runs with it turned on.**
   `markdownlint-cli2` gains `--fix` and `codespell` gains
   `--write-changes`; `typos` already fixes in place through its own

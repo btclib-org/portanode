@@ -1,11 +1,13 @@
+@echo off
+setlocal
 REM Launch Bitcoin Core GUI for regtest as Alice.
 REM Data directory: bitcoin-datadir
 REM P2P port: 18444
 REM Network: regtest
 REM Connects to: localhost:18555 (Bob), localhost:18666 (Carol)
 REM
-set "ROOTDIR=%~dp0..\..\.."
-if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
+set "SCRIPT_DIR=%~dp0"
+call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 echo ROOTDIR is "%ROOTDIR%"
 
 if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
