@@ -53,9 +53,7 @@ in a portable USB 3 / Thunderbolt enclosure.
     - `bin/`: macOS app bundles for Bitcoin Core and Electrum.
         - `Bitcoin-Qt.app/`: Bitcoin Core app bundle.
         - `Electrum.app/`: Electrum app bundle.
-        - `.tmp-downloads/`: Temporary downloads used by update scripts.
-    - `bin/backup/`: macOS backups created by update scripts (see
-      `macos/bin/backup/README.md`).
+    - `bin/backup/`: macOS backups created by update scripts.
     - `checksums.sha256`: macOS checksums (versioned).
     - `scripts/`
         - `bitcoin/`: Bitcoin Core launch scripts (.command). See
@@ -67,9 +65,7 @@ in a portable USB 3 / Thunderbolt enclosure.
 
 - `win/`
     - `bin/`: Windows binaries (e.g., `electrum.exe`).
-        - `.tmp-downloads/`: Temporary downloads used by update scripts.
-    - `bin/backup/`: Windows backups created by update scripts (see
-      `win/bin/backup/README.md`).
+    - `bin/backup/`: Windows backups created by update scripts.
     - `checksums.sha256`: Windows checksums (versioned) at `win/checksums.sha256`.
     - `scripts/`
         - `bitcoin/`: Bitcoin Core launch scripts (.bat). See
@@ -86,7 +82,7 @@ in a portable USB 3 / Thunderbolt enclosure.
 
 ### Bitcoin Core
 
-- **Mainnet**: Use `mainnet-8333-qt` scripts for GUI or CLI.
+- **Mainnet**: Use `mainnet-8333-qt` scripts for the GUI.
 - **Testnet**: Use `testnet3-18333-qt` for testnet.
 - **Regtest**: Use `regtest-*` scripts for local testing. Clean scripts reset
   data.
@@ -125,8 +121,12 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   with the regtest scripts.
 - **PGP verification fails closed.** Update scripts abort the install unless the
   download carries a valid PGP signature. This requires `gpg` to be installed
-  and the signer's key imported. To bypass (installs UNAUTHENTICATED binaries —
-  not recommended), set `PORTANODE_ALLOW_UNVERIFIED=1` in the environment.
+  and the signer's key imported: a detached signature file typically carries
+  no public key, so `gpg` can validate only against a key already in the
+  local keyring, and a missing key — not a missing signature — is the usual
+  cause of a validation failure. To bypass (installs UNAUTHENTICATED
+  binaries — not recommended), set `PORTANODE_ALLOW_UNVERIFIED=1` in the
+  environment.
     - **Bitcoin Core signing keys**: obtain builder keys from
       [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys)
       and import with `gpg --import`.
@@ -157,20 +157,15 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   append new entries (only after a successful PGP verification) and deduplicate
   exact duplicates. These files provide **integrity and rollback** checks
   (detecting corruption/tampering of an already-installed binary), not
-  authenticity — authenticity comes from the PGP step above.
-- **Signing Keys**:
-    - Bitcoin Core: import builder keys from
-      [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys).
-      Verify fingerprints before trust; pin trusted ones in
-      `keys/bitcoin-core.fingerprints`.
-    - Electrum: import the release signing key from electrum.org Download page.
-      Verify the fingerprint published there (pinned in
-      `keys/electrum.fingerprints`).
+  authenticity — authenticity comes from the PGP step above. Where to get
+  each project's signing key is the *PGP verification fails closed*
+  bullet above.
 
 ### Expected Binaries by OS
 
-- **macOS (`macos/bin/`)**: `Bitcoin-Qt.app/`, `Electrum.app/` (see
-  `macos/bin/README.md`)
+- **macOS (`macos/bin/`)**: `Bitcoin-Qt.app/`, `Electrum.app/`, `bitcoind`,
+  `bitcoin-cli`, `bitcoin-qt`, `bitcoin-tx`, `bitcoin-util`,
+  `bitcoin-wallet` (see `macos/bin/README.md`)
 - **Windows (`win/bin/`)**: `bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`,
   `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`,
   `electrum.exe` (see `win/bin/README.md`)

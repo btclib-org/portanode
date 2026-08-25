@@ -58,6 +58,23 @@ using YYYY.MM.DD format.
   `rollback-bitcoin.sh` says too that the command-line tools beside the
   app are not rolled back: `update-bitcoin.sh` backs up the app alone,
   where `update-bitcoin.bat` copies the command-line tools too.
+- **Four documents describing a tree that is not there are corrected**
+  (#59, #60, #61, #62). `README.md`, `macos/bin/README.md` and
+  `win/bin/README.md` no longer place the updaters' downloads in a
+  `.tmp-downloads/` directory nothing creates — both updaters download
+  and verify on local temp storage instead, precisely to keep off the
+  removable volume — and the two `bin/.gitignore` no longer list that
+  directory. `macos/scripts/utilities/README.md` no longer tells
+  `verify-binaries.sh` to use associative arrays it was written to avoid,
+  macOS shipping bash 3.2. Both utilities `README.md` point at
+  `README.md`'s own signing-key paragraph instead of restating it around
+  a `contrib/builder-keys/keys.txt` path Bitcoin Core no longer has, and
+  no longer duplicate between themselves the explanation of why a missing
+  key fails a detached signature. `README.md` no longer names two
+  `bin/backup/README.md` an ignored `backup/` can never hold, lists the
+  CLI tools the macOS updater installs beside the app bundles, no longer
+  offers a mainnet CLI script the tree has never shipped, and folds its
+  own duplicated *Signing Keys* bullet into the paragraph above it.
 
 - **Every hook with a fix mode now runs with it turned on.**
   `markdownlint-cli2` gains `--fix` and `codespell` gains

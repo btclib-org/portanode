@@ -53,20 +53,16 @@ Can be used if an update fails
 - Run from repo root or double-click in Explorer; scripts resolve paths relative
   to the repo.
 - Most scripts require internet for downloads; ensure connectivity.
-- Update scripts place temporary downloads under `win/bin/.tmp-downloads/` and
-  clean them on exit.
+- Update scripts download and verify on the local disk (`%TEMP%`), never
+  on the removable volume, and clean up on exit.
 - Update scripts verify PGP signatures for Bitcoin Core and Electrum
   downloads before installing, and fail closed: a bad signature, a missing
   signer key, or no `gpg` at all aborts the update rather than installing
   unverified binaries. Set `PORTANODE_ALLOW_UNVERIFIED=1` to bypass
-  verification (not recommended).
-    - Signature files are detached and typically do **not** include public keys.
-      GPG can only validate signatures for keys already in your local keyring.
-      If signer keys are missing, signatures cannot be validated locally.
-    - **Bitcoin Core signing keys**: obtain keys from the official Bitcoin Core
-      repository (`contrib/builder-keys/keys.txt`) and import with `gpg --import`.
-    - **Electrum signing key**: obtain the release signing key from electrum.org
-      (Download page) and import with `gpg --import`.
+  verification (not recommended). `README.md`'s *Updating Binaries*
+  section has where to obtain each project's signing key, why a missing
+  key rather than a missing signature is the usual cause of a validation
+  failure, and how key pinning works.
 - Backups are stored in `win/bin/backup/`; rollbacks depend on these.
 - `win/checksums.sha256` is append-only: new verified hashes are added with
   `version=<x>` and exact duplicates are pruned.

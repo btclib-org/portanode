@@ -12,8 +12,7 @@ Place the executables here:
 - `electrum.exe`
 
 These executables are launched by the scripts in `win/scripts/`.
-Update scripts store backups in `backup/` and temporary downloads in
-`.tmp-downloads/`.
+Update scripts store backups in `backup/`.
 
 The Bitcoin Core helpers (`bitcoin-cli.exe`, `bitcoin-tx.exe`,
 `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`)
