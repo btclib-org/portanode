@@ -7,6 +7,30 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`update-electrum` installs Electrum on Linux from the signed AppImage
+  electrum.org publishes, unmodified, rather than extracting it**
+  (closes #118). `linux/scripts/utilities/update-electrum.sh` scrapes
+  `download.electrum.org` for the newest version the way the macOS
+  updater already does, verifies `electrum-<version>-x86_64.AppImage`
+  against its detached signature through `pgp_verify_or_fail` and the
+  fingerprint already pinned in `keys/electrum.fingerprints`, and
+  installs it as `linux/bin/electrum.AppImage` through `install_verified`.
+  `linux/scripts/utilities/rollback-electrum.sh` restores the previous
+  AppImage from `linux/bin/backup/electrum`, refusing unless its checksum
+  is recognized. Measured on a `ubuntu-latest` runner against
+  `electrum-4.8.1-x86_64.AppImage`: the AppImage runs without
+  `libfuse2t64` installed, `ldd` reporting it "not a dynamic executable"
+  and `strings` showing it statically links `squashfuse` rather than
+  loading `libfuse.so.2` -- so the runtime dependency this issue was
+  filed to work around does not hold for the artifact electrum.org ships
+  today, and installing `libfuse2t64` changed nothing about how it ran.
+  Extraction was rejected on its own measurement: two untouched
+  extractions of the same AppImage hash identically with `tree_hash`, but
+  the first real execution of the extracted tree writes
+  `__pycache__/*.pyc` files into it as a side effect of Python merely
+  importing its own standard library, which would silently invalidate a
+  checksum recorded right after installation the first time Electrum
+  actually runs.
 - **`update-bitcoin` installs Bitcoin Core on Linux, choosing the
   architecture from the machine, verifying the same multi-signed
   `SHA256SUMS` the other two platforms already check, and leaving a
