@@ -1,9 +1,11 @@
+@echo off
+setlocal
 REM Launch Electrum for regtest.
 REM Data directory: electrum-datadir
 REM Network: regtest
 REM
-set "ROOTDIR=%~dp0..\..\.."
-if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
+set "SCRIPT_DIR=%~dp0"
+call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 echo ROOTDIR is "%ROOTDIR%"
 
 if not exist "%ROOTDIR%\win\bin\electrum.exe" (

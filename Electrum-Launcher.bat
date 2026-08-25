@@ -14,10 +14,10 @@ echo 0^) Exit
 set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"
-if "%choice%"=="1" set "SCRIPT=%ROOTDIR%win\scripts\electrum\mainnet.bat"
-if "%choice%"=="2" set "SCRIPT=%ROOTDIR%win\scripts\electrum\testnet.bat"
-if "%choice%"=="3" set "SCRIPT=%ROOTDIR%win\scripts\electrum\regtest.bat"
-if "%choice%"=="4" set "SCRIPT=%ROOTDIR%win\scripts\electrum\mainnet-local-server-only.bat"
+if "%choice%"=="1" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\mainnet.bat"
+if "%choice%"=="2" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\testnet.bat"
+if "%choice%"=="3" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\regtest.bat"
+if "%choice%"=="4" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\mainnet-local-server-only.bat"
 if "%choice%"=="0" goto end
 
 if "%choice%"=="1" goto run

@@ -15,11 +15,11 @@ echo 0^) Exit
 set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"
-if "%choice%"=="1" set "SCRIPT=%ROOTDIR%win\scripts\bitcoin\mainnet-8333-qt.bat"
-if "%choice%"=="2" set "SCRIPT=%ROOTDIR%win\scripts\bitcoin\testnet3-18333-qt.bat"
-if "%choice%"=="3" set "SCRIPT=%ROOTDIR%win\scripts\bitcoin\regtest-18444-Alice-qt.bat"
-if "%choice%"=="4" set "SCRIPT=%ROOTDIR%win\scripts\bitcoin\regtest-18555-Bob-qt.bat"
-if "%choice%"=="5" set "SCRIPT=%ROOTDIR%win\scripts\bitcoin\regtest-18666-Carol-qt.bat"
+if "%choice%"=="1" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\mainnet-8333-qt.bat"
+if "%choice%"=="2" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\testnet3-18333-qt.bat"
+if "%choice%"=="3" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18444-Alice-qt.bat"
+if "%choice%"=="4" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18555-Bob-qt.bat"
+if "%choice%"=="5" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18666-Carol-qt.bat"
 if "%choice%"=="0" goto end
 
 if "%choice%"=="1" goto run

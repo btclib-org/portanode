@@ -52,6 +52,11 @@ and one asked nothing at all. On macOS they also refuse to wipe a datadir
 a running node is using, `rm -rf` under a live node being how that node's
 data gets corrupted rather than reset.
 
+**The Windows regtest clean launchers refuse to wipe a datadir a running
+node is using**, as the macOS ones do. Stop the node before a clean start;
+where the check itself cannot run they refuse as well and delete nothing.
+`mainnet-8333-qt.bat` likewise refuses to start a second mainnet node.
+
 **Updates now stage on the local disk** and copy only the finished
 binaries onto the removable volume, so a `%TEMP%` or an APFS `mktemp`
 directory needs the room the download used to take on the folder itself.

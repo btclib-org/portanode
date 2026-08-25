@@ -1,10 +1,12 @@
+@echo off
+setlocal
 REM Launch Electrum for mainnet, connecting only to local server.
 REM Data directory: electrum-datadir
 REM Network: mainnet
 REM Server: localhost:50002:s (one server only)
 REM
-set "ROOTDIR=%~dp0..\..\.."
-if defined PORTANODE_ROOT set "ROOTDIR=%PORTANODE_ROOT%"
+set "SCRIPT_DIR=%~dp0"
+call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 echo ROOTDIR is "%ROOTDIR%"
 
 if not exist "%ROOTDIR%\win\bin\electrum.exe" (
