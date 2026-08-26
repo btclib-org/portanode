@@ -1,6 +1,7 @@
 # SHA-256 checksums for Bitcoin and Electrum binaries
-# Verify with: shasum -a 256 -c macos/checksums.sha256
-# Generated with: shasum -a 256 <files> > macos/checksums.sha256
+# Verify with: sed 's/  version=.*//' macos/checksums.sha256 | shasum -a 256 -c -
+# The sed step is not optional: -c reads an entry's version field as part of
+# the path, so without it a file whose hashes all match still fails.
 # Format: <sha256>  <path>  version=<semver>
 # Note: macOS app bundles may change hash after codesign or quarantine changes.
 # Integrity/rollback only, NOT authenticity: entries are recorded by the updater

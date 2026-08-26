@@ -1,7 +1,9 @@
 # SHA-256 checksums for Bitcoin and Electrum binaries
-# Verify with: shasum -a 256 -c win/checksums.sha256
-# PowerShell verify: Get-FileHash -Algorithm SHA256 <file>
-# Generated with: shasum -a 256 <files> > win/checksums.sha256
+# Verify with (PowerShell): Get-Content win/checksums.sha256 | Where-Object {$_ -match '^[0-9a-f]{64}\s'} | ForEach-Object {$p=$_ -split '\s\s+'; $h=(Get-FileHash -Algorithm SHA256 $p[1] -ErrorAction SilentlyContinue).Hash; if ($null -eq $h) { "$($p[1]): FAILED (missing)" } elseif ($h.ToLower() -eq $p[0]) { "$($p[1]): OK" } else { "$($p[1]): FAILED" }}
+# shasum and sha256sum are not guaranteed on Windows, so this filters to
+# the 64-hex-character lines and reads the path with Get-FileHash rather
+# than passing the file to a -c mode that would read the version field as
+# part of the path.
 # Format: <sha256>  <path>  version=<semver>
 # Integrity/rollback only, NOT authenticity: entries are recorded by the updater
 # after a PGP-verified download. They detect later corruption/tampering of an
