@@ -1,5 +1,11 @@
 #!/bin/bash
-ROOTDIR="${PORTANODE_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd -P)}"
+# readlink -f: $0 is the symlink's own path where a launcher is
+# started through one, which would send both the source below and
+# the root walk into the wrong directory.
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd -P)"
+# shellcheck source=macos/scripts/lib.sh
+. "$SCRIPT_DIR/../lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 echo ROOTDIR is "${ROOTDIR}"
 DATADIR="${ROOTDIR}/bitcoin-datadir/regtest_carol"
 NETDIR="${DATADIR}/regtest"
