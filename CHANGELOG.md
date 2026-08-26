@@ -7,6 +7,21 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`.gitattributes` gives the configuration formats a `text` line, and
+  `VERSION` an `eol=lf` one** (closes #185). `*.yml`, `*.yaml`, `*.toml`,
+  `*.jsonc`, `.gitattributes`, `.gitignore`, `.secrets.baseline`,
+  `COPYRIGHT` and `LICENSE` are `text`, which stores them LF in the index
+  whatever an editor saved, so that guarantee is the repository's rather
+  than `mixed-line-ending --fix=lf`'s, which a clone gets only once it
+  runs `pre-commit`. `VERSION` carries `eol=lf` on top because
+  `RELEASING.md` cuts a release tag with `git tag -s "v$(cat VERSION)"`,
+  command substitution strips the trailing newline and keeps the carriage
+  return in front of it, and `git check-ref-format` refuses the ref name
+  that results. No path takes `eol=crlf`: `root.bat` and `root.ps1` reach
+  `VERSION` through `if exist` and `Test-Path`, so cmd.exe reads the
+  contents of none of these files. No file's content changes —
+  `git ls-files --eol` reports every path the new patterns reach as
+  already LF in the index and in the working tree.
 - **`README.md`'s *Prerequisites* carries the 100GB figure each
   platform's `validate-setup` enforces** (closes #153). The disk-space
   comment in those scripts routes a change to either threshold through
