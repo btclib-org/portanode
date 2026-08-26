@@ -225,7 +225,7 @@ jobs:
             `confirmed: true`) for a finding a line is the subject of.
           # folded rather than literal, and `gh pr` rather than the three
           # subcommands spelled out: the flag has to reach the CLI as one
-          # line, and the line that spells out comment, diff and view is
+          # line, and the line that spells out diff, review and view is
           # past the 100 columns yamllint holds this file to
           claude_args: >-
             --allowedTools

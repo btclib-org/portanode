@@ -91,6 +91,14 @@ using YYYY.MM.DD format.
   a second over process names: a process name was truncated to fifteen
   characters there, so `electrum.AppImage` read back as
   `electrum.AppIma` and `pgrep -x` refused a pattern that long outright.
+- **`claude-review.yml`'s `claude_args` comment named `gh pr comment`,
+  which this workflow does not use, and left out `gh pr review`, which
+  it does** (issue btclib-org/.github#398). The comment justifies
+  keeping the flag folded rather than literal by the width of a line
+  spelling the `gh pr` subcommands out, and it now spells out the ones
+  the file uses: `diff` for the diff, `review` for the ack of record
+  posted with `gh pr review --comment`, and `view` for the pull
+  request's title and description.
 - **`update-electrum` installs Electrum on Linux from the signed AppImage
   electrum.org publishes, unmodified, rather than extracting it**
   (closes #118). `linux/scripts/utilities/update-electrum.sh` scrapes
