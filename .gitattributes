@@ -22,18 +22,22 @@ RELEASE_NOTES.md merge=union
 
 ## This repository in particular
 
-# The launchers are what this tree ships, to two operating systems.
+# The launchers are what this tree ships, to macOS, Windows and Linux.
 # `.bat` is checked out CRLF because cmd.exe reads a batch file line by
 # line and a lone LF has cost that reader a label before now, which is
 # why `.pre-commit-config.yaml` keeps the line-ending fixer off those
-# files and `REVIEWING.md` reads them rather than the diff; `.sh` and
-# `.command` are checked out LF for the shell on the macOS side, a
-# `.command` with CRLF not running there at all. `.ps1` is checked out
-# LF too: PowerShell reads either, where cmd.exe does not, so there is
-# no failure this tree exists to avoid on that side of a mismatch. The
-# `binary` lines name what a launcher fetches; nothing tracked matches
-# them today, and the day one is committed by mistake git will not try
-# to diff or normalize it.
+# files and `REVIEWING.md` reads them rather than the diff. `.sh` and
+# `.command` are checked out LF because a carriage return is an ordinary
+# character where a line ending is expected: `#!/bin/bash` followed by
+# one names an interpreter that does not exist, and a `fi` followed by
+# one is not `fi`. Neither failure is macOS's in particular, so the
+# rule serves every file `git ls-files '*.sh' '*.command'` names rather
+# than `macos/`'s alone. `.ps1` is checked out LF too: PowerShell reads
+# either, where cmd.exe does not, so there is no failure this tree
+# exists to avoid on that side of a mismatch. The `binary` lines name
+# what a launcher fetches; nothing tracked matches them today, and the
+# day one is committed by mistake git will not try to diff or normalize
+# it.
 *.exe binary
 *.app binary
 Bitcoin-Qt binary
@@ -46,11 +50,12 @@ run_electrum binary
 *.conf text
 *.json text
 
-# */checksums.sha256 is the one file both updaters write to: the macOS half
-# appends an LF line, the Windows half appends whatever line ending its
-# writer defaults to. Without an eol here git stores whichever one last
+# */checksums.sha256 is the file the updaters write to: macOS's and Linux's
+# both reach it through shared/utilities/lib.sh, whose appender writes an LF
+# line, and the Windows half appends whatever line ending its writer
+# defaults to. Without an eol here git stores whichever one last
 # touched the file rather than converging them, so eol=lf normalizes every
-# write to the format the macOS appender and shasum already produce.
+# write to the format that shared appender and shasum already produce.
 # keys/*.fingerprints is never written by a script, but is the same kind of
 # plain text list and gets the same treatment for the same reason -- a
 # second unattributed text format in the tree is one more thing to notice

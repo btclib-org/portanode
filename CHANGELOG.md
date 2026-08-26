@@ -17,6 +17,19 @@ using YYYY.MM.DD format.
   the network and whether or not pruning is on, and counts pruned
   mainnet alongside regtest and testnet among the configurations needing
   less than 700GB. The comment is unchanged.
+- **`.gitattributes` names macOS, Windows and Linux as what the launchers
+  ship to, and gives `*.sh text eol=lf` the shell's own reason rather than
+  a macOS one** (closes #180). A carriage return where a line ending is
+  expected makes `#!/bin/bash` name an interpreter that does not exist and
+  a `fi` not `fi` — measured on macOS 26.6.2 and on `ubuntu-latest`
+  running bash 5.2.21, exit 127 and a syntax error on each, against an LF
+  control that runs — so the attribute serves whatever
+  `git ls-files '*.sh' '*.command'` names rather than `macos/`'s share of
+  it. The `*/checksums.sha256` comment below the patterns now says that
+  macOS's and Linux's updaters reach that file through the one appender in
+  `shared/utilities/lib.sh`, which writes an LF line. Only comment lines
+  changed: no pattern and no `eol` value is different, so no file is
+  checked out differently.
 - **macOS's `update-electrum.sh` and `rollback-electrum.sh` anchor the
   bare `run_electrum` alternative in `ELECTRUM_PGREP_PATTERN`** (closes
   #168). Unanchored, it matched any process whose command line merely
