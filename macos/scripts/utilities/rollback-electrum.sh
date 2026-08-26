@@ -27,11 +27,12 @@ done
 # operation whichever script does it, and a rollback is run when something has
 # just gone wrong, which is when Electrum is most likely to still be up. The
 # pattern is that script's, repeated here rather than shared, so a change to one
-# is owed to the other.
+# is owed to the other. The last alternative is anchored to where a program
+# name can appear, for the same reason update-electrum.sh's own copy is.
 ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)$"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|/Electrum$|/electrum$"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|python.*electrum"
-ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|run_electrum"
+ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|(^|/)run_electrum( |\$)"
 if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
     echo "Error: Electrum is running. Stop it before rolling back."
     exit 1

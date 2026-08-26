@@ -38,11 +38,16 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 echo "Updating Electrum..."
 
-# Prevent updates while running
+# Prevent updates while running. The last alternative catches a source
+# or extracted-tree invocation of a script named run_electrum outside
+# the app bundle, anchored to where a program name can appear -- the
+# start of the command line or right after a path separator, ending at
+# a space or the line's end -- so a process that merely carries
+# "run_electrum" among its own arguments is not matched.
 ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)$"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|/Electrum$|/electrum$"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|python.*electrum"
-ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|run_electrum"
+ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|(^|/)run_electrum( |\$)"
 if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
     echo "Error: Electrum is running. Stop it before updating."
     exit 1
