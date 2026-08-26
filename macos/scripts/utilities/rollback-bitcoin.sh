@@ -38,7 +38,7 @@ echo "Rolling back Bitcoin binaries..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
     BACKUP_DIR="$ROOTDIR/macos/bin/backup/bitcoin"
     if [ ! -d "$BACKUP_DIR/Bitcoin-Qt.app" ]; then
-        echo "No backup found in $BACKUP_DIR"
+        echo "No backup found in macos/bin/backup/bitcoin"
         debug_list_dir "$BACKUP_DIR"
         exit 1
     fi
@@ -65,7 +65,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
           "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
           "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$CHECKSUM_FILE")"
         echo "--dry-run: nothing will be changed."
-        echo "Backup found in $BACKUP_DIR, checksum recognized:" \
+        echo "Backup found in macos/bin/backup/bitcoin, checksum recognized:" \
              "version ${BACKUP_VERSION}."
         echo "Currently installed: ${CURRENT_VERSION}."
         echo "Would replace macos/bin/Bitcoin-Qt.app with the backup."

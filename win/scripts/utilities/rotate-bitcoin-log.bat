@@ -9,7 +9,7 @@ set LOG_FILE=%ROOTDIR%\bitcoin-datadir\debug.log
 set MAX_ROTATIONS=5
 
 if not exist "%LOG_FILE%" (
-    echo Log file not found: %LOG_FILE%
+    echo Log file not found: bitcoin-datadir\debug.log
     exit /b 0
 )
 
@@ -31,5 +31,5 @@ REM clear it here rather than leaving the monitor to catch the mismatch on
 REM its next run, which is a race it can lose (see monitor-bitcoin-log.ps1).
 if exist "%ROOTDIR%\.last_log_offset" del /f /q "%ROOTDIR%\.last_log_offset"
 
-echo Log rotated: %LOG_FILE%
+echo Log rotated: bitcoin-datadir\debug.log
 exit /b 0

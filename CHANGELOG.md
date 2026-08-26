@@ -63,6 +63,21 @@ using YYYY.MM.DD format.
   landed to remove from two library headers, and each
   `verify-binaries.sh` already names its counterpart in its own comment.
   Comments only; no script behaviour changes.
+- **A utility message names a path the folder carries relative to
+  `ROOTDIR` rather than from the volume root** (closes #141). The folder
+  is mounted at a different point on every machine it is plugged into,
+  so a message printing a variable built as `$ROOTDIR/...` told the
+  reader where that run happened rather than which file in the folder
+  was meant, and named a path the reader of a bug report does not have.
+  Where the path is fixed the message now carries it literally; where it
+  is not — the data directory a permission report is about, the
+  `bitcoin-cli` a health check found, the file a checksum helper could
+  not open — the `ROOTDIR` prefix is stripped from the value, which
+  leaves a path outside the folder absolute, that being the convention's
+  one exception. `Validating setup at $ROOTDIR` and the `ROOTDIR is ...`
+  line a launcher prints are unchanged, naming the mount point itself;
+  `CLAUDE.md` and `REVIEWING.md` now carry that distinction beside the
+  convention they each state.
 - **macOS's `update-electrum.sh` and `rollback-electrum.sh` anchor the
   bare `run_electrum` alternative in `ELECTRUM_PGREP_PATTERN`** (closes
   #168). Unanchored, it matched any process whose command line merely

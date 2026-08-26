@@ -36,7 +36,7 @@ if %errorlevel%==0 (
 pushd "%ROOTDIR%" >nul 2>&1
 
 if not exist "%BACKUP_DIR%" (
-    echo No backup found in %BACKUP_DIR%
+    echo No backup found in win\bin\backup\electrum
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
@@ -45,7 +45,7 @@ if not exist "%BACKUP_DIR%" (
 echo Rolling back Electrum binaries...
 
 if not exist "%CHECKSUM_FILE%" (
-    echo Error: %CHECKSUM_FILE% not found.
+    echo Error: win\checksums.sha256 not found.
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
@@ -60,7 +60,7 @@ if errorlevel 1 (
 )
 
 if not exist "%BACKUP_DIR%\electrum.exe" (
-    echo Backup files not found in %BACKUP_DIR%
+    echo Backup files not found in win\bin\backup\electrum
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
@@ -70,7 +70,7 @@ if "%DRY_RUN%"=="1" (
     call "%SCRIPT_DIR%lib.bat" :installed_version "%BACKUP_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" BACKUPVER
     call "%SCRIPT_DIR%lib.bat" :installed_version "%ROOTDIR%\win\bin\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENTVER
     echo --dry-run: nothing will be changed.
-    echo Backup found in %BACKUP_DIR%, checksum recognized: version !BACKUPVER!.
+    echo Backup found in win\bin\backup\electrum, checksum recognized: version !BACKUPVER!.
     echo Currently installed: !CURRENTVER!.
     echo Would replace win\bin\electrum.exe with the backup.
     popd >nul 2>&1

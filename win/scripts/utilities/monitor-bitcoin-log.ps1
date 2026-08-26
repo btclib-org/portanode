@@ -12,7 +12,7 @@ $logFile = Join-Path $RootDir 'bitcoin-datadir\debug.log'
 $lastCheckFile = Join-Path $RootDir '.last_log_offset'
 
 if (-not (Test-Path $logFile)) {
-  Write-Host "Log file not found: $logFile"
+  Write-Host 'Log file not found: bitcoin-datadir\debug.log'
   exit 0
 }
 

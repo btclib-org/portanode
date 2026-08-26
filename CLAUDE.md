@@ -307,6 +307,13 @@ Do not use Fable unless explicitly instructed.
 - **A path is relative to `ROOTDIR`, never absolute.** The one exception
   is a path outside the folder entirely — a system binary, a user's
   keyring — and there is no exception for anything the folder carries.
+  It reaches what a script prints as well as what it opens: a message
+  interpolating a variable built as `$ROOTDIR/...` names an absolute
+  path as surely as a literal one does. `$ROOTDIR` printed alone is
+  outside this rule rather than an exception to it — it is the mount
+  point itself, which is what a reader needs in order to find the
+  folder; `validate-setup.sh`'s `Validating setup at $ROOTDIR` and the
+  `ROOTDIR is ...` line a launcher prints are that case.
 - **Never state how many of anything a file holds.** A stated count is a
   line every open branch has to edit, and nothing here checks one.
 - **The version is a date**: `VERSION` holds `YYYY.MM.DD` and a release

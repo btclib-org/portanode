@@ -47,12 +47,12 @@ fi
 echo "Rolling back Bitcoin binaries..."
 
 if [ ! -d "$BACKUP_DIR" ]; then
-    echo "No backup found in $BACKUP_DIR"
+    echo "No backup found in linux/bin/backup/bitcoin"
     debug_list_dir "$BACKUP_DIR"
     exit 1
 fi
 if [ ! -f "$CHECKSUM_FILE" ]; then
-    echo "Error: $CHECKSUM_FILE not found."
+    echo "Error: linux/checksums.sha256 not found."
     exit 1
 fi
 
@@ -79,7 +79,7 @@ for b in $BIN_NAMES; do
     fi
 done
 if [ "$FOUND_ANY" -eq 0 ]; then
-    echo "Backup files not found in $BACKUP_DIR"
+    echo "Backup files not found in linux/bin/backup/bitcoin"
     exit 1
 fi
 
@@ -92,7 +92,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     CURRENT_VERSION="$(installed_version "$BIN_DIR/bitcoin-qt" \
       "linux/bin/bitcoin-qt" "$CHECKSUM_FILE")"
     echo "--dry-run: nothing will be changed."
-    echo "Backup found in $BACKUP_DIR, checksum recognized:" \
+    echo "Backup found in linux/bin/backup/bitcoin, checksum recognized:" \
          "version ${BACKUP_VERSION}."
     echo "Currently installed: ${CURRENT_VERSION}."
     echo "Would replace linux/bin binaries with the backup."

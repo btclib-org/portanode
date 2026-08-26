@@ -35,7 +35,16 @@ debug_list_dir() {
     # death of the caller, which is the case this helper exists for.
     entries="$(find "$dir" -mindepth 1 -maxdepth 1 -exec basename {} \; \
         2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')" || true
-    echo "Debug: $dir contents: $entries"
+    # The ROOTDIR prefix is stripped because the folder is mounted at a
+    # different point on every machine it is plugged into, so a message
+    # quoting the mount point tells the reader where this run happened
+    # rather than which file in the folder is meant. The strip is applied
+    # where a message would otherwise print an absolute path, which is
+    # not every message here that names one: verify_binaries prints
+    # locals that are relative already, and install_verified's source is
+    # a temporary extraction directory outside the folder -- CLAUDE.md's
+    # one exception to the convention -- so neither is stripped.
+    echo "Debug: ${dir#"$ROOTDIR"/} contents: $entries"
 }
 
 # tree_hash PATH — deterministic content hash of a file or of every regular
@@ -224,7 +233,7 @@ update_checksum() {
     local hash=""
 
     if [ ! -f "$file" ]; then
-        echo "Error: checksum source not found at $file"
+        echo "Error: checksum source not found at ${file#"$ROOTDIR"/}"
         debug_list_dir "$(dirname "$file")"
         exit 1
     fi
@@ -240,7 +249,7 @@ update_checksum() {
     fi
 
     if [ ! -f "$checksum_file" ]; then
-        echo "Warning: $checksum_file not found;"
+        echo "Warning: ${checksum_file#"$ROOTDIR"/} not found;"
         debug_list_dir "$(dirname "$checksum_file")"
         echo "checksums not updated."
         return 0
@@ -266,12 +275,12 @@ verify_checksum_entry() {
     local hash=""
 
     if [ ! -f "$file" ]; then
-        echo "Error: ${label} not found at $file"
+        echo "Error: ${label} not found at ${file#"$ROOTDIR"/}"
         debug_list_dir "$(dirname "$file")"
         return 2
     fi
     if [ ! -f "$checksum_file" ]; then
-        echo "Error: $checksum_file not found."
+        echo "Error: ${checksum_file#"$ROOTDIR"/} not found."
         debug_list_dir "$(dirname "$checksum_file")"
         return 2
     fi

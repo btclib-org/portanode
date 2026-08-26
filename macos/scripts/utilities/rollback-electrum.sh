@@ -39,7 +39,7 @@ if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
 fi
 
 if [ ! -d "$BACKUP_DIR" ]; then
-    echo "No backup found in $BACKUP_DIR"
+    echo "No backup found in macos/bin/backup/electrum"
     debug_list_dir "$BACKUP_DIR"
     exit 1
 fi
@@ -72,7 +72,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
               "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
               "$CHECKSUM_FILE")"
             echo "--dry-run: nothing will be changed."
-            echo "Backup found in $BACKUP_DIR, checksum recognized:" \
+            echo "Backup found in macos/bin/backup/electrum, checksum" \
+                 "recognized:" \
                  "version ${BACKUP_VERSION}."
             echo "Currently installed: ${CURRENT_VERSION}."
             echo "Would replace macos/bin/Electrum.app with the backup."

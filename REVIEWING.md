@@ -459,7 +459,11 @@ because that document, and not this one, is where the rule lives.
   absolute path is a launcher that works on the machine it was written on
   and nowhere else. `CLAUDE.md` states the convention; what a diff
   introduced is `git diff | grep -n '^+.*[=" ]/[A-Za-z]'`, read rather
-  than counted.
+  than counted. That grep reads a literal absolute path. A message
+  interpolating a variable built as `$ROOTDIR/...` prints one too, and
+  matches neither in the message nor in the assignment, so that half is
+  read rather than grepped; a message naming `$ROOTDIR` alone is the
+  mount point itself and is not this defect.
 - **Does the change reach the other platforms?** The same launcher is
   written four ways — `.sh`, `.command`, `.bat`, `.ps1` — and nothing
   keeps them in step. The two halves are not a mirror to begin with,
