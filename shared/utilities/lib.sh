@@ -54,9 +54,8 @@ debug_list_dir() {
 # The checksum command is picked at run time rather than fixed to shasum:
 # macOS always has shasum, but a bare Linux install is not guaranteed to
 # (it ships from Perl's Digest::SHA, not from coreutils), where sha256sum
-# always is. update_checksum, verify_checksum_entry and installed_version
-# below already pick between the two the same way; this is that choice
-# made once so tree_hash's two callsites do not each repeat it.
+# always is. tree_hash makes that pick itself rather than taking a checksum
+# command as an argument, so a caller hands it a path and repeats nothing.
 tree_hash() {
     local path="$1"
     local -a sha_cmd
@@ -109,10 +108,8 @@ install_verified() {
 #
 # Filters SUMS_FILE, already downloaded into TMP_DIR, down to the named
 # ARCHIVE entries and checks them with whichever of shasum or sha256sum is
-# on PATH. macOS's updater always finds shasum, so before a second caller
-# existed the sha256sum branch had never run; sharing this one function
-# between platforms means a real Linux run is what exercises it, rather
-# than a macOS-only code path carrying a branch nothing takes.
+# on PATH, the run-time pick tree_hash's comment above explains. The
+# sha256sum branch is not dead: a Linux install without shasum runs it.
 verify_sha256sums() {
     local tmp_dir="$1"
     local sums_file="$2"
@@ -365,10 +362,7 @@ _verify_binaries_trim() {
 # Parses CHECKSUM_FILE (ROOTDIR-relative) for lines of the form
 # "<sha256>  <path>[  version=<label>]", keeps only the entries whose
 # path is under "PREFIX/", then hashes each such file under ROOTDIR and
-# prints one OK/FAILED/MISSING line per unique path. This is the parser
-# macos/scripts/utilities/verify-binaries.sh and linux/scripts/
-# utilities/verify-binaries.sh both ran inline before this function
-# existed, identical except for the checksum file and the prefix.
+# prints one OK/FAILED/MISSING line per unique path.
 #
 # Returns 1 and prints "Error: ..." on a malformed line, an unreadable
 # checksum file, a hash of the wrong length, or a missing shasum/
