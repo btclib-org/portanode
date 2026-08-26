@@ -1616,6 +1616,14 @@ using YYYY.MM.DD format.
   sentinels, the position `btclib-org/.github`'s README.md section 2
   fixes for it; the head comment enumerating that order now names it
   too.
+- **`.pre-commit-config.yaml`'s `typos` hook is `repo: local`, converged
+  on `btclib-org/.github`'s own** (issue btclib-org/.github#399).
+  `additional_dependencies: [typos==1.49.0]` carries the version pin
+  `rev:` used to, and `language`, `entry`, `args` and `types` are
+  upstream's own hook definition, copied in rather than fetched —
+  `local` and `meta` are the two `repo:` values `pre-commit autoupdate`
+  filters out before it walks the rest, so `autoupdate` can no longer
+  propose `crate-ci/typos`'s moving `v1` alias here.
 
 ## [2026.01.27] - Initial Release
 
