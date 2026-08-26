@@ -20,6 +20,34 @@ using YYYY.MM.DD format.
   this repository serves none — `has_pages` is false and the `pages`
   endpoint answers 404 — so the kramdown `hard_wrap` that comment named
   renders nothing here (issue btclib-org/.github#381).
+- **`README.md`'s Linux exFAT bullet narrows "no wallet can be kept" to
+  the RPC channel, on a kernel-driver measurement of its own**
+  (closes #197). The wallet-emptiness that sentence carried was measured
+  under `exfat-fuse`, alongside an `os.chmod` failure out of
+  `electrum/util.py`'s `make_dir` that the kernel driver does not have.
+  Measured now on `ubuntu-latest`, Ubuntu 24.04.4, kernel
+  `6.17.0-1022-azure`, against a loopback exFAT image made with
+  `exfatprogs` and mounted `-t exfat` under the in-kernel `exfat` module
+  from `linux-modules-extra-$(uname -r)`, which `findmnt` reports as
+  `exfat` rather than `fuseblk`, with an ext4 loopback control on the
+  same runner and Electrum 4.8.1's AppImage run off the runner's own
+  root so that the datadir's filesystem is the only variable:
+  `--dir <datadir> --regtest --offline create --password ''` exits 0 on
+  exFAT and leaves `regtest/wallets/default_wallet`, parsing as JSON with
+  the same key set and the same `keystore` keys as the control's. Against
+  that same datadir `daemon -d` answers `timed out waiting for daemon to
+  get ready`, `getinfo` and `stop` answer `Daemon not running`, all three
+  exiting 1, and `regtest/` holds no `daemon_rpc_socket`; the control
+  answers 0 to all three and holds one. An `AF_UNIX` bind on the exFAT
+  mount answers `EPERM` where the control answers OK, and an ordinary
+  file write succeeds on both, so the wallet file is not there by the
+  filesystem accepting every call. `os.chmod(d, 0o700)` returns on the
+  kernel driver leaving the mode the mount's `fmask` gives, where the
+  control moves it — the silent no-op macOS's driver has, and the reason
+  the `exfat-fuse` result does not carry over. What a loopback image
+  cannot answer is how a drive plugged into a running machine behaves,
+  and no launcher changes here: the same over-reaching sentence sits in
+  `linux/scripts/electrum/`'s own refusal message (issue #216).
 - **`win/scripts/utilities/health-check.bat` reports Bitcoin and Electrum
   rather than stopping at its first line of output with a cmd.exe parse
   error** (closes #188). Two constructs stop it, each measured on

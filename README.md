@@ -74,8 +74,16 @@ and Ubuntu it has to run under, not on a single default:
   RPC channel, and every wallet command — `getinfo` included — goes
   through it. Measured on Ubuntu's own kernel exFAT driver, on
   `ubuntu-latest`: the bind fails with `EPERM` (`exfat-fuse` answers
-  `EIO` instead, both refusing the same call), so the daemon cannot come
-  up and no wallet can be kept in a datadir there.
+  `EIO` instead, both refusing the same call), `daemon -d` then times out
+  waiting for the daemon to be ready, `getinfo` answers `Daemon not
+  running`, and no `daemon_rpc_socket` appears in the datadir — where an
+  ext4 control on the same runner answers each of those the other way.
+  What cannot exist there is the RPC channel rather than the wallet:
+  `electrum create` writes its wallet file into such a datadir without
+  error — a file parsing as JSON with the same keys as the control's —
+  and it is every command reaching that wallet afterwards that has
+  nothing to go through. Both volumes measured are loopback images, which
+  is as close as a runner gets to a drive plugged into a running machine.
   `linux/scripts/electrum/`'s launchers detect the failing bind before
   starting Electrum and refuse rather than start it silently broken.
 - **macOS refuses the same bind.** Measured against a volume made with
