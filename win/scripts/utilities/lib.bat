@@ -96,12 +96,12 @@ REM Appends the one new entry with Add-Content rather than rewriting the file
 REM with Set-Content, matching what README.md documents this file as:
 REM append-only. A rewrite of every line on each call -- and Select-Object
 REM -Unique silently dropping any repeated one, comments included -- is what
-REM this converges away from.
+REM Add-Content avoids.
 REM Measured on windows-latest (#144): a "^" at end of line continues a
 REM batch file's line only while cmd's quote state is closed at that point;
-REM inside the open quote this block used to split across, it is a literal
-REM character and the logical line ends there. Built as one physical line
-REM instead, so no "^" is ever read inside an open quote. $entry is built
+REM inside the double-quoted -Command argument below, "^" is a literal
+REM character rather than a continuation, which is why that argument is
+REM one physical line. $entry is built
 REM with single-quoted concatenation rather than a double-quoted
 REM interpolated string: measured on windows-latest, a double quote nested
 REM inside the one that already wraps this whole -Command argument is not
@@ -119,8 +119,8 @@ set "CHECKPATH_RAW=%~2"
 call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
 call :normalize_entry_path "%CHECKPATH_RAW%" CHECKPATH_ENTRY
 REM Fails CLOSED on a missing file, converging on
-REM macos/scripts/utilities/lib.sh's verify_checksum_entry, which already
-REM returns non-zero here; a missing binary used to pass this gate silently.
+REM shared/utilities/lib.sh's verify_checksum_entry, which returns
+REM non-zero on the same case.
 if exist "%FILEPATH_FS%" goto :verify_checksum_found
 call :rootdir_relative "%FILEPATH_FS%" FILEPATH_REL
 echo Error: %FILEPATH_REL% not found.

@@ -376,8 +376,8 @@ _verify_binaries_trim() {
 # verify" instead of "Binaries verified.": a fresh clone's
 # linux/checksums.sha256 ships with no entries, and CLAUDE.md's own "a
 # fresh clone launches nothing until the updaters have run" makes that
-# the expected state there, not a failure -- so an empty checksum file
-# no longer reads as success over nothing checked.
+# the expected state there, not a failure -- which keeps an empty
+# checksum file from reading as success over nothing checked.
 #
 # Indexed arrays, not an associative one: macOS ships bash 3.2, and this
 # function serves linux/scripts/utilities/verify-binaries.sh through the
