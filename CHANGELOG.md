@@ -112,6 +112,15 @@ using YYYY.MM.DD format.
   `shared/utilities/lib.sh` is the only writer, which the
   `Integrity/rollback only` paragraph beside it already states, so the line is
   removed rather than corrected to name that function a second time.
+- **Linux's `ELECTRUM_PGREP_PATTERN` anchors `run_electrum` to where a
+  program name can appear, in `update-electrum.sh`, `rollback-electrum.sh`
+  and `health-check.sh` alike** (closes #156). Unanchored, the alternative
+  matched any process whose command line merely carried the string
+  `run_electrum` anywhere, including as an unrelated argument to an
+  unrelated program; the anchor now requires it to sit at the start of
+  the command line or right after a path separator, ending at a space or
+  the line's end. The three Linux scripts keep one shared pattern, as
+  `health-check.sh`'s own comment says they do.
 - **`CLAUDE.md` states that a commit subject is one physical line, and
   names the read that shows one as it will land** (closes #130):
   `git show -s --format=%B <sha> | head -1`. `%s` takes everything up to

@@ -36,8 +36,9 @@ CHECKSUM_FILE="$ROOTDIR/linux/checksums.sha256"
 # something has just gone wrong, which is when Electrum is most likely to
 # still be up. The pattern is update-electrum.sh's own, repeated here rather
 # than shared, matching how the macOS and Windows halves of this same pair
-# are written.
-ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|run_electrum"
+# are written. run_electrum is anchored to where a program name can appear,
+# for the same reason update-electrum.sh's own copy is.
+ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|(^|/)run_electrum( |\$)"
 if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
     echo "Error: Electrum is running. Stop it before rolling back."
     exit 1

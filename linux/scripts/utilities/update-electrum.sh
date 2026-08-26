@@ -113,7 +113,11 @@ fi
 # the process holding it is caught by the pattern below regardless. The
 # python/run_electrum alternatives catch a source or extracted-tree
 # invocation the way update-electrum.sh (macOS)'s own layered pattern does.
-ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|run_electrum"
+# run_electrum is anchored to where a program name can appear -- the start
+# of the command line or right after a path separator, ending at a space or
+# the line's end -- so a process that merely carries "run_electrum" among
+# its own arguments, unrelated to Electrum, is not matched.
+ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|(^|/)run_electrum( |\$)"
 if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
     echo "Error: Electrum is running. Stop it before updating."
     exit 1
