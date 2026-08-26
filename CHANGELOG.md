@@ -7,6 +7,29 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`win/scripts/utilities/health-check.bat` reports Bitcoin and Electrum
+  rather than stopping at its first line of output with a cmd.exe parse
+  error** (closes #188). Two constructs stop it, each measured on
+  `windows-latest`. A literal `)` in
+  `echo Disk free: !FREE_GB! GB (%MOUNT_PATH%)` closes the
+  `if defined MOUNT_PATH (` block it sits in, so the line prints without
+  its closing parenthesis and the `else` branch runs as well; `^(` and
+  `^)` are cmd.exe's escape, and every `echo` writing a parenthesis
+  inside a block takes them. A caret between `in` and a `for`'s own
+  opening parenthesis is not a continuation: cmd.exe reads the `for`
+  without a file set, answers `was unexpected at this time` and exits
+  255, inside a parenthesised block and outside one alike, so that `for`
+  is one physical line. `set ARTIFACT_NOTE= (stale pid)` loses its
+  closing parenthesis to the first cause and takes the quoted
+  `set "ARTIFACT_NOTE= (stale pid)"` form, which keeps it. Outside a
+  block an `echo` needs no escape — `Bitcoin-Launcher.bat`'s
+  `echo Command failed (exit %errorlevel%).` prints intact — so the bare
+  parentheses at that depth stay. `update-bitcoin.bat` and
+  `update-electrum.bat` write `Warning: PGP signature(s) not verified`
+  inside an `else` block and are escaped with the rest. The `.command`
+  and `.sh` halves are bash, where a parenthesis inside a double-quoted
+  string is text, and PowerShell's parser reads one inside a string
+  literal the same way, so neither they nor the `.ps1` half changes.
 - **`.gitattributes` gives the configuration formats a `text` line, and
   `VERSION` an `eol=lf` one** (closes #185). `*.yml`, `*.yaml`, `*.toml`,
   `*.jsonc`, `.gitattributes`, `.gitignore`, `.secrets.baseline`,

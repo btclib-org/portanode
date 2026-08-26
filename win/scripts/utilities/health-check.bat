@@ -21,7 +21,7 @@ for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass
   -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR_ARG%"`) do set FREE_GB=%%F
 if defined FREE_GB (
     if defined MOUNT_PATH (
-        echo Disk free: !FREE_GB! GB (%MOUNT_PATH%)
+        echo Disk free: !FREE_GB! GB ^(%MOUNT_PATH%^)
     ) else (
         echo Disk free: !FREE_GB! GB
     )
@@ -72,15 +72,18 @@ if "%BTC_RUNNING%"=="0" (
     )
     if exist "%ROOTDIR%\bitcoin-datadir\bitcoind.pid" (
         set ARTIFACTS=!ARTIFACTS! bitcoind.pid
-        for /f "usebackq delims=" %%P in ^
-          ("%ROOTDIR%\bitcoin-datadir\bitcoind.pid") do set PID=%%P
+        REM One physical line: a caret after in, before the file set's
+        REM own opening parenthesis, is not a continuation. cmd.exe reads
+        REM the for without a file set and refuses it, inside a
+        REM parenthesised block and outside one alike.
+        for /f "usebackq delims=" %%P in ("%ROOTDIR%\bitcoin-datadir\bitcoind.pid") do set PID=%%P
         if defined PID (
             tasklist /fi "pid eq !PID!" | find /i "bitcoin" >nul
             if !errorlevel!==0 (
                 set BTC_RUNNING=1
                 set BTC_METHOD=pid
             ) else (
-                set ARTIFACT_NOTE= (stale pid)
+                set "ARTIFACT_NOTE= (stale pid)"
             )
         )
     )
@@ -100,12 +103,12 @@ if "%BTC_RUNNING%"=="1" (
             for /f "usebackq delims=" %%P in (`powershell -Command "& { try { (Get-Command '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -ErrorAction Stop).Path } catch { try { (Get-Command bitcoin-cli.exe -ErrorAction Stop).Path } catch { '' } } }"`) do set BTC_CLI_PATH=%%P
             if defined BTC_CLI_PATH (
                 call "%SCRIPT_DIR%lib.bat" :rootdir_relative "!BTC_CLI_PATH!" BTC_CLI_REL
-                echo Bitcoin running: yes (%BTC_METHOD%: !BTC_CLI_REL!)
+                echo Bitcoin running: yes ^(%BTC_METHOD%: !BTC_CLI_REL!^)
             ) else (
-                echo Bitcoin running: yes (%BTC_METHOD%: PATH)
+                echo Bitcoin running: yes ^(%BTC_METHOD%: PATH^)
             )
         ) else (
-            echo Bitcoin running: yes (%BTC_METHOD%)
+            echo Bitcoin running: yes ^(%BTC_METHOD%^)
         )
     ) else (
         echo Bitcoin running: yes
@@ -125,7 +128,7 @@ if "%BTC_RUNNING%"=="1" (
 ) else (
     if "%BTC_RUNNING%"=="2" (
         if defined BTC_METHOD (
-            echo Bitcoin running: maybe (%BTC_METHOD%)
+            echo Bitcoin running: maybe ^(%BTC_METHOD%^)
         ) else (
             echo Bitcoin running: maybe
         )
@@ -155,7 +158,7 @@ if "%ELECTRUM_RUNNING%"=="0" (
 )
 if "%ELECTRUM_RUNNING%"=="1" (
     if defined ELECTRUM_METHOD (
-        echo Electrum running: yes (%ELECTRUM_METHOD%)
+        echo Electrum running: yes ^(%ELECTRUM_METHOD%^)
     ) else (
         echo Electrum running: yes
     )
