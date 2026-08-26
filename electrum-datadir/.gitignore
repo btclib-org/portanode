@@ -34,11 +34,10 @@ Thumbs.db
 # dies between the bind and the removal. The suffix is the launcher's
 # process id.
 #
-# Two names, because the platforms have not converged yet. macOS's is kept
-# shorter than daemon_rpc_socket so the test is never the more fragile of
-# the two: perl truncates an over-long socket path rather than refusing it,
-# which binds at a name the removal does not match and refuses every later
-# run. Linux's python raises instead, so it never leaves that residue and
-# still carries the longer name. Both patterns stay until it does converge.
+# One name across both platforms: it identifies the same artifact of the
+# same test, and nothing in it is language-specific. It is kept shorter
+# than daemon_rpc_socket so the test is never the more fragile of the two.
+# A socket address holds a path of fixed width, so a probe name longer
+# than the one Electrum binds refuses the datadir across a band of
+# mount-point lengths in which Electrum's own path still fits.
 /.probe.*
-/.portanode-socket-probe.*

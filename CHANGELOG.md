@@ -209,6 +209,35 @@ using YYYY.MM.DD format.
   starting the daemon, `load_wallet` and `getbalance` each answer as
   they do against an NTFS control on the same runner, so
   `win/scripts/electrum/` gets no such check.
+- **`linux/scripts/electrum/`'s socket probe unlinks before it binds,
+  asks its length question about the path Electrum itself binds, and
+  takes the short name macOS's carries** (closes #204). The probe is
+  `.probe.<pid>`, shorter than `daemon_rpc_socket` at the widest process
+  id `pid_max` allows, so the guard is never the more fragile of the two,
+  and `electrum-datadir/.gitignore` carries that one name for both
+  platforms. Only a bind the kernel refuses stops a launcher: a path that
+  does not fit a `sockaddr_un`, an absent `python3` and a `python3` that
+  fails each print a note and let Electrum start. Whether the path fits
+  is asked of `daemon_rpc_socket` through `connect`, which raises while
+  converting the address, before any system call, and creates nothing at
+  that name; the refusal leaves the check as exit 4 rather than 1,
+  because an uncaught exception in it exits 1 as well. Measured on
+  `ubuntu-latest` (`ubuntu-24.04`, kernel `6.17.0-1022-azure`, `python3`
+  3.12.3, `pid_max` 4194304) by running `mainnet.sh` itself against a
+  `ROOTDIR` built to each length: at `8a2e676` the launcher refused from
+  `ROOTDIR` length 62 up, while a control binding `daemon_rpc_socket` at
+  the same length bound, and it now starts Electrum across that band.
+  From length 73 the control is refused too, with `AF_UNIX path too long`
+  and no errno, and the note names the path's length rather than the
+  filesystem. With a residue planted at the probe path and the launcher's
+  own process id pinned by `unshare -f -p`, `8a2e676` met `EADDRINUSE`
+  and refused a datadir on ext4, where the unlink lets the launcher
+  start. On an exFAT loopback image on the same runner the bind answers
+  `EPERM` and the launcher refuses on every run — a loopback image rather
+  than a drive plugged into a running machine, which is the only exFAT a
+  hosted runner offers. CPython raises rather than truncating an
+  over-long `AF_UNIX` path, so the truncation half of the same defect on
+  macOS does not reach these launchers.
 - **macOS's `update-electrum.sh` and `rollback-electrum.sh` anchor the
   bare `run_electrum` alternative in `ELECTRUM_PGREP_PATTERN`** (closes
   #168). Unanchored, it matched any process whose command line merely
