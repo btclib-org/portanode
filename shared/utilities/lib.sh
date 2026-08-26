@@ -252,10 +252,13 @@ update_checksum() {
         return 0
     fi
 
-    # Appends the one new entry and nothing else: */checksums.sha256 is
-    # documented append-only, and a whole-file rewrite here previously
-    # deduped every line with awk, silently dropping any exact repeat,
-    # comments included, on every call rather than only where one existed.
+    # */checksums.sha256 is append-only: a rollback verifies its backup
+    # binary against an entry a previous install recorded for this same
+    # entry_path, so rewriting that entry to the current hash would leave
+    # the backup unrecognized and the rollback refusing it. An earlier
+    # entry stays findable by the binary it describes:
+    # verify_checksum_entry and installed_version select on hash and
+    # path together.
     local entry="$hash  $entry_path  version=$version"
     if ! grep -Fxq "$entry" "$checksum_file"; then
         echo "$entry" >> "$checksum_file"

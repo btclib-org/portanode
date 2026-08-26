@@ -30,6 +30,21 @@ using YYYY.MM.DD format.
   and `.sh` halves are bash, where a parenthesis inside a double-quoted
   string is text, and PowerShell's parser reads one inside a string
   literal the same way, so neither they nor the `.ps1` half changes.
+- **`shared/utilities/lib.sh`'s `update_checksum` gives the reason it
+  appends in the present tense** (closes #198). The comment justified the
+  append by a whole-file rewrite that deduped with `awk`, which the same
+  commit that wrote the clause removed, so it explained current behaviour
+  by code no longer in the file. The reason it gives now is one the tree
+  makes checkable: a rollback verifies its backup binary against an entry
+  a previous install recorded under the installed path, and
+  `verify_checksum_entry` and `installed_version` both select on hash and
+  path together, so rewriting that path's entry to the current hash would
+  leave the backup unrecognized. Section 9 of the standard states *No
+  history in the prose* with no exception beside it, and `REVIEWING.md`'s
+  checklist asks such a comment for the history to go rather than to be
+  shortened; the rejected alternative section 9 also asks for states in
+  the present tense, so nothing is lost by dropping the past tense. No
+  line of the function changes.
 - **`.gitattributes` gives the configuration formats a `text` line, and
   `VERSION` an `eol=lf` one** (closes #185). `*.yml`, `*.yaml`, `*.toml`,
   `*.jsonc`, `.gitattributes`, `.gitignore`, `.secrets.baseline`,
