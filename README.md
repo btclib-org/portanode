@@ -91,7 +91,9 @@ and Ubuntu it has to run under, not on a single default:
 
 - **Operating System**: fairly recent macOS, Windows or Linux versions.
 - **Disk Space**: At least 700GB free for Bitcoin Core data (mainnet) full sync.
-  Regtest/testnet require less.
+  Pruned mainnet, regtest and testnet require less. Below 100GB free
+  `validate-setup` fails outright, whatever the network and whether or not
+  pruning is on.
 - **Permissions**: Ensure the external disk is mounted and writable. A folder
   taken with `git clone`, or unzipped from a release's source archive, needs
   nothing made runnable by hand: the launchers carry the executable bit in the

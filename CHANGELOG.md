@@ -7,6 +7,16 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`README.md`'s *Prerequisites* carries the 100GB figure each
+  platform's `validate-setup` enforces** (closes #153). The disk-space
+  comment in those scripts routes a change to either threshold through
+  *Prerequisites* first, and only the 700GB one was written there — the
+  undocumented one being the threshold that stops validation with an
+  error, where falling below 700GB warns and lets it finish.
+  *Prerequisites* now states both, says the 100GB floor applies whatever
+  the network and whether or not pruning is on, and counts pruned
+  mainnet alongside regtest and testnet among the configurations needing
+  less than 700GB. The comment is unchanged.
 - **macOS's `update-electrum.sh` and `rollback-electrum.sh` anchor the
   bare `run_electrum` alternative in `ELECTRUM_PGREP_PATTERN`** (closes
   #168). Unanchored, it matched any process whose command line merely
