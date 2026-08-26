@@ -16,10 +16,20 @@ Thumbs.db
 /cache/
 /certs/
 /daemon
+/daemon_rpc_socket
 /forks/
 /plugins/
 /recent_servers
 /config
 /wallets/
 /testnet/
+/testnet4/
 /regtest/
+
+# Launcher artifacts
+# The launchers under linux/scripts/electrum/ bind a unix socket of this
+# name here, and release it, to learn whether the filesystem can hold the
+# one Electrum's daemon needs. Each removes it on both branches of that
+# test, so it is left behind only where the launcher dies between the bind
+# and the removal. The suffix is the launcher's process id.
+/.portanode-socket-probe.*

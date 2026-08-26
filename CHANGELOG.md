@@ -22,6 +22,24 @@ using YYYY.MM.DD format.
   contents of none of these files. No file's content changes —
   `git ls-files --eol` reports every path the new patterns reach as
   already LF in the index and in the working tree.
+- **`electrum-datadir/.gitignore` covers the daemon's RPC socket, the
+  launchers' own socket probe and `testnet4/`** (closes #186). Electrum's
+  `get_rpcsock_defaultpath` joins `daemon_rpc_socket` to the same
+  `config.path` that `get_lockfile` joins `daemon` to, so the socket sits
+  beside a name the file already listed; `get_rpcsock_default_type`
+  answers `tcp` on `win32`, so the socket is what macOS and Linux get by
+  default and the entry is inert on Windows. `config.path` is the datadir
+  root only for mainnet — `BitcoinMainnet.datadir_subdir()` returns `None`
+  where the default returns the network's own name — so the testnet4
+  launchers' whole datadir, that socket included, lands in `testnet4/`,
+  which had no entry beside `testnet/` and `regtest/`. The probe is
+  `.portanode-socket-probe.<pid>`, which `linux/scripts/electrum/`'s
+  launchers bind and remove around the test of whether the filesystem can
+  hold a socket at all, and which the launcher dying between the bind and
+  the removal leaves behind. `bitcoin-datadir/.gitignore` is unchanged:
+  `-ipcbind` — the option that puts a socket in Bitcoin Core's datadir,
+  and which does not listen unless it is given — appears nowhere in this
+  tree, and no launcher writes a probe there.
 - **`README.md`'s *Prerequisites* carries the 100GB figure each
   platform's `validate-setup` enforces** (closes #153). The disk-space
   comment in those scripts routes a change to either threshold through
