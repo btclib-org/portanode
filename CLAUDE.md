@@ -252,6 +252,35 @@ moves `main`.
     archive on APFS, where GitHub's zipball carries the index mode
     through `unzip` unchanged.
 
+- **Linux's own exFAT driver does not synthesise a mode the way macOS's
+  does: it computes one from the mount's `fmask`, and omitting `fmask`
+  does not mean no mask at all.** Measured on GitHub Actions
+  `ubuntu-latest` (kernel `6.17.0-1022-azure`, the in-kernel `exfat`
+  module installed from `linux-modules-extra-$(uname -r)`, the image
+  built with `exfatprogs` 1.2.2), mounting directly with `mount -t
+  exfat` rather than through a desktop's own `udisks2` automount policy —
+
+    ```shell
+    truncate -s 32M /tmp/t.img
+    mkfs.exfat /tmp/t.img
+    sudo mount -t exfat -o loop /tmp/t.img /tmp/t-default
+    printf '#!/bin/bash\necho hi\n' | sudo tee /tmp/t-default/u.sh
+    sudo chmod 644 /tmp/t-default/u.sh
+    ls -l /tmp/t-default/u.sh && /tmp/t-default/u.sh
+    ```
+
+    — mounts with `fmask=0022,dmask=0022` though neither was named on
+    the command line, which is the driver's own default rather than an
+    absence of one; `chmod 644` changes nothing, and the mode reads
+    `-rwxr-xr-x` (`0777 & ~0022`), and the script runs, exit 0. The same
+    image mounted `-o fmask=133` instead reads `-rw-r--r--`
+    (`0777 & ~0133`), and the script fails with `Permission denied`,
+    exit 126. So a script on a plain, unconfigured mount runs the way
+    macOS's synthesis makes it run, but by a mount option rather than
+    unconditionally — raising `fmask` past `022` is an escape hatch out
+    of that guarantee that macOS has none of. What a desktop's own
+    `udisks2` automount passes for `fmask` was not measured here.
+
 ## Model
 
 The default model for this repository is Sonnet. Switch to Opus only for
