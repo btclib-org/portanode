@@ -78,10 +78,26 @@ and Ubuntu it has to run under, not on a single default:
   through it. Measured on Ubuntu's own kernel exFAT driver, on
   `ubuntu-latest`: the bind fails with `EPERM` (`exfat-fuse` answers
   `EIO` instead, both refusing the same call), so the daemon cannot come
-  up and no wallet can be kept in a datadir there. macOS and Windows
-  are unmeasured for this. `linux/scripts/electrum/`'s launchers detect
-  the failing bind before starting Electrum and refuse rather than start
-  it silently broken.
+  up and no wallet can be kept in a datadir there.
+  `linux/scripts/electrum/`'s launchers detect the failing bind before
+  starting Electrum and refuse rather than start it silently broken.
+- **macOS refuses the same bind.** Measured against a volume made with
+  `hdiutil create -fs ExFAT`: the bind answers `ENOTSUP` where the same
+  call in a directory on APFS succeeds, and Electrum's daemon then fails
+  to start its RPC server on `daemon_rpc_socket` with that errno.
+  `macos/scripts/electrum/`'s launchers make the same bind before
+  starting Electrum and refuse on it. What cannot exist on such a
+  datadir is the RPC channel rather than the wallet: `electrum create`
+  writes a wallet file there without error, and it is every command
+  reaching that wallet afterwards that has nothing to go through.
+- **Windows is not affected.** Electrum binds a TCP port on `127.0.0.1`
+  for that channel there instead of a unix socket, so the call that
+  fails above is never made. Measured on `windows-latest` against a
+  volume `diskpart` formatted `fs=exfat`: creating a wallet, starting
+  the daemon, `load_wallet` and `getbalance` each answer as they do
+  against an NTFS control on the same runner, and the daemon's own log
+  names the socket it bound as `socktype=tcp`.
+  `win/scripts/electrum/`'s launchers carry no such check.
 - **NTFS** read-write from Ubuntu is the kernel's own in-tree `ntfs3`
   driver, documented by the kernel rather than measured here; from
   macOS, NTFS is read-only without a third-party driver, which is why

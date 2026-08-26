@@ -115,6 +115,39 @@ using YYYY.MM.DD format.
   callers' differing checksum file and prefix as the reason nothing is
   defaulted, and each caller names its counterpart above its own
   callsite. Comment lines only; no script behaviour changes.
+- **`macos/scripts/electrum/`'s launchers refuse a datadir that cannot
+  hold a unix domain socket, and `README.md` now says which platforms
+  that limitation reaches** (closes #175). Each macOS launcher binds and
+  releases a probe socket inside `electrum-datadir` before starting
+  Electrum, through `perl` where `linux/scripts/electrum/`'s launchers
+  use `python3`: `/usr/bin/python3` on macOS is an `xcode_select` tool
+  shim sharing one inode with `/usr/bin/git` and
+  `/usr/bin/clang`, and `xcrun --find python3` answers
+  `/Library/Developer/CommandLineTools/usr/bin/python3`, so `command -v`
+  answers for the shim and not for the interpreter behind it.
+  `/usr/bin/perl` is the interpreter itself. Measured against a volume
+  made with
+  `hdiutil create -fs ExFAT`: the bind answers `ENOTSUP` where the same
+  call in a directory on APFS succeeds, and Electrum's daemon fails to
+  start its RPC server on `daemon_rpc_socket` with that errno while the
+  app's own window opens regardless, putting the failure in Electrum's
+  crash reporter rather than in the launcher's window. A wallet file
+  written to such a datadir by `electrum create` is written without
+  error, so what exFAT costs on macOS is the RPC channel and every
+  command that goes through it. Only a bind the kernel refuses stops the
+  launcher: a missing `perl`, or a datadir path longer than a
+  `sockaddr_un` can hold, prints a note and lets Electrum start, because
+  refusing on a datadir nothing measured shuts a user out of a
+  filesystem that works. The probe unlinks its own name before binding
+  it, a name already there answering `EADDRINUSE` whatever the
+  filesystem underneath supports, and that name is shorter than
+  `daemon_rpc_socket` so that the test is never more fragile than what
+  it tests. Measured on `windows-latest` against a volume `diskpart`
+  formatted `fs=exfat`: Electrum binds a TCP port on
+  `127.0.0.1` there instead of a unix socket, and creating a wallet,
+  starting the daemon, `load_wallet` and `getbalance` each answer as
+  they do against an NTFS control on the same runner, so
+  `win/scripts/electrum/` gets no such check.
 - **macOS's `update-electrum.sh` and `rollback-electrum.sh` anchor the
   bare `run_electrum` alternative in `ELECTRUM_PGREP_PATTERN`** (closes
   #168). Unanchored, it matched any process whose command line merely
