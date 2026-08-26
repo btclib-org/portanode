@@ -64,6 +64,16 @@ using YYYY.MM.DD format.
   `linux/scripts/lib.sh` as the forwarders that exist, and
   `resolve_root`'s comment on accepting one platform directory no longer
   rests on `linux/` being absent** (closes #142).
+- **`linux/scripts/README.md` gives that directory the entry point
+  `macos/scripts/README.md` and `win/scripts/README.md` each already
+  have** (closes #159): the `bitcoin/`, `electrum/` and `utilities/`
+  folders and what each script under them does, and the `lib.sh` and
+  `utilities/lib.sh` forwarders the scripts under `electrum/` and
+  `utilities/` source. Its *Usage* section runs a script with `bash`
+  rather than by double-clicking, and says that the root
+  `Bitcoin-Launcher.sh`, `Electrum-Launcher.sh` and
+  `Utilities-Launcher.sh` each currently refuse Linux rather than
+  reaching this directory.
 - **`CLAUDE.md` states that a commit subject is one physical line, and
   names the read that shows one as it will land** (closes #130):
   `git show -s --format=%B <sha> | head -1`. `%s` takes everything up to
