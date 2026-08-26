@@ -10,9 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 
 run_script() {
-  local script="$1"
+  local rel="$1"
+  local script="$ROOTDIR/$rel"
   if [ ! -f "$script" ]; then
-    echo "Script not found: $script"
+    echo "Script not found: $rel"
     return 0
   fi
   bash "$script"
@@ -45,17 +46,17 @@ while true; do
   fi
 
   case "$choice" in
-    1) run_script "$ROOTDIR/macos/scripts/utilities/update-bitcoin.sh" ;;
-    2) run_script "$ROOTDIR/macos/scripts/utilities/update-electrum.sh" ;;
-    3) run_script "$ROOTDIR/macos/scripts/utilities/rollback-bitcoin.sh" ;;
-    4) run_script "$ROOTDIR/macos/scripts/utilities/rollback-electrum.sh" ;;
-    5) run_script "$ROOTDIR/macos/scripts/utilities/verify-binaries.sh" ;;
-    6) run_script "$ROOTDIR/macos/scripts/utilities/validate-setup.sh" ;;
-    7) run_script "$ROOTDIR/macos/scripts/utilities/set-permissions.sh" ;;
-    8) run_script "$ROOTDIR/macos/scripts/utilities/health-check.sh" ;;
-    9) run_script "$ROOTDIR/macos/scripts/utilities/monitor-bitcoin-log.sh" ;;
-    10) run_script "$ROOTDIR/macos/scripts/utilities/rotate-bitcoin-log.sh" ;;
-    11) run_script "$ROOTDIR/macos/scripts/utilities/clean-artifacts.sh" ;;
+    1) run_script "macos/scripts/utilities/update-bitcoin.sh" ;;
+    2) run_script "macos/scripts/utilities/update-electrum.sh" ;;
+    3) run_script "macos/scripts/utilities/rollback-bitcoin.sh" ;;
+    4) run_script "macos/scripts/utilities/rollback-electrum.sh" ;;
+    5) run_script "macos/scripts/utilities/verify-binaries.sh" ;;
+    6) run_script "macos/scripts/utilities/validate-setup.sh" ;;
+    7) run_script "macos/scripts/utilities/set-permissions.sh" ;;
+    8) run_script "macos/scripts/utilities/health-check.sh" ;;
+    9) run_script "macos/scripts/utilities/monitor-bitcoin-log.sh" ;;
+    10) run_script "macos/scripts/utilities/rotate-bitcoin-log.sh" ;;
+    11) run_script "macos/scripts/utilities/clean-artifacts.sh" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac

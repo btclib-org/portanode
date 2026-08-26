@@ -5,17 +5,17 @@ $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
 $Scripts = @{
-    "1" = Join-Path $Root "win\scripts\utilities\update-bitcoin.bat"
-    "2" = Join-Path $Root "win\scripts\utilities\update-electrum.bat"
-    "3" = Join-Path $Root "win\scripts\utilities\rollback-bitcoin.bat"
-    "4" = Join-Path $Root "win\scripts\utilities\rollback-electrum.bat"
-    "5" = Join-Path $Root "win\scripts\utilities\verify-binaries.bat"
-    "6" = Join-Path $Root "win\scripts\utilities\validate-setup.bat"
-    "7" = Join-Path $Root "win\scripts\utilities\set-permissions.bat"
-    "8" = Join-Path $Root "win\scripts\utilities\health-check.bat"
-    "9" = Join-Path $Root "win\scripts\utilities\monitor-bitcoin-log.bat"
-    "10" = Join-Path $Root "win\scripts\utilities\rotate-bitcoin-log.bat"
-    "11" = Join-Path $Root "win\scripts\utilities\clean-artifacts.bat"
+    "1" = "win\scripts\utilities\update-bitcoin.bat"
+    "2" = "win\scripts\utilities\update-electrum.bat"
+    "3" = "win\scripts\utilities\rollback-bitcoin.bat"
+    "4" = "win\scripts\utilities\rollback-electrum.bat"
+    "5" = "win\scripts\utilities\verify-binaries.bat"
+    "6" = "win\scripts\utilities\validate-setup.bat"
+    "7" = "win\scripts\utilities\set-permissions.bat"
+    "8" = "win\scripts\utilities\health-check.bat"
+    "9" = "win\scripts\utilities\monitor-bitcoin-log.bat"
+    "10" = "win\scripts\utilities\rotate-bitcoin-log.bat"
+    "11" = "win\scripts\utilities\clean-artifacts.bat"
 }
 
 while ($true) {
@@ -48,9 +48,10 @@ while ($true) {
         continue
     }
 
-    $scriptPath = $Scripts[$choice]
+    $scriptRel = $Scripts[$choice]
+    $scriptPath = Join-Path $Root $scriptRel
     if (-not (Test-Path $scriptPath)) {
-        Write-Host "Script not found: $scriptPath"
+        Write-Host "Script not found: $scriptRel"
         Write-Host ""
         continue
     }

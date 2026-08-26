@@ -5,21 +5,21 @@ $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
 $Scripts = @{
-    "1" = Join-Path $Root "win\scripts\bitcoin\mainnet-8333-qt.bat"
-    "2" = Join-Path $Root "win\scripts\bitcoin\testnet3-18333-qt.bat"
-    "3" = Join-Path $Root "win\scripts\bitcoin\testnet4-48333-qt.bat"
-    "4" = Join-Path $Root "win\scripts\bitcoin\regtest-18444-Alice-qt.bat"
-    "5" = Join-Path $Root "win\scripts\bitcoin\regtest-18444-Alice-qt-clean.bat"
-    "6" = Join-Path $Root "win\scripts\bitcoin\regtest-18444-Alice-cli.bat"
-    "7" = Join-Path $Root "win\scripts\bitcoin\regtest-18444-Alice-cli-clean.bat"
-    "8" = Join-Path $Root "win\scripts\bitcoin\regtest-18555-Bob-qt.bat"
-    "9" = Join-Path $Root "win\scripts\bitcoin\regtest-18555-Bob-qt-clean.bat"
-    "10" = Join-Path $Root "win\scripts\bitcoin\regtest-18555-Bob-cli.bat"
-    "11" = Join-Path $Root "win\scripts\bitcoin\regtest-18555-Bob-cli-clean.bat"
-    "12" = Join-Path $Root "win\scripts\bitcoin\regtest-18666-Carol-qt.bat"
-    "13" = Join-Path $Root "win\scripts\bitcoin\regtest-18666-Carol-qt-clean.bat"
-    "14" = Join-Path $Root "win\scripts\bitcoin\regtest-18666-Carol-cli.bat"
-    "15" = Join-Path $Root "win\scripts\bitcoin\regtest-18666-Carol-cli-clean.bat"
+    "1" = "win\scripts\bitcoin\mainnet-8333-qt.bat"
+    "2" = "win\scripts\bitcoin\testnet3-18333-qt.bat"
+    "3" = "win\scripts\bitcoin\testnet4-48333-qt.bat"
+    "4" = "win\scripts\bitcoin\regtest-18444-Alice-qt.bat"
+    "5" = "win\scripts\bitcoin\regtest-18444-Alice-qt-clean.bat"
+    "6" = "win\scripts\bitcoin\regtest-18444-Alice-cli.bat"
+    "7" = "win\scripts\bitcoin\regtest-18444-Alice-cli-clean.bat"
+    "8" = "win\scripts\bitcoin\regtest-18555-Bob-qt.bat"
+    "9" = "win\scripts\bitcoin\regtest-18555-Bob-qt-clean.bat"
+    "10" = "win\scripts\bitcoin\regtest-18555-Bob-cli.bat"
+    "11" = "win\scripts\bitcoin\regtest-18555-Bob-cli-clean.bat"
+    "12" = "win\scripts\bitcoin\regtest-18666-Carol-qt.bat"
+    "13" = "win\scripts\bitcoin\regtest-18666-Carol-qt-clean.bat"
+    "14" = "win\scripts\bitcoin\regtest-18666-Carol-cli.bat"
+    "15" = "win\scripts\bitcoin\regtest-18666-Carol-cli-clean.bat"
 }
 
 while ($true) {
@@ -56,9 +56,10 @@ while ($true) {
         continue
     }
 
-    $scriptPath = $Scripts[$choice]
+    $scriptRel = $Scripts[$choice]
+    $scriptPath = Join-Path $Root $scriptRel
     if (-not (Test-Path $scriptPath)) {
-        Write-Host "Script not found: $scriptPath"
+        Write-Host "Script not found: $scriptRel"
         Write-Host ""
         continue
     }

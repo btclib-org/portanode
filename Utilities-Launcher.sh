@@ -15,7 +15,7 @@ case "$UNAME" in
       if [ -f "$ROOTDIR/Utilities-Launcher.bat" ]; then
         cmd.exe /c "\"${ROOTDIR}\\Utilities-Launcher.bat\""
       else
-        echo "Script not found: $ROOTDIR/Utilities-Launcher.bat"
+        echo "Script not found: Utilities-Launcher.bat"
         exit 1
       fi
       exit 0
@@ -33,6 +33,6 @@ esac
 if [ -f "$ROOTDIR/Utilities-Launcher.command" ]; then
   bash "$ROOTDIR/Utilities-Launcher.command"
 else
-  echo "Script not found: $ROOTDIR/Utilities-Launcher.command"
+  echo "Script not found: Utilities-Launcher.command"
   exit 1
 fi

@@ -15,11 +15,11 @@ echo 0^) Exit
 set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"
-if "%choice%"=="1" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\mainnet.bat"
-if "%choice%"=="2" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\testnet3.bat"
-if "%choice%"=="3" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\testnet4.bat"
-if "%choice%"=="4" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\regtest.bat"
-if "%choice%"=="5" set "SCRIPT=%ROOTDIR%\win\scripts\electrum\mainnet-local-server-only.bat"
+if "%choice%"=="1" set "SCRIPT_REL=win\scripts\electrum\mainnet.bat"
+if "%choice%"=="2" set "SCRIPT_REL=win\scripts\electrum\testnet3.bat"
+if "%choice%"=="3" set "SCRIPT_REL=win\scripts\electrum\testnet4.bat"
+if "%choice%"=="4" set "SCRIPT_REL=win\scripts\electrum\regtest.bat"
+if "%choice%"=="5" set "SCRIPT_REL=win\scripts\electrum\mainnet-local-server-only.bat"
 if "%choice%"=="0" goto end
 
 if "%choice%"=="1" goto run
@@ -38,8 +38,9 @@ echo.
 goto menu
 
 :run_script
+set "SCRIPT=%ROOTDIR%\%SCRIPT_REL%"
 if not exist "%SCRIPT%" (
-    echo Script not found: %SCRIPT%
+    echo Script not found: %SCRIPT_REL%
     goto :eof
 )
 call "%SCRIPT%"

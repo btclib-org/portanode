@@ -15,7 +15,7 @@ case "$UNAME" in
       if [ -f "$ROOTDIR/Bitcoin-Launcher.bat" ]; then
         cmd.exe /c "\"${ROOTDIR}\\Bitcoin-Launcher.bat\""
       else
-        echo "Script not found: $ROOTDIR/Bitcoin-Launcher.bat"
+        echo "Script not found: Bitcoin-Launcher.bat"
         exit 1
       fi
       exit 0
@@ -33,6 +33,6 @@ esac
 if [ -f "$ROOTDIR/Bitcoin-Launcher.command" ]; then
   bash "$ROOTDIR/Bitcoin-Launcher.command"
 else
-  echo "Script not found: $ROOTDIR/Bitcoin-Launcher.command"
+  echo "Script not found: Bitcoin-Launcher.command"
   exit 1
 fi

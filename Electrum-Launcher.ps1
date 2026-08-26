@@ -5,11 +5,11 @@ $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
 $Scripts = @{
-    "1" = Join-Path $Root "win\scripts\electrum\mainnet.bat"
-    "2" = Join-Path $Root "win\scripts\electrum\testnet3.bat"
-    "3" = Join-Path $Root "win\scripts\electrum\testnet4.bat"
-    "4" = Join-Path $Root "win\scripts\electrum\regtest.bat"
-    "5" = Join-Path $Root "win\scripts\electrum\mainnet-local-server-only.bat"
+    "1" = "win\scripts\electrum\mainnet.bat"
+    "2" = "win\scripts\electrum\testnet3.bat"
+    "3" = "win\scripts\electrum\testnet4.bat"
+    "4" = "win\scripts\electrum\regtest.bat"
+    "5" = "win\scripts\electrum\mainnet-local-server-only.bat"
 }
 
 while ($true) {
@@ -36,9 +36,10 @@ while ($true) {
         continue
     }
 
-    $scriptPath = $Scripts[$choice]
+    $scriptRel = $Scripts[$choice]
+    $scriptPath = Join-Path $Root $scriptRel
     if (-not (Test-Path $scriptPath)) {
-        Write-Host "Script not found: $scriptPath"
+        Write-Host "Script not found: $scriptRel"
         Write-Host ""
         continue
     }

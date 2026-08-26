@@ -10,9 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 
 run_script() {
-  local script="$1"
+  local rel="$1"
+  local script="$ROOTDIR/$rel"
   if [ ! -f "$script" ]; then
-    echo "Script not found: $script"
+    echo "Script not found: $rel"
     return 0
   fi
   bash "$script"
@@ -49,21 +50,21 @@ while true; do
   fi
 
   case "$choice" in
-    1) run_script "$ROOTDIR/macos/scripts/bitcoin/mainnet-8333-qt.command" ;;
-    2) run_script "$ROOTDIR/macos/scripts/bitcoin/testnet3-18333-qt.command" ;;
-    3) run_script "$ROOTDIR/macos/scripts/bitcoin/testnet4-48333-qt.command" ;;
-    4) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-qt.command" ;;
-    5) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-qt-clean.command" ;;
-    6) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-cli.command" ;;
-    7) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18444-Alice-cli-clean.command" ;;
-    8) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt.command" ;;
-    9) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-qt-clean.command" ;;
-    10) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-cli.command" ;;
-    11) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18555-Bob-cli-clean.command" ;;
-    12) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt.command" ;;
-    13) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-qt-clean.command" ;;
-    14) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-cli.command" ;;
-    15) run_script "$ROOTDIR/macos/scripts/bitcoin/regtest-18666-Carol-cli-clean.command" ;;
+    1) run_script "macos/scripts/bitcoin/mainnet-8333-qt.command" ;;
+    2) run_script "macos/scripts/bitcoin/testnet3-18333-qt.command" ;;
+    3) run_script "macos/scripts/bitcoin/testnet4-48333-qt.command" ;;
+    4) run_script "macos/scripts/bitcoin/regtest-18444-Alice-qt.command" ;;
+    5) run_script "macos/scripts/bitcoin/regtest-18444-Alice-qt-clean.command" ;;
+    6) run_script "macos/scripts/bitcoin/regtest-18444-Alice-cli.command" ;;
+    7) run_script "macos/scripts/bitcoin/regtest-18444-Alice-cli-clean.command" ;;
+    8) run_script "macos/scripts/bitcoin/regtest-18555-Bob-qt.command" ;;
+    9) run_script "macos/scripts/bitcoin/regtest-18555-Bob-qt-clean.command" ;;
+    10) run_script "macos/scripts/bitcoin/regtest-18555-Bob-cli.command" ;;
+    11) run_script "macos/scripts/bitcoin/regtest-18555-Bob-cli-clean.command" ;;
+    12) run_script "macos/scripts/bitcoin/regtest-18666-Carol-qt.command" ;;
+    13) run_script "macos/scripts/bitcoin/regtest-18666-Carol-qt-clean.command" ;;
+    14) run_script "macos/scripts/bitcoin/regtest-18666-Carol-cli.command" ;;
+    15) run_script "macos/scripts/bitcoin/regtest-18666-Carol-cli-clean.command" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac

@@ -127,7 +127,7 @@ PYEOF
     case "$SOCKET_PROBE_STATUS" in
     0) ;;
     4)
-        echo "Error: ${ROOTDIR}/electrum-datadir cannot hold a unix domain" \
+        echo "Error: electrum-datadir cannot hold a unix domain" \
              "socket."
         echo "Electrum's daemon binds one there (daemon_rpc_socket) for its" \
              "own RPC channel, and every wallet command -- getinfo included" \

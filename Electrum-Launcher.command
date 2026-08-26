@@ -10,9 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 
 run_script() {
-  local script="$1"
+  local rel="$1"
+  local script="$ROOTDIR/$rel"
   if [ ! -f "$script" ]; then
-    echo "Script not found: $script"
+    echo "Script not found: $rel"
     return 0
   fi
   bash "$script"
@@ -39,11 +40,11 @@ while true; do
   fi
 
   case "$choice" in
-    1) run_script "$ROOTDIR/macos/scripts/electrum/mainnet.command" ;;
-    2) run_script "$ROOTDIR/macos/scripts/electrum/testnet3.command" ;;
-    3) run_script "$ROOTDIR/macos/scripts/electrum/testnet4.command" ;;
-    4) run_script "$ROOTDIR/macos/scripts/electrum/regtest.command" ;;
-    5) run_script "$ROOTDIR/macos/scripts/electrum/mainnet-local-server-only.command" ;;
+    1) run_script "macos/scripts/electrum/mainnet.command" ;;
+    2) run_script "macos/scripts/electrum/testnet3.command" ;;
+    3) run_script "macos/scripts/electrum/testnet4.command" ;;
+    4) run_script "macos/scripts/electrum/regtest.command" ;;
+    5) run_script "macos/scripts/electrum/mainnet-local-server-only.command" ;;
     0) exit 0 ;;
     *) echo "Invalid selection." ;;
   esac
