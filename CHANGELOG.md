@@ -52,6 +52,31 @@ using YYYY.MM.DD format.
   expected, since neither platform's pair of launchers checks for a
   running sibling either, rather than as something checked on either
   platform.
+- **`README.md`, `CLAUDE.md` and `CONTRIBUTING.md` name Linux beside
+  macOS and Windows wherever they named the other two** (closes #123):
+  the *Folder Structure*, *Detailed Setup*, *Updating Binaries*,
+  *Expected Binaries by OS*, *Troubleshooting*, *Security Notes* and
+  *Version Compatibility* sections gain the `linux/` paths beside the
+  existing two, *Quick Start* and *Launcher Notes* say plainly that the
+  root `Bitcoin-Launcher.sh`, `Electrum-Launcher.sh` and
+  `Utilities-Launcher.sh` still refuse Linux rather than reaching
+  `linux/scripts/`, and `CONTRIBUTING.md`'s gate section says
+  `shellcheck` already reads a launcher by its shebang rather than by
+  directory, so `linux/scripts/`'s own `.sh` files needed no new hook.
+  `CLAUDE.md` gains a measured Linux exFAT fact beside the macOS one:
+  on GitHub Actions `ubuntu-latest`, mounting an exFAT image through
+  the in-kernel `exfat` driver with no `fmask` given resolves to
+  `fmask=0022` — the driver's own fixed default, not the umask-derived
+  mask ISS 110's own source-derived claim predicted — and a script
+  survives `chmod 644` there the same way it does on macOS, exit 0;
+  raising `fmask` past `022` clears the execute bit and the same script
+  fails, `Permission denied`, exit 126, which `README.md`'s own
+  *Choosing a filesystem* table now cites in
+  place of the "documented by the driver rather than measured" wording
+  it shipped with. Ubuntu's `ntfs3` driver stays cited as the kernel's
+  own documentation rather than as measured here, that half of the
+  table's exFAT-versus-NTFS reasoning being outside what this branch
+  measured.
 - **`verify-binaries`'s checksum-file parser lives once, in
   `shared/utilities/lib.sh`'s `verify_binaries`, and an empty checksum
   file no longer reads as "Binaries verified."** (closes #143)

@@ -225,11 +225,13 @@ other. Run the gate by hand before committing.
 
 **What the gate does not reach is running the thing this repository
 ships.** The hooks read prose, configuration and, through `shellcheck`,
-the `.sh` and `.command` launchers themselves — but nothing here runs
-one. So what stands in for a suite is running the launcher on both a
-macOS and a Windows machine, from a volume that is not the boot
-disk — which is the case the paths in these scripts exist for, and the
-one a checkout on an internal disk never exercises.
+the `.sh` and `.command` launchers themselves — `shellcheck` reads a
+launcher by its shebang rather than by directory, so `linux/scripts/`'s
+own `.sh` files are in scope already and reaching them added no hook —
+but nothing here runs one. So what stands in for a suite is running the
+launcher on a macOS, a Windows and a Linux machine, from a volume that
+is not the boot disk — which is the case the paths in these scripts
+exist for, and the one a checkout on an internal disk never exercises.
 
 **The `.bat` and `.ps1` halves are read by the generic hooks and by no
 parser.** PowerShell's is PSScriptAnalyzer, and
