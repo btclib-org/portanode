@@ -20,6 +20,20 @@ using YYYY.MM.DD format.
   caller's sourcing, with nothing to catch it; both headers now say why
   the forwarder exists without naming who currently uses it, and point
   at the `git grep` that answers that question live instead.
+- **Each platform's `*/scripts/electrum/README.md` now says that
+  `mainnet` and `mainnet-local-server-only` are alternatives against
+  the same datadir, not a pair to run together** (closes #158).
+  Measured on Linux, on a GitHub Actions `ubuntu-latest` runner (run
+  `32940638366`): starting `mainnet-local-server-only.sh` while
+  `mainnet.sh`'s own process is still running produces no process of
+  its own, and a `daemon`/`daemon_rpc_socket` left behind by a
+  terminated first instance — confirmed present after both a `SIGTERM`
+  and a `SIGKILL` of its whole process tree — does not, by itself,
+  block the other launcher from starting. The Linux README states this
+  as measured; the macOS and Windows READMEs state the same effect as
+  expected, since neither platform's pair of launchers checks for a
+  running sibling either, rather than as something checked on either
+  platform.
 - **`verify-binaries`'s checksum-file parser lives once, in
   `shared/utilities/lib.sh`'s `verify_binaries`, and an empty checksum
   file no longer reads as "Binaries verified."** (closes #143)

@@ -25,6 +25,24 @@ whether it restricts connections to a local Electrum server only.
 - The kernel's `/dev/fuse`, readable and writable by the user starting
   the launcher, and a mount that permits execution: both below.
 
+## Running two mainnet launchers against the same datadir
+
+`mainnet.sh` and `mainnet-local-server-only.sh` pass the same
+`--dir electrum-datadir` and open the identical mainnet state kept at
+the top level of that directory: the two are alternatives for the same
+network, not scripts meant to run together. Measured on a GitHub
+Actions `ubuntu-latest` runner (run `32940638366`, jobs `scenario-live`,
+`scenario-closed`, `scenario-killed`): starting
+`mainnet-local-server-only.sh` while `mainnet.sh`'s own process is
+still running produces no process of its own. What does *not* block
+it: a `daemon` file and a `daemon_rpc_socket` a terminated first
+instance leaves behind — confirmed present, unremoved, after both a
+`SIGTERM` and a `SIGKILL` of the first instance's whole process tree —
+do not stop the second launcher from starting cleanly against them. So
+what decides whether the other can start is whether the first one's
+process is still running, not whether an old socket file of its is
+still on disk.
+
 ## What the AppImage needs from the machine
 
 An AppImage mounts its own filesystem before any of the program inside it
