@@ -154,7 +154,7 @@ if "%PGP_OK%"=="1" (
   )
   echo Electrum verified.
 ) else (
-  echo Warning: PGP signature(s) not verified; skipping checksum update.
+  echo Warning: PGP signature^(s^) not verified; skipping checksum update.
 )
 
 echo Electrum updated to %VERSION%
