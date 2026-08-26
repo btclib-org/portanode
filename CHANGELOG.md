@@ -30,6 +30,24 @@ using YYYY.MM.DD format.
   `shared/utilities/lib.sh`, which writes an LF line. Only comment lines
   changed: no pattern and no `eol` value is different, so no file is
   checked out differently.
+- **`shared/utilities/lib.sh`'s header stops calling
+  `linux/scripts/utilities/update-bitcoin.sh` a future file, and stops
+  giving "every caller today is macOS's own and omits the argument" as
+  the reason `update_checksum`, `verify_checksum_entry` and
+  `installed_version` default `checksum_file` to
+  `macos/checksums.sha256`** (closes #184). Every
+  `linux/scripts/utilities/` call to those three passes
+  `linux/checksums.sha256`, and the `verify_binaries` paragraph in the
+  same header already named the Linux caller as one that exists. The
+  header now records what the default is and that omitting the argument
+  raises nothing, leaving who passes it to `update_checksum`'s own
+  comment beside the default. The enumeration of the helpers that read
+  no platform-specific path is dropped rather than corrected, and
+  `verify_binaries`'s naming of its own callers with it: both are the
+  shape [ISS 164](https://github.com/btclib-org/portanode/issues/164)
+  landed to remove from two library headers, and each
+  `verify-binaries.sh` already names its counterpart in its own comment.
+  Comments only; no script behaviour changes.
 - **macOS's `update-electrum.sh` and `rollback-electrum.sh` anchor the
   bare `run_electrum` alternative in `ELECTRUM_PGREP_PATTERN`** (closes
   #168). Unanchored, it matched any process whose command line merely

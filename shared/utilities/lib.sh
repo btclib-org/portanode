@@ -4,22 +4,22 @@
 # lib.sh and linux/scripts/utilities/lib.sh each forward to it rather than
 # holding the implementation, so the path arithmetic into shared/ lives in
 # one forwarder per platform instead of in every utility script.
-# debug_list_dir, tree_hash, install_verified, pgp_verify_or_fail and
-# verify_sha256sums read no platform-specific path -- curl, gpg, a
+# Nearly all of it reads no platform-specific path -- curl, gpg, a
 # checksum command chosen at run time, and a retry loop that exists
-# because the install target may be exFAT.
-# update_checksum, verify_checksum_entry and installed_version are not
-# that case: each defaults checksum_file to macos/checksums.sha256,
-# because every caller today is macOS's own and omits the argument. A
-# non-macOS caller has to pass checksum_file explicitly -- see the
-# comment on each default.
+# because the install target may be exFAT. Which helpers those are is
+# not listed here: such a list is wrong the moment a helper is added or
+# stops reading a path, with nothing to catch it.
+# The platform path that is written into the code is the checksum_file
+# default on update_checksum, verify_checksum_entry and
+# installed_version, each falling back to macos/checksums.sha256. The
+# fallback is silent, so a caller on any other platform passes
+# checksum_file explicitly -- see the comment on each default.
 # verify_binaries takes every platform-specific value as a required
 # argument and defaults none of them, rather than inheriting the
-# macos/checksums.sha256 default above: its two callers,
-# macos/scripts/utilities/verify-binaries.sh and
-# linux/scripts/utilities/verify-binaries.sh, differ in checksum file
-# and path prefix on every call, so a default would be wrong for one of
-# them on every single invocation rather than merely on an omitted one.
+# macos/checksums.sha256 default above: its callers differ in checksum
+# file and path prefix on every call, so a default would be wrong for one
+# of them on every single invocation rather than merely on an omitted
+# one. Each caller's own comment names its counterpart.
 
 _UTILS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=shared/lib.sh
@@ -215,11 +215,11 @@ update_checksum() {
     local file="$1"
     local entry_path="$2"
     local version="$3"
-    # This default is macOS's own path. A non-macOS caller (a future
-    # linux/scripts/utilities/update-bitcoin.sh, for one) must pass
-    # checksum_file explicitly, or it writes into macos/checksums.sha256
-    # -- silently, since omitting the argument is exactly what every
-    # macOS caller does today.
+    # This default is macOS's own path, and omitting the argument is not
+    # an error: a caller that omits it appends to macos/checksums.sha256
+    # whatever platform it is running on. A non-macOS caller passes
+    # checksum_file explicitly -- linux/scripts/utilities/'s updaters
+    # pass linux/checksums.sha256.
     local checksum_file="${4:-$ROOTDIR/macos/checksums.sha256}"
     local hash=""
 
