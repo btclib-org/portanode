@@ -14,7 +14,12 @@ whether it restricts connections to a local Electrum server only.
 
 ## Prerequisites
 
-- Electrum executable in `win/bin/electrum.exe`.
+- Electrum executable in `win/bin/electrum.exe`, the standalone build
+  `win/scripts/utilities/update-electrum.bat` installs. Every launcher
+  here refuses the portable build of the same release: that one sets its
+  own data directory, `electrum_data` under whichever directory the
+  launcher was started from, and the `--dir` these launchers pass is
+  discarded.
 - Data directory in `electrum-datadir/`.
 - For local server mode, a local Electrum server must be running.
 

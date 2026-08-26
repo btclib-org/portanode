@@ -40,6 +40,29 @@ using YYYY.MM.DD format.
   `-ipcbind` — the option that puts a socket in Bitcoin Core's datadir,
   and which does not listen unless it is given — appears nowhere in this
   tree, and no launcher writes a probe there.
+- **`win/scripts/utilities/update-electrum.bat` installs Electrum's
+  standalone Windows build, and `win/scripts/electrum/`'s launchers refuse
+  the portable one** (closes #190). The portable build assigns its own data
+  directory — `electrum_data` under the working directory — after the
+  command line has been parsed, so the `--dir electrum-datadir` every
+  launcher passes is discarded. A `.bat` opened from Explorer runs with its
+  own directory as the working directory, which puts the wallet under
+  `win\scripts\electrum`; a launcher started from a console sitting
+  elsewhere puts it off this volume altogether, with nothing said. Measured
+  on windows-latest through `mainnet.bat` itself: with the portable build
+  installed the launcher left `electrum-datadir` holding only its tracked
+  files and wrote the data directory under the console's own directory,
+  and with the standalone build of the same release in its place and
+  nothing else changed, it wrote the data directory into
+  `electrum-datadir`. Dropping `--dir` from the portable build's command
+  line changed nothing, and `ELECTRUMDIR` in the environment does not reach
+  it either. The new `win/scripts/electrum/lib.bat` is what an installation
+  that already carries the portable build meets, the updater's own change
+  reaching only the install after it; it tells the portable build from the
+  standalone one by pyinstaller's `is_portable` archive entry, whose name
+  is stored uncompressed. The `.asc` beside the standalone file carries a
+  signature from the key `keys/electrum.fingerprints` pins, as the portable
+  one's does, so the updater's verification is unchanged.
 - **`README.md`'s *Prerequisites* carries the 100GB figure each
   platform's `validate-setup` enforces** (closes #153). The disk-space
   comment in those scripts routes a change to either threshold through

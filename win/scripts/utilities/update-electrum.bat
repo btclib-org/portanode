@@ -64,7 +64,20 @@ if defined VERSION_OVERRIDE (
     echo Latest Electrum version: !VERSION!
 )
 
-set FILE=electrum-%VERSION%-portable.exe
+REM The standalone build, not electrum-<version>-portable.exe. The portable
+REM one assigns its own data directory -- electrum_data under the working
+REM directory -- after the command line has been parsed, discarding the --dir
+REM every launcher under win\scripts\electrum\ passes, so the wallet lands
+REM wherever the launcher was started from rather than in electrum-datadir on
+REM this volume. Measured on windows-latest with 4.8.1: the portable build
+REM left the directory --dir named empty and wrote the wallet under the
+REM working directory, and the standalone build of the same release wrote it
+REM where --dir named. The .asc beside the standalone file carries a signature
+REM from the key keys\electrum.fingerprints pins, as the portable one's does,
+REM so the verification below is unchanged. win\scripts\electrum\lib.bat
+REM refuses a portable build already installed, this file's change reaching
+REM only an installation made after it.
+set FILE=electrum-%VERSION%.exe
 set SIG_FILE=%FILE%.asc
 set BASE_URL=https://download.electrum.org/%VERSION%/
 set URL=%BASE_URL%%FILE%
