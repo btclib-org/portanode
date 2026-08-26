@@ -25,6 +25,19 @@ using YYYY.MM.DD format.
   stops assigning its per-file hash matches to `$matches`, PowerShell's
   own automatic variable populated by `-match`/`-cmatch`, renaming the
   local to `$hashMatches`.
+- **`README.md` recommends a filesystem per audience instead of exFAT
+  alone** (closes #131): a table covering each of macOS, Windows and
+  Ubuntu on its own, each pairing, and all three, with exFAT kept as
+  the answer for a pairing or the whole three rather than presented as
+  the tree's only choice. The single-platform rows name each platform's
+  own filesystem; the pairings that are not exFAT's answer name
+  Ubuntu's in-tree `ntfs3` driver instead. exFAT's own cost carries two
+  different promises rather than one: macOS synthesises the execute bit
+  as always-on, measured by mounting an exFAT image and running a
+  script whose mode denies it, where Ubuntu's driver computes a mode
+  from the mount's `fmask`/`umask` instead, documented by the driver
+  and not measured in this repository — a restrictive mount can leave a
+  script unexecutable on Ubuntu where macOS never would.
 - **`CLAUDE.md` states that a commit subject is one physical line, and
   names the read that shows one as it will land** (closes #130):
   `git show -s --format=%B <sha> | head -1`. `%s` takes everything up to

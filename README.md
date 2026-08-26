@@ -33,14 +33,47 @@ If you’ve ever tried running an indexed full Bitcoin node
 on a portable external disk shared between Windows and macOS,
 you know the kinds of problems this is meant to address.
 
-It works best on an exFAT-formatted NVMe drive
-in a portable USB 3 / Thunderbolt enclosure.
+It works best on an NVMe drive in a portable USB 3 / Thunderbolt
+enclosure, formatted for whichever of macOS, Windows and Ubuntu it has
+to run under — see *Choosing a filesystem* below.
 
-exFAT is the choice rather than an incidental default: it is the one
-filesystem both macOS and Windows read and write natively, with
-nothing else to install. NTFS needs a third-party driver to write from
-macOS; APFS is not readable from Windows at all. *Limitations, not
-vulnerabilities* below has what that choice costs.
+## Choosing a filesystem
+
+The right filesystem for the drive depends on which of macOS, Windows
+and Ubuntu it has to run under, not on a single default:
+
+| Care about         | Filesystem |
+|--------------------|------------|
+| macOS only         | APFS       |
+| Windows only       | NTFS       |
+| Ubuntu only        | ext4       |
+| macOS and Windows  | exFAT      |
+| macOS and Ubuntu   | exFAT      |
+| Windows and Ubuntu | NTFS       |
+| All three          | exFAT      |
+
+- **APFS, NTFS and ext4** are each the filesystem the one operating
+  system they serve already uses for its own boot disk: full
+  permission bits, a journal, and nothing to install. Moving the drive
+  to a second operating system later means reformatting it.
+- **exFAT** is the filesystem macOS and Windows both read and write
+  with nothing to install, and it is the answer for every pairing that
+  includes macOS: Windows' own NTFS needs a third-party driver to write
+  from macOS, and macOS's own APFS is unreadable outside macOS, so
+  neither platform's own filesystem crosses to the other where macOS is
+  one of the two. It carries no Unix permission bits, and the two
+  platforms that read it do not fail identically on that account: macOS
+  synthesises the execute bit as always-on regardless of `chmod`,
+  measured by mounting an exFAT image and running a script whose mode
+  denies it (`CLAUDE.md`'s *What will otherwise waste a session* has
+  the commands), while Ubuntu's own exFAT driver instead computes a mode
+  from the mount's own `fmask`/`umask` — documented by the driver rather
+  than measured in this repository, and a restrictive mount can leave a
+  script unexecutable where macOS never would.
+- **NTFS** read-write from Ubuntu is the kernel's own in-tree `ntfs3`
+  driver, documented by the kernel rather than measured here; from
+  macOS, NTFS is read-only without a third-party driver, which is why
+  it does not answer any pairing that includes macOS.
 
 ## Prerequisites
 
@@ -326,17 +359,17 @@ something that *is* a vulnerability is the organization's, shown on
   device is the perimeter — full-disk encryption on the volume, or a
   wallet passphrase, is what stands between a lost drive and the coins on
   it. Nothing in this repository provides either.
-- **exFAT is what makes the drive portable between macOS and Windows,
-  and Bitcoin Core warns against it on macOS.** On every launch, Bitcoin
-  Core's own startup check detects an exFAT data or blocks directory and
-  warns that exFAT is known to have intermittent corruption problems
-  there; Windows carries no equivalent check. The warning is upstream's
-  and cannot be suppressed from a launcher here — there is no flag for
-  it — and silencing it would mean either patching Bitcoin Core, which
+- **Wherever *Choosing a filesystem* above recommends exFAT, Bitcoin
+  Core warns against it on macOS.** On every launch, Bitcoin Core's own
+  startup check detects an exFAT data or blocks directory and warns
+  that exFAT is known to have intermittent corruption problems there;
+  Windows carries no equivalent check. The warning is upstream's and
+  cannot be suppressed from a launcher here — there is no flag for it —
+  and silencing it would mean either patching Bitcoin Core, which
   breaks the PGP-verified binary this repository depends on, or moving
-  the data off exFAT, which breaks the Windows interoperability exFAT
-  exists here for. Nothing in this repository mitigates the underlying
-  risk beyond what a regular backup of the drive already would.
+  the data off exFAT, which breaks the interoperability exFAT was
+  chosen for. Nothing in this repository mitigates the underlying risk
+  beyond what a regular backup of the drive already would.
 - **The launchers are not signed or notarized.** macOS Gatekeeper and
   Windows SmartScreen will treat a `.command` or a `.bat` from this
   folder as unrecognised, and the way past that is the same click an
