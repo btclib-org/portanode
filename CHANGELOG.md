@@ -16,6 +16,29 @@ using YYYY.MM.DD format.
   physical line as the title and moving the remainder into the body. The
   eighty-column wrap stated in the same section is named there as a rule
   for files in the tree, that being what a subject gets wrapped to match.
+- **Every Windows regtest CLI launcher's `bitcoind.exe` now actually
+  starts, and `win/scripts/bitcoin/lib.bat`'s `:require_deleted` comment
+  cites a measurement instead of documentation** (closes #133). Measured
+  on `windows-latest`: a `^` at the end of a line continues a batch
+  file's line to the next only while cmd's quote state is closed, and is
+  a literal character instead of a continuation inside an open quote.
+  The doubled-quote argument `regtest-18444-Alice-cli.bat`,
+  `regtest-18555-Bob-cli.bat`, `regtest-18666-Carol-cli.bat` and their
+  `-clean` counterparts build for `bitcoind.exe` and for the
+  `bitcoin-cli.exe`/`doskey` console leaves the quote state open partway
+  through, so the `^` split these six files used was swallowed as
+  literal text rather than read as a continuation, and no `bitcoind.exe`
+  process started at all — confirmed end to end for Alice's `-clean`
+  launcher with a stand-in binary, absent before the fix and present
+  with every argument after it. The other five launchers build the
+  identical argument, so the same fix applies to them; each now
+  assembles it in a variable across single-line `set` statements
+  instead of `^`. `rmdir /s /q` exits 0 for a directory that never
+  existed, not the nonzero the comment had cited from documentation,
+  and exits 0 as well when a file held open inside blocks the deletion,
+  confirming the comment's other premise; `:require_deleted` already
+  checked the directory's own resulting state rather than `rmdir`'s
+  exit code, so its behavior is unchanged.
 - **`update-electrum` installs Electrum on Linux from the signed AppImage
   electrum.org publishes, unmodified, rather than extracting it**
   (closes #118). `linux/scripts/utilities/update-electrum.sh` scrapes

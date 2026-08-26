@@ -56,13 +56,15 @@ echo DATADIR is "%DATADIR%"
 echo BLOCKCHAINDIR is "%BLOCKCHAINDIR%"
 echo WALLETDIR is "%WALLETDIR%"
 
-start "" cmd /k ^
-  ""%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0 ^
-  -datadir="%DATADIR%" ^
-  -regtest -port=18555 -rpcport=18554 -rpcallowip=127.0.0.1 ^
-  -addnode=localhost:18444 ^
-  -addnode=localhost:18666"
-start "" cmd /k ^
-  "cd /d "%ROOTDIR%\win\bin" & ^
-  title %~n0 & ^
-  doskey btc=bitcoin-cli.exe -regtest -datadir="%DATADIR%" -rpcport=18554 $*"
+REM Measured on windows-latest: see regtest-18444-Alice-cli.bat for why a
+REM "^" split here is swallowed as literal text inside an open quote, and
+REM no bitcoind process starts. Built in a variable instead, so the whole
+REM argument is one physical line.
+set BITCOIND_CMD=""%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0
+set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
+set BITCOIND_CMD=%BITCOIND_CMD% -regtest -port=18555 -rpcport=18554 -rpcallowip=127.0.0.1
+set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18444
+set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666"
+start "" cmd /k %BITCOIND_CMD%
+set CLI_CMD="cd /d "%ROOTDIR%\win\bin" & title %~n0 & doskey btc=bitcoin-cli.exe -regtest -datadir="%DATADIR%" -rpcport=18554 $*"
+start "" cmd /k %CLI_CMD%

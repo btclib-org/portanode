@@ -93,14 +93,16 @@ exit /b 0
 REM Deletes the directory named by the first argument and refuses to go on
 REM where it is still there afterward.
 REM
-REM rmdir exits nonzero when the directory did not exist to begin with, which
-REM is the ordinary case on a first clean start, so what this checks is the
-REM state left behind rather than rmdir's own exit code. A file another
-REM process holds open, a volume gone read-only, or an exFAT directory the
-REM driver refuses to remove all leave the directory standing afterward, and
-REM that is what a caller sees as the failure -- the running-node guard above
-REM catches the common case of the first, and this catches what gets past it
-REM and every other cause besides.
+REM Measured on windows-latest: rmdir /s /q exits 0 whether the directory
+REM never existed, deleted cleanly, or left a file another process held
+REM open still standing inside it -- so rmdir's own exit code carries no
+REM information here, and what this checks is the state left behind
+REM instead. A file another process holds open, a volume gone read-only,
+REM or an exFAT directory the driver refuses to remove all leave the
+REM directory standing afterward, and that is what a caller sees as the
+REM failure -- the running-node guard above catches the common case of
+REM the first, and this catches what gets past it and every other cause
+REM besides.
 setlocal
 set "WIPE_DIR=%~1"
 rmdir "%WIPE_DIR%" /s /q
