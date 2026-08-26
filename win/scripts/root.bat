@@ -54,9 +54,34 @@ REM The first argument is the caller's own %~nx0, read by the caller
 REM before this call -- %0 inside this file names root.bat, not the
 REM caller, the same reason :resolve_root's own caller reads %~dp0 into
 REM SCRIPT_DIR beforehand rather than after.
+REM
+REM The console command line is read through delayed expansion, and the
+REM test is a substring replacement rather than a pipe into find,
+REM because %CMDCMDLINE% is substituted before the line is parsed, so
+REM its contents are read as part of the command: a console started as
+REM "cd /d <this folder> && win\scripts\electrum\mainnet.bat" splits the
+REM test at the &&, printing the console command line to the user and
+REM running the remainder as a command of its own. Delayed expansion
+REM substitutes after the line has been parsed, so &, &&, | and > in
+REM the value stay data. A pipe undoes that, each side of one being a
+REM new cmd.exe that parses what it is handed; the quotes come out of
+REM the value because the comparison is a quoted one that the value's
+REM own quotes would end early. The replacement ignores case, so a
+REM console command line naming the script in another case still
+REM matches it.
+REM
+REM Measured on windows-latest, each form against a console command
+REM line carrying &&, & and a "| ... >nul": the pipe form answers "The
+REM input line is too long", CMDCMDLINE inside that child naming the
+REM child's own line, and expands a second time whatever % reference
+REM the console command line carries, which pauses a console that was
+REM not opened for this script; the form below with the value's quotes
+REM left in reads every console as somebody else's, so nothing pauses
+REM at all.
+setlocal enabledelayedexpansion
 set "SELF=%~1"
-echo "%CMDCMDLINE%" | find /I "%SELF%" >nul
-if not errorlevel 1 (
+set CMDLINE=!CMDCMDLINE:"=!
+if not "!CMDLINE:%SELF%=!"=="!CMDLINE!" (
     echo.
     echo Press any key to close this window.
     pause >nul
