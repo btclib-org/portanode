@@ -7,6 +7,16 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **macOS's `update-electrum.sh` and `rollback-electrum.sh` anchor the
+  bare `run_electrum` alternative in `ELECTRUM_PGREP_PATTERN`** (closes
+  #168). Unanchored, it matched any process whose command line merely
+  carried the string `run_electrum` anywhere, including as an
+  unrelated argument to an unrelated program; the anchor now requires
+  it to sit at the start of the command line or right after a path
+  separator, ending at a space or the line's end, so a genuine source
+  or extracted-tree invocation of a script named `run_electrum` still
+  matches. Both scripts keep one shared pattern, as `rollback-electrum.sh`'s
+  own comment says they do.
 - **`macos/scripts/utilities/lib.sh` and `linux/scripts/utilities/lib.sh`
   no longer name which scripts source them directly** (closes #164).
   Both headers listed the scripts sourcing `$SCRIPT_DIR/lib.sh` rather
