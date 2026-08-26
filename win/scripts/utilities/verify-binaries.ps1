@@ -42,6 +42,11 @@ $path = $path -replace '\\', '/'
   }
 }
 
+if ($map.Keys.Count -eq 0) {
+  Write-Host "Nothing to verify: no win/* entries in $checksum."
+  exit 0
+}
+
 $fail = 0
 foreach ($path in $map.Keys) {
   $relative = $path -replace '/', [IO.Path]::DirectorySeparatorChar
@@ -64,9 +69,9 @@ foreach ($path in $map.Keys) {
   }
   $computed = (Get-FileHash -Algorithm SHA256 $filePath).Hash
   $computed = $computed.ToLower()
-  $matches = $map[$path] | Where-Object { $_.Hash -eq $computed }
-  if ($matches.Count -gt 0) {
-    $versions = $matches |
+  $hashMatches = $map[$path] | Where-Object { $_.Hash -eq $computed }
+  if ($hashMatches.Count -gt 0) {
+    $versions = $hashMatches |
       Select-Object -ExpandProperty Version |
       Select-Object -Unique
     $versions = $versions -join ', '

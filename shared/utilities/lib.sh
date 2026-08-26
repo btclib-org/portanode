@@ -13,6 +13,13 @@
 # because every caller today is macOS's own and omits the argument. A
 # non-macOS caller has to pass checksum_file explicitly -- see the
 # comment on each default.
+# verify_binaries takes every platform-specific value as a required
+# argument and defaults none of them, rather than inheriting the
+# macos/checksums.sha256 default above: its two callers,
+# macos/scripts/utilities/verify-binaries.sh and
+# linux/scripts/utilities/verify-binaries.sh, differ in checksum file
+# and path prefix on every call, so a default would be wrong for one of
+# them on every single invocation rather than merely on an omitted one.
 
 _UTILS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=shared/lib.sh
@@ -332,4 +339,164 @@ installed_version() {
         }
         END { if (!found) print "unknown" }
     ' "$checksum_file"
+}
+
+# _verify_binaries_trim STRING — strip leading and trailing whitespace,
+# printed rather than echoed so a value starting with "-" is not read as
+# an option.
+_verify_binaries_trim() {
+    local s="$1"
+    s="${s#"${s%%[![:space:]]*}"}"
+    s="${s%"${s##*[![:space:]]}"}"
+    printf "%s" "$s"
+}
+
+# verify_binaries ROOTDIR CHECKSUM_FILE PREFIX
+#
+# Parses CHECKSUM_FILE (ROOTDIR-relative) for lines of the form
+# "<sha256>  <path>[  version=<label>]", keeps only the entries whose
+# path is under "PREFIX/", then hashes each such file under ROOTDIR and
+# prints one OK/FAILED/MISSING line per unique path. This is the parser
+# macos/scripts/utilities/verify-binaries.sh and linux/scripts/
+# utilities/verify-binaries.sh both ran inline before this function
+# existed, identical except for the checksum file and the prefix.
+#
+# Returns 1 and prints "Error: ..." on a malformed line, an unreadable
+# checksum file, a hash of the wrong length, or a missing shasum/
+# sha256sum; returns 1 and prints "Verification failed: N file(s)."
+# where at least one entry is MISSING or FAILED; returns 0 and prints
+# "Binaries verified." where every entry matches. Where PREFIX/* has no
+# entry at all after filtering, returns 0 and prints "Nothing to
+# verify" instead of "Binaries verified.": a fresh clone's
+# linux/checksums.sha256 ships with no entries, and CLAUDE.md's own "a
+# fresh clone launches nothing until the updaters have run" makes that
+# the expected state there, not a failure -- so an empty checksum file
+# no longer reads as success over nothing checked.
+#
+# Indexed arrays, not an associative one: macOS ships bash 3.2, and this
+# function serves linux/scripts/utilities/verify-binaries.sh through the
+# same shared/utilities/lib.sh, so one shape covers both rather than one
+# platform getting a nicer one the other cannot use.
+verify_binaries() {
+    local rootdir="$1"
+    local checksum_file="$2"
+    local prefix="$3"
+
+    echo "Verifying binaries against $checksum_file"
+
+    if [ ! -f "$rootdir/$checksum_file" ]; then
+        echo "Error: $checksum_file not found."
+        return 1
+    fi
+
+    # Parallel indexed arrays hold one record per checksum entry:
+    #   rec_path[i] / rec_hash[i] / rec_ver[i]
+    local -a rec_path=() rec_hash=() rec_ver=()
+    # Ordered list of unique PREFIX/* paths, in first-seen order.
+    local -a upaths=()
+
+    local line hash rest version path seen p
+    while IFS= read -r line; do
+        case "$line" in
+            ""|\#*) continue ;;
+        esac
+        hash="${line%%[[:space:]]*}"
+        rest="${line#"$hash"}"
+        rest="$(_verify_binaries_trim "$rest")"
+        if [ -z "$hash" ] || [ -z "$rest" ] || [ "$rest" = "$line" ]; then
+            echo "Error: Malformed checksum line: $line"
+            return 1
+        fi
+        if [ "${#hash}" -ne 64 ]; then
+            echo "Error: Invalid SHA-256 hash length: $line"
+            return 1
+        fi
+        version="unknown"
+        path="$rest"
+        if [[ "$rest" == *"version="* ]]; then
+            version="${rest##*version=}"
+            path="${rest%version=*}"
+            path="$(_verify_binaries_trim "$path")"
+            version="$(_verify_binaries_trim "$version")"
+        fi
+        case "$path" in
+            "$prefix"/*) ;;
+            *) continue ;;
+        esac
+        rec_path+=("$path")
+        rec_hash+=("$hash")
+        rec_ver+=("$version")
+        seen=0
+        for p in ${upaths[@]+"${upaths[@]}"}; do
+            if [ "$p" = "$path" ]; then
+                seen=1
+                break
+            fi
+        done
+        [ "$seen" -eq 0 ] && upaths+=("$path")
+    done < "$rootdir/$checksum_file"
+
+    if [ "${#upaths[@]}" -eq 0 ]; then
+        echo "Nothing to verify: no $prefix/* entries in $checksum_file."
+        return 0
+    fi
+
+    local fail=0 file expected_versions expected_versions_str i
+    local computed_hash matches versions
+    for path in "${upaths[@]}"; do
+        file="$rootdir/$path"
+        expected_versions=()
+        for i in "${!rec_path[@]}"; do
+            [ "${rec_path[$i]}" = "$path" ] && expected_versions+=("${rec_ver[$i]}")
+        done
+        if [ "${#expected_versions[@]}" -gt 0 ]; then
+            expected_versions_str=$(printf "%s, " "${expected_versions[@]}")
+            expected_versions_str="${expected_versions_str%, }"
+        else
+            expected_versions_str=""
+        fi
+        if [ ! -f "$file" ]; then
+            if [ -n "$expected_versions_str" ]; then
+                echo "$path: MISSING (expected versions: $expected_versions_str)"
+            else
+                echo "$path: MISSING"
+            fi
+            fail=$((fail + 1))
+            continue
+        fi
+        if command -v shasum >/dev/null 2>&1; then
+            computed_hash="$(shasum -a 256 "$file" | awk '{print $1}')"
+        elif command -v sha256sum >/dev/null 2>&1; then
+            computed_hash="$(sha256sum "$file" | awk '{print $1}')"
+        else
+            echo "Error: Neither shasum nor sha256sum found."
+            echo "Install coreutils or similar."
+            return 1
+        fi
+        matches=()
+        for i in "${!rec_path[@]}"; do
+            if [ "${rec_path[$i]}" = "$path" ] && [ "${rec_hash[$i]}" = "$computed_hash" ]; then
+                matches+=("${rec_ver[$i]}")
+            fi
+        done
+        if [ "${#matches[@]}" -gt 0 ]; then
+            versions=$(printf "%s, " "${matches[@]}")
+            versions="${versions%, }"
+            echo "$path: OK (version: $versions)"
+        else
+            if [ -n "$expected_versions_str" ]; then
+                echo "$path: FAILED (expected versions: $expected_versions_str)"
+            else
+                echo "$path: FAILED"
+            fi
+            fail=$((fail + 1))
+        fi
+    done
+
+    if [ "$fail" -ne 0 ]; then
+        echo "Verification failed: $fail file(s)."
+        return 1
+    fi
+
+    echo "Binaries verified."
 }

@@ -7,6 +7,24 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`verify-binaries`'s checksum-file parser lives once, in
+  `shared/utilities/lib.sh`'s `verify_binaries`, and an empty checksum
+  file no longer reads as "Binaries verified."** (closes #143)
+  (closes #152) (closes #139). `macos/scripts/utilities/
+  verify-binaries.sh` and `linux/scripts/utilities/verify-binaries.sh`
+  ran the identical parser inline, differing only in the checksum file
+  and the path prefix each filtered on; both are now a call into the
+  shared function, which takes both as required arguments rather than
+  defaulting either the way `update_checksum` and its neighbours default
+  to `macos/checksums.sha256`. Where the checksum file, once filtered to
+  the caller's own prefix, has no entry at all — `linux/checksums.sha256`
+  ships with none, so this is a fresh clone's actual state on Linux —
+  the script now prints "Nothing to verify" and exits 0 instead of
+  reporting a success that checked nothing; the PowerShell half gets the
+  same distinction. `win/scripts/utilities/verify-binaries.ps1` also
+  stops assigning its per-file hash matches to `$matches`, PowerShell's
+  own automatic variable populated by `-match`/`-cmatch`, renaming the
+  local to `$hashMatches`.
 - **`CLAUDE.md` states that a commit subject is one physical line, and
   names the read that shows one as it will land** (closes #130):
   `git show -s --format=%B <sha> | head -1`. `%s` takes everything up to
