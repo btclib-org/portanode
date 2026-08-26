@@ -142,7 +142,7 @@ fi
 # characters will result in zero matches". "pgrep -f" reads the whole
 # command line and matched that same process, which is why it is the only
 # pass needed.
-ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|run_electrum"
+ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|(^|/)run_electrum( |\$)"
 if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
     echo "Electrum running: yes (pgrep)"
 else
