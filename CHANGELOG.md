@@ -42,6 +42,31 @@ using YYYY.MM.DD format.
   before Electrum ever runs. `README.md`'s *Choosing a filesystem* now
   carries the same fact against its exFAT row. macOS and Windows are
   unmeasured and unchanged.
+- **`CLAUDE.md` stops calling `linux/scripts/lib.sh` and
+  `linux/scripts/utilities/lib.sh` "a future" thing, and its
+  executable-bit bullet's own quoted command now answers what it
+  claims** (closes #173). Both files have forwarded since ISS 116
+  landed, before ISS 123's own cut point; the *shared code* bullet now
+  says so in the present tense, and names which scripts under
+  `linux/scripts/` source which of the two, rather than leaving a
+  future-tense sentence describing a tree that already shipped.
+  `git ls-files -s | awk '$1 == "100755" { print $4 }'` — the command
+  the executable-bit bullet quotes — answers with `linux/scripts/`'s
+  own `.sh` files beside `macos/scripts/`'s, ISS 121 having given
+  `linux/scripts/utilities/*.sh` the bit before ISS 123's cut point
+  too; the bullet's claimed output ("with nothing else") is corrected
+  to match, rather than left silently wrong beside the command that
+  disproves it. The same bullet's aside on which `lib.sh` files are
+  sourced rather than run drops its enumeration instead of growing a
+  further entry. That aside listed `shared/`'s two and `macos/`'s two,
+  and had been incomplete since `linux/scripts/lib.sh` landed with
+  `update-bitcoin`'s own Linux half (issue #117) — not a staleness this
+  entry's own diff introduced, but one it would have carried forward
+  had it named the Linux forwarders in the sentence above and left the
+  aside alone. It is the shape
+  [ISS 164](https://github.com/btclib-org/portanode/issues/164) landed
+  to remove from two library headers, and completing it to six would
+  have set the same trap for whichever platform lands next.
 - **`macos/scripts/utilities/lib.sh` and `linux/scripts/utilities/lib.sh`
   no longer name which scripts source them directly** (closes #164).
   Both headers listed the scripts sourcing `$SCRIPT_DIR/lib.sh` rather

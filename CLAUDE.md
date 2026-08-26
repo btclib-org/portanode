@@ -49,11 +49,17 @@ folder that is not the boot disk. `README.md` is what a user reads,
   script under `macos/scripts/utilities/` sources one or the other of
   the two, and a forwarder keeps the relative-path arithmetic into
   `shared/` in one file per platform instead of in every caller that
-  reaches it through this one. A future `linux/scripts/lib.sh` and
-  `linux/scripts/utilities/lib.sh` will forward the same way, for the
-  same reason, rather than every `linux/scripts/utilities/` script doing
-  that arithmetic itself, and
-  rather than copying the helpers or sourcing across into `macos/`. A
+  reaches it through this one. `linux/scripts/lib.sh` and
+  `linux/scripts/utilities/lib.sh` forward the same way, for the same
+  reason: every script under `linux/scripts/bitcoin/`,
+  `linux/scripts/electrum/` and `linux/scripts/utilities/` sources one
+  of the two directly, rather than doing that arithmetic itself,
+  copying the helpers, or sourcing across into `macos/`. The two do not
+  chain into each other: `linux/scripts/utilities/lib.sh` reaches
+  `resolve_root` through `shared/utilities/lib.sh`'s own source of
+  `shared/lib.sh`, never through `linux/scripts/lib.sh`, so a caller
+  that only needs the download/PGP/checksum helpers sources
+  `linux/scripts/utilities/lib.sh` alone rather than sourcing both. A
   launcher sources one rather than repeating it.
 - **`keys/*.fingerprints` decide what an update will install.**
   `electrum.fingerprints` pins one key, so an Electrum download signed by
@@ -221,17 +227,17 @@ moves `main`.
     ```
 
     answers with the `.command` and `.sh` launchers, at the root and
-    under `macos/scripts/`, and with nothing else. The root `.sh`
-    launchers are Linux's own entry point too — dispatching or refusing
-    by `uname -s`, not macOS-exclusive — so they earn the bit on both
-    platforms' terms rather than only macOS's; a future
-    `linux/scripts/`'s own `.sh` utilities get the same bit for the same
-    reason macOS's do, a shell reading the file directly. The `.bat` and
-    `.ps1` halves stay 100644 because Windows does not read a POSIX
-    mode, and every `lib.sh` — the two under `shared/` and the two
-    `macos/scripts/` forwarders that source them by their old path — is
-    sourced rather than run; an executable bit on any of them would say
-    a thing about the file that running it does not bear out. A new
+    under `macos/scripts/` and `linux/scripts/`, and with nothing else.
+    The root `.sh` launchers are Linux's own entry point too —
+    dispatching or refusing by `uname -s`, not macOS-exclusive — so
+    they earn the bit on both platforms' terms rather than only
+    macOS's; `linux/scripts/`'s own `.sh` files get the same bit for
+    the same reason macOS's do, a shell reading the file directly. The
+    `.bat` and `.ps1` halves stay 100644 because Windows does not read
+    a POSIX mode, and every `lib.sh` — those under `shared/` and each
+    platform's forwarders into them alike — is sourced rather than run;
+    an executable bit on any of them would say a thing about the file
+    that running it does not bear out. A new
     `.command` left non-executable does nothing when it is
     double-clicked in Finder, which is the way it is meant to be run.
 
