@@ -30,7 +30,7 @@ fi
 # Unix "rm -rf" deletes files held open by the running process and corrupts it.
 if pgrep -f -i -- "-datadir=${ROOTDIR}/bitcoin-datadir -regtest" >/dev/null 2>&1
 then
-    echo "Error: a regtest Bitcoin process is using ${ROOTDIR}/bitcoin-datadir."
+    echo "Error: a regtest Bitcoin process is using bitcoin-datadir."
     echo "Stop it before a clean start."
     exit 1
 fi
@@ -40,7 +40,7 @@ echo "Press Enter to continue or Ctrl+C to cancel."
 read -r
 
 if ! rm -rf "${ROOTDIR}/bitcoin-datadir/regtest"; then
-    echo "Error: could not delete ${ROOTDIR}/bitcoin-datadir/regtest."
+    echo "Error: could not delete bitcoin-datadir/regtest."
     exit 1
 fi
 

@@ -25,21 +25,21 @@ echo 0^) Exit
 set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"
-if "%choice%"=="1" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\mainnet-8333-qt.bat"
-if "%choice%"=="2" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\testnet3-18333-qt.bat"
-if "%choice%"=="3" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\testnet4-48333-qt.bat"
-if "%choice%"=="4" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18444-Alice-qt.bat"
-if "%choice%"=="5" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18444-Alice-qt-clean.bat"
-if "%choice%"=="6" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18444-Alice-cli.bat"
-if "%choice%"=="7" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18444-Alice-cli-clean.bat"
-if "%choice%"=="8" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18555-Bob-qt.bat"
-if "%choice%"=="9" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18555-Bob-qt-clean.bat"
-if "%choice%"=="10" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18555-Bob-cli.bat"
-if "%choice%"=="11" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18555-Bob-cli-clean.bat"
-if "%choice%"=="12" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18666-Carol-qt.bat"
-if "%choice%"=="13" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18666-Carol-qt-clean.bat"
-if "%choice%"=="14" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18666-Carol-cli.bat"
-if "%choice%"=="15" set "SCRIPT=%ROOTDIR%\win\scripts\bitcoin\regtest-18666-Carol-cli-clean.bat"
+if "%choice%"=="1" set "SCRIPT_REL=win\scripts\bitcoin\mainnet-8333-qt.bat"
+if "%choice%"=="2" set "SCRIPT_REL=win\scripts\bitcoin\testnet3-18333-qt.bat"
+if "%choice%"=="3" set "SCRIPT_REL=win\scripts\bitcoin\testnet4-48333-qt.bat"
+if "%choice%"=="4" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-qt.bat"
+if "%choice%"=="5" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-qt-clean.bat"
+if "%choice%"=="6" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-cli.bat"
+if "%choice%"=="7" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-cli-clean.bat"
+if "%choice%"=="8" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-qt.bat"
+if "%choice%"=="9" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-qt-clean.bat"
+if "%choice%"=="10" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-cli.bat"
+if "%choice%"=="11" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-cli-clean.bat"
+if "%choice%"=="12" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-qt.bat"
+if "%choice%"=="13" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-qt-clean.bat"
+if "%choice%"=="14" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-cli.bat"
+if "%choice%"=="15" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-cli-clean.bat"
 if "%choice%"=="0" goto end
 
 if "%choice%"=="1" goto run
@@ -68,8 +68,9 @@ echo.
 goto menu
 
 :run_script
+set "SCRIPT=%ROOTDIR%\%SCRIPT_REL%"
 if not exist "%SCRIPT%" (
-    echo Script not found: %SCRIPT%
+    echo Script not found: %SCRIPT_REL%
     goto :eof
 )
 call "%SCRIPT%"

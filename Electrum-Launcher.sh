@@ -15,7 +15,7 @@ case "$UNAME" in
       if [ -f "$ROOTDIR/Electrum-Launcher.bat" ]; then
         cmd.exe /c "\"${ROOTDIR}\\Electrum-Launcher.bat\""
       else
-        echo "Script not found: $ROOTDIR/Electrum-Launcher.bat"
+        echo "Script not found: Electrum-Launcher.bat"
         exit 1
       fi
       exit 0
@@ -33,6 +33,6 @@ esac
 if [ -f "$ROOTDIR/Electrum-Launcher.command" ]; then
   bash "$ROOTDIR/Electrum-Launcher.command"
 else
-  echo "Script not found: $ROOTDIR/Electrum-Launcher.command"
+  echo "Script not found: Electrum-Launcher.command"
   exit 1
 fi

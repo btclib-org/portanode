@@ -9,14 +9,22 @@ REM where Windows keeps it, and so both need powershell.exe. A node given the
 REM same directory under another name -- a substituted drive, a junction, an
 REM 8.3 short path -- is not recognized, and neither is a node of another
 REM user, whose command line the query returns empty.
+REM
+REM A label that takes a data directory takes it relative to ROOTDIR and
+REM joins the two itself. Its refusal prints the relative name: the folder
+REM is mounted at a different point on every machine it is plugged into, so
+REM a message quoting the mount point tells the reader where this run
+REM happened rather than which directory in the folder is meant.
+REM ROOTDIR is not among the arguments: a label reads it from the
+REM caller's environment, so a caller resolves it before the call.
 set "ACTION=%~1"
 if "%ACTION%"=="" goto :eof
 shift
 goto %ACTION%
 
 :require_datadir_free
-REM Refuse to go on while a Bitcoin node is using the data directory named by
-REM the first argument. The second argument, where given, is a switch that
+REM Refuse to go on while a Bitcoin node is using the data directory the
+REM first argument names. The second argument, where given, is a switch that
 REM node's command line has to carry as well: it is what tells a regtest node
 REM from the mainnet node sharing bitcoin-datadir with it.
 REM
@@ -37,7 +45,8 @@ REM delete a directory, and deleting one on a question nothing answered is
 REM what this guard is for; $ErrorActionPreference is what turns a query that
 REM fails into an exit code rather than into an empty result.
 setlocal
-set "NODE_DATADIR=%~1"
+set "NODE_DATADIR_REL=%~1"
+set "NODE_DATADIR=%ROOTDIR%\%NODE_DATADIR_REL%"
 set "NODE_SWITCH=%~2"
 set "PSFIND=$ErrorActionPreference = 'Stop'; $q = [char]34;"
 set "PSFIND=%PSFIND% $d = [regex]::Escape(($env:NODE_DATADIR -replace '\\+','\'));"
@@ -51,13 +60,13 @@ set "PSFIND=%PSFIND% (-not $s -or $_.CommandLine -match [regex]::Escape($s))});"
 set "PSFIND=%PSFIND% if ($p.Count -gt 0) { exit 2 }"
 powershell -NoProfile -Command "%PSFIND%"
 if "%ERRORLEVEL%"=="2" (
-    echo Error: a Bitcoin node is using "%NODE_DATADIR%".
+    echo Error: a Bitcoin node is using "%NODE_DATADIR_REL%".
     echo Stop it before a clean start.
     exit /b 1
 )
 if not "%ERRORLEVEL%"=="0" (
     echo Error: could not tell whether a Bitcoin node is using
-    echo "%NODE_DATADIR%". Nothing has been deleted.
+    echo "%NODE_DATADIR_REL%". Nothing has been deleted.
     exit /b 1
 )
 exit /b 0
@@ -90,7 +99,7 @@ if "%ERRORLEVEL%"=="2" (
 exit /b 0
 
 :require_deleted
-REM Deletes the directory named by the first argument and refuses to go on
+REM Deletes the directory the first argument names and refuses to go on
 REM where it is still there afterward.
 REM
 REM Measured on windows-latest: rmdir /s /q exits 0 whether the directory
@@ -104,10 +113,11 @@ REM failure -- the running-node guard above catches the common case of
 REM the first, and this catches what gets past it and every other cause
 REM besides.
 setlocal
-set "WIPE_DIR=%~1"
+set "WIPE_DIR_REL=%~1"
+set "WIPE_DIR=%ROOTDIR%\%WIPE_DIR_REL%"
 rmdir "%WIPE_DIR%" /s /q
 if exist "%WIPE_DIR%\" (
-    echo Error: could not delete "%WIPE_DIR%".
+    echo Error: could not delete "%WIPE_DIR_REL%".
     exit /b 1
 )
 exit /b 0

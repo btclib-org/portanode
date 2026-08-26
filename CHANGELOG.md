@@ -76,6 +76,32 @@ using YYYY.MM.DD format.
   started rather than of the caller. The case the label exists for is the
   one a runner cannot show: a double-click through Explorer needs a
   desktop session, and `windows-latest` has none.
+- **A launcher message and a network script's refusal name a path the
+  folder carries relative to `ROOTDIR` rather than from the volume root**
+  (closes #192) (closes #194). The folder is mounted at a different point
+  on every machine it is plugged into, so a message naming the mount
+  point tells the reader where that run happened rather than which file
+  or directory in the folder is meant, and names a path the reader of a
+  bug report does not have. Where the path is a constant the message
+  carries it literally; where it is a value the script computed — the
+  data directory a regtest clean script wipes for Bob or for Carol — the
+  `ROOTDIR` prefix is stripped from it. A root launcher's menu holds each
+  choice's relative name and joins `ROOTDIR` to it where it runs the
+  script, and `win/scripts/bitcoin/lib.bat`'s guards take their data
+  directory relative and join it the same way; neither reaches the
+  `:rootdir_relative` that `win/scripts/utilities/lib.bat` carries, that
+  helper rendering a value a script computed and there being none of
+  those on the Windows side here. The header a `.command` launcher prints
+  with the resolved root in it, and every network script's opening
+  `ROOTDIR is ...` line, are unchanged: those name the mount point
+  itself. The Electrum launchers' note that a unix domain socket address
+  cannot hold a path as long as `electrum-datadir/daemon_rpc_socket`
+  keeps the absolute path: that message reports the length a relative
+  rendering would understate (issue #219). A Bitcoin launcher's opening
+  `DATADIR is ...`, `BLOCKCHAINDIR is ...` and `WALLETDIR is ...` keep
+  theirs, sitting under `ROOTDIR is ...` where whether the mount-point
+  carve-out reaches them is undecided (issue #206). The `Binary not
+  found at` messages keep theirs (issue #205).
 - **`.gitattributes` gives the configuration formats a `text` line, and
   `VERSION` an `eol=lf` one** (closes #185). `*.yml`, `*.yaml`, `*.toml`,
   `*.jsonc`, `.gitattributes`, `.gitignore`, `.secrets.baseline`,

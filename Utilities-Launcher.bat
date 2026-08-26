@@ -21,17 +21,17 @@ echo 0^) Exit
 set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"
-if "%choice%"=="1" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\update-bitcoin.bat"
-if "%choice%"=="2" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\update-electrum.bat"
-if "%choice%"=="3" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\rollback-bitcoin.bat"
-if "%choice%"=="4" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\rollback-electrum.bat"
-if "%choice%"=="5" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\verify-binaries.bat"
-if "%choice%"=="6" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\validate-setup.bat"
-if "%choice%"=="7" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\set-permissions.bat"
-if "%choice%"=="8" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\health-check.bat"
-if "%choice%"=="9" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\monitor-bitcoin-log.bat"
-if "%choice%"=="10" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\rotate-bitcoin-log.bat"
-if "%choice%"=="11" set "SCRIPT=%ROOTDIR%\win\scripts\utilities\clean-artifacts.bat"
+if "%choice%"=="1" set "SCRIPT_REL=win\scripts\utilities\update-bitcoin.bat"
+if "%choice%"=="2" set "SCRIPT_REL=win\scripts\utilities\update-electrum.bat"
+if "%choice%"=="3" set "SCRIPT_REL=win\scripts\utilities\rollback-bitcoin.bat"
+if "%choice%"=="4" set "SCRIPT_REL=win\scripts\utilities\rollback-electrum.bat"
+if "%choice%"=="5" set "SCRIPT_REL=win\scripts\utilities\verify-binaries.bat"
+if "%choice%"=="6" set "SCRIPT_REL=win\scripts\utilities\validate-setup.bat"
+if "%choice%"=="7" set "SCRIPT_REL=win\scripts\utilities\set-permissions.bat"
+if "%choice%"=="8" set "SCRIPT_REL=win\scripts\utilities\health-check.bat"
+if "%choice%"=="9" set "SCRIPT_REL=win\scripts\utilities\monitor-bitcoin-log.bat"
+if "%choice%"=="10" set "SCRIPT_REL=win\scripts\utilities\rotate-bitcoin-log.bat"
+if "%choice%"=="11" set "SCRIPT_REL=win\scripts\utilities\clean-artifacts.bat"
 if "%choice%"=="0" goto end
 
 if "%choice%"=="1" goto run
@@ -56,8 +56,9 @@ echo.
 goto menu
 
 :run_script
+set "SCRIPT=%ROOTDIR%\%SCRIPT_REL%"
 if not exist "%SCRIPT%" (
-    echo Script not found: %SCRIPT%
+    echo Script not found: %SCRIPT_REL%
     goto :eof
 )
 call "%SCRIPT%"
