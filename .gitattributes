@@ -62,3 +62,32 @@ run_electrum binary
 # missing.
 */checksums.sha256 text eol=lf
 keys/*.fingerprints text eol=lf
+
+# There is no pyproject.toml here, so each tool's configuration is a file
+# of its own and these are the formats those files are written in.
+# `text` is what stores them LF in the index whatever an editor saved;
+# `mixed-line-ending --fix=lf` in `.pre-commit-config.yaml` arrives at
+# the same bytes, but only in a clone that has run the hook, where an
+# attribute is the repository's own answer to what its text is.
+# `.gitattributes` and `.gitignore` are git's configuration rather than a
+# tool's and get the line for the same reason. `text` alone on each: the
+# index is the invariant they want, and the `eol` below is earned rather
+# than assumed.
+*.yml text
+*.yaml text
+*.toml text
+*.jsonc text
+.gitattributes text
+.gitignore text
+.secrets.baseline text
+
+# The remaining plain text files carry no extension, so each is named on
+# its own line, git offering no alternation between them. `VERSION` earns
+# the `eol`: `RELEASING.md` cuts a release tag with
+# `git tag -s "v$(cat VERSION)"`, command substitution strips a trailing
+# newline and not the carriage return in front of it, and
+# `git check-ref-format` refuses the ref name that results. Nothing reads
+# `COPYRIGHT` or `LICENSE`, so `text` is the whole of what they need.
+COPYRIGHT text
+LICENSE text
+VERSION text eol=lf
