@@ -281,6 +281,19 @@ Do not use Fable unless explicitly instructed.
   parentheses**; one that closes nothing carries no parentheses. The
   title becomes the landing commit's subject, `squash_merge_commit_title`
   being `COMMIT_OR_PR_TITLE`.
+- **A commit subject is one physical line, however long.** The
+  eighty-column wrap above is for files in the tree, and applying it to a
+  subject is what produces a wrapped one. `%s` conceals the result: it
+  takes everything up to the first blank line and joins it, so `%s`
+  itself, `git log --oneline` and any `grep` over either report a whole
+  sentence where the subject is broken. The squash does not join — it
+  takes the first physical line, appends `(#N)` and moves the remainder
+  into the body. The read that shows the subject as it will land is the
+  first line of `%B`:
+
+    ```shell
+    git show -s --format=%B <sha> | head -1
+    ```
 
 ## How to verify
 

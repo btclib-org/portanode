@@ -7,6 +7,15 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`CLAUDE.md` states that a commit subject is one physical line, and
+  names the read that shows one as it will land** (closes #130):
+  `git show -s --format=%B <sha> | head -1`. `%s` takes everything up to
+  the first blank line and joins it, so a subject wrapped across two
+  physical lines reads as one whole sentence through it and through
+  `git log --oneline`; the squash does not join, taking the first
+  physical line as the title and moving the remainder into the body. The
+  eighty-column wrap stated in the same section is named there as a rule
+  for files in the tree, that being what a subject gets wrapped to match.
 - **`update-electrum` installs Electrum on Linux from the signed AppImage
   electrum.org publishes, unmodified, rather than extracting it**
   (closes #118). `linux/scripts/utilities/update-electrum.sh` scrapes
