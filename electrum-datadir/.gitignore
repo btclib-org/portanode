@@ -27,9 +27,18 @@ Thumbs.db
 /regtest/
 
 # Launcher artifacts
-# The launchers under linux/scripts/electrum/ bind a unix socket of this
-# name here, and release it, to learn whether the filesystem can hold the
-# one Electrum's daemon needs. Each removes it on both branches of that
-# test, so it is left behind only where the launcher dies between the bind
-# and the removal. The suffix is the launcher's process id.
+# The launchers under macos/scripts/electrum/ and linux/scripts/electrum/
+# each bind a unix socket here, and release it, to learn whether the
+# filesystem can hold the one Electrum's daemon needs. Each removes it on
+# every branch of that test, so it is left behind only where the launcher
+# dies between the bind and the removal. The suffix is the launcher's
+# process id.
+#
+# Two names, because the platforms have not converged yet. macOS's is kept
+# shorter than daemon_rpc_socket so the test is never the more fragile of
+# the two: perl truncates an over-long socket path rather than refusing it,
+# which binds at a name the removal does not match and refuses every later
+# run. Linux's python raises instead, so it never leaves that residue and
+# still carries the longer name. Both patterns stay until it does converge.
+/.probe.*
 /.portanode-socket-probe.*
