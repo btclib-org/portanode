@@ -7,6 +7,21 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`.github/workflows/scorecard.yml` carries a `schedule:` block,
+  Saturday, hour 03, minute 28 from section 10 of the organization
+  standard, and `README.md`'s badge comment states the badge order's
+  reason without pointing at a closed issue** (closes #227). Both sites
+  argued from section 10's calendar having no row for the sentinel; the
+  calendar has one now, and Scorecard's position after `links` is what
+  the calendar's own weekly order already gives.
+- **`shared/utilities/lib.sh`'s `verify_binaries` comment states what an
+  empty checksum file prints without contrasting it against what it used
+  to print** (closes #213).
+- **`win/scripts/utilities/lib.bat`'s `:update_checksum` and
+  `:verify_checksum` comments give their reasoning in the present tense,
+  and the `verify_checksum_entry` cross-reference names
+  `shared/utilities/lib.sh`, where the function is defined, rather than
+  the `macos/scripts/utilities/lib.sh` forwarder** (closes #214).
 - **`README.md`'s badge row drops the link to the repository.** Section 2
   of the organization standard refuses it: the badge renders the
   repository's name because the URL says so, and the row is an audit, so
