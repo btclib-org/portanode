@@ -25,6 +25,23 @@ using YYYY.MM.DD format.
   arrive together from one archive, unlike the sibling that fetches
   them separately, and why `electrum.AppImage` is installed unmodified
   under a fixed name rather than extracted.
+- **`linux/scripts/electrum/`'s launchers refuse to start Electrum
+  against a datadir that cannot hold a unix domain socket, instead of
+  starting it silently broken** (closes #148). Before exec-ing the
+  AppImage, each launcher binds and releases a probe socket inside
+  `electrum-datadir` — the same call Electrum's own daemon makes for its
+  RPC channel (`daemon_rpc_socket`) — and refuses with an explanation and
+  a manual `--dir` workaround if that bind fails, rather than checking
+  the filesystem type. Measured on `ubuntu-latest`: Ubuntu's own kernel
+  exFAT driver answers the bind with `EPERM`, `exfat-fuse` answers `EIO`
+  instead, and neither matches the `os.chmod` crash `electrum/util.py`'s
+  `make_dir` was previously found to raise there — that second failure
+  does not reproduce on the kernel driver, whose `os.chmod` no-ops
+  silently the way macOS's does. Both drivers still leave the daemon
+  unable to come up, which is the failure this launcher now catches
+  before Electrum ever runs. `README.md`'s *Choosing a filesystem* now
+  carries the same fact against its exFAT row. macOS and Windows are
+  unmeasured and unchanged.
 - **`macos/scripts/utilities/lib.sh` and `linux/scripts/utilities/lib.sh`
   no longer name which scripts source them directly** (closes #164).
   Both headers listed the scripts sourcing `$SCRIPT_DIR/lib.sh` rather
