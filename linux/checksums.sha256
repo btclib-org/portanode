@@ -1,5 +1,7 @@
 # SHA-256 checksums for Bitcoin and Electrum binaries
-# Verify with: shasum -a 256 -c linux/checksums.sha256
+# Verify with: sed 's/  version=.*//' linux/checksums.sha256 | sha256sum -c -
+# The sed step is not optional: -c reads an entry's version field as part of
+# the path, so without it a file whose hashes all match still fails.
 # Generated with: shasum -a 256 <files> > linux/checksums.sha256
 # Format: <sha256>  <path>  version=<semver>
 # Integrity/rollback only, NOT authenticity: entries are recorded by the updater
