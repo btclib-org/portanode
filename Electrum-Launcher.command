@@ -2,7 +2,10 @@
 set -u
 set -o pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# readlink -f: $0 is the symlink's own path where a launcher is
+# started through one, which would send both the source below and
+# the root walk into the wrong directory.
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 . "$SCRIPT_DIR/macos/scripts/lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
 

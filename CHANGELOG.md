@@ -38,6 +38,32 @@ using YYYY.MM.DD format.
   from the mount's `fmask`/`umask` instead, documented by the driver
   and not measured in this repository — a restrictive mount can leave a
   script unexecutable on Ubuntu where macOS never would.
+- **Every per-network bitcoin/electrum launcher under `macos/scripts/`
+  and `linux/scripts/bitcoin/`, and the root-level
+  `*-Launcher.command`/`*-Launcher.sh` pairs, source the shared
+  `resolve_root` forwarder instead of repeating the root arithmetic
+  inline, and resolve `ROOTDIR` through a symlink the same way they do
+  when run directly** (closes #140) (closes #150). Each replaces its own
+  `cd "$(dirname "$0")/../../.." && pwd -P` with
+  `SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd -P)"`,
+  followed by sourcing `../lib.sh` (or, for the root launchers,
+  `macos/scripts/lib.sh` and `shared/lib.sh`) and calling `resolve_root
+  "$SCRIPT_DIR"`, matching `linux/scripts/electrum/`'s own launchers.
+  Measured on macOS: a launcher reached through a symlink in its own
+  directory and through one two directories away both resolve the same
+  `ROOTDIR` as running the file directly, and `PORTANODE_ROOT` still
+  takes precedence through either symlink form; the inline form resolved
+  `ROOTDIR` to `/` for the different-directory case before this fix.
+  Opened through `open` -- the call Finder's own double-click makes on a
+  `.command` file -- a symlinked launcher already receives its target's
+  own path in `$0` rather than the link's, so `readlink -f` is a no-op
+  there and the case it exists for is a direct shell invocation through
+  the symlink. `win/scripts/**`'s `.bat` launchers already resolve their
+  own path through `root.bat`'s `:resolve_root`, unchanged here.
+- **`shared/lib.sh`'s header names `macos/scripts/lib.sh` and
+  `linux/scripts/lib.sh` as the forwarders that exist, and
+  `resolve_root`'s comment on accepting one platform directory no longer
+  rests on `linux/` being absent** (closes #142).
 - **`CLAUDE.md` states that a commit subject is one physical line, and
   names the read that shows one as it will land** (closes #130):
   `git show -s --format=%B <sha> | head -1`. `%s` takes everything up to

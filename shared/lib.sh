@@ -1,10 +1,9 @@
 #!/bin/bash
 # Shared helpers for every platform's scripts. This file names no
-# platform on purpose. macos/scripts/lib.sh forwards to it rather than
-# holding the implementation, and a future linux/scripts/lib.sh forwards
-# to it the same way, so the path arithmetic into shared/ lives in one
-# forwarder per platform instead of in every script that would
-# otherwise source it directly.
+# platform on purpose. macos/scripts/lib.sh and linux/scripts/lib.sh each
+# forward to it rather than holding the implementation, so the path
+# arithmetic into shared/ lives in one forwarder per platform instead of
+# in every script that would otherwise source it directly.
 
 resolve_root() {
     local start_dir="$1"
@@ -21,11 +20,11 @@ resolve_root() {
     local dir="$start_dir"
     while [ -n "$dir" ]; do
         # A root is marked by VERSION plus at least one platform
-        # directory, not by all three: macos/ and win/ are the whole of
-        # the tree until a later issue creates linux/, and requiring it
-        # here would make this probe fail on every checkout until that
-        # issue lands, sending every caller to the fallback below instead
-        # of to the root it is actually sitting in.
+        # directory, not by all three: a checkout of a source archive, or
+        # a tree being assembled, need not hold every platform directory
+        # yet, and requiring all three here would make this probe fail on
+        # such a checkout, sending its caller to the fallback below
+        # instead of to the root it is actually sitting in.
         #
         # This is looser than requiring all three: an ancestor holding
         # VERSION plus only one platform directory now matches, where the
