@@ -42,11 +42,25 @@ REM left it with, caret included, instead of bitcoind.exe with its
 REM arguments, and no bitcoind process started at all. Built in a
 REM variable instead, so the whole argument is one physical line and no
 REM "^" is ever read inside an open quote.
-set BITCOIND_CMD=""%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0
+REM ROOTDIR/DATADIR quoting (#145): ROOTDIR is not this repository's to
+REM choose -- it is wherever the folder is mounted -- and a directory name
+REM may legally carry a "&", which cmd.exe reads as a command separator
+REM anywhere it is not inside an open quote. Measured on windows-latest
+REM with ROOTDIR carrying one: unquoted, BITCOIND_CMD split there and cmd
+REM tried to run the fragment after the "&" as its own command; the
+REM %ROOTDIR% and %DATADIR% below are each now inside their own quote
+REM pair. CLI_CMD's own "&"s are not incidental -- they chain cd, title
+REM and doskey for cmd /k to run -- so CLI_CMD stays one continuous quote
+REM with no interior close/reopen, which keeps ROOTDIR, DATADIR and both
+REM "&"s inside it instead of trying to quote ROOTDIR and DATADIR on their
+REM own the way BITCOIND_CMD does: closing and reopening the quote around
+REM them left this same "&" unprotected again, splitting the SET line
+REM itself before CLI_CMD was even fully assigned.
+set BITCOIND_CMD="%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0
 set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
 set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
-set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666"
+set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666
 start "" cmd /k %BITCOIND_CMD%
-set CLI_CMD="cd /d "%ROOTDIR%\win\bin" & title %~n0 & doskey btc=bitcoin-cli.exe -regtest -datadir="%DATADIR%" $*"
+set CLI_CMD="cd /d %ROOTDIR%\win\bin & title %~n0 & doskey btc=bitcoin-cli.exe -regtest -datadir=%DATADIR% $*"
 start "" cmd /k %CLI_CMD%

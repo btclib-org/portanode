@@ -210,6 +210,33 @@ using YYYY.MM.DD format.
   confirming the comment's other premise; `:require_deleted` already
   checked the directory's own resulting state rather than `rmdir`'s
   exit code, so its behavior is unchanged.
+- **The same six Windows regtest CLI launchers quote `%ROOTDIR%` and
+  `%DATADIR%` where `BITCOIND_CMD` and `CLI_CMD` build them, instead of
+  leaving either exposed to cmd.exe's own metacharacters** (closes
+  #145). `ROOTDIR` is wherever the folder is mounted, not a name this
+  repository chooses, and a directory name may legally carry a `&`,
+  which cmd.exe reads as a command separator anywhere it sits outside
+  an open quote; the two variables sat there unquoted in all six
+  launchers. Measured on `windows-latest` with `ROOTDIR` carrying one:
+  `Get-CimInstance Win32_Process` showed the spawned `cmd.exe` had
+  received only the fragment before the `&`, `bitcoind.exe` never
+  started, and `CLI_CMD` in a first candidate fix lost `title` and
+  `doskey` entirely, because the unquoted `&` inside it split the `set`
+  statement itself at assignment time, before `CLI_CMD` was fully
+  built. `BITCOIND_CMD` now wraps `%ROOTDIR%` and `%DATADIR%` each in
+  its own quote pair; `CLI_CMD` instead stays one continuous quote with
+  no interior close/reopen, since its own `&`s are load-bearing —
+  chaining `cd`, `title` and `doskey` for `cmd /k` — and closing then
+  reopening the quote around `ROOTDIR`/`DATADIR` the way `BITCOIND_CMD`
+  does would leave that same `&` unprotected again. Confirmed on
+  `windows-latest` with a mount path carrying a `&`: the spawned
+  `cmd.exe` processes' own `CommandLine` shows the path intact and
+  correctly delimited in both variables. What this did not establish is
+  a stand-in `bitcoind.exe` actually running end to end under `cmd /k`
+  on that path — the hosted runner has no desktop session, and an
+  interactive `cmd /k` console reports "Input redirection is not
+  supported" there regardless of the quoting, a runner limitation
+  distinct from the fix itself.
 - **`linux/checksums.sha256`'s header names a verification command that
   exists on a bare Linux install and that reads this file's own entry
   format** (closes #134). It named `shasum -a 256 -c

@@ -58,11 +58,15 @@ REM Measured on windows-latest: see regtest-18444-Alice-cli.bat for why a
 REM "^" split here is swallowed as literal text inside an open quote, and
 REM no bitcoind process starts. Built in a variable instead, so the whole
 REM argument is one physical line.
-set BITCOIND_CMD=""%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0
+REM ROOTDIR/DATADIR quoting: see regtest-18444-Alice-cli.bat (#145) for why
+REM each is wrapped in its own quote pair here, and CLI_CMD in one
+REM continuous quote with no interior close/reopen -- ROOTDIR is not this
+REM repository's to choose, and a mount path can carry a "&" or a space.
+set BITCOIND_CMD="%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0
 set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
 set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
-set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666"
+set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666
 start "" cmd /k %BITCOIND_CMD%
-set CLI_CMD="cd /d "%ROOTDIR%\win\bin" & title %~n0 & doskey btc=bitcoin-cli.exe -regtest -datadir="%DATADIR%" $*"
+set CLI_CMD="cd /d %ROOTDIR%\win\bin & title %~n0 & doskey btc=bitcoin-cli.exe -regtest -datadir=%DATADIR% $*"
 start "" cmd /k %CLI_CMD%
