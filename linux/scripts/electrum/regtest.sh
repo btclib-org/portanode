@@ -71,16 +71,62 @@ fi
 # guess at the filesystem type: a type check would miss a future
 # filesystem with the same limitation and misfire on an exFAT mount
 # where the bind happens to work.
+#
+# A bind the kernel refuses is the only outcome that stops the launcher.
+# A probe that could not be made prints a note and lets Electrum start,
+# because refusing on a datadir nothing measured locks a user out of a
+# filesystem that works.
+#
+# sockaddr_un carries a fixed-width path, and CPython raises rather than
+# truncating a longer one. It raises while converting the address, before
+# any system call, and that exception carries no errno where a bind the
+# kernel refuses carries one -- which separates a path that does not fit
+# from a filesystem that will not hold a socket, without asking the
+# runtime for the width. The question is put to daemon_rpc_socket's own
+# path, that being the one the answer is about, through connect rather
+# than bind so that asking it creates nothing there.
+#
+# unlink before bind: any name already at the probe path answers
+# EADDRINUSE, which is a fact about the leftover rather than about the
+# filesystem underneath it.
+#
+# The probe's name is kept shorter than daemon_rpc_socket so the guard is
+# never the more fragile of the two. A longer one stops measuring across
+# a band of ROOTDIR lengths where Electrum's own socket path still fits,
+# and ROOTDIR is wherever the folder is plugged in.
+#
+# A refused bind exits 4 rather than 1 because an uncaught exception in
+# the script below exits 1 as well, and the case below that stops the
+# launcher has to be the measured refusal alone.
 mkdir -p "${ROOTDIR}/electrum-datadir"
-SOCKET_PROBE="${ROOTDIR}/electrum-datadir/.portanode-socket-probe.$$"
+SOCKET_PROBE="${ROOTDIR}/electrum-datadir/.probe.$$"
 if command -v python3 >/dev/null 2>&1; then
-    if ! python3 - "$SOCKET_PROBE" <<'PYEOF' 2>/dev/null
-import socket, sys
-s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-s.bind(sys.argv[1])
+    python3 - "${ROOTDIR}/electrum-datadir/daemon_rpc_socket" \
+             "$SOCKET_PROBE" <<'PYEOF' 2>/dev/null
+import os
+import socket
+import sys
+
+for path in sys.argv[1:]:
+    try:
+        socket.socket(socket.AF_UNIX, socket.SOCK_STREAM).connect(path)
+    except OSError as err:
+        if err.errno is None:
+            raise SystemExit(2)
+try:
+    os.unlink(sys.argv[2])
+except OSError:
+    pass
+try:
+    socket.socket(socket.AF_UNIX, socket.SOCK_STREAM).bind(sys.argv[2])
+except OSError:
+    raise SystemExit(4)
 PYEOF
-    then
-        rm -f "$SOCKET_PROBE"
+    SOCKET_PROBE_STATUS=$?
+    rm -f "$SOCKET_PROBE"
+    case "$SOCKET_PROBE_STATUS" in
+    0) ;;
+    4)
         echo "Error: ${ROOTDIR}/electrum-datadir cannot hold a unix domain" \
              "socket."
         echo "Electrum's daemon binds one there (daemon_rpc_socket) for its" \
@@ -94,8 +140,20 @@ PYEOF
         printf ' %q' "${ELECTRUM_ARGS[@]:2}"
         printf '\n'
         exit 1
-    fi
-    rm -f "$SOCKET_PROBE"
+        ;;
+    2)
+        echo "Note: a unix domain socket address cannot hold a path as long" \
+             "as ${ROOTDIR}/electrum-datadir/daemon_rpc_socket, so whether" \
+             "that filesystem supports one was not tested. Electrum's daemon" \
+             "meets the same limit binding that path; a mount point with a" \
+             "shorter path is what shortens it."
+        ;;
+    *)
+        echo "Note: the unix-socket check for electrum-datadir did not run." \
+             "If Electrum's daemon fails to start, this directory's" \
+             "filesystem may not support unix domain sockets."
+        ;;
+    esac
 else
     echo "Note: python3 not found; skipping the unix-socket check for" \
          "electrum-datadir. If Electrum's daemon fails to start, this" \
