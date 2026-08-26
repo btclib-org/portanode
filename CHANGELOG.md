@@ -57,6 +57,24 @@ using YYYY.MM.DD format.
   regtest nodes keep the distinct `-rpcport` values (18443 default for
   Alice, 18554 for Bob, 18665 for Carol) that stop a later node from
   binding an earlier one's RPC port.
+- **`claude-review.yml` converges with `btclib-org/.github`'s current
+  copy: a `CLAUDE_REVIEW_ENABLED` job-level gate, the guard reading the
+  SDK's `api_error_status` and `stop_reason`, and the verdict posted as
+  a review of type `COMMENT`** (issue btclib-org/.github#364,
+  btclib-org/.github#385, btclib-org/.github#340). Both jobs carry
+  `if: vars.CLAUDE_REVIEW_ENABLED == 'true'`, an organization variable
+  that is currently unset, so a skip replaces the `is_error: true`
+  failure every `pull_request` run of this workflow has shown since
+  2026-08-25. `Refuse to report a review that never ran` reads
+  `api_error_status`, `stop_reason` and `.result` from the SDK's
+  execution file rather than the action's own sanitized log. The
+  verdict is posted with `gh pr review --comment`, never `--approve` or
+  `--request-changes`, `NACK <sha>` joining `ACK <sha>` and `CHANGES
+  REQUESTED <sha>`; `Refuse to report anything but an ack of this head`
+  drops the approve/request-changes state cross-check a `COMMENT`
+  review has no state for. The header's `main-self-merge` paragraph is
+  corrected to match: a `COMMENT` review never supplies the ruleset's
+  approving-review count, so this workflow was never a route to it.
 - **`update-bitcoin` installs Bitcoin Core on Linux, choosing the
   architecture from the machine, verifying the same multi-signed
   `SHA256SUMS` the other two platforms already check, and leaving a
