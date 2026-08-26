@@ -97,17 +97,20 @@ REM with Set-Content, matching what README.md documents this file as:
 REM append-only. A rewrite of every line on each call -- and Select-Object
 REM -Unique silently dropping any repeated one, comments included -- is what
 REM this converges away from.
-powershell -Command ^
-  "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; ^
-  $checksum = '%CHECKSUM_FILE%'; ^
-  if (!(Test-Path $checksum)) { ^
-    Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; ^
-    exit 0 } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
-  $entry = "$hash  %FILEPATH_ENTRY%  version=$version"; ^
-  $existing = Get-Content $checksum; ^
-  if ($existing -notcontains $entry) { ^
-    Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
+REM Measured on windows-latest (#144): a "^" at end of line continues a
+REM batch file's line only while cmd's quote state is closed at that point;
+REM inside the open quote this block used to split across, it is a literal
+REM character and the logical line ends there. Built as one physical line
+REM instead, so no "^" is ever read inside an open quote. $entry is built
+REM with single-quoted concatenation rather than a double-quoted
+REM interpolated string: measured on windows-latest, a double quote nested
+REM inside the one that already wraps this whole -Command argument is not
+REM passed through to powershell.exe -- it is consumed while the argument
+REM is split into argv, along with the space either side of it, turning
+REM "$hash  ...  $version" into three bare, unquoted tokens and a parse
+REM error. Every other quoted PowerShell string in this file is already
+REM single-quoted for the same reason.
+powershell -Command "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (!(Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $entry = $hash + '  %FILEPATH_ENTRY%  version=' + $version; $existing = Get-Content $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
 exit /b 0
 
 :verify_checksum
@@ -123,17 +126,9 @@ if not exist "%FILEPATH_FS%" (
     exit /b 1
 )
 if "%CHECKSUM_FILE%"=="" exit /b 1
-powershell -Command ^
-  "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; ^
-  $checksum = '%CHECKSUM_FILE%'; ^
-  if (!(Test-Path $checksum)) { exit 1 } ^
-  $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); ^
-  $pathNorm = $path.ToLower(); ^
-  $lines = Get-Content $checksum; ^
-  $found = $false; foreach ($l in $lines) { ^
-    $line = $l.ToLower().Replace('\','/'); ^
-    if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } ^
-  if (-not $found) { exit 1 } }"
+REM Built as one physical line: see :update_checksum's comment above on
+REM why a "^" split across this block's open quote is not a continuation.
+powershell -Command "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; $checksum = '%CHECKSUM_FILE%'; if (!(Test-Path $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0
 
@@ -151,15 +146,9 @@ call :normalize_entry_path "%IV_ENTRY_RAW%" IV_ENTRY_ENTRY
 set "%IV_OUTVAR%=unknown"
 if not exist "%IV_FILE_FS%" exit /b 0
 if not exist "%IV_CHECKSUM%" exit /b 0
-for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command ^
-  "& { $hash = (Get-FileHash -Algorithm SHA256 '%IV_FILE_FS%').Hash.ToLower(); ^
-  $path = '%IV_ENTRY_ENTRY%'.ToLower(); ^
-  $lines = Get-Content '%IV_CHECKSUM%'; ^
-  foreach ($l in $lines) { ^
-    $line = $l.ToLower().Replace('\','/'); ^
-    if ($line.StartsWith($hash) -and $line.Contains($path)) { ^
-      if ($l -match 'version=(\S+)') { Write-Output $matches[1] } ^
-      break } } }"`) do set "%IV_OUTVAR%=%%V"
+REM Built as one physical line: see :update_checksum's comment above on
+REM why a "^" split across this block's open quote is not a continuation.
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $hash = (Get-FileHash -Algorithm SHA256 '%IV_FILE_FS%').Hash.ToLower(); $path = '%IV_ENTRY_ENTRY%'.ToLower(); $lines = Get-Content '%IV_CHECKSUM%'; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($path)) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
 exit /b 0
 
 REM :rootdir_arg ROOTDIR OUTVAR
