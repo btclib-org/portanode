@@ -59,6 +59,38 @@ using YYYY.MM.DD format.
   `win/checksums.sha256` carry the same `-c` line and are left to their
   own platforms (issue #146); the `Generated with:` line all three carry
   is issue #147.
+- **`linux/scripts/utilities/` carries the utilities the macOS tree
+  carries, and `set-permissions` reads the mode back rather than
+  reporting success** (closes #121). `clean-artifacts.sh`,
+  `health-check.sh`, `monitor-bitcoin-log.sh`, `rotate-bitcoin-log.sh`,
+  `set-permissions.sh`, `validate-setup.sh` and `verify-binaries.sh` join
+  the updaters and the rollback pair, with the directory's own
+  `README.md`; `verify-binaries.sh` reads `linux/checksums.sha256` and
+  `health-check.sh` and `validate-setup.sh` expect `linux/bin`.
+  `set-permissions.sh`'s subject is different from the macOS one's, and
+  measured on a loopback exFAT image on a `ubuntu-latest` runner rather
+  than derived from the driver: exFAT stores no Unix mode, a mount naming
+  no mask reported `fmask=0022,dmask=0022` so every file read `rwxr-xr-x`
+  and every directory `drwxr-xr-x`, and `chmod 700` exited 0 for the
+  volume's owner while the directory went on reading `drwxr-xr-x` — and
+  exited 1, "Operation not permitted", for anybody else. So the execute
+  bit survives those masks, where macOS synthesises `rwx------` whatever
+  `chmod` asked. `uid=<uid>,fmask=077,dmask=077` restricts such a volume
+  and keeps the owner's execute bit; `fmask=133` is what removes it,
+  a file then reading `rw-r--r--` and running it directly failing with
+  exit 126. What a desktop automounter passes is not measured, a loopback
+  image having none, which is why the script reads the mode and the mount
+  options back rather than predicting either.
+  `monitor-bitcoin-log.sh` degrades where a desktop notification cannot
+  be delivered: that runner image carries no `notify-send` until
+  `libnotify-bin` is installed, and with no notification daemon on the
+  session bus it exits 1 with
+  `org.freedesktop.DBus.Error.ServiceUnknown`, so the errors already on
+  standard output are reported as the whole of the run.
+  `health-check.sh` makes one `pgrep -f` pass where the macOS half makes
+  a second over process names: a process name was truncated to fifteen
+  characters there, so `electrum.AppImage` read back as
+  `electrum.AppIma` and `pgrep -x` refused a pattern that long outright.
 - **`update-electrum` installs Electrum on Linux from the signed AppImage
   electrum.org publishes, unmodified, rather than extracting it**
   (closes #118). `linux/scripts/utilities/update-electrum.sh` scrapes
