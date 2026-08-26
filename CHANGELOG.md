@@ -96,6 +96,25 @@ using YYYY.MM.DD format.
   line a launcher prints are unchanged, naming the mount point itself;
   `CLAUDE.md` and `REVIEWING.md` now carry that distinction beside the
   convention they each state.
+- **`shared/utilities/lib.sh`'s comments on `tree_hash`,
+  `verify_sha256sums` and `verify_binaries` stop counting callsites and
+  stop describing the file as it used to be** (closes #191).
+  `tree_hash`'s comment gave the run-time choice between `shasum` and
+  `sha256sum` as "made once so `tree_hash`'s two callsites do not each
+  repeat it", and named `update_checksum`, `verify_checksum_entry` and
+  `installed_version` below it as already making the same choice — a
+  list short of `verify_sha256sums` and `verify_binaries`, which make
+  the same choice too. The comment now says the helper picks the command
+  itself rather than taking one as an argument, and names no caller.
+  `verify_sha256sums`'s comment explained its `sha256sum` branch by when
+  that branch first ran; it now points at `tree_hash`'s paragraph for
+  the pick and says the branch is what a Linux install without `shasum`
+  runs. `verify_binaries`'s sentence naming both `verify-binaries.sh`
+  scripts as having run the parser inline is dropped rather than
+  rewritten: the header's own `verify_binaries` paragraph gives the
+  callers' differing checksum file and prefix as the reason nothing is
+  defaulted, and each caller names its counterpart above its own
+  callsite. Comment lines only; no script behaviour changes.
 - **macOS's `update-electrum.sh` and `rollback-electrum.sh` anchor the
   bare `run_electrum` alternative in `ELECTRUM_PGREP_PATTERN`** (closes
   #168). Unanchored, it matched any process whose command line merely
