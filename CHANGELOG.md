@@ -74,6 +74,31 @@ using YYYY.MM.DD format.
   `Bitcoin-Launcher.sh`, `Electrum-Launcher.sh` and
   `Utilities-Launcher.sh` each currently refuse Linux rather than
   reaching this directory.
+- **`macos/checksums.sha256` and `win/checksums.sha256`'s `Verify with:` lines
+  are replaced with commands that actually verify the file, and all three
+  `checksums.sha256` headers drop the `Generated with:` line that invited
+  overwriting an append-only file** (closes #146, closes #147). `-c` reads an
+  entry's `version=` field as part of the path it names, so
+  `shasum -a 256 -c macos/checksums.sha256` failed every entry on a clean
+  install; measured on macOS 26.6.2 (`shasum` 6.02) against a fixture whose
+  recorded hashes matched: `FAILED open or read` on every entry, exit 1. The
+  macOS header now strips the field first, the way `linux/checksums.sha256`
+  already does for #134:
+  `sed 's/  version=.*//' macos/checksums.sha256 | shasum -a 256 -c -`, measured
+  on the same machine against the same fixture — `OK` and exit 0 on a match,
+  `FAILED` and exit 1 on a modified binary, `FAILED open or read` and exit 1 on
+  a missing one. `shasum` and `sha256sum` are not guaranteed on Windows, so
+  `win/checksums.sha256`'s header instead names a PowerShell one-liner that
+  filters to the 64-hex-character lines and compares each with `Get-FileHash`,
+  measured on `windows-latest` (`actions/checkout@v5`, native PowerShell)
+  against a fixture in the same format: `OK` on a match, `FAILED` on a modified
+  binary, `FAILED (missing)` on a missing one. The
+  `Generated with: shasum -a 256 <files> > <file>` line every header carried
+  truncates a file `CLAUDE.md` states is append-only, and writes two fields
+  where the `Format:` line documents three; `update_checksum` in
+  `shared/utilities/lib.sh` is the only writer, which the
+  `Integrity/rollback only` paragraph beside it already states, so the line is
+  removed rather than corrected to name that function a second time.
 - **`CLAUDE.md` states that a commit subject is one physical line, and
   names the read that shows one as it will land** (closes #130):
   `git show -s --format=%B <sha> | head -1`. `%s` takes everything up to
