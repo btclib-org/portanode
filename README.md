@@ -283,7 +283,11 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   or `linux/bin/` (`bitcoin-qt`, `bitcoind`, `bitcoin-cli`, `bitcoin-tx`,
   `bitcoin-util`, `bitcoin-wallet`, `bitcoin`) for Bitcoin Core, or
   `macos/bin/Electrum.app/`, `win/bin/electrum.exe`, or
-  `linux/bin/electrum.AppImage` for Electrum. A hand-replaced binary
+  `linux/bin/electrum.AppImage` for Electrum. The Windows file to fetch is
+  Electrum's standalone `electrum-<version>.exe`: the portable build of the
+  same release keeps its data directory under whichever directory a
+  launcher was started from and discards the `--dir` the launchers pass, so
+  `win/scripts/electrum/`'s launchers refuse it. A hand-replaced binary
   carries no updater backup and no checksum entry, so rollback and
   `validate-setup`'s checksum check do not see it until an updater run
   records one.
