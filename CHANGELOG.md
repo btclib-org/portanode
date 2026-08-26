@@ -7,6 +7,19 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`README.md`'s badge row drops the link to the repository.** Section 2
+  of the organization standard refuses it: the badge renders the
+  repository's name because the URL says so, and the row is an audit, so
+  the item that measures nothing is the one that does not belong in it.
+  This tree carries no `pyproject.toml` and publishes nothing, so the
+  standard's usual replacement — a `repository` line in a sdist's
+  `PKG-INFO` — has no file here to hold it; a reader of this `README.md`
+  has already reached it by cloning the repository or by unzipping a
+  release's source archive, both of which start from GitHub already.
+  The badge row's own HTML comment loses its appeal to a site with it:
+  this repository serves none — `has_pages` is false and the `pages`
+  endpoint answers 404 — so the kramdown `hard_wrap` that comment named
+  renders nothing here (issue btclib-org/.github#381).
 - **`win/scripts/utilities/health-check.bat` reports Bitcoin and Electrum
   rather than stopping at its first line of output with a cmd.exe parse
   error** (closes #188). Two constructs stop it, each measured on
