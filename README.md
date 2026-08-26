@@ -72,6 +72,16 @@ and Ubuntu it has to run under, not on a single default:
   and the script still runs, but a mount raising `fmask` past that
   clears the execute bit and the script fails, a mount option away from
   the guarantee macOS's synthesis gives unconditionally.
+- **exFAT on Linux carries a further cost specific to Electrum**: its
+  daemon binds a unix domain socket inside `electrum-datadir` for its own
+  RPC channel, and every wallet command — `getinfo` included — goes
+  through it. Measured on Ubuntu's own kernel exFAT driver, on
+  `ubuntu-latest`: the bind fails with `EPERM` (`exfat-fuse` answers
+  `EIO` instead, both refusing the same call), so the daemon cannot come
+  up and no wallet can be kept in a datadir there. macOS and Windows
+  are unmeasured for this. `linux/scripts/electrum/`'s launchers detect
+  the failing bind before starting Electrum and refuse rather than start
+  it silently broken.
 - **NTFS** read-write from Ubuntu is the kernel's own in-tree `ntfs3`
   driver, documented by the kernel rather than measured here; from
   macOS, NTFS is read-only without a third-party driver, which is why

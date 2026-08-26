@@ -61,4 +61,45 @@ if [ ! -r /dev/fuse ] || [ ! -w /dev/fuse ]; then
     exit 1
 fi
 
+# The daemon's own RPC channel is a unix socket bound inside
+# electrum-datadir (daemon_rpc_socket); a filesystem that cannot hold one
+# lets Electrum start and then die with nothing printed by this launcher
+# -- ISS 148, measured on exFAT under both exfat-fuse (bind answers EIO)
+# and Ubuntu's own kernel driver (bind answers EPERM instead), the
+# datadir left unusable either way. Bound and released here, before
+# Electrum ever runs, this is the same call that fails rather than a
+# guess at the filesystem type: a type check would miss a future
+# filesystem with the same limitation and misfire on an exFAT mount
+# where the bind happens to work.
+mkdir -p "${ROOTDIR}/electrum-datadir"
+SOCKET_PROBE="${ROOTDIR}/electrum-datadir/.portanode-socket-probe.$$"
+if command -v python3 >/dev/null 2>&1; then
+    if ! python3 - "$SOCKET_PROBE" <<'PYEOF' 2>/dev/null
+import socket, sys
+s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.bind(sys.argv[1])
+PYEOF
+    then
+        rm -f "$SOCKET_PROBE"
+        echo "Error: ${ROOTDIR}/electrum-datadir cannot hold a unix domain" \
+             "socket."
+        echo "Electrum's daemon binds one there (daemon_rpc_socket) for its" \
+             "own RPC channel, and every wallet command -- getinfo included" \
+             "-- goes through it; this is the filesystem refusing the bind," \
+             "not a missing package or a wrong argument."
+        echo "No wallet can be kept in a datadir on this filesystem. To run" \
+             "Electrum anyway, point --dir at a directory on a filesystem" \
+             "that supports unix sockets (ext4 and most others do):"
+        printf '  %q --dir <path-on-another-filesystem>' "$ELECTRUM_APPIMAGE"
+        printf ' %q' "${ELECTRUM_ARGS[@]:2}"
+        printf '\n'
+        exit 1
+    fi
+    rm -f "$SOCKET_PROBE"
+else
+    echo "Note: python3 not found; skipping the unix-socket check for" \
+         "electrum-datadir. If Electrum's daemon fails to start, this" \
+         "directory's filesystem may not support unix domain sockets."
+fi
+
 "$ELECTRUM_APPIMAGE" "${ELECTRUM_ARGS[@]}"
