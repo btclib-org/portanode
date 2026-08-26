@@ -45,6 +45,37 @@ using YYYY.MM.DD format.
   shortened; the rejected alternative section 9 also asks for states in
   the present tense, so nothing is lost by dropping the past tense. No
   line of the function changes.
+- **`win/scripts/root.bat`'s `:pause_if_own_console` read the console
+  command line by expanding `%CMDCMDLINE%` into a command, so an operator
+  that command line carried was parsed rather than compared** (closes
+  #203). Measured on `windows-latest` through
+  `win/scripts/electrum/mainnet.bat`'s binary-not-found path, one of the
+  label's own call sites: a console started as
+  `cd /d C:\ && <that launcher>` printed its own command line as far as
+  the `&&` and returned without pausing, leaving the error on a console
+  that closes on exit -- which is the outcome the label exists to
+  prevent -- and `&` alone, or a `| ... >nul` earlier in the same command
+  line, did the same. The text after the operator runs as a command of
+  its own, starting the script again, which a console command line
+  carrying no operator does not. The decision goes wrong the other way
+  too, where the console command line reaches the script through a `%`
+  reference rather than by name: the pipe's own child `cmd.exe` expands
+  that reference a second time and finds the name in the result, so a
+  console that was not opened for the script pauses, where one reaching
+  the same script through a wrapper carrying no such reference does not.
+  The label now reads the value through delayed expansion, which
+  substitutes after the line has been parsed, and tests it with a
+  substring replacement rather than a pipe into `find`; the value's own
+  quotes come out first, the comparison being a quoted one they would
+  otherwise end early. Each of those was measured against its
+  alternative: keeping the pipe under delayed expansion answers `The
+  input line is too long`, each side of a pipe being a new `cmd.exe` that
+  parses what it is handed, and leaving the quotes in reads every console
+  as somebody else's, so nothing pauses at all. Every `.bat` calling the
+  label gets this, the console being a property of how the script was
+  started rather than of the caller. The case the label exists for is the
+  one a runner cannot show: a double-click through Explorer needs a
+  desktop session, and `windows-latest` has none.
 - **`.gitattributes` gives the configuration formats a `text` line, and
   `VERSION` an `eol=lf` one** (closes #185). `*.yml`, `*.yaml`, `*.toml`,
   `*.jsonc`, `.gitattributes`, `.gitignore`, `.secrets.baseline`,
