@@ -88,10 +88,10 @@ if "%DRY_RUN%"=="1" (
         echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
     )
     set ARCHIVE_LEN=
-    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command ^
-      "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head ^
-      -UseBasicParsing).Headers['Content-Length'] } catch { '' } }"`) ^
-      do set ARCHIVE_LEN=%%L
+    REM Built as one physical line -- see win/scripts/utilities/lib.bat's
+    REM :update_checksum comment (#144) on why a "^" split across a
+    REM powershell -Command block's open quote is not a continuation.
+    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing).Headers['Content-Length'] } catch { '' } }"`) do set ARCHIVE_LEN=%%L
     if defined ARCHIVE_LEN (
         set /a ARCHIVE_MB=!ARCHIVE_LEN!/1024/1024
         echo Archive size: !ARCHIVE_MB! MB ^(downloaded to local temp
@@ -117,20 +117,13 @@ mkdir "%TMPDIR%"
 
 echo Downloading %URL%...
 set PGP_OK=0
-powershell -Command ^
-  "& { $ProgressPreference = 'SilentlyContinue'; ^
-  Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" ^
-  || goto :error
-powershell -Command ^
-  "& { $ProgressPreference = 'SilentlyContinue'; ^
-  Invoke-WebRequest -Uri '%CHECKSUM_URL%' ^
-  -OutFile '%TMPDIR%\\SHA256SUMS' }" ^
-  || goto :error
-powershell -Command ^
-  "& { $ProgressPreference = 'SilentlyContinue'; ^
-  Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' ^
-  -OutFile '%TMPDIR%\\SHA256SUMS.asc' }" ^
-  || goto :error
+REM Built as one physical line each -- see :update_checksum in lib.bat
+REM (#144): a caret split across one of these blocks' open quote was a
+REM literal character, not a continuation, so the goto :error guard that
+REM follows never ran and a failed download went undetected.
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\\SHA256SUMS' }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' -OutFile '%TMPDIR%\\SHA256SUMS.asc' }" || goto :error
 
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK "%ROOTDIR%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
@@ -142,15 +135,8 @@ REM quote. A doubled \\s+ therefore reaches the .NET regex engine as a
 REM literal backslash followed by one or more s, and no SHA256SUMS line
 REM holds a backslash. The doubling in the paths is a separate case and
 REM harmless: Windows collapses a repeated path separator.
-powershell -Command ^
-  "& { $sum = Get-Content '%TMPDIR%\\SHA256SUMS' ^
-  | Select-String -Pattern '%FILE%' | Select-Object -First 1; ^
-  if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } ^
-  $expected = ($sum -split '\s+')[0].ToLower(); ^
-  $actual = (Get-FileHash -Algorithm SHA256 ^
-    '%TMPDIR%\\%FILE%').Hash.ToLower(); ^
-  if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } ^
-  Write-Host '%FILE%: OK' }" || goto :error
+REM Built as one physical line -- see :update_checksum in lib.bat (#144).
+powershell -Command "& { $sum = Get-Content '%TMPDIR%\\SHA256SUMS' | Select-String -Pattern '%FILE%' | Select-Object -First 1; if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } $expected = ($sum -split '\s+')[0].ToLower(); $actual = (Get-FileHash -Algorithm SHA256 '%TMPDIR%\\%FILE%').Hash.ToLower(); if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } Write-Host '%FILE%: OK' }" || goto :error
 
 powershell -Command ^
   "& { Expand-Archive -Force '%TMPDIR%\\%FILE%' '%TMPDIR%\\' }" ^

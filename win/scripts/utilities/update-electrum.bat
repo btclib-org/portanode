@@ -83,10 +83,10 @@ if "%DRY_RUN%"=="1" (
         echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
     )
     set ARCHIVE_LEN=
-    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command ^
-      "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head ^
-      -UseBasicParsing).Headers['Content-Length'] } catch { '' } }"`) ^
-      do set ARCHIVE_LEN=%%L
+    REM Built as one physical line -- see :update_checksum in lib.bat
+    REM (#144) on why a caret split across an open quote is not a
+    REM continuation.
+    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing).Headers['Content-Length'] } catch { '' } }"`) do set ARCHIVE_LEN=%%L
     if defined ARCHIVE_LEN (
         set /a ARCHIVE_MB=!ARCHIVE_LEN!/1024/1024
         echo Archive size: !ARCHIVE_MB! MB ^(downloaded to local temp
@@ -111,15 +111,12 @@ mkdir "%TMPDIR%"
 
 echo Downloading %URL%...
 set PGP_OK=0
-powershell -Command ^
-  "& { $ProgressPreference = 'SilentlyContinue'; ^
-  Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' }" ^
-  || goto :error
-powershell -Command ^
-  "& { $ProgressPreference = 'SilentlyContinue'; ^
-  Invoke-WebRequest -Uri '%URL%.asc' ^
-  -OutFile '%TMPDIR%\%SIG_FILE%' }" ^
-  || goto :error
+REM Built as one physical line each -- see :update_checksum in lib.bat
+REM (#144): a caret split across one of these blocks' open quote was a
+REM literal character, not a continuation, so the goto :error guard that
+REM follows never ran and a failed download went undetected.
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%.asc' -OutFile '%TMPDIR%\%SIG_FILE%' }" || goto :error
 
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" PGP_OK "%ROOTDIR%\keys\electrum.fingerprints"
 if errorlevel 1 goto :error

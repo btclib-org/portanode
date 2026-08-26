@@ -94,6 +94,27 @@ using YYYY.MM.DD format.
   own documentation rather than as measured here, that half of the
   table's exFAT-versus-NTFS reasoning being outside what this branch
   measured.
+- **`win/scripts/utilities/*.bat`'s `powershell -Command` blocks no
+  longer split a `^` inside the quote they open** (closes #144). A `^`
+  at the end of a batch line continues it only while cmd's quote state
+  is closed at that point; every block under this directory opened its
+  outer quote on the first physical line and closed it on the last, so
+  an interior `^` was a literal character and everything past it ran as
+  an unrelated cmd command instead of continuing the script. Measured
+  on `windows-latest` against `lib.bat`'s `:update_checksum` and
+  `:verify_checksum`: the checksum entry was silently never appended,
+  and verification returned failure for an entry that matched, in both
+  cases because the guard right after the call reads `%errorlevel%` on
+  a command the caret split left it not running. Each block is now
+  built as a single physical line instead, converging with the fix
+  `win/scripts/bitcoin/regtest-*-cli*.bat` already carry (issue #133);
+  measured the same way, `:update_checksum` now appends the correct
+  hash and `:verify_checksum` and `:installed_version` read it back
+  correctly. `:update_checksum`'s interpolated `"$hash ... $version"`
+  string is now single-quoted concatenation instead: nested inside the
+  quote that wraps the whole `-Command` argument, its own quotes were
+  silently stripped while cmd built PowerShell's argv, which the caret
+  split had until now kept unreached.
 - **`verify-binaries`'s checksum-file parser lives once, in
   `shared/utilities/lib.sh`'s `verify_binaries`, and an empty checksum
   file no longer reads as "Binaries verified."** (closes #143)

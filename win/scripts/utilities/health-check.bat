@@ -35,11 +35,10 @@ set BTC_METHOD=
 set ARTIFACTS=
 set ARTIFACT_NOTE=
 if exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
-    for /f "usebackq delims=" %%J in (`powershell -Command ^
-        "& { try { & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' ^
-        -datadir='%ROOTDIR%\\bitcoin-datadir' ^
-        getblockchaininfo 2>$null } catch { '' } }"`) ^
-    do set BTC_INFO=%%J
+    REM Built as one physical line -- see :update_checksum in
+    REM win/scripts/utilities/lib.bat (#144) on why a caret split across
+    REM a powershell -Command block's open quote is not a continuation.
+    for /f "usebackq delims=" %%J in (`powershell -Command "& { try { & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
     if defined BTC_INFO (
         set BTC_RUNNING=1
         set BTC_METHOD=bitcoin-cli
@@ -96,13 +95,9 @@ if "%BTC_RUNNING%"=="0" (
 if "%BTC_RUNNING%"=="1" (
     if defined BTC_METHOD (
         if /i "%BTC_METHOD%"=="bitcoin-cli" (
-            for /f "usebackq delims=" %%P in (`powershell -Command ^
-                "& { try { ^
-                (Get-Command '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' ^
-                -ErrorAction Stop).Path } catch { ^
-                try { (Get-Command bitcoin-cli.exe -ErrorAction Stop).Path } ^
-                catch { '' } } }"`) ^
-            do set BTC_CLI_PATH=%%P
+            REM Built as one physical line -- see :update_checksum in
+            REM lib.bat (#144).
+            for /f "usebackq delims=" %%P in (`powershell -Command "& { try { (Get-Command '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -ErrorAction Stop).Path } catch { try { (Get-Command bitcoin-cli.exe -ErrorAction Stop).Path } catch { '' } } }"`) do set BTC_CLI_PATH=%%P
             if defined BTC_CLI_PATH (
                 echo Bitcoin running: yes (%BTC_METHOD%: !BTC_CLI_PATH!)
             ) else (
@@ -115,14 +110,9 @@ if "%BTC_RUNNING%"=="1" (
         echo Bitcoin running: yes
     )
     if exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
-        for /f "usebackq delims=" %%J in (`powershell -Command ^
-            "& { try { $info = & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' ^
-            -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo ^
-            2>$null | ConvertFrom-Json; ^
-            if ($info.verificationprogress) { ^
-              [math]::Round($info.verificationprogress*100,2) ^
-            } } catch { '' } }"`) ^
-        do set SYNC=%%J
+        REM Built as one physical line -- see :update_checksum in
+        REM lib.bat (#144).
+        for /f "usebackq delims=" %%J in (`powershell -Command "& { try { $info = & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
         if defined SYNC (
             echo Bitcoin sync: !SYNC!%%
         ) else (
@@ -147,10 +137,8 @@ if "%BTC_RUNNING%"=="1" (
 
 set ELECTRUM_RUNNING=0
 set ELECTRUM_METHOD=
-for /f "usebackq delims=" %%P in (`powershell -Command ^
-    "& { $p = Get-Process electrum -ErrorAction SilentlyContinue; ^
-    if ($p) { $p | Select-Object -ExpandProperty Path } }"`) ^
-do (
+REM Built as one physical line -- see :update_checksum in lib.bat (#144).
+for /f "usebackq delims=" %%P in (`powershell -Command "& { $p = Get-Process electrum -ErrorAction SilentlyContinue; if ($p) { $p | Select-Object -ExpandProperty Path } }"`) do (
     echo %%P | find /i "\win\bin\electrum.exe" >nul
     if !errorlevel!==0 (
         set ELECTRUM_RUNNING=1
