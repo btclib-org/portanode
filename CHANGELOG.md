@@ -17,6 +17,14 @@ using YYYY.MM.DD format.
   or extracted-tree invocation of a script named `run_electrum` still
   matches. Both scripts keep one shared pattern, as `rollback-electrum.sh`'s
   own comment says they do.
+- **`linux/bin/README.md` names what belongs in `linux/bin/`, the way
+  `macos/bin/README.md` and `win/bin/README.md` already do for their own
+  directories** (closes #169). `linux/bin/.gitignore` names the same
+  binaries `update-bitcoin.sh` and `update-electrum.sh` install there;
+  the new file explains why `bitcoin-qt` and the command-line tools
+  arrive together from one archive, unlike the sibling that fetches
+  them separately, and why `electrum.AppImage` is installed unmodified
+  under a fixed name rather than extracted.
 - **`macos/scripts/utilities/lib.sh` and `linux/scripts/utilities/lib.sh`
   no longer name which scripts source them directly** (closes #164).
   Both headers listed the scripts sourcing `$SCRIPT_DIR/lib.sh` rather
