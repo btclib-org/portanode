@@ -150,6 +150,40 @@ using YYYY.MM.DD format.
   review has no state for. The header's `main-self-merge` paragraph is
   corrected to match: a `COMMENT` review never supplies the ruleset's
   approving-review count, so this workflow was never a route to it.
+- **`linux/scripts/electrum/` launches Electrum on Linux, at parity with
+  the macOS and Windows halves** (closes #120). `mainnet.sh`,
+  `testnet3.sh`, `testnet4.sh`, `regtest.sh` and
+  `mainnet-local-server-only.sh` pass Electrum's own network flags,
+  which are the same on every platform, and the shared
+  `electrum-datadir/`: that directory is not per-platform, so a wallet
+  made under one platform's launcher is the one the others open. What
+  differs is the invocation — `linux/bin/electrum.AppImage` is run
+  directly, where macOS goes through `open -n` on an app bundle — and
+  `ROOTDIR`, resolved through `linux/scripts/lib.sh` rather than by
+  repeating that file's path arithmetic, from `readlink -f "$0"` so that
+  a launcher started through a symlink resolves from its own directory
+  rather than the link's. A launcher that cannot find the
+  AppImage says so and exits non-zero, and so does one that finds a file
+  it cannot execute: a cleared executable bit and a volume mounted
+  `noexec` both fail `test -x`, and the kernel refuses the exec with
+  `Permission denied` and exit code 126 either way. Each launcher also
+  requires read and write access to the kernel's `/dev/fuse`, which the
+  AppImage mounts its own filesystem through; measured on a
+  `ubuntu-latest` runner, the AppImage without it exits 127 with
+  `fuse: device not found, try 'modprobe fuse' first`, or with
+  `fuse: failed to open /dev/fuse: Permission denied` where the device is
+  present and unreadable. Each of those goes on to offer
+  `--appimage-extract` and then to link AppImageKit's FUSE page, whose
+  remedy is installing `libfuse2t64`, a library this binary does not
+  load. The launcher's message keeps the half that needs no privilege and
+  drops the half that does not apply: it names
+  `--appimage-extract-and-run`, measured on the same runner to reach
+  Electrum's own code with `/dev/fuse` moved out of the way entirely, and
+  prints the whole command with the arguments the launcher would have
+  passed. It names that route rather than taking it, unpacking the
+  AppImage on every start being the slower path and a launcher that chose
+  it quietly leaving a broken FUSE setup looking intact.
+  `linux/scripts/electrum/README.md` carries the measurements.
 - **`update-bitcoin` installs Bitcoin Core on Linux, choosing the
   architecture from the machine, verifying the same multi-signed
   `SHA256SUMS` the other two platforms already check, and leaving a
