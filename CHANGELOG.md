@@ -39,6 +39,26 @@ using YYYY.MM.DD format.
   confirming the comment's other premise; `:require_deleted` already
   checked the directory's own resulting state rather than `rmdir`'s
   exit code, so its behavior is unchanged.
+- **`linux/checksums.sha256`'s header names a verification command that
+  exists on a bare Linux install and that reads this file's own entry
+  format** (closes #134). It named `shasum -a 256 -c
+  linux/checksums.sha256`, which fails on both counts. Measured on
+  `ubuntu-latest` (Ubuntu 24.04.4, `sha256sum` GNU coreutils 9.4,
+  `shasum` 6.04): with `/usr/bin/shasum` moved aside that command exits
+  127 with `command not found`, `shasum` shipping from Perl's
+  `Digest::SHA` rather than from coreutils. And `-c` does not read this
+  file even where `shasum` is present — `update_checksum` writes
+  `<sha256>  <path>  version=<semver>`, and `sha256sum -c` and
+  `shasum -a 256 -c` alike take that third field as part of the path, so
+  a file whose recorded hashes all match still exits 1 with `FAILED open
+  or read`. The header now names
+  `sed 's/  version=.*//' linux/checksums.sha256 | sha256sum -c -`, run
+  on the same runner: exit 0 with `OK` against matching binaries, exit 1
+  with `FAILED` against a modified one, exit 1 with `FAILED open or
+  read` against a missing one. `macos/checksums.sha256` and
+  `win/checksums.sha256` carry the same `-c` line and are left to their
+  own platforms (issue #146); the `Generated with:` line all three carry
+  is issue #147.
 - **`update-electrum` installs Electrum on Linux from the signed AppImage
   electrum.org publishes, unmodified, rather than extracting it**
   (closes #118). `linux/scripts/utilities/update-electrum.sh` scrapes
