@@ -26,7 +26,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ ! -f "$LOG_FILE" ]; then
-    echo "Log file not found: $LOG_FILE"
+    echo "Log file not found: bitcoin-datadir/debug.log"
     exit 0
 fi
 

@@ -5,7 +5,7 @@ param(
 
 $checksum = Join-Path $RootDir 'win/checksums.sha256'
 if (-not (Test-Path $checksum)) {
-  Write-Host "Error: $checksum not found."
+  Write-Host 'Error: win/checksums.sha256 not found.'
   exit 1
 }
 
@@ -43,7 +43,7 @@ $path = $path -replace '\\', '/'
 }
 
 if ($map.Keys.Count -eq 0) {
-  Write-Host "Nothing to verify: no win/* entries in $checksum."
+  Write-Host 'Nothing to verify: no win/* entries in win/checksums.sha256.'
   exit 0
 }
 

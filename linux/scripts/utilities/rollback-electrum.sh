@@ -47,12 +47,12 @@ fi
 echo "Rolling back Electrum binaries..."
 
 if [ ! -d "$BACKUP_DIR" ] || [ ! -f "$BACKUP_DIR/electrum.AppImage" ]; then
-    echo "No backup found in $BACKUP_DIR"
+    echo "No backup found in linux/bin/backup/electrum"
     debug_list_dir "$BACKUP_DIR"
     exit 1
 fi
 if [ ! -f "$CHECKSUM_FILE" ]; then
-    echo "Error: $CHECKSUM_FILE not found."
+    echo "Error: linux/checksums.sha256 not found."
     exit 1
 fi
 
@@ -72,7 +72,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     CURRENT_VERSION="$(installed_version "$BIN_DIR/electrum.AppImage" \
       "linux/bin/electrum.AppImage" "$CHECKSUM_FILE")"
     echo "--dry-run: nothing will be changed."
-    echo "Backup found in $BACKUP_DIR, checksum recognized:" \
+    echo "Backup found in linux/bin/backup/electrum, checksum recognized:" \
          "version ${BACKUP_VERSION}."
     echo "Currently installed: ${CURRENT_VERSION}."
     echo "Would replace linux/bin/electrum.AppImage with the backup."

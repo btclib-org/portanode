@@ -121,10 +121,11 @@ call :normalize_entry_path "%CHECKPATH_RAW%" CHECKPATH_ENTRY
 REM Fails CLOSED on a missing file, converging on
 REM macos/scripts/utilities/lib.sh's verify_checksum_entry, which already
 REM returns non-zero here; a missing binary used to pass this gate silently.
-if not exist "%FILEPATH_FS%" (
-    echo Error: %FILEPATH_FS% not found.
-    exit /b 1
-)
+if exist "%FILEPATH_FS%" goto :verify_checksum_found
+call :rootdir_relative "%FILEPATH_FS%" FILEPATH_REL
+echo Error: %FILEPATH_REL% not found.
+exit /b 1
+:verify_checksum_found
 if "%CHECKSUM_FILE%"=="" exit /b 1
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
@@ -149,6 +150,26 @@ if not exist "%IV_CHECKSUM%" exit /b 0
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $hash = (Get-FileHash -Algorithm SHA256 '%IV_FILE_FS%').Hash.ToLower(); $path = '%IV_ENTRY_ENTRY%'.ToLower(); $lines = Get-Content '%IV_CHECKSUM%'; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($path)) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
+exit /b 0
+
+REM :rootdir_relative PATH OUTVAR
+REM PATH with the ROOTDIR prefix removed, for a message: the folder is
+REM mounted at a different point on every machine it is plugged into, so a
+REM message quoting the mount point tells the reader where this run
+REM happened rather than which file in the folder is meant. A path outside
+REM the folder carries no such prefix and comes back unchanged, which is
+REM CLAUDE.md's one exception to the convention.
+REM "call set" is what expands ROOTDIR inside the pattern: cmd reads the
+REM percent signs of "%PATH:%ROOTDIR%\=%" as three pairs and substitutes
+REM nothing, where the second parse a "call" adds sees one pair around an
+REM already-expanded ROOTDIR. The guard is for an unset ROOTDIR, which
+REM would leave the pattern a bare backslash and strip every separator in
+REM the path.
+:rootdir_relative
+set "RR_PATH=%~1"
+set "RR_OUTVAR=%~2"
+if defined ROOTDIR call set "RR_PATH=%%RR_PATH:%ROOTDIR%\=%%"
+set "%RR_OUTVAR%=%RR_PATH%"
 exit /b 0
 
 REM :rootdir_arg ROOTDIR OUTVAR

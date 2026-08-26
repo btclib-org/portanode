@@ -99,7 +99,8 @@ if "%BTC_RUNNING%"=="1" (
             REM lib.bat (#144).
             for /f "usebackq delims=" %%P in (`powershell -Command "& { try { (Get-Command '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -ErrorAction Stop).Path } catch { try { (Get-Command bitcoin-cli.exe -ErrorAction Stop).Path } catch { '' } } }"`) do set BTC_CLI_PATH=%%P
             if defined BTC_CLI_PATH (
-                echo Bitcoin running: yes (%BTC_METHOD%: !BTC_CLI_PATH!)
+                call "%SCRIPT_DIR%lib.bat" :rootdir_relative "!BTC_CLI_PATH!" BTC_CLI_REL
+                echo Bitcoin running: yes (%BTC_METHOD%: !BTC_CLI_REL!)
             ) else (
                 echo Bitcoin running: yes (%BTC_METHOD%: PATH)
             )

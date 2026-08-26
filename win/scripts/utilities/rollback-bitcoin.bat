@@ -42,7 +42,7 @@ if %errorlevel%==0 (
 pushd "%ROOTDIR%" >nul 2>&1
 
 if not exist "%BACKUP_DIR%" (
-    echo No backup found in %BACKUP_DIR%
+    echo No backup found in win\bin\backup\bitcoin
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
@@ -51,7 +51,7 @@ if not exist "%BACKUP_DIR%" (
 echo Rolling back Bitcoin binaries...
 
 if not exist "%CHECKSUM_FILE%" (
-    echo Error: %CHECKSUM_FILE% not found.
+    echo Error: win\checksums.sha256 not found.
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
@@ -120,7 +120,7 @@ if exist "%BACKUP_DIR%\bitcoin.exe" (
 )
 
 if not exist "%BACKUP_DIR%\bitcoin-qt.exe" (
-    echo Backup files not found in %BACKUP_DIR%
+    echo Backup files not found in win\bin\backup\bitcoin
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
@@ -130,7 +130,7 @@ if "%DRY_RUN%"=="1" (
     call "%SCRIPT_DIR%lib.bat" :installed_version "%BACKUP_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" BACKUPVER
     call "%SCRIPT_DIR%lib.bat" :installed_version "%ROOTDIR%\win\bin\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENTVER
     echo --dry-run: nothing will be changed.
-    echo Backup found in %BACKUP_DIR%, checksum recognized: version !BACKUPVER!.
+    echo Backup found in win\bin\backup\bitcoin, checksum recognized: version !BACKUPVER!.
     echo Currently installed: !CURRENTVER!.
     echo Would replace win\bin binaries with the backup.
     popd >nul 2>&1

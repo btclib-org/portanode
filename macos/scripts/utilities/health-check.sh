@@ -97,7 +97,8 @@ if [ "$BTC_RUNNING" = "yes" ]; then
                     echo "Bitcoin running: yes (${BTC_METHOD}: PATH)"
                 fi
             else
-                echo "Bitcoin running: yes (${BTC_METHOD}: ${BTC_CLI})"
+                echo "Bitcoin running: yes (${BTC_METHOD}:" \
+                     "${BTC_CLI#"$ROOTDIR"/})"
             fi
         else
             echo "Bitcoin running: yes (${BTC_METHOD})"

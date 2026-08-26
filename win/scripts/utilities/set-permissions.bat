@@ -27,25 +27,34 @@ REM exFAT and FAT32 hold no ACL at all: the icacls calls above ran and
 REM exited 0 regardless, with nothing on disk to show for either. Read back
 REM each data directory's own filesystem and say which case it is in,
 REM instead of an unconditional "Permissions set."
-call :report_permission_effect "%BDD%"
-call :report_permission_effect "%EDD%"
+call :report_permission_effect "%BDD%" bitcoin-datadir
+call :report_permission_effect "%EDD%" electrum-datadir
 exit /b 0
 
+REM Two arguments: the path filesystem-type.ps1 is handed, and the
+REM ROOTDIR-relative name the messages use. The folder is mounted at a
+REM different point on every machine it is plugged into, so a message
+REM quoting the mount point tells the reader where this run happened
+REM rather than which directory is meant. The name is passed in because
+REM each caller holds it as a literal; cutting %ROOTDIR% off %TARGET%
+REM instead needs the second parse of a "call set" (:rootdir_relative in
+REM lib.bat) for a value that was never in doubt.
 :report_permission_effect
 set "TARGET=%~1"
+set "REL=%~2"
 set "FS_NAME="
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
   -File "%SCRIPT_DIR%filesystem-type.ps1" -Path "%TARGET%"`) do set "FS_NAME=%%F"
 if not defined FS_NAME (
-    echo Warning: could not determine the filesystem of %TARGET%; assuming
+    echo Warning: could not determine the filesystem of %REL%; assuming
     echo the icacls above took effect.
     exit /b 0
 )
 if /i "%FS_NAME%"=="NTFS" (
-    echo %TARGET% is on an NTFS volume: permissions restricted to
+    echo %REL% is on an NTFS volume: permissions restricted to
     echo %USERDOMAIN%\%USERNAME%.
 ) else (
-    echo Warning: %TARGET% is on a %FS_NAME% volume, which does not store
+    echo Warning: %REL% is on a %FS_NAME% volume, which does not store
     echo ACLs. icacls above changed nothing on disk; the directory is
     echo still readable by anyone with access to the volume. Restrict
     echo access with encryption or physical control of the device instead.

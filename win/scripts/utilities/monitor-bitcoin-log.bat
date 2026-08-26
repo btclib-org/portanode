@@ -22,7 +22,7 @@ exit /b 1
 :args_done
 
 if not exist "%LOG_FILE%" (
-    echo Log file not found: %LOG_FILE%
+    echo Log file not found: bitcoin-datadir\debug.log
     exit /b 0
 )
 

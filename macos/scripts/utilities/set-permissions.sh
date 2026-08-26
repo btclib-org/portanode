@@ -31,24 +31,25 @@ chmod 700 "$ROOTDIR/electrum-datadir"
 # CLAUDE.md's "The bit decides nothing on the volume this is built for").
 report_permission_effect() {
     local dir="$1"
-    local device personality
+    local rel device personality
+    rel="${dir#"$ROOTDIR/"}"
     device="$(df -P "$dir" 2>/dev/null | tail -1 | awk '{print $1}')"
     personality="$(diskutil info "$device" 2>/dev/null \
         | awk -F': +' '/File System Personality/ {print $2}')"
     case "$personality" in
         ExFAT|MS-DOS*|FAT32)
-            echo "Warning: $dir is on a $personality volume, which does not" \
+            echo "Warning: $rel is on a $personality volume, which does not" \
                  "store POSIX permissions. chmod above changed nothing on" \
                  "disk; the directory is still readable by anyone with" \
                  "access to the volume. Restrict access with encryption or" \
                  "physical control of the device instead."
             ;;
         "")
-            echo "Warning: could not determine the filesystem of $dir;" \
+            echo "Warning: could not determine the filesystem of $rel;" \
                  "assuming the chmod above took effect."
             ;;
         *)
-            echo "$dir is on a $personality volume: permissions restricted" \
+            echo "$rel is on a $personality volume: permissions restricted" \
                  "to the owner."
             ;;
     esac
