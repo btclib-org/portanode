@@ -7,6 +7,19 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`macos/scripts/utilities/lib.sh` and `linux/scripts/utilities/lib.sh`
+  no longer name which scripts source them directly** (closes #164).
+  Both headers listed the scripts sourcing `$SCRIPT_DIR/lib.sh` rather
+  than the platform's own root forwarder, as the reason this file stays
+  a separate forwarder instead of being folded away; `verify-binaries.sh`
+  started doing that too once its parser moved into
+  `shared/utilities/lib.sh`, and macOS's header went further, asserting
+  every other script "never touches this file directly" — false on both
+  platforms once `verify-binaries.sh` is counted. An enumeration of a
+  library's own direct callers goes stale on any change to any one
+  caller's sourcing, with nothing to catch it; both headers now say why
+  the forwarder exists without naming who currently uses it, and point
+  at the `git grep` that answers that question live instead.
 - **`verify-binaries`'s checksum-file parser lives once, in
   `shared/utilities/lib.sh`'s `verify_binaries`, and an empty checksum
   file no longer reads as "Binaries verified."** (closes #143)
