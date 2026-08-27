@@ -11,10 +11,9 @@ than to the calendar. One badge per line keeps a change to one line and
 every line inside MD013. -->
 [![license](https://img.shields.io/github/license/btclib-org/portanode.svg)](https://github.com/btclib-org/portanode/blob/main/LICENSE)
 
-[![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
+[![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml)
 [![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/links.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/btclib-org/portanode/badge)](https://scorecard.dev/viewer/?uri=github.com/btclib-org/portanode)
 
 ## Portable (external‑disk‑friendly) cross-platform Bitcoin node
 
