@@ -9,8 +9,6 @@ gives it a day/hour row, and the exception that section states for it
 -- its triggers are the action's own -- is to the trigger rule rather
 than to the calendar. One badge per line keeps a change to one line and
 every line inside MD013. -->
-[![license](https://img.shields.io/github/license/btclib-org/portanode.svg)](https://github.com/btclib-org/portanode/blob/main/LICENSE)
-
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
 [![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml)
 [![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/links.yml)
