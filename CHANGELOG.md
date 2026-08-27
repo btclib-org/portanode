@@ -7,6 +7,20 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`.github/workflows/scorecard.yml` is gone** (issue
+  btclib-org/.github#492). Section 10 of the organization standard
+  records which trees carry which sentinel, and the badge and the
+  workflow are one membership rather than two: the `scorecard` entry
+  does not name this repository, and `README.md` carries no Scorecard
+  badge.
+- **`README.md`'s badge comment gives section 2's three groups, and
+  which sentinels this tree carries is read off section 10's record**
+  (issue btclib-org/.github#492). Section 2 fixes the order and the
+  calendar fixes where the sentinels sit inside it, so the row and the
+  schedule are one decision.
+- **`.github/workflows/links.yml` carries the day and the hour section
+  10 gives `links`, at this repository's own minute** (issue
+  btclib-org/.github#480).
 - **`.github/workflows/scorecard.yml` carries a `schedule:` block,
   Saturday, hour 03, minute 28 from section 10 of the organization
   standard, and `README.md`'s badge comment states the badge order's
