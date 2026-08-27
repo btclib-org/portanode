@@ -7,6 +7,13 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`CONTRIBUTING.md`'s Blinter paragraph names the two shapes `E010`
+  covers, and `REVIEWING.md`'s ROOTDIR bullet gains a control that
+  crosses a continuation line and follows a path into a variable**
+  (closes #207, #224). A caret before a `for /f`'s own parenthesis
+  breaks the loop and a caret inside a backquoted command does not, both
+  under one rule code; the echo-anchored grep read only the physical
+  line an `echo` sits on, which neither shape guarantees.
 - **`REPOSITORY.md`'s topics section reads back what the forge holds
   instead of filing topics under a heading that calls the list empty,
   and `RELEASING.md` states its release-asset claim as a rule about how
