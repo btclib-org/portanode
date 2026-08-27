@@ -258,6 +258,15 @@ than by line. Read what it reports before believing it, and take the
 file with `git archive` rather than with `git show` — `CLAUDE.md`'s
 bullet on these files says why.
 
+**`E010` is one rule code covering two different shapes of a
+`^`-continued `for /f`, and only one of them is the false positive the
+paragraph above describes.** A caret inside the backquoted command
+substitution is a continuation like any other, and the loop runs; a
+caret between `in` and the file set's own opening parenthesis is not a
+continuation, and cmd.exe genuinely loses the loop's `do`. Which shape a
+given `E010` names is read from where the caret sits relative to the
+backquotes, not from the code.
+
 ### What gates a merge, and what only reports
 
 **`lint.yml` runs the gate above on every pull request**, with `uvx

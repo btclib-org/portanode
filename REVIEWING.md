@@ -464,6 +464,57 @@ because that document, and not this one, is where the rule lives.
   matches neither in the message nor in the assignment, so that half is
   read rather than grepped; a message naming `$ROOTDIR` alone is the
   mount point itself and is not this defect.
+
+  That grep, and the interpolating half beside it, both anchor on one
+  physical line holding `echo`, so two shapes reach neither: a message
+  split across a continuation, and a path that reaches the message
+  through a variable assigned elsewhere rather than named on the printed
+  line itself. A control for both joins continuations before grepping,
+  then follows a variable back through its own assignments to `ROOTDIR`:
+
+    ```shell
+    join_continuations() {
+      awk '{ buf = (buf == "") ? $0 : buf " " $0
+             if (buf ~ /[\\^][[:space:]]*$/) {
+               sub(/[\\^][[:space:]]*$/, "", buf); next
+             }
+             print buf; buf = "" }' "$1"
+    }
+
+    rootdir_taint() {
+      joined=$(join_continuations "$1")
+      vars="ROOTDIR"
+      while :; do
+        new=""
+        for v in $(printf '%s\n' "$joined" \
+                     | grep -oE '(^|[^A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_]*=' \
+                     | grep -oE '[A-Za-z_][A-Za-z0-9_]*' | sort -u); do
+          case " $vars " in *" $v "*) continue ;; esac
+          rhs=$(printf '%s\n' "$joined" \
+                  | grep -E "(^|[^A-Za-z0-9_])${v}=")
+          for t in $vars; do
+            if printf '%s' "$rhs" | grep -qE "[\$%!]\{?${t}\}?"; then
+              new="$new $v"
+              break
+            fi
+          done
+        done
+        [ -z "$new" ] && break
+        vars="$vars $new"
+      done
+      pat=$(printf '%s\n' $vars | paste -sd '|' -)
+      printf '%s\n' "$joined" | grep -inE 'echo' | grep -E "$pat"
+    }
+
+    rootdir_taint <file>
+    ```
+
+  run per file rather than per diff, since a continuation or an
+  assignment outside the diff can still feed a line the diff touches. It
+  over-approximates — a variable descended from `ROOTDIR` through a
+  prefix strip renders relative and still matches, and a line building a
+  string for later use rather than for the user reads as a print — so a
+  hit is read rather than trusted, the same way the literal grep's is.
 - **Does the change reach the other platforms?** The same launcher is
   written four ways — `.sh`, `.command`, `.bat`, `.ps1` — and nothing
   keeps them in step. The two halves are not a mirror to begin with,
