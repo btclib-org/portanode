@@ -15,13 +15,19 @@ own publishers at update time rather than attached here.
 
 So the release is an announcement and a fixed point to roll back to, not
 a distribution. What a user takes is a clone or the source archive GitHub
-attaches to the release itself; the existing release carries no uploaded
-asset:
+attaches to the release itself; a release cut by the steps below carries
+no uploaded asset beyond that archive, nothing in them asking
+`gh release create` to attach one. The check is the same before the
+first release as after any of them:
 
 ```shell
 gh api repos/btclib-org/portanode/releases \
   --jq '.[] | {tag_name, assets: [.assets[].name]}'
 ```
+
+Empty output means there is no release to check yet, not that one exists
+and carries nothing; where the list is non-empty, every entry's `assets`
+answering `[]` is what confirms the claim above.
 
 ## The version string
 
