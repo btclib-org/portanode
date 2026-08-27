@@ -7,6 +7,19 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`.github/workflows/links.yml` and `.github/workflows/scorecard.yml`
+  carry the day and the hour section 10 of the organization standard
+  gives their workflow, at this repository's own minute** (issue
+  btclib-org/.github#480). `scorecard.yml`'s schedule comment says which
+  table each field is read from instead of spelling the day and the hour
+  out beside the line saying they are not this file's to restate.
+  `.github/dependabot.yml` is not touched: that section puts Dependabot
+  on Thursday, and the reorder leaves `deps-latest` on the Wednesday
+  that keeps the sentence true.
+- **`README.md`'s badge comment gives section 2's three groups and the
+  order the gates take inside the second** (issue
+  btclib-org/.github#480). The badge order is the calendar order over
+  the sentinels, so the row and the schedule are one decision.
 - **`.github/workflows/scorecard.yml` carries a `schedule:` block,
   Saturday, hour 03, minute 28 from section 10 of the organization
   standard, and `README.md`'s badge comment states the badge order's

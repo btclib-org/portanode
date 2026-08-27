@@ -19,14 +19,15 @@ on:
     # the action's, not section 10's general rule
     branches: [main]
   schedule:
-    # Saturday, hour 03: section 10's calendar, decided by
-    # btclib-org/.github#363. The minute is this repository's own row in
-    # that section's second table -- neither is this file's to restate.
+    # Section 10's calendar, decided by btclib-org/.github#363. The day
+    # and the hour are the `scorecard` row of that section's first table
+    # and the minute is this repository's row of the second, and neither
+    # is this file's to restate.
     # The push trigger above already runs the analysis on every push to
     # main, which is what feeds the badge and the published score
     # between scheduled runs; this covers what push cannot -- a week
     # with none.
-    - cron: "28 3 * * 6"
+    - cron: "28 5 * * 0"
 
 # least privilege for the GITHUB_TOKEN at the workflow level, with one
 # elevation on the job below: the analysis reads the tree, requests a

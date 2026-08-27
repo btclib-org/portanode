@@ -1,14 +1,16 @@
 # PortaNode
 
 <!-- The badges are what the reader decides with, one property of the
-tree per badge, in the fixed order btclib-org/.github's README.md
-section 2 gives: the licence, the lint workflow, pre-commit.ci, then
-the sentinels this tree runs, in section 10's calendar order -- links,
-then Scorecard, which sits there like every other sentinel: section 10
-gives it a day/hour row, and the exception that section states for it
--- its triggers are the action's own -- is to the trigger rule rather
-than to the calendar. One badge per line keeps a change to one line and
-every line inside MD013. -->
+tree per badge, in the three groups btclib-org/.github's README.md
+section 2 fixes: what the software is, whether it works, and what the
+OpenSSF makes of it. This tree publishes nothing, so of the first group
+it carries the licence and nothing an index would report on. Inside the
+second the gates come first, in the order a commit meets them --
+pre-commit.ci, then the lint workflow -- and the sentinels follow in the
+order section 10's calendar schedules them. The day and the hour a
+sentinel owns are that section's and are not copied into this file. One
+badge per line keeps a change to one line and every line inside
+MD013. -->
 [![license](https://img.shields.io/github/license/btclib-org/portanode.svg)](https://github.com/btclib-org/portanode/blob/main/LICENSE)
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
