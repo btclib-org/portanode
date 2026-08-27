@@ -7,6 +7,12 @@ using YYYY.MM.DD format.
 
 ## [2026.01.29] - git main branch
 
+- **`REPOSITORY.md`'s topics section reads back what the forge holds
+  instead of filing topics under a heading that calls the list empty,
+  and `RELEASING.md` states its release-asset claim as a rule about how
+  a release is cut rather than as a fact about a release that exists**
+  (closes #230, #234). Both passages argued from forge state neither had
+  re-derived: the repository carries topics, and carries no release.
 - **`.github/workflows/scorecard.yml` is gone** (issue
   btclib-org/.github#492). Section 10 of the organization standard
   records which trees carry which sentinel, and the badge and the

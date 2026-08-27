@@ -308,15 +308,17 @@ and the API answers a PATCH with 200 while leaving them disabled — both
 read `disabled` in the command above. Do not read that 200 as success.
 The `detect-secrets` hook is the compensating control.
 
-## What is not set
-
-`topics` is empty:
+## Topics
 
 ```shell
 gh api repos/btclib-org/portanode --jq '.topics'
 ```
 
+```json
+["bitcoin","bitcoin-core","cross-platform","electrum","full-node","portable"]
+```
+
 The standard asks that a repository's topics and its package keywords
 name the same things; there is no package here and so no keyword list to
 agree with, which makes the topics a discoverability question rather than
-an alignment one, and an empty list still answers it badly.
+an alignment one, and the six above are what answer it.
