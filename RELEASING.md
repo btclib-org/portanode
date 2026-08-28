@@ -78,9 +78,8 @@ by drift.
 
     `-s` and not a bare `git tag`: `tag-integrity` requires a signature
     on `refs/tags/v*`, and a lightweight tag has no object to carry one.
-    `REPOSITORY.md` records that the first tag predates the rule and is
-    lightweight, which is why this step is spelled out rather than
-    assumed.
+    `REPOSITORY.md`'s *Rulesets* section has that rule and the command
+    that reads which tags it has to match.
 
 1. Publish the release, its body being the section just written:
 

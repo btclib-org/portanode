@@ -121,19 +121,19 @@ that is deliberate rather than an omission: a release that failed
 half-way is recovered by deleting the tag and re-cutting it, which either
 rule would block. What it does refuse is an unsigned `v*` tag.
 
-It refuses one going forward only. `v2026.01.27`, the tag that exists
-today, is a *lightweight* tag — a ref pointing straight at a commit, with
-no tag object to sign:
+A *lightweight* tag — a ref pointing straight at a commit — has no tag
+object for a signature to sit on, which is why `RELEASING.md` tags with
+`git tag -s` and reads the ref's `.object.type` back afterwards.
+
+Which tags exist is not recorded here: a tag is a ref in the repository,
+where everything else in this file is a setting outside it, so a tag
+named here is a line that goes stale the day somebody deletes it.
 
 ```shell
-gh api repos/btclib-org/portanode/git/refs/tags/v2026.01.27 --jq '.object.type'
+gh api repos/btclib-org/portanode/tags --jq '.[].name'
 ```
 
-answers `commit`, where `git tag -s` would make it `tag`. The commit
-under it is signed, and the tag predates the ruleset, so nothing is
-broken; but a tag cannot be signed after the fact without moving it, and
-moving a released tag is worse than leaving it as it is. `RELEASING.md`'s
-tagging step is `git tag -s` for that reason.
+Empty output means nothing matches the pattern yet.
 
 ## Merge methods
 

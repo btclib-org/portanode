@@ -1793,6 +1793,15 @@ using YYYY.MM.DD format.
   `local` and `meta` are the two `repo:` values `pre-commit autoupdate`
   filters out before it walks the rest, so `autoupdate` can no longer
   propose `crate-ci/typos`'s moving `v1` alias here.
+- **`REPOSITORY.md`'s *Rulesets* section names no tag, and gives the
+  command that reads which ones `tag-integrity` has to match** (closes
+  #236). The section explained the rule by grandfathering `v2026.01.27`
+  as a lightweight tag, and that tag and the release with it are gone
+  from the forge; a tag is a ref in the repository where everything else
+  in that file is a setting outside it, so what the file keeps is the
+  read rather than the name. `RELEASING.md`'s tagging step loses the
+  sentence resting on the grandfathered tag and keeps the
+  cross-reference.
 
 ## [2026.01.27] - Initial Release
 
