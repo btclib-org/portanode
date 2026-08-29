@@ -14,11 +14,10 @@ configuration, and the binaries they install are downloaded from their
 own publishers at update time rather than attached here.
 
 So the release is an announcement and a fixed point to roll back to, not
-a distribution. What a user takes is a clone or the source archive GitHub
-attaches to the release itself; a release cut by the steps below carries
-no uploaded asset beyond that archive, nothing in them asking
-`gh release create` to attach one. The check is the same before the
-first release as after any of them:
+a distribution. What it ships is the source archive GitHub attaches to
+it; a release cut by the steps below carries no uploaded asset beyond
+that archive, nothing in them asking `gh release create` to attach one.
+The check is the same before the first release as after any of them:
 
 ```shell
 gh api repos/btclib-org/portanode/releases \
@@ -36,9 +35,10 @@ versioning](https://calver.org/)* — and the tag is that string with a `v`
 in front. There is no fourth component and no release candidate: a fix to
 a release that shipped broken is another day's release.
 
-`VERSION` holds the last released string, and it is the release step that
-moves it. That is worth knowing before editing it for any other reason:
-**`VERSION` is also the marker the launchers find the root by.**
+`VERSION` holds the string a release is cut at, and it is the release
+step that moves it. That is worth knowing before editing it for any
+other reason: **`VERSION` is also the marker the launchers find the root
+by.**
 
 ```shell
 grep -rn 'VERSION' shared/lib.sh win/scripts/root.bat win/scripts/root.ps1
@@ -56,6 +56,18 @@ where `VERSION` still names the one before it. The two agree only between
 the release and the next change, and that is by construction rather than
 by drift.
 
+**No release carries the string `VERSION` holds.** The check at the top
+of this file answers empty, and
+
+```shell
+gh api repos/btclib-org/portanode/tags --jq '.[].name'
+```
+
+prints nothing, so `2026.01.27` is the day the folder was assembled
+rather than a version a user can take. *Cutting one* below is how a
+release is made, at the day it is cut rather than at a past one, and its
+second step is what strikes this paragraph.
+
 ## Cutting one
 
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
@@ -64,7 +76,10 @@ by drift.
    top heading becomes `## [YYYY.MM.DD] - <what this release is>`;
    `RELEASE_NOTES.md` gets a section under the same version saying what a
    user has to *act* on, and nothing that is merely a change;
-   `VERSION` becomes that string.
+   `VERSION` becomes that string. Where *The version string* still
+   carries the paragraph saying no release carries `VERSION`'s string,
+   strike that paragraph and this sentence in the same pull request:
+   this release is what falsifies it.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
