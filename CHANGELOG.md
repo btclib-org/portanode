@@ -1802,6 +1802,21 @@ using YYYY.MM.DD format.
   read rather than the name. `RELEASING.md`'s tagging step loses the
   sentence resting on the grandfathered tag and keeps the
   cross-reference.
+- **`REPOSITORY.md`'s *Security settings* table now carries a row for
+  every key `.security_and_analysis` answers, and this file keeps its
+  own combined-heading shape rather than the organization standard's
+  siblings' one heading per setting** (issue btclib-org/.github#468).
+  The table read three of `.security_and_analysis`'s five keys and left
+  `secret_scanning_non_provider_patterns` and
+  `secret_scanning_validity_checks` to the paragraph below it; all five
+  are rows now, and that paragraph points at the table instead of
+  repeating their state. The topics and private-vulnerability-reporting
+  readbacks ISS 468 asks every copy for are already this file's, under
+  *Topics* and the same table's own row, and every command this file
+  carries answers what the file records beside it. Splitting the
+  settings into one heading per setting, as the two landed copies do,
+  would rename what this file already reads back correctly without
+  closing a gap, so this tree keeps the table.
 
 ## [2026.01.27] - Initial Release
 
