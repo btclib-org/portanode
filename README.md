@@ -116,11 +116,11 @@ and Ubuntu it has to run under, not on a single default:
   `validate-setup` fails outright, whatever the network and whether or not
   pruning is on.
 - **Permissions**: Ensure the external disk is mounted and writable. A folder
-  taken with `git clone`, or unzipped from a release's source archive, needs
-  nothing made runnable by hand: the launchers carry the executable bit in the
-  repository and both of those routes keep it, and an exFAT volume reports every
-  file as executable whatever its mode. A folder that reached the disk some
-  other way is under *Troubleshooting*.
+  taken with `git clone`, or unzipped from the ZIP of `main` the repository page
+  offers, needs nothing made runnable by hand: the launchers carry the
+  executable bit in the repository and both of those routes keep it, and an
+  exFAT volume reports every file as executable whatever its mode. A folder that
+  reached the disk some other way is under *Troubleshooting*.
 - **Dependencies**: None required beyond standard OS tools. For advanced use,
   ensure Python (for Electrum) and command-line tools are available.
 
@@ -325,8 +325,8 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Permission denied on macOS**: The folder reached this disk through
   something that dropped the executable bit — a copy, or an archive
   unpacked by a tool that does not restore it. `chmod +x` the launcher you
-  ran, or take the folder again with `git clone` or by unzipping the
-  release's source archive, both of which keep it.
+  ran, or take the folder again with `git clone` or by unzipping the ZIP of
+  `main` the repository page offers, both of which keep it.
 - **"The ... path uses exFAT" warning on macOS**: expected, from
   Bitcoin Core itself, not from a launcher here — see *Limitations, not
   vulnerabilities* below.

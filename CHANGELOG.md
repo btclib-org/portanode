@@ -5,6 +5,9 @@ All notable changes to PortaNode will be documented in this file.
 The format is based on [Calendar Versioning](https://calver.org/),
 using YYYY.MM.DD format.
 
+Whether a release carries a version named here is not this file's to
+say: the check at the top of `RELEASING.md` reads that off the forge.
+
 ## [2026.01.29] - git main branch
 
 - **`CONTRIBUTING.md`'s Blinter paragraph names the two shapes `E010`
@@ -1817,6 +1820,20 @@ using YYYY.MM.DD format.
   settings into one heading per setting, as the two landed copies do,
   would rename what this file already reads back correctly without
   closing a gap, so this tree keeps the table.
+- **`RELEASING.md`'s *The version string* says that no release carries
+  the string `VERSION` holds, and `CHANGELOG.md` and `RELEASE_NOTES.md`
+  send a reader from their own headers to that file's check on the
+  forge** (issue #240). `2026.01.27` is the day the folder was assembled,
+  and the forge carries neither a tag nor a release naming it; *Cutting
+  one*'s second step strikes that paragraph at the first release, so the
+  state is recorded where the procedure that ends it will meet it.
+- **`README.md`'s *Prerequisites* and *Troubleshooting* send a reader to
+  the ZIP of `main` the repository page offers, rather than to a
+  release's source archive** (closes #239). Both bullets rest on the
+  executable bit surviving the route rather than on which archive it is,
+  and that ZIP hands back the mode the index records; the releases page
+  they named lists nothing. `RELEASING.md`'s opening paragraph says what
+  a release ships rather than where a folder is taken from.
 
 ## [2026.01.27] - Initial Release
 

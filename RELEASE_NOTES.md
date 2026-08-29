@@ -13,6 +13,9 @@ folder — a datadir that must be moved, a key that must be re-imported, a
 launcher that has been renamed — is announced here rather than left to be
 discovered on the next double-click.
 
+Whether a release carries a version named here is not this file's to
+say: the check at the top of `RELEASING.md` reads that off the forge.
+
 ## [2026.01.29] - git main branch, not released yet
 
 **A rollback now refuses to run while the node it replaces is up.** Stop
