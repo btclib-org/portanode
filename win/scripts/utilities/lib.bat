@@ -157,8 +157,8 @@ REM PATH with the ROOTDIR prefix removed, for a message: the folder is
 REM mounted at a different point on every machine it is plugged into, so a
 REM message quoting the mount point tells the reader where this run
 REM happened rather than which file in the folder is meant. A path outside
-REM the folder carries no such prefix and comes back unchanged, which is
-REM CLAUDE.md's one exception to the convention.
+REM the folder carries no such prefix and comes back unchanged, being a
+REM path CLAUDE.md's ROOTDIR convention does not reach.
 REM "call set" is what expands ROOTDIR inside the pattern: cmd reads the
 REM percent signs of "%PATH:%ROOTDIR%\=%" as three pairs and substitutes
 REM nothing, where the second parse a "call" adds sees one pair around an

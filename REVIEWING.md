@@ -454,23 +454,31 @@ this heading.
 Each of these is a question, and the document that answers it is named
 because that document, and not this one, is where the rule lives.
 
-- **Is every path in a launcher relative to `ROOTDIR`?** The folder is
-  mounted at a different point on every machine it is plugged into, so an
-  absolute path is a launcher that works on the machine it was written on
-  and nowhere else. `CLAUDE.md` states the convention; what a diff
-  introduced is `git diff | grep -n '^+.*[=" ]/[A-Za-z]'`, read rather
-  than counted. That grep reads a literal absolute path. A message
-  interpolating a variable built as `$ROOTDIR/...` prints one too, and
-  matches neither in the message nor in the assignment, so that half is
-  read rather than grepped; a message naming `$ROOTDIR` alone is the
-  mount point itself and is not this defect.
+- **Is every path a launcher itself consumes relative to `ROOTDIR`?**
+  The folder is mounted at a different point on every machine it is
+  plugged into, so an absolute path is a launcher that works on the
+  machine it was written on and nowhere else. `CLAUDE.md` states the
+  convention; what a diff introduced is
+  `git diff | grep -n '^+.*[=" ]/[A-Za-z]'`, read rather than counted.
+  That grep reads a literal absolute path. A message interpolating a
+  variable built as `$ROOTDIR/...` prints one too, and matches neither
+  in the message nor in the assignment, so that half is read rather than
+  grepped. What the reading decides is the path's use: a path printed for
+  use outside the launcher's own process is `CLAUDE.md`'s carve-out rather
+  than this defect. The carve-out covers `$ROOTDIR` alone, the block of
+  resolved locations a Bitcoin launcher opens with, a message whose
+  subject is how long a path is, and the command an Electrum launcher
+  prints for pasting into a shell.
 
   That grep, and the interpolating half beside it, both anchor on one
   physical line holding `echo`, so two shapes reach neither: a message
   split across a continuation, and a path that reaches the message
   through a variable assigned elsewhere rather than named on the printed
   line itself. A control for both joins continuations before grepping,
-  then follows a variable back through its own assignments to `ROOTDIR`:
+  then follows a variable back through its own assignments to `ROOTDIR`.
+  It reads `printf` and PowerShell's `Write-Host` and `Write-Output` as
+  prints beside `echo`, an Electrum launcher printing its pasteable
+  command with `printf`:
 
     ```shell
     join_continuations() {
@@ -503,7 +511,9 @@ because that document, and not this one, is where the rule lives.
         vars="$vars $new"
       done
       pat=$(printf '%s\n' $vars | paste -sd '|' -)
-      printf '%s\n' "$joined" | grep -inE 'echo' | grep -E "$pat"
+      printf '%s\n' "$joined" \
+        | grep -inE 'echo|printf|Write-Host|Write-Output' \
+        | grep -E "$pat"
     }
 
     rootdir_taint <file>
@@ -512,9 +522,15 @@ because that document, and not this one, is where the rule lives.
   run per file rather than per diff, since a continuation or an
   assignment outside the diff can still feed a line the diff touches. It
   over-approximates — a variable descended from `ROOTDIR` through a
-  prefix strip renders relative and still matches, and a line building a
-  string for later use rather than for the user reads as a print — so a
-  hit is read rather than trusted, the same way the literal grep's is.
+  prefix strip renders relative and still matches, a line building a
+  string for later use rather than for the user reads as a print, and
+  every print the carve-out covers matches by construction — so a hit is
+  read rather than trusted, the same way the literal grep's is.
+
+  A `.ps1` answers nothing whatever verb the pattern names: the seed is
+  the literal `ROOTDIR`, and PowerShell spells the folder's root `$Root`
+  or `$RootDir`, so no line matches and nothing is ever added to the
+  tainted set. That half is read rather than swept.
 - **Does the change reach the other platforms?** The same launcher is
   written four ways — `.sh`, `.command`, `.bat`, `.ps1` — and nothing
   keeps them in step. The two halves are not a mirror to begin with,

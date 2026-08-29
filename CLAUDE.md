@@ -304,16 +304,24 @@ Do not use Fable unless explicitly instructed.
   in one place; no history in the prose.
 - **Markdown wraps at 80 columns**, tables included (MD013 is on), so
   long commands go in fenced blocks split with `\`.
-- **A path is relative to `ROOTDIR`, never absolute.** The one exception
-  is a path outside the folder entirely — a system binary, a user's
-  keyring — and there is no exception for anything the folder carries.
-  It reaches what a script prints as well as what it opens: a message
-  interpolating a variable built as `$ROOTDIR/...` names an absolute
-  path as surely as a literal one does. `$ROOTDIR` printed alone is
-  outside this rule rather than an exception to it — it is the mount
-  point itself, which is what a reader needs in order to find the
-  folder; `validate-setup.sh`'s `Validating setup at $ROOTDIR` and the
-  `ROOTDIR is ...` line a launcher prints are that case.
+- **A path is relative to `ROOTDIR` where the launcher itself consumes
+  it, and absolute where it is printed for use outside that process.**
+  The use decides, not the form and not the length. A path passed as an
+  argument is one the launcher consumes. A message interpolating a
+  variable built as `$ROOTDIR/...` names an absolute path as surely as a
+  literal one does. Printed for use outside covers a reader orienting
+  themselves on the machine in front of them and a command pasted into a
+  shell alike: `$ROOTDIR` alone, the resolved locations a Bitcoin
+  launcher's opening block reports, a message whose subject is how long a
+  path is — which rendered relative would name one short enough to fit
+  whatever refused it — and the command an Electrum launcher prints in
+  place of its own. That last is where the ground shows plainly: rendered
+  relative the line does not orient a reader worse, it does not run. The
+  absolute form costs a line that holds only on the machine that printed
+  it, the folder mounting somewhere else on the next one, so a reader
+  pasting one into a bug report hands over a path nobody else has. A path
+  outside the folder entirely — a system binary, a user's keyring — is
+  outside the rule rather than an exception to it.
 - **Never state how many of anything a file holds.** A stated count is a
   line every open branch has to edit, and nothing here checks one.
 - **The version is a date**: `VERSION` holds `YYYY.MM.DD` and a release
