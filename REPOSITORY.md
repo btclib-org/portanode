@@ -273,8 +273,14 @@ gh api repos/btclib-org/portanode/code-scanning/default-setup --jq '.state'
 | Dependabot security updates | enabled |
 | Secret scanning | enabled |
 | Secret scanning push protection | enabled |
+| Secret scanning non-provider patterns | disabled (plan-gated) |
+| Secret scanning validity checks | disabled (plan-gated) |
 | Private vulnerability reporting | enabled |
 | Code scanning default setup (CodeQL) | not configured |
+
+The table carries every key `.security_and_analysis` answers with, not
+only the ones a request here can turn on — the two marked plan-gated are
+the next section's subject.
 
 **Private vulnerability reporting is what puts the door in the interface
 rather than in a paragraph.** The endpoint answers `{"enabled": true}`,
@@ -304,9 +310,9 @@ what reads the launchers instead is `shellcheck`, in
 
 Some settings cannot be enabled and fail silently: secret scanning's
 non-provider patterns and validity checks need paid Secret Protection,
-and the API answers a PATCH with 200 while leaving them disabled — both
-read `disabled` in the command above. Do not read that 200 as success.
-The `detect-secrets` hook is the compensating control.
+and the API answers a PATCH with 200 while leaving them disabled — the
+table above is what that state is read from. Do not read that 200 as
+success. The `detect-secrets` hook is the compensating control.
 
 ## Topics
 
