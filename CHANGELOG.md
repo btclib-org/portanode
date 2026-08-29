@@ -1834,6 +1834,22 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   and that ZIP hands back the mode the index records; the releases page
   they named lists nothing. `RELEASING.md`'s opening paragraph says what
   a release ships rather than where a folder is taken from.
+- **`CLAUDE.md`'s `ROOTDIR` convention turns on what a path is used for,
+  and the Electrum launchers' comments record that ground where they
+  print an absolute path** (closes #219, #206). A path the launcher
+  itself consumes is relative; a path printed for use outside that
+  process is absolute, which is what `$ROOTDIR` alone, a Bitcoin
+  launcher's opening block of resolved locations, a note reporting that
+  a path is too long, and the command an Electrum launcher prints for
+  pasting into a shell have in common. The convention's letter would
+  render that note's path relative as
+  `electrum-datadir/daemon_rpc_socket`, which fits any `sockaddr_un`, so
+  the sentence would report a path as too long by naming one that is
+  not, and the remedy it gives — a mount point with a shorter path —
+  would have nothing left to act on; the pasted command rendered
+  relative does not run at all. `REVIEWING.md`'s question asks the
+  path's use rather than its form, and its sweep reads `printf` and
+  PowerShell's `Write-Host` and `Write-Output` as prints beside `echo`.
 
 ## [2026.01.27] - Initial Release
 

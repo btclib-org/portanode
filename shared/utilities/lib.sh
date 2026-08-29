@@ -42,8 +42,9 @@ debug_list_dir() {
     # where a message would otherwise print an absolute path, which is
     # not every message here that names one: verify_binaries prints
     # locals that are relative already, and install_verified's source is
-    # a temporary extraction directory outside the folder -- CLAUDE.md's
-    # one exception to the convention -- so neither is stripped.
+    # a temporary extraction directory outside the folder, a path
+    # CLAUDE.md's ROOTDIR convention does not reach -- so neither is
+    # stripped.
     echo "Debug: ${dir#"$ROOTDIR"/} contents: $entries"
 }
 
