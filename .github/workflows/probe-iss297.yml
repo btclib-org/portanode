@@ -1,0 +1,230 @@
+name: probe-297-298-300
+
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout the branch (this tree is AFTER)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Lay out a BEFORE tree and an AFTER tree at four mount points
+        shell: pwsh
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git worktree add --detach "$env:RUNNER_TEMP\before" origin/main
+          Write-Output "BEFORE tree:"
+          git -C "$env:RUNNER_TEMP\before" log -1 --format="%H %s"
+          Write-Output "AFTER tree:"
+          git -C "$env:GITHUB_WORKSPACE" log -1 --format="%H %s"
+          function Place($src, $dst) {
+            [System.IO.Directory]::CreateDirectory($dst) | Out-Null
+            robocopy $src $dst /E /NFL /NDL /NJH /NJS /XD .git /XF .git | Out-Null
+            if ($LASTEXITCODE -ge 8) { throw "robocopy to $dst gave $LASTEXITCODE" }
+            $global:LASTEXITCODE = 0
+          }
+          # C:\pnb and C:\pna exist so that a value truncated at the "&"
+          # names a real directory, which is what makes the truncation's
+          # consequence visible rather than only an error line.
+          [System.IO.Directory]::CreateDirectory('C:\pnb') | Out-Null
+          [System.IO.Directory]::CreateDirectory('C:\pna') | Out-Null
+          Place "$env:RUNNER_TEMP\before" 'C:\pnb&x'
+          Place "$env:GITHUB_WORKSPACE"   'C:\pna&x'
+          Place "$env:RUNNER_TEMP\before" 'C:\pn-b [x]'
+          Place "$env:GITHUB_WORKSPACE"   'C:\pn-a [x]'
+          Get-ChildItem -LiteralPath 'C:\' -Directory |
+            Where-Object { $_.Name.StartsWith('pn') } |
+            ForEach-Object { Write-Output $_.FullName }
+          Write-Output "--- the two lines under test, BEFORE:"
+          Get-Content -LiteralPath 'C:\pnb&x\win\scripts\utilities\rollback-bitcoin.bat' -TotalCount 9 |
+            Select-Object -Last 3
+          Get-Content -LiteralPath 'C:\pnb&x\win\scripts\utilities\set-permissions.bat' |
+            Select-Object -Index 54
+          Write-Output "--- the same lines, AFTER:"
+          Get-Content -LiteralPath 'C:\pna&x\win\scripts\utilities\rollback-bitcoin.bat' -TotalCount 9 |
+            Select-Object -Last 3
+          Get-Content -LiteralPath 'C:\pna&x\win\scripts\utilities\set-permissions.bat' |
+            Select-Object -Index 54
+
+      - name: 'MECHANISM: where cmd.exe sees a metacharacter that arrived by expansion'
+        shell: cmd
+        continue-on-error: true
+        run: |
+          setlocal enabledelayedexpansion
+          set "M=C:\p&x"
+          echo === depth 0, the value holds an "&"
+          set NAME=%M%\sub
+          echo   unquoted set   NAME  is [!NAME!]
+          set "NAME2=%M%\sub"
+          echo   quoted set     NAME2 is [!NAME2!]
+          echo   unquoted echo: %M%
+          echo   quoted echo:   "%M%"
+          echo === inside a parenthesised block, the value holds a ")"
+          set "U=us)er"
+          if 1==1 (
+            echo   delayed:  !U!
+          )
+          if 1==1 (
+            echo   quoted:   "%U%"
+          )
+          if 1==1 (
+            echo   unquoted: %U%
+          )
+          echo TAIL REACHED
+          exit /b 0
+
+      - name: 'MECHANISM: does Windows permit ")" or "&" in a local account name'
+        shell: cmd
+        run: |
+          net user "us)er" "Pr0be-Pass-2026!" /add
+          echo EXITCODE_paren=%errorlevel%
+          net user "us&er" "Pr0be-Pass-2026!" /add
+          echo EXITCODE_amp=%errorlevel%
+          net user
+          exit /b 0
+
+      - name: 'ISS 298 BEFORE: rollback-bitcoin.bat --dry-run at C:\pnb&x'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          call "C:\pnb&x\win\scripts\utilities\rollback-bitcoin.bat" --dry-run
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 298 AFTER: rollback-bitcoin.bat --dry-run at C:\pna&x'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          call "C:\pna&x\win\scripts\utilities\rollback-bitcoin.bat" --dry-run
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 298 BEFORE: rotate-bitcoin-log.bat at C:\pnb&x'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          call "C:\pnb&x\win\scripts\utilities\rotate-bitcoin-log.bat"
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 298 AFTER: rotate-bitcoin-log.bat at C:\pna&x'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          call "C:\pna&x\win\scripts\utilities\rotate-bitcoin-log.bat"
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 298 BEFORE: validate-setup.bat at C:\pnb&x'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          call "C:\pnb&x\win\scripts\utilities\validate-setup.bat"
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 298 AFTER: validate-setup.bat at C:\pna&x'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          call "C:\pna&x\win\scripts\utilities\validate-setup.bat"
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 298 BEFORE: set-permissions.bat at C:\pnb&x'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          call "C:\pnb&x\win\scripts\utilities\set-permissions.bat"
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 298 AFTER: set-permissions.bat at C:\pna&x'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          call "C:\pna&x\win\scripts\utilities\set-permissions.bat"
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 300 BEFORE: set-permissions.bat with ")" in USERNAME, plain root'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          set "USERNAME=us)er"
+          call "%RUNNER_TEMP%\before\win\scripts\utilities\set-permissions.bat"
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 300 AFTER: set-permissions.bat with ")" in USERNAME, plain root'
+        shell: cmd
+        env:
+          PORTANODE_LAUNCHER: '1'
+        run: |
+          set "USERNAME=us)er"
+          call "%GITHUB_WORKSPACE%\win\scripts\utilities\set-permissions.bat"
+          echo EXITCODE=%errorlevel%
+          exit /b 0
+
+      - name: 'ISS 297: Resolve-PortaNodeRoot and the launcher guard, bracketed mount point'
+        shell: pwsh
+        run: |
+          $probe = Join-Path $env:RUNNER_TEMP 'probe297.ps1'
+          @'
+          param([Parameter(Mandatory = $true)][string]$Root)
+          Write-Output ("PSVersion             -> " + $PSVersionTable.PSVersion)
+          Write-Output ("directory on disk     -> " + [System.IO.Directory]::Exists($Root))
+          Write-Output ("VERSION on disk       -> " +
+            [System.IO.File]::Exists((Join-Path $Root 'VERSION')))
+          . (Join-Path $Root 'win\scripts\root.ps1')
+          Write-Output "dot-source            -> reached this line"
+          $r = Resolve-PortaNodeRoot -StartDir $Root
+          Write-Output ("walk returns          -> [" + $r + "]")
+          $env:PORTANODE_ROOT = $Root
+          $r2 = Resolve-PortaNodeRoot -StartDir $Root
+          Write-Output ("PORTANODE_ROOT branch -> [" + $r2 + "]")
+          $env:PORTANODE_ROOT = $null
+          $rel = 'win\scripts\bitcoin\mainnet-8333-qt.bat'
+          $sp = Join-Path $Root $rel
+          Write-Output ("script on disk        -> " + [System.IO.File]::Exists($sp))
+          Write-Output ("Test-Path             -> " + (Test-Path $sp))
+          Write-Output ("Test-Path -LiteralPath-> " + (Test-Path -LiteralPath $sp))
+          '@ | Set-Content -LiteralPath $probe -Encoding utf8
+          Write-Output '===== BEFORE (origin/main) at "C:\pn-b [x]" ====='
+          powershell -NoProfile -ExecutionPolicy Bypass -File $probe -Root 'C:\pn-b [x]'
+          Write-Output ("exit " + $LASTEXITCODE)
+          Write-Output '===== AFTER (branch) at "C:\pn-a [x]" ====='
+          powershell -NoProfile -ExecutionPolicy Bypass -File $probe -Root 'C:\pn-a [x]'
+          Write-Output ("exit " + $LASTEXITCODE)
+
+      - name: 'ISS 297 BEFORE: Bitcoin-Launcher.ps1 menu selection 1 at "C:\pn-b [x]"'
+        shell: pwsh
+        timeout-minutes: 3
+        continue-on-error: true
+        run: |
+          "1`r`n0`r`n" | powershell -NoProfile -ExecutionPolicy Bypass -File 'C:\pn-b [x]\Bitcoin-Launcher.ps1'
+          Write-Output ("exit " + $LASTEXITCODE)
+
+      - name: 'ISS 297 AFTER: Bitcoin-Launcher.ps1 menu selection 1 at "C:\pn-a [x]"'
+        shell: pwsh
+        timeout-minutes: 3
+        continue-on-error: true
+        run: |
+          "1`r`n0`r`n" | powershell -NoProfile -ExecutionPolicy Bypass -File 'C:\pn-a [x]\Bitcoin-Launcher.ps1'
+          Write-Output ("exit " + $LASTEXITCODE)
