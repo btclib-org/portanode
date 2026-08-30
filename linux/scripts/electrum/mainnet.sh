@@ -131,14 +131,20 @@ PYEOF
         echo "Error: electrum-datadir cannot hold a unix domain" \
              "socket."
         echo "Electrum's daemon binds one there (daemon_rpc_socket) for its" \
-             "own RPC channel, and every wallet command -- getinfo included" \
-             "-- goes through it; this is the filesystem refusing the bind," \
-             "not a missing package or a wrong argument."
-        echo "No wallet can be kept in a datadir on this filesystem. To run" \
-             "Electrum anyway, point --dir at a directory on a filesystem" \
-             "that supports unix sockets (ext4 and most others do):"
+             "own RPC channel, and every command against a wallet kept here" \
+             "goes through it; this is the filesystem refusing the bind, not" \
+             "a missing package or a wrong argument."
+        echo "To run Electrum anyway, point --dir at a directory on a" \
+             "filesystem that supports unix sockets (ext4 and most others" \
+             "do):"
         printf '  %q --dir <path-on-another-filesystem>' "$ELECTRUM_APPIMAGE"
-        printf ' %q' "${ELECTRUM_ARGS[@]:2}"
+        # The slice drops --dir and the datadir the line has just replaced,
+        # leaving the network flag. mainnet.sh has none, and printf with no
+        # operand left runs its format once more against an empty string,
+        # printing a trailing '' the reader would paste.
+        if [ "${#ELECTRUM_ARGS[@]}" -gt 2 ]; then
+            printf ' %q' "${ELECTRUM_ARGS[@]:2}"
+        fi
         printf '\n'
         exit 1
         ;;

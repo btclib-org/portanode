@@ -1865,6 +1865,60 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   up short. Among them, *The landing queue* points at `REPOSITORY.md`'s
   *Plan-gated settings* for the ceiling's figure (issue
   btclib-org/.github#412).
+- **`linux/scripts/electrum/`'s socket refusal names what its guard
+  measured, and the command it prints in place of its own carries no
+  empty argument** (closes #212, closes #216). The guard binds a unix
+  socket in the datadir and asks nothing else, so a refusal establishes
+  that the daemon's `daemon_rpc_socket` cannot be there and that every
+  command against a wallet kept in that datadir goes through it — the
+  sentence the macOS launchers carry — rather than that no wallet file
+  can be written, which the datadir refutes: on an exFAT loopback under
+  Linux's own driver, mounted `fmask=0022`, the bind answers `EPERM`
+  where an ordinary file written beside it is there afterwards and reads
+  back. `mainnet.sh`'s argument list holds no network flag
+  after `--dir`, so the slice the printed command interpolates is empty
+  and `printf` runs its format once more against nothing, offering the
+  reader a command with a trailing empty argument to paste.
+- **`win/scripts/utilities/health-check.bat` names the `bitcoin-cli`
+  that answered rather than looking one up** (closes #209). That arm is
+  reached only from the block which ran the folder's own
+  `bitcoin-cli.exe` at its absolute path and got an answer, so a lookup
+  there has no second candidate to find, and the `PATH` label printed
+  where the lookup came back empty named where the answer had not come
+  from.
+- **A `ROOTDIR`-derived value echoed from inside a parenthesised block
+  is read through delayed expansion** (closes #211), in
+  `win/scripts/utilities/health-check.bat`, `update-bitcoin.bat` and
+  `update-electrum.bat`. Percent expansion runs before cmd.exe matches
+  the block's parentheses, so a closing parenthesis in the mount point
+  ends the block early, and a caret cannot escape a character that
+  arrives after the line was written. Measured on `windows-latest`, the
+  folder unpacked under a directory whose name carries one:
+  `health-check.bat` stops after its own first line, cmd.exe refusing
+  the block with `was unexpected at this time.` and exit 255, where this
+  file prints its disk-free line with the mount point whole and every
+  line below it.
+- **The launcher menu header names the resolved root on the `.bat` and
+  `.ps1` halves, as the `.command` half already does** (closes #217).
+  The folder is mounted at a different point on every machine it is
+  plugged into, so the header is what tells a user which plugged-in copy
+  the menu in front of them belongs to. The `.bat` half quotes the root
+  where the other two parenthesise it: a mount point carrying `&`
+  reaches cmd.exe's parser on that line, and the quotes are what keep it
+  data — written `^(%ROOTDIR%^)` the same line prints as far as the `&`
+  and cmd.exe then reports the remainder as a command it cannot find.
+- **A `.ps1` launcher's menu does not pause on a script that returns to
+  it** (closes #222). PowerShell runs a `.bat` through a cmd.exe of its
+  own, whose command line names the script and so reads to
+  `win/scripts/root.bat`'s `:pause_if_own_console` exactly as a
+  double-click of that script does; the `.ps1` launchers set
+  `PORTANODE_LAUNCHER`, which the label reads before that test. Measured
+  on `windows-latest`, a menu selection whose script fails prints
+  `Press any key to close this window.` before returning to the menu and
+  no longer does, while the same script started outside a launcher still
+  pauses. The
+  `.bat` launchers need no flag, their `call` keeping a console whose
+  command line names the launcher.
 
 ## [2026.01.27] - Initial Release
 

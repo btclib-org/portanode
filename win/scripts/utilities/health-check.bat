@@ -21,7 +21,10 @@ for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass
   -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR_ARG%"`) do set FREE_GB=%%F
 if defined FREE_GB (
     if defined MOUNT_PATH (
-        echo Disk free: !FREE_GB! GB ^(%MOUNT_PATH%^)
+        REM Delayed expansion, not percent: percent expansion runs before
+        REM cmd.exe matches this block's parentheses, so a closing
+        REM parenthesis in the mount point would end the block early.
+        echo Disk free: !FREE_GB! GB ^(!MOUNT_PATH!^)
     ) else (
         echo Disk free: !FREE_GB! GB
     )
@@ -98,15 +101,14 @@ if "%BTC_RUNNING%"=="0" (
 if "%BTC_RUNNING%"=="1" (
     if defined BTC_METHOD (
         if /i "%BTC_METHOD%"=="bitcoin-cli" (
-            REM Built as one physical line -- see :update_checksum in
-            REM lib.bat (#144).
-            for /f "usebackq delims=" %%P in (`powershell -Command "& { try { (Get-Command '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -ErrorAction Stop).Path } catch { try { (Get-Command bitcoin-cli.exe -ErrorAction Stop).Path } catch { '' } } }"`) do set BTC_CLI_PATH=%%P
-            if defined BTC_CLI_PATH (
-                call "%SCRIPT_DIR%lib.bat" :rootdir_relative "!BTC_CLI_PATH!" BTC_CLI_REL
-                echo Bitcoin running: yes ^(%BTC_METHOD%: !BTC_CLI_REL!^)
-            ) else (
-                echo Bitcoin running: yes ^(%BTC_METHOD%: PATH^)
-            )
+            REM The binary is named, not looked up. This arm is reached
+            REM only from the block that ran the folder's own
+            REM bitcoin-cli.exe by its absolute path and got an answer,
+            REM so that file is what answered; a lookup here has no
+            REM other candidate to find, and no honest label to print
+            REM for its own failure.
+            call "%SCRIPT_DIR%lib.bat" :rootdir_relative "%ROOTDIR%\win\bin\bitcoin-cli.exe" BTC_CLI_REL
+            echo Bitcoin running: yes ^(%BTC_METHOD%: !BTC_CLI_REL!^)
         ) else (
             echo Bitcoin running: yes ^(%BTC_METHOD%^)
         )
