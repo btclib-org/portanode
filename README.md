@@ -18,8 +18,8 @@ this tree no other, so there is no Scorecard badge and no
 `scorecard.yml` behind it. One badge per line keeps a change to one line
 and every line inside MD013. -->
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
-[![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml)
-[![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg)](https://github.com/btclib-org/portanode/actions/workflows/links.yml)
+[![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml)
+[![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/links.yml)
 
 ## Portable (external‑disk‑friendly) cross-platform Bitcoin node
 
