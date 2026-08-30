@@ -1931,6 +1931,17 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   already pointed at that heading, where the section under it was about
   secret scanning alone; `gh api orgs/btclib-org --jq .plan.name` and
   GitHub's limits table are what the number now sits beside.
+- **`.github/workflows/links.yml` passes `--include-fragments`** (closes
+  btclib-org/.github#583). A link into a heading is then checked as an
+  anchor and not only as a page, so a heading renamed in the tree a link
+  here points into is red here rather than nowhere; the check reads a
+  page already fetched, so it adds no request. Every anchor this tree
+  carries into another repository of the organization is the bare
+  `github.com/<owner>/<repo>#<heading>` shape, whose missing fragment the
+  token overrides — lychee falls back to the repositories API and takes
+  the repository's existence as the answer — so what the flag reads here
+  is the fragments of the other hosts. btclib-org/.github#630 weighs that
+  shape.
 
 ## [2026.01.27] - Initial Release
 
