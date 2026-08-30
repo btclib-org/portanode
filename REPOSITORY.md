@@ -6,11 +6,17 @@ rather than carrying it, so that a session fixing a script does not hold
 it in context.
 
 The branch rules and the repository settings live *outside* the
-repository, so this file is the whole of them: nothing here can be
-recovered by reading the tree. Every claim below is read back from an
-endpoint, and the command that reads it is beside it — a setting somebody
-changed in the browser is a line here that has gone stale, and the
-command is what says so.
+repository. What is recorded is the settings the organization standard
+asks about — the ones section 16's checklist sets on a new repository,
+the ones a section of the standard states a rule for, and the ones a
+behaviour it describes rests on — together with whatever a call quoted
+for one of those answers alongside it. That is this file's scope, and
+*What this file passes over* at the foot says what falls outside it and
+what falls inside it without being here yet.
+
+Every claim below is read back from an endpoint, and the command that
+reads it is beside it — a setting somebody changed in the browser is a
+line here that has gone stale, and the command is what says so.
 
 **The repository is public, and that is a prerequisite rather than a
 preference.** Rulesets are a paid feature for a private repository on the
@@ -142,14 +148,15 @@ and not only the convention `CONTRIBUTING.md` states:
 
 ```shell
 gh api repos/btclib-org/portanode --jq '{allow_squash_merge,
-  allow_merge_commit, allow_rebase_merge}'
+  allow_merge_commit, allow_rebase_merge, allow_auto_merge}'
 ```
 
-answers `true` for the first and `false` for the other two. The merge
-commit was refused by the linear-history rule already, so turning it off
-takes away a button that could not have worked. The rebase merge could
-have, and that is the one this removes: it replays a branch's commits
-onto `main`, where the rule is one commit per landed change.
+answers `true` for the squash and for auto-merge, and `false` for the
+merge commit and the rebase merge. The merge commit was refused by the
+linear-history rule already, so turning it off takes away a button that
+could not have worked. The rebase merge could have, and that is the one
+this removes: it replays a branch's commits onto `main`, where the rule
+is one commit per landed change.
 
 What a single method buys is not the button on a pull request somebody is
 looking at. GitHub preselects whichever method was used last, and the
@@ -157,6 +164,11 @@ dialog that switches auto-merge on carries the same dropdown — so the
 answer can be given hours before anything merges, by whoever switched it
 on, with nothing asking again. One method is one entry: there is no wrong
 one to preselect, and nothing to read before pressing.
+
+**`allow_auto_merge` is on**, and the paragraph above rests on it rather
+than describing it. Off, auto-merge is not offered, there is no dialog to
+preselect a method in, and every landing waits on somebody pressing
+*Squash and merge* at the moment the last check goes green.
 
 Two fields shape the commit it writes:
 
@@ -328,3 +340,56 @@ The standard asks that a repository's topics and its package keywords
 name the same things; there is no package here and so no keyword list to
 agree with, which makes the topics a discoverability question rather than
 an alignment one, and the six above are what answer it.
+
+## What this file passes over
+
+The endpoints above answer for more than this repository decides, and the
+scope at the top is what leaves the rest out. What follows says of each
+which it is.
+
+**Most of the repository document is not a setting.** `gh api
+repos/btclib-org/portanode --jq 'keys[]'` answers with URLs, counts,
+timestamps and state GitHub derives from the tree beside the switches,
+and the switches among them this file records are the ones a section
+above reads back with a call of its own.
+
+**A switch no section of the standard states a rule for stays out.**
+`allow_forking`, `allow_update_branch`, `has_discussions`,
+`has_downloads`, `is_template` and `web_commit_signoff_required` are in
+that document and no section above reads any of them back. Against the
+standard's own `README.md`, `grep -c allow_forking` answers `0` where
+`grep -c delete_branch_on_merge` does not, which is what makes the first
+an absence rather than a file that was not read. Recording them would
+grow this file with GitHub's API rather than with the standard, and what
+that costs is a change to one of them showing up nowhere here.
+
+**A facility nobody reached for answers empty.**
+
+```shell
+for e in actions/variables dependabot/secrets actions/runners keys \
+         autolinks properties/values hooks; do
+  gh api "repos/btclib-org/portanode/$e"
+done
+```
+
+An empty answer records no decision, so whichever of them a workflow
+needs one day arrives with the section that uses it. *Secrets* above
+records the repository's Actions secrets rather than passing them over,
+that zero having the organization's own stores as its control.
+
+**The default branch and the absence of a Pages site fall inside this
+scope and are not here**, which is issue btclib-org/.github#549. Section
+16's checklist sets the default branch and the step after it asks for
+every setting read back; no command here reads `.default_branch`, and
+`main` is stated in prose instead. `gh api
+repos/btclib-org/portanode/pages` answers `404`, and no section here
+records that either. Those are gaps in the coverage this file claims
+rather than exclusions from it.
+
+**Where a checklist step has no subject here.** Section 16 also asks for
+the publishing environments and, where a tree releases, a `homepage`
+holding the URL `pyproject.toml`'s field of that name carries.
+`gh api repos/btclib-org/portanode/environments --jq '.total_count'`
+answers `0`, `RELEASING.md` saying a release here is a signed tag and a
+GitHub release cut by hand with nothing to publish to an index; and this
+tree has no `pyproject.toml` for a `homepage` to agree with.

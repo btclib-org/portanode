@@ -75,8 +75,10 @@ Can be used if an update fails.
 
 ## Notes
 
-- Run scripts from the project root (e.g.,
-  `./linux/scripts/utilities/script.sh`).
+- Each script above may be run from any working directory,
+  `./linux/scripts/utilities/health-check.sh` from the folder's root among
+  them. Each resolves that root from its own location, or from
+  `PORTANODE_ROOT`, and reads the working directory for nothing.
 - Most scripts require internet for downloads; ensure connectivity.
 - Update scripts download, verify and unpack on the local temp
   directory, never on the removable volume, and clean up on exit.

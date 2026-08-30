@@ -116,13 +116,30 @@ and Ubuntu it has to run under, not on a single default:
   `validate-setup` fails outright, whatever the network and whether or not
   pruning is on.
 - **Permissions**: Ensure the external disk is mounted and writable. A folder
-  taken with `git clone`, or unzipped from the ZIP of `main` the repository page
-  offers, needs nothing made runnable by hand: the launchers carry the
-  executable bit in the repository and both of those routes keep it, and an
-  exFAT volume reports every file as executable whatever its mode. A folder that
-  reached the disk some other way is under *Troubleshooting*.
+  taken by either route in *Getting the folder* below needs nothing made
+  runnable by hand: the launchers carry the executable bit in the repository
+  and both routes keep it, and an exFAT volume reports every file as
+  executable whatever its mode. A folder that reached the disk some other way
+  is under *Troubleshooting*.
 - **Dependencies**: None required beyond standard OS tools. For advanced use,
   ensure Python (for Electrum) and command-line tools are available.
+
+## Getting the folder
+
+Take it onto the disk it will run from, by either route:
+
+```shell
+git clone https://github.com/btclib-org/portanode.git
+```
+
+or unzip the ZIP of `main` the repository page offers. Both keep the
+executable bit the launchers carry in the repository, which is what
+*Prerequisites*' **Permissions** bullet above is about; a folder that
+reached the disk any other way is under *Troubleshooting*.
+
+Where on the disk it sits is free. A launcher walks up from its own
+location to the `VERSION` file that marks the root, and reads
+`PORTANODE_ROOT` before it walks at all — *Environment Overrides* below.
 
 ## Quick Start
 
@@ -325,8 +342,8 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Permission denied on macOS**: The folder reached this disk through
   something that dropped the executable bit — a copy, or an archive
   unpacked by a tool that does not restore it. `chmod +x` the launcher you
-  ran, or take the folder again with `git clone` or by unzipping the ZIP of
-  `main` the repository page offers, both of which keep it.
+  ran, or take the folder again by either route in *Getting the folder*,
+  both of which keep it.
 - **"The ... path uses exFAT" warning on macOS**: expected, from
   Bitcoin Core itself, not from a launcher here — see *Limitations, not
   vulnerabilities* below.
