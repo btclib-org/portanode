@@ -1919,6 +1919,11 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   pauses. The
   `.bat` launchers need no flag, their `call` keeping a console whose
   command line names the launcher.
+- **Every workflow-status badge at the head of `README.md` carries
+  `?branch=main`** (issue btclib-org/.github#579). `lint` and `links`
+  answer for `main` or answer `no status`, where the unqualified badge
+  falls back to another branch's run when `main` has none; the
+  pre-commit.ci badge is outside the rule, its branch being in its path.
 
 ## [2026.01.27] - Initial Release
 
