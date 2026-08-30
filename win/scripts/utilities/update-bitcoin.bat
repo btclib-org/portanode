@@ -52,7 +52,7 @@ set BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/
 set URL=%BASE_URL%%FILE%
 set CHECKSUM_URL=%BASE_URL%SHA256SUMS
 set CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc
-set CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256
+set "CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256"
 
 set STATUS=0
 

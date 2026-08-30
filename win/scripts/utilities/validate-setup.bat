@@ -8,7 +8,7 @@ call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 
 pushd "%ROOTDIR%" >nul 2>&1
 
-echo Validating setup at %ROOTDIR%
+echo Validating setup at "%ROOTDIR%"
 
 
 if exist "%SCRIPT_DIR%verify-binaries.bat" (

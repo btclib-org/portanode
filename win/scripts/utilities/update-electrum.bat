@@ -30,7 +30,7 @@ pushd "%ROOTDIR%" >nul 2>&1
 
 set "BIN_DIR=%ROOTDIR%\win\bin"
 set "BACKUP_DIR=%BIN_DIR%\backup\electrum"
-set CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256
+set "CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256"
 set "TMPDIR=%TEMP%\portanode-electrum"
 set STATUS=0
 
