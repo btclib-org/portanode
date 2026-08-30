@@ -4,8 +4,13 @@ setlocal
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%win\scripts\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 
+REM The root is quoted where the .command and .ps1 halves
+REM parenthesise it: a mount point carrying & reaches cmd.exe's
+REM parser on the header line below, and the quotes are what
+REM keep it data.
+
 :menu
-echo Electrum Launcher
+echo Electrum Launcher "%ROOTDIR%"
 echo 1^) Mainnet
 echo 2^) Testnet3
 echo 3^) Testnet4

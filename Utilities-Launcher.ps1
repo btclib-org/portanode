@@ -4,6 +4,14 @@ $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 . (Join-Path $ScriptRoot "win\\scripts\\root.ps1")
 $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
+# win\scripts\root.bat's :pause_if_own_console reads this. The menu
+# below is the console a script returns to, so nothing it printed is
+# discarded and a pause buys the reader nothing. The label cannot see
+# that for itself: PowerShell runs a .bat through a cmd.exe of its own,
+# whose command line names the script exactly as a double-click of it
+# does.
+$env:PORTANODE_LAUNCHER = "1"
+
 $Scripts = @{
     "1" = "win\scripts\utilities\update-bitcoin.bat"
     "2" = "win\scripts\utilities\update-electrum.bat"
@@ -19,7 +27,7 @@ $Scripts = @{
 }
 
 while ($true) {
-    Write-Host "Utilities Launcher"
+    Write-Host "Utilities Launcher ($Root)"
     Write-Host "1) Update Bitcoin Version"
     Write-Host "2) Update Electrum Version"
     Write-Host "3) Rollback Last Bitcoin Update"

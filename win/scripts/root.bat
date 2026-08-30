@@ -78,6 +78,13 @@ REM the console command line carries, which pauses a console that was
 REM not opened for this script; the form below with the value's quotes
 REM left in reads every console as somebody else's, so nothing pauses
 REM at all.
+REM
+REM The test reaches every console but one, and PORTANODE_LAUNCHER is
+REM how that one announces itself: a .ps1 launcher starts a .bat through
+REM a cmd.exe of PowerShell's own, whose command line names the script
+REM and so reads here exactly as a double-click of it does, where the
+REM console it belongs to is the launcher's and stays open on the menu.
+if defined PORTANODE_LAUNCHER exit /b 0
 setlocal enabledelayedexpansion
 set "SELF=%~1"
 set CMDLINE=!CMDCMDLINE:"=!
