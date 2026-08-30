@@ -314,6 +314,22 @@ and the API answers a PATCH with 200 while leaving them disabled — the
 table above is what that state is read from. Do not read that 200 as
 success. The `detect-secrets` hook is the compensating control.
 
+The other plan-gated number is not a setting at all: how many jobs the
+organization may run at once. Section 10 of the organization standard
+makes this section its one home per tree, beside the command that
+re-derives it:
+
+```shell
+gh api orgs/btclib-org --jq .plan.name    # free
+```
+
+[GitHub's own table](https://docs.github.com/en/actions/reference/limits)
+turns that answer into a number, twenty concurrent jobs on the free plan,
+shared across every repository of the organization. `lint.yml` and
+`claude-review.yml` are what a pull request here starts, with `links.yml`
+added where the path its trigger names is touched. `CONTRIBUTING.md`'s
+*The landing queue* is what points here for the figure.
+
 ## Topics
 
 ```shell

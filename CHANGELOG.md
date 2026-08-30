@@ -1924,6 +1924,13 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   answer for `main` or answer `no status`, where the unqualified badge
   falls back to another branch's run when `main` has none; the
   pre-commit.ci badge is outside the rule, its branch being in its path.
+- **`REPOSITORY.md`'s *Plan-gated settings* carries the concurrent-job
+  ceiling, which section 10 of the organization standard names as that
+  figure's one home per tree** (issue btclib-org/.github#569, issue
+  btclib-org/.github#412). `CONTRIBUTING.md`'s *The landing queue*
+  already pointed at that heading, where the section under it was about
+  secret scanning alone; `gh api orgs/btclib-org --jq .plan.name` and
+  GitHub's limits table are what the number now sits beside.
 
 ## [2026.01.27] - Initial Release
 
