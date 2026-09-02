@@ -1943,6 +1943,13 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   is the fragments of the other hosts. btclib-org/.github#630 weighs that
   shape.
 
+### `.gitattributes`'s comment names the driver's sides and one anchor
+
+- **The comment keeps `ours` first and `theirs` second, names which side
+  each of a merge and a rebase calls `ours`, and premises the driver on
+  an entry arriving at one shared anchor rather than a bullet appended
+  to one of a few changelog groups** (issue btclib-org/.github#646).
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
