@@ -91,7 +91,7 @@ repos:
   # Pinned to the shellcheck-py version already used below as actionlint's
   # additional_dependency, so one shellcheck runs across the tree.
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
+    rev: v0.11.0.1-1
     hooks:
       - id: shellcheck
         args: [-x]
@@ -351,7 +351,7 @@ repos:
   # of it a defect, and is worth running by hand rather than on every
   # commit
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.29.0
+    rev: v1.30.0
     hooks:
       - id: zizmor
         # offline is what it does by default, said out loud: it warns
