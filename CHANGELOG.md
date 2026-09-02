@@ -1959,6 +1959,15 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   whatever `$WT` a session that has already been through it still holds.
   Its own block is the one CLAUDE.md's reader pastes deliberately.
 
+### `REPOSITORY.md`'s *Variables* reads both stores back for the review switch
+
+- **`REPOSITORY.md` carries a *Variables* section, which reads the
+  repository's Actions variable store and the organization's back for
+  `vars.CLAUDE_REVIEW_ENABLED`** (issue btclib-org/.github#682). Both
+  answer empty, which section 11 of the organization standard reads as
+  the switch's off state, so this file answers in one command whether
+  the review gate is on here.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
