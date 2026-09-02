@@ -1950,6 +1950,15 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   an entry arriving at one shared anchor rather than a bullet appended
   to one of a few changelog groups** (issue btclib-org/.github#646).
 
+### CLAUDE.md's worktree removal line stands in a block of its own
+
+- **`git worktree remove --force "$WT"` stands in a block of its own**
+  (issue btclib-org/.github#676): the line above it ends in a
+  placeholder, and a shell that discards that line as a parse error
+  reads the next as a fresh command, so a paste of the block removes
+  whatever `$WT` a session that has already been through it still holds.
+  Its own block is the one CLAUDE.md's reader pastes deliberately.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
