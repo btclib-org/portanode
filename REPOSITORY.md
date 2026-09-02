@@ -217,6 +217,31 @@ empty string on exactly the pull requests `.github/dependabot.yml` opens
 saying which secret is missing, rather than a review that silently
 reviewed nothing.
 
+## Variables
+
+**A switch this repository does not set.** `claude-review.yml` guards
+its jobs with `vars.CLAUDE_REVIEW_ENABLED`, and neither variable store
+holds it:
+
+```shell
+gh api repos/btclib-org/portanode/actions/variables --jq '.total_count'
+gh api orgs/btclib-org/actions/variables --jq '.variables[].name'
+gh api orgs/btclib-org/actions/variables --jq '.total_count'
+```
+
+answer `0`, an empty name list, and `0`. Both organization secret stores
+the section above reads answer `all`, which is what makes these zeros an
+absence rather than an endpoint that answers empty for everyone. The
+variable store prints nothing at all when it answers, so its own
+`total_count` of `0` is what shows the call reached it: one that does
+not reach it prints an error and exits non-zero. Section 11 of the
+organization standard reads that empty name list as
+`vars.CLAUDE_REVIEW_ENABLED`'s off state, an undefined `vars.X` being
+the empty string. Both stores are read because a variable set here would
+take precedence over one of the same name set on the organization, so
+the organization's answer alone would not show the switch off for this
+tree.
+
 ## Token permissions
 
 ```shell

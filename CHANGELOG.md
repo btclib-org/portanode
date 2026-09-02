@@ -1943,6 +1943,31 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   is the fragments of the other hosts. btclib-org/.github#630 weighs that
   shape.
 
+### `.gitattributes`'s comment names the driver's sides and one anchor
+
+- **The comment keeps `ours` first and `theirs` second, names which side
+  each of a merge and a rebase calls `ours`, and premises the driver on
+  an entry arriving at one shared anchor rather than a bullet appended
+  to one of a few changelog groups** (issue btclib-org/.github#646).
+
+### CLAUDE.md's worktree removal line stands in a block of its own
+
+- **`git worktree remove --force "$WT"` stands in a block of its own**
+  (issue btclib-org/.github#676): the line above it ends in a
+  placeholder, and a shell that discards that line as a parse error
+  reads the next as a fresh command, so a paste of the block removes
+  whatever `$WT` a session that has already been through it still holds.
+  Its own block is the one CLAUDE.md's reader pastes deliberately.
+
+### `REPOSITORY.md`'s *Variables* reads both stores back for the review switch
+
+- **`REPOSITORY.md` carries a *Variables* section, which reads the
+  repository's Actions variable store and the organization's back for
+  `vars.CLAUDE_REVIEW_ENABLED`** (issue btclib-org/.github#682). Both
+  answer empty, which section 11 of the organization standard reads as
+  the switch's off state, so this file answers in one command whether
+  the review gate is on here.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
