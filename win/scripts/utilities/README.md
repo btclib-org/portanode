@@ -50,7 +50,7 @@ Can be used if an update fails
   Task Scheduler, since the MessageBox fallback is modal and would block a
   scheduled run indefinitely.
 - `health-check.bat`: Disk space + basic process checks.
-- `clean-artifacts.bat`: Removes Windows artifact files from the repo.
+- `clean-artifacts.bat`: Removes Windows artifact files from the folder.
 - `set-permissions.bat`: Restricts `bitcoin-datadir/` and
   `electrum-datadir/` to `%USERDOMAIN%\%USERNAME%` (`icacls`) on a
   filesystem that stores ACLs (NTFS). exFAT and FAT32 hold no ACL at
@@ -60,8 +60,14 @@ Can be used if an update fails
 
 ## Notes
 
-- Run from repo root or double-click in Explorer; scripts resolve paths relative
-  to the repo.
+- Each script above may be run from any working directory, and
+  double-clicked in Explorer. Each resolves the folder's root from its own
+  location, or from `PORTANODE_ROOT`, and reads the working directory for
+  nothing. The `.ps1` files beside them are not entry points: each is
+  called by a `.bat` with whatever that call needs — the root for
+  `free-space-gb.ps1`, `monitor-bitcoin-log.ps1` and
+  `verify-binaries.ps1`, a datadir for `filesystem-type.ps1`, nothing at
+  all for the two `latest-*-version.ps1` — and none is run directly.
 - Most scripts require internet for downloads; ensure connectivity.
 - Update scripts download, verify and (for Bitcoin Core) extract on
   the local disk (`%TEMP%`), never on the removable volume, and clean up
