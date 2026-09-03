@@ -143,9 +143,18 @@ REM Built as one physical line each -- see :update_checksum in lib.bat
 REM (#144): a caret split across one of these blocks' open quote was a
 REM literal character, not a continuation, so the goto :error guard that
 REM follows never ran and a failed download went undetected.
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' }" || goto :error
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\\SHA256SUMS' }" || goto :error
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' -OutFile '%TMPDIR%\\SHA256SUMS.asc' }" || goto :error
+REM
+REM The one-line form alone is not enough: powershell.exe exits 0 after
+REM an uncaught Invoke-WebRequest error -- measured on windows-latest,
+REM a 404 -- so each block also wraps its request in try/catch and
+REM calls exit 1 itself (#364). The catch prints the exception's own
+REM message first: a catch that only exits leaves a failed download the
+REM one failure here that says nothing about itself, where the checksum
+REM block below prints before its own exit. Write-Host sends it to
+REM stdout, so a run that fails this way still writes nothing to stderr.
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\\SHA256SUMS' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' -OutFile '%TMPDIR%\\SHA256SUMS.asc' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK "%ROOTDIR%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
@@ -165,20 +174,16 @@ powershell -Command ^
   || goto :error
 
 if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
-if exist "%BIN_DIR%\\bitcoin-qt.exe" ^
-  copy /y "%BIN_DIR%\\bitcoin-qt.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoind.exe" ^
-  copy /y "%BIN_DIR%\\bitcoind.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin-cli.exe" ^
-  copy /y "%BIN_DIR%\\bitcoin-cli.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin-wallet.exe" ^
-  copy /y "%BIN_DIR%\\bitcoin-wallet.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin-tx.exe" ^
-  copy /y "%BIN_DIR%\\bitcoin-tx.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin-util.exe" ^
-  copy /y "%BIN_DIR%\\bitcoin-util.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin.exe" ^
-  copy /y "%BIN_DIR%\\bitcoin.exe" "%BACKUP_DIR%\\" >nul
+REM One physical line each, matching update-electrum.bat's own backup
+REM line: a caret continuation between "if exist" and "copy" wrote
+REM "' ' is not recognized" once per pair on windows-latest (#363).
+if exist "%BIN_DIR%\\bitcoin-qt.exe" copy /y "%BIN_DIR%\\bitcoin-qt.exe" "%BACKUP_DIR%\\" >nul
+if exist "%BIN_DIR%\\bitcoind.exe" copy /y "%BIN_DIR%\\bitcoind.exe" "%BACKUP_DIR%\\" >nul
+if exist "%BIN_DIR%\\bitcoin-cli.exe" copy /y "%BIN_DIR%\\bitcoin-cli.exe" "%BACKUP_DIR%\\" >nul
+if exist "%BIN_DIR%\\bitcoin-wallet.exe" copy /y "%BIN_DIR%\\bitcoin-wallet.exe" "%BACKUP_DIR%\\" >nul
+if exist "%BIN_DIR%\\bitcoin-tx.exe" copy /y "%BIN_DIR%\\bitcoin-tx.exe" "%BACKUP_DIR%\\" >nul
+if exist "%BIN_DIR%\\bitcoin-util.exe" copy /y "%BIN_DIR%\\bitcoin-util.exe" "%BACKUP_DIR%\\" >nul
+if exist "%BIN_DIR%\\bitcoin.exe" copy /y "%BIN_DIR%\\bitcoin.exe" "%BACKUP_DIR%\\" >nul
 
 if not exist "%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe" (
     echo Error: extracted binaries not found.
@@ -228,5 +233,9 @@ REM windows-latest, one line below it the same call answers
 REM '"..\root.bat"' is not recognized as an internal or external
 REM command, and no wait happens.
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
-endlocal
-exit /b %STATUS%
+REM One physical line: cmd.exe expands %STATUS% when it reads this
+REM line, before the endlocal on the same line runs, where a separate
+REM "exit /b %STATUS%" line would read it after endlocal had already
+REM discarded it -- measured on windows-latest, a failed run then
+REM exiting 0 (#362).
+endlocal & exit /b %STATUS%
