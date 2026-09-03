@@ -33,13 +33,21 @@ REM unpruned mainnet full sync, 100GB otherwise (pruned, testnet, or
 REM regtest) -- changing either belongs there first, this comment
 REM second. Pruning is read from bitcoin-datadir\bitcoin.conf rather
 REM than assumed: an active, non-zero "prune=" anywhere in the file
-REM (any network section) lowers the requirement. The pattern matches a
+REM (any network section) lowers the requirement. /C: is what makes the
+REM pattern one search string: findstr otherwise splits a search string
+REM on its spaces, and the trailing piece, "]*[1-9]", matches any line
+REM carrying a digit 1-9 -- which this tree's own bitcoin.conf does, so
+REM a conf holding no prune= at all reads as pruned and the 700GB
+REM warning below never prints. /R is what keeps the string a regular
+REM expression behind /C:; measured on windows-latest, /I /C: without
+REM /R matches the pattern literally and so answers no match for a
+REM bitcoin.conf carrying "prune=1000". The pattern matches a
 REM leading space, not a tab -- this tree's own bitcoin.conf indents
 REM with neither, so a tab-indented "prune=" would be missed here where
 REM the macOS script's [[:space:]] class would still catch it.
 set PRUNED=0
 if exist "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" (
-    findstr /R /I "^[ ]*prune[ ]*=[ ]*[1-9]" ^
+    findstr /R /I /C:"^[ ]*prune[ ]*=[ ]*[1-9]" ^
       "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" >nul 2>&1
     if not errorlevel 1 set PRUNED=1
 )

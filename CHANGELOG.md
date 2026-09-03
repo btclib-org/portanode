@@ -2259,6 +2259,26 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   *Cutting one*'s second step strikes it with the paragraph above it at
   the first release.
 
+### `validate-setup.bat`'s prune test reads one search string, not several
+
+- **`win/scripts/utilities/validate-setup.bat` passes its `prune=`
+  pattern behind `findstr`'s `/C:`** (closes #332). A search string
+  carrying spaces is otherwise split on them, and the trailing piece,
+  `]*[1-9]`, matches any line holding a digit `1`-`9` -- which this
+  tree's own `bitcoin-datadir/bitcoin.conf` does, so a `bitcoin.conf`
+  with no `prune=` in it read as pruned and the 700GB warning never
+  printed. `/R` stays beside `/C:`: measured on `windows-latest`, `/I
+  /C:` without it matches the pattern literally and so finds nothing in
+  a `bitcoin.conf` carrying `prune=1000`. Running the script whole from
+  a 300GB volume, the warning prints for a conf holding no `prune=`,
+  for one holding `prune=0` and for one holding `#prune=1000`, and
+  stays silent for `prune=1000`, for a space-indented `prune = 1000`
+  and for a `prune=550` under `[main]` -- which is what
+  `linux/scripts/utilities/validate-setup.sh` prints on the same files,
+  from a 300GB loopback image on `ubuntu-latest`. A tab-indented
+  `prune=` still reads as unpruned here, the `.bat` pattern's class
+  holding a space where the `.sh` halves' `[[:space:]]` holds both.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
