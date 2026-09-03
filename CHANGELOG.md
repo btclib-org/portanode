@@ -2189,6 +2189,20 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   assignment and runs the remainder as a command where the `set` is
   bare.
 
+### The three root probes ask for `VERSION` beside a platform directory
+
+- **`root.bat`'s `:find_root` and `root.ps1`'s `Resolve-PortaNodeRoot`
+  require `VERSION` plus one of `macos\`, `win\` or `linux\`, and
+  return the directory the walk started in where it finds none** (closes
+  #305). That is the marker `resolve_root` in `shared/lib.sh` looks for,
+  so a directory holding `VERSION` and no platform directory is walked
+  past by all three; a file named `win` beside `VERSION` no longer
+  answers either, the `.bat` half testing for a trailing separator and
+  the `.ps1` half for `-PathType Container`. The drive root a failed
+  walk returned is also what a hit returns for a folder unpacked at the
+  top of a volume, which is what makes it the wrong value to hand back.
+  `README.md` names the marker the three agree on.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

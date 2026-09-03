@@ -138,8 +138,9 @@ executable bit the launchers carry in the repository, which is what
 reached the disk any other way is under *Troubleshooting*.
 
 Where on the disk it sits is free. A launcher walks up from its own
-location to the `VERSION` file that marks the root, and reads
-`PORTANODE_ROOT` before it walks at all — *Environment Overrides* below.
+location to the directory holding `VERSION` beside `macos/`, `win/` or
+`linux/`, and reads `PORTANODE_ROOT` before it walks at all —
+*Environment Overrides* below.
 
 ## Quick Start
 
