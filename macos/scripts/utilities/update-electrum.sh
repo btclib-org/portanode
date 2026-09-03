@@ -110,11 +110,32 @@ if [ "$DRY_RUN" -eq 1 ]; then
         echo "gpg: not found -- verification would fail closed unless" \
              "PORTANODE_ALLOW_UNVERIFIED=1 is set."
     fi
-    ARCHIVE_LEN="$(curl -fsIL "$URL" \
-      | tr -d '\r' | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')"
+    # --max-time 30, the bound latest-bitcoin-version.ps1 and
+    # latest-electrum-version.ps1 pass as -TimeoutSec 30: a host that
+    # accepts the connection and then answers at its leisure holds
+    # --dry-run open for as long as it chooses, where --dry-run is the
+    # side-effect-free preview. One flag covers it, --max-time bounding
+    # the whole request rather than the connect alone.
+    #
+    # The status is discarded rather than left to set -e: with pipefail
+    # curl's own failure -- the bound firing, or a host refusing the
+    # connection -- otherwise ends the run at this assignment, with the
+    # free-space line below unreached.
+    ARCHIVE_LEN="$(curl -fsIL --max-time 30 "$URL" \
+      | tr -d '\r' \
+      | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
+      || ARCHIVE_LEN=""
     if [ -n "$ARCHIVE_LEN" ]; then
         echo "Archive size: $((ARCHIVE_LEN / 1024 / 1024)) MB" \
              "(downloaded to local temp storage, not the removable disk)."
+    else
+        # Printed rather than the block falling silent: with no line at
+        # all, an estimate that could not be made reads the same as one
+        # nobody attempted. It names the absence rather than a cause: the
+        # bound firing, a request that failed and a response carrying no
+        # Content-Length all reach here alike.
+        echo "Archive size: unknown (the HEAD request returned no" \
+             "Content-Length within 30 seconds)."
     fi
     df -h "$ROOTDIR" | awk -v r="$ROOTDIR" 'NR==2 {print "Free space at " r ": " $4}'
     exit 0
