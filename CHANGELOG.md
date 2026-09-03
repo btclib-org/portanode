@@ -2222,6 +2222,17 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   wait there fires once per data directory before the script has
   finished printing.
 
+### The root walk ends at `/` rather than where a directory equals its parent
+
+- **`resolve_root` in `shared/lib.sh` stops the walk on reaching `/`**
+  (closes #339). Comparing the next directory with the current one does
+  not stop it: the next directory is `"$dir/.."`, which at `/` is
+  `//..`, and a leading double slash is implementation-defined in POSIX
+  and kept by bash, so `//..` resolves to `//` and `///..` back to `/`
+  and the two alternate. A caller with no `VERSION` above it is handed
+  `start_dir`, the fallback `CLAUDE.md`'s *`resolve_root` fails
+  silently, not loudly* describes, where before it got no answer at all.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
