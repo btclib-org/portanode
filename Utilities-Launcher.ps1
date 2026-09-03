@@ -58,7 +58,8 @@ while ($true) {
 
     $scriptRel = $Scripts[$choice]
     $scriptPath = Join-Path $Root $scriptRel
-    if (-not (Test-Path $scriptPath)) {
+    # Test-Path -LiteralPath: see win/scripts/root.ps1 (#297) for why.
+    if (-not (Test-Path -LiteralPath $scriptPath)) {
         Write-Host "Script not found: $scriptRel"
         Write-Host ""
         continue

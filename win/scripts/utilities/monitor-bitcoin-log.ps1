@@ -11,13 +11,13 @@ if (-not $NoNotify -and $env:PORTANODE_NO_NOTIFY -eq '1') {
 $logFile = Join-Path $RootDir 'bitcoin-datadir\debug.log'
 $lastCheckFile = Join-Path $RootDir '.last_log_offset'
 
-if (-not (Test-Path $logFile)) {
+if (-not (Test-Path -LiteralPath $logFile)) {
   Write-Host 'Log file not found: bitcoin-datadir\debug.log'
   exit 0
 }
 
 $lastOffset = 0
-if (Test-Path $lastCheckFile) {
+if (Test-Path -LiteralPath $lastCheckFile) {
   $value = Get-Content -Path $lastCheckFile -TotalCount 1
   if ($value -match '^\d+$') {
     $lastOffset = [int64]$value
