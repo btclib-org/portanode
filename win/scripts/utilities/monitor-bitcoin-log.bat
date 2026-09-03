@@ -23,6 +23,7 @@ exit /b 1
 
 if not exist "%LOG_FILE%" (
     echo Log file not found: bitcoin-datadir\debug.log
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 0
 )
 
@@ -30,4 +31,5 @@ powershell -NoProfile -ExecutionPolicy Bypass ^
   -File "%SCRIPT_DIR%monitor-bitcoin-log.ps1" ^
   -RootDir "%ROOTDIR_ARG%" %NO_NOTIFY_ARG%
 
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0

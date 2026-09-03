@@ -2203,6 +2203,25 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   top of a volume, which is what makes it the wrong value to hand back.
   `README.md` names the marker the three agree on.
 
+### `:pause_if_own_console` waits for 30 seconds instead of blocking
+
+- **`win/scripts/root.bat` ends the wait with `timeout /t 30` rather
+  than `pause`** (closes #340). Its test asks which script a console was
+  opened for, and a scheduled task's console answers that the way a
+  double-click does, so a run under Task Scheduler reached `pause` with
+  nobody there to press a key. Measured on `windows-latest` with the
+  action registered as `cmd.exe /c "<script>"` and run as SYSTEM:
+  `rotate-bitcoin-log.bat` read `State=Running` and
+  `LastTaskResult=0x41301` ninety seconds in, and reads `Ready` and
+  `0x0` once the wait expires on its own.
+- **`validate-setup.bat`, `set-permissions.bat` and
+  `monitor-bitcoin-log.bat` call it before every `exit /b` that ends
+  them, the success return included** (closes #324).
+  `set-permissions.bat`'s `:report_permission_effect` carries none: its
+  `exit /b 0` returns from a `call` rather than ending the script, so a
+  wait there fires once per data directory before the script has
+  finished printing.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

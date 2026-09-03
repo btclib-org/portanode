@@ -6,7 +6,7 @@ $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
 # win\scripts\root.bat's :pause_if_own_console reads this. The menu
 # below is the console a script returns to, so nothing it printed is
-# discarded and a pause buys the reader nothing. The label cannot see
+# discarded and a wait buys the reader nothing. The label cannot see
 # that for itself: PowerShell runs a .bat through a cmd.exe of its own,
 # whose command line names the script exactly as a double-click of it
 # does.
