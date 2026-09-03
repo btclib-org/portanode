@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 REM Update Electrum version (Windows)
 
-set SCRIPT_DIR=%~dp0
+set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 
@@ -30,7 +30,7 @@ pushd "%ROOTDIR%" >nul 2>&1
 
 set "BIN_DIR=%ROOTDIR%\win\bin"
 set "BACKUP_DIR=%BIN_DIR%\backup\electrum"
-set CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256
+set "CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256"
 set "TMPDIR=%TEMP%\portanode-electrum"
 set STATUS=0
 

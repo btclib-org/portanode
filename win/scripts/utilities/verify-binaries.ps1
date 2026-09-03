@@ -4,7 +4,7 @@ param(
 )
 
 $checksum = Join-Path $RootDir 'win/checksums.sha256'
-if (-not (Test-Path $checksum)) {
+if (-not (Test-Path -LiteralPath $checksum)) {
   Write-Host 'Error: win/checksums.sha256 not found.'
   exit 1
 }
@@ -58,7 +58,7 @@ foreach ($path in $map.Keys) {
   if ($expectedVersions.Count -gt 0) {
     $expectedText = ($expectedVersions -join ', ')
   }
-  if (-not (Test-Path $filePath)) {
+  if (-not (Test-Path -LiteralPath $filePath)) {
     if ($expectedText) {
       Write-Host "${path}: MISSING (expected versions: $expectedText)"
     } else {

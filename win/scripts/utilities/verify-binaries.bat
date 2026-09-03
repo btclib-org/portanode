@@ -2,7 +2,7 @@
 setlocal
 REM Verify binaries against win/checksums.sha256
 
-set SCRIPT_DIR=%~dp0
+set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 set CHECKSUM_FILE=win/checksums.sha256

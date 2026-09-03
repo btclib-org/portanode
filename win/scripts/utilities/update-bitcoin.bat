@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 REM Update Bitcoin Core binaries (Windows)
 
-set SCRIPT_DIR=%~dp0
+set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 
@@ -52,7 +52,7 @@ set BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/
 set URL=%BASE_URL%%FILE%
 set CHECKSUM_URL=%BASE_URL%SHA256SUMS
 set CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc
-set CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256
+set "CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256"
 
 set STATUS=0
 

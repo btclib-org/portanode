@@ -2,11 +2,11 @@
 setlocal enabledelayedexpansion
 REM Set restrictive permissions for PortaNode data directories (Windows)
 
-set SCRIPT_DIR=%~dp0
+set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 
-set BDD=%ROOTDIR%\bitcoin-datadir
-set EDD=%ROOTDIR%\electrum-datadir
+set "BDD=%ROOTDIR%\bitcoin-datadir"
+set "EDD=%ROOTDIR%\electrum-datadir"
 
 if not exist "%BDD%" (
     echo Error: bitcoin-datadir not found.
@@ -52,7 +52,7 @@ if not defined FS_NAME (
 )
 if /i "%FS_NAME%"=="NTFS" (
     echo %REL% is on an NTFS volume: permissions restricted to
-    echo %USERDOMAIN%\%USERNAME%.
+    echo !USERDOMAIN!\!USERNAME!.
 ) else (
     echo Warning: %REL% is on a %FS_NAME% volume, which does not store
     echo ACLs. icacls above changed nothing on disk; the directory is

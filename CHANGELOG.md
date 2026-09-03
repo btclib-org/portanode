@@ -2065,6 +2065,31 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   Section 9 of the organization standard is the rule that puts the
   placeholder last.
 
+### The `.bat` and `.ps1` scripts read a mount point's `&`, `[` and `]` as data
+
+- **`Resolve-Path` and `Test-Path` in `win/scripts/root.ps1` and the
+  three root `.ps1` launchers take `-LiteralPath`** (closes #297). Both
+  read an argument without it as a wildcard pattern, so a mount point
+  holding `[` or `]` answered *not found* for a directory and a file
+  that were both on disk, and the root walk ran past the root it was
+  meant to stop at.
+- **`monitor-bitcoin-log.ps1` and `verify-binaries.ps1` take the same
+  `-LiteralPath` fix**, the pattern `filesystem-type.ps1` and
+  `free-space-gb.ps1` already carry: both build the path they test from
+  `$RootDir`, the value the bullet above is about.
+- **The `.bat` utilities' `set` and `echo` of `%ROOTDIR%` and `%~dp0`
+  are quoted** (closes #298). Unquoted, an `&` arriving through either
+  expansion ends the command at the `&` and runs the remainder as a
+  command of its own, or truncates the assignment silently and leaves
+  the script running on the truncated value; `health-check.bat`'s own
+  `%~dp0` capture reached this before `%ROOTDIR%` was even resolved.
+- **`set-permissions.bat`'s `%USERDOMAIN%\%USERNAME%` echo reads them
+  through delayed expansion instead** (closes #300), the file already
+  running under `setlocal enabledelayedexpansion`: a `%`-expanded value
+  is parsed for metacharacters before the block it sits in runs, an
+  `!`-expanded one only once that line executes, past the point cmd.exe
+  would otherwise have split it.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

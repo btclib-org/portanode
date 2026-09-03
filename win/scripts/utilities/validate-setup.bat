@@ -2,13 +2,13 @@
 setlocal enabledelayedexpansion
 REM Validate setup
 
-set SCRIPT_DIR=%~dp0
+set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 
 pushd "%ROOTDIR%" >nul 2>&1
 
-echo Validating setup at %ROOTDIR%
+echo Validating setup at "%ROOTDIR%"
 
 
 if exist "%SCRIPT_DIR%verify-binaries.bat" (

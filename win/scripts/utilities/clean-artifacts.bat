@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 REM Clean Windows artifacts
 
-set SCRIPT_DIR=%~dp0
+set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 
 pushd "%ROOTDIR%" >nul 2>&1
