@@ -2171,6 +2171,24 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   absolute path `where` returned, a binary outside the folder being
   outside the ROOTDIR-relative rule rather than an exception to it.
 
+### `--dry-run`'s archive-size request is bounded, and says so on failure
+
+- **`update-bitcoin.bat` and `update-electrum.bat` pass `-TimeoutSec 30`
+  on the `Invoke-WebRequest -Method Head` behind `--dry-run`'s
+  archive-size estimate, and print an `Archive size: unknown` line where
+  no `Content-Length` comes back** (closes #327). It is the value
+  `latest-bitcoin-version.ps1` and `latest-electrum-version.ps1` pass on
+  their own requests. Measured on
+  `windows-latest` against a host that accepts the connection and never
+  answers: both files reach the free-space line and exit, where before
+  this fix both were still inside the request when the probe's own cap
+  killed them, having printed nothing about the size at all.
+- **The `set` taking the response's `Content-Length` back into `cmd.exe`
+  is quoted**, the form #318 gave `URL` in these same two files: the
+  header is whatever the server sent, so an `&` in it ends the
+  assignment and runs the remainder as a command where the `set` is
+  bare.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

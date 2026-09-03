@@ -104,11 +104,25 @@ if "%DRY_RUN%"=="1" (
     REM Built as one physical line -- see :update_checksum in lib.bat
     REM (#144) on why a caret split across an open quote is not a
     REM continuation.
-    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing).Headers['Content-Length'] } catch { '' } }"`) do set ARCHIVE_LEN=%%L
+    REM
+    REM -TimeoutSec 30, the value latest-bitcoin-version.ps1 and
+    REM latest-electrum-version.ps1 pass on their own requests: a HEAD
+    REM the server accepts and then answers at its leisure holds
+    REM --dry-run open for as long as the host chooses, and --dry-run is
+    REM the side-effect-free preview.
+    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
     if defined ARCHIVE_LEN (
         set /a ARCHIVE_MB=!ARCHIVE_LEN!/1024/1024
         echo Archive size: !ARCHIVE_MB! MB ^(downloaded to local temp
         echo storage, not the removable disk^).
+    ) else (
+        REM Printed rather than the block falling silent: with no line at
+        REM all, an estimate that could not be made reads the same as one
+        REM nobody attempted. It names the absence rather than a cause,
+        REM since the timeout above, a request that failed and a response
+        REM carrying no Content-Length all reach here alike.
+        echo Archive size: unknown ^(the HEAD request returned no
+        echo Content-Length within 30 seconds^).
     )
     set FREE_GB=
     for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
