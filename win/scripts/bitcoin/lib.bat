@@ -1,14 +1,15 @@
 @echo off
-REM Shared guards for the Bitcoin launchers beside this file, called by label:
+REM Shared routines for the Bitcoin launchers beside this file, called by label:
 REM     call "%SCRIPT_DIR%lib.bat" :label [arguments]
-REM Each prints its own message and returns 1 where the caller must stop, so a
-REM caller writes: if errorlevel 1 exit /b 1
+REM A guard prints its own message and returns 1 where the caller must stop, so
+REM a caller writes: if errorlevel 1 exit /b 1
 REM
-REM Both read the command line of every running process, Win32_Process being
-REM where Windows keeps it, and so both need powershell.exe. A node given the
-REM same directory under another name -- a substituted drive, a junction, an
-REM 8.3 short path -- is not recognized, and neither is a node of another
-REM user, whose command line the query returns empty.
+REM A guard that asks whether a node is running reads the command line of every
+REM running process, Win32_Process being where Windows keeps it, and so needs
+REM powershell.exe. A node given the same directory under another name -- a
+REM substituted drive, a junction, an 8.3 short path -- is not recognized, and
+REM neither is a node of another user, whose command line the query returns
+REM empty.
 REM
 REM A label that takes a data directory takes it relative to ROOTDIR and
 REM joins the two itself. Its refusal prints the relative name: the folder
@@ -120,4 +121,42 @@ if exist "%WIPE_DIR%\" (
     echo Error: could not delete "%WIPE_DIR_REL%".
     exit /b 1
 )
+exit /b 0
+
+:cli_console
+REM Turns the console it runs in into a bitcoin-cli session for one
+REM launcher: it changes to win\bin, titles the console after the
+REM launcher the first argument names, and defines the btc macro. The
+REM second argument carries the switches that vary between launchers,
+REM the network and a port where one is set; ROOTDIR and DATADIR are
+REM read from the caller's environment rather than passed, the way the
+REM header above says ROOTDIR is. DATADIR arrives already joined,
+REM where a label taking a data directory as an argument takes it
+REM relative and joins it itself. It is a console's own command rather
+REM than a guard, so it is reached as: start "" cmd /k call
+REM "...lib.bat" :cli_console
+REM
+REM The macro names bitcoin-cli.exe by an absolute path under win\bin
+REM rather than by its bare name. Measured on windows-latest with a
+REM second bitcoin-cli.exe on PATH: the bare name runs the folder's
+REM copy from win\bin and the PATH copy from anywhere else, cmd
+REM resolving it against the current directory first and PATH after,
+REM so a reader who changes directory in this console drives this
+REM folder's datadir through a binary the folder never verified. The
+REM absolute path answers the same from every directory, which is what
+REM the btc function in the .sh and .command halves does with
+REM "$BTC_CLI".
+REM
+REM The macro is defined here rather than in a command string the
+REM launcher builds for cmd /k, because the absolute path has to be
+REM quoted and such a string is one continuous quote: a quote pair
+REM inside it closes that quote, leaving a "&" in the mount path to
+REM split the launcher's own set statement before the string is
+REM assigned. Measured on windows-latest with the folder mounted at a
+REM path carrying a space and a "&". An ordinary batch line quotes
+REM each path on its own instead, which is also what gets DATADIR its
+REM quotes in the macro.
+cd /d "%ROOTDIR%\win\bin"
+title %~1
+doskey btc="%ROOTDIR%\win\bin\bitcoin-cli.exe" %~2 -datadir="%DATADIR%" $*
 exit /b 0

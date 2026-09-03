@@ -30,15 +30,14 @@ if not exist "%ROOTDIR%\win\bin\bitcoind.exe" (
     exit /b 1
 )
 
-REM bitcoin-cli.exe is checked here rather than left to CLI_CMD below,
-REM whose doskey macro names the bare binary after a "cd /d" into
-REM win\bin: cmd looks in that directory first and in PATH after.
-REM Measured on windows-latest with another bitcoin-cli.exe on PATH,
-REM "where bitcoin-cli.exe" run from win\bin answers with the folder's
-REM copy where there is one and with the PATH copy where there is not,
-REM and the bare name runs whichever it answered with -- so without
-REM this guard btc would drive this folder's datadir through a binary
-REM the folder never verified.
+REM bitcoin-cli.exe is checked here rather than left to the CLI
+REM console below, whose doskey macro names it by an absolute path
+REM under win\bin. Measured on windows-latest with no copy in the
+REM folder: that macro's command answers "is not recognized as an
+REM internal or external command", which reaches the reader in the
+REM other console at the first btc typed there, with the daemon
+REM already started; the check here stops the launcher before either
+REM console opens.
 if not exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
     echo Error: Binary not found at "win\bin\bitcoin-cli.exe"
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
@@ -64,18 +63,16 @@ REM anywhere it is not inside an open quote. Measured on windows-latest
 REM with ROOTDIR carrying one: unquoted, BITCOIND_CMD split there and cmd
 REM tried to run the fragment after the "&" as its own command; the
 REM %ROOTDIR% and %DATADIR% below are each now inside their own quote
-REM pair. CLI_CMD's own "&"s are not incidental -- they chain cd, title
-REM and doskey for cmd /k to run -- so CLI_CMD stays one continuous quote
-REM with no interior close/reopen, which keeps ROOTDIR, DATADIR and both
-REM "&"s inside it instead of trying to quote ROOTDIR and DATADIR on their
-REM own the way BITCOIND_CMD does: closing and reopening the quote around
-REM them left this same "&" unprotected again, splitting the SET line
-REM itself before CLI_CMD was even fully assigned.
+REM pair. The CLI console below is a labelled routine in lib.bat rather
+REM than a second command built here: its doskey macro has to quote an
+REM absolute path, and a quote pair inside a command string this file
+REM assembles closes the quote the rest of it depends on, leaving this
+REM same "&" to split the set statement itself before the value is
+REM assigned. lib.bat's :cli_console carries the rest of that reasoning.
 set BITCOIND_CMD="%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0
 set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
 set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666
 start "" cmd /k %BITCOIND_CMD%
-set CLI_CMD="cd /d %ROOTDIR%\win\bin & title %~n0 & doskey btc=bitcoin-cli.exe -regtest -datadir=%DATADIR% $*"
-start "" cmd /k %CLI_CMD%
+start "" cmd /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"
