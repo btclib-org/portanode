@@ -93,7 +93,22 @@ if [ -n "$VERSION_OVERRIDE" ]; then
     VERSION="$VERSION_OVERRIDE"
     echo "Requested Electrum version: ${VERSION}"
 else
-    INDEX_HTML="$(curl -fsSL -H "User-Agent: PortaNode" https://download.electrum.org/)"
+    # --max-time 300: the same bound update-bitcoin.sh puts on its own
+    # index fetch (ISS 354), sized against bitcoincore.org answering in
+    # 135 s on a repeat request -- download.electrum.org was not measured
+    # slow, but the bound is applied here too rather than left unbounded.
+    # Version detection is required rather than optional, so the fetch
+    # failing -- the bound firing included -- is still fatal. What the
+    # "|| {" block buys is not visibility: -fsSL carries -S, so curl
+    # prints its own diagnostic and this failure is not silent the way
+    # ISS 348's grep -c was. It buys a message naming the publisher and
+    # the bound, and a fixed exit 1 in place of curl's own status.
+    INDEX_HTML="$(curl -fsSL --max-time 300 -H "User-Agent: PortaNode" \
+      https://download.electrum.org/)" || {
+        echo "Failed to fetch the release index from download.electrum.org" \
+             "(curl --max-time 300)."
+        exit 1
+    }
     VERSION="$(
       echo "$INDEX_HTML" \
         | sed -nE 's/.*href="([0-9]+\.[0-9]+\.[0-9]+)\/".*/\1/p' \

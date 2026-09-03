@@ -64,7 +64,23 @@ else
     # newest-first and skip any candidate whose archive is missing. Legacy
     # 0.x releases are excluded so the numeric sort picks a modern version.
     echo "Determining latest Bitcoin Core version..."
-    INDEX_HTML="$(curl -fsSL -H "User-Agent: PortaNode" https://bitcoincore.org/bin/)"
+    # --max-time 300: bitcoincore.org has been measured answering this
+    # same index in 135 s on a repeat request (ISS 354), well inside this
+    # bound, so a slow publisher still completes; a genuinely stuck
+    # connection does not hold the run open indefinitely. Version
+    # detection is required rather than optional, so the fetch failing --
+    # the bound firing included -- is still fatal. What the "|| {" block
+    # below buys is not visibility: -fsSL carries -S, so curl prints its
+    # own diagnostic and this failure is not silent the way ISS 348's
+    # grep -c was. It buys a message naming the publisher and the bound,
+    # and a fixed exit 1 in place of curl's own status. The candidate
+    # probe below is where the silence is real: -fsIL carries no -S.
+    INDEX_HTML="$(curl -fsSL --max-time 300 -H "User-Agent: PortaNode" \
+      https://bitcoincore.org/bin/)" || {
+        echo "Failed to fetch the release index from bitcoincore.org" \
+             "(curl --max-time 300)."
+        exit 1
+    }
     CANDIDATES="$(
       echo "$INDEX_HTML" \
         | sed -nE 's/.*href="bitcoin-core-([0-9]+\.[0-9]+(\.[0-9]+)?)\/".*/\1/p' \
@@ -74,11 +90,25 @@ else
     VERSION=""
     for candidate in $CANDIDATES; do
         candidate_url="https://bitcoincore.org/bin/bitcoin-core-${candidate}/$(release_file "$candidate")"
-        if curl -fsIL -o /dev/null "$candidate_url"; then
+        # --max-time 30: the same archive HEAD ISS 336 already bounds at
+        # 30 s further down this script, measured near 0.3 s in the
+        # ordinary case (ISS 354). curl's exit code is captured through
+        # "|| curl_rc=$?" rather than a bare command, which would end the
+        # script under set -e on the very first missing candidate, and
+        # rather than reading "$?" after an "if" whose condition it was --
+        # bash's own "if" returns 0 when the condition is false and there
+        # is no "else", which would have reported every miss as success.
+        curl_rc=0
+        curl -fsIL --max-time 30 -o /dev/null "$candidate_url" || curl_rc=$?
+        if [ "$curl_rc" -eq 0 ]; then
             VERSION="$candidate"
             break
+        elif [ "$curl_rc" -eq 28 ]; then
+            echo "Skipping ${candidate}: bitcoincore.org did not answer" \
+                 "within 30 seconds."
+        else
+            echo "Skipping ${candidate} (no macOS archive published)."
         fi
-        echo "Skipping ${candidate} (no macOS archive published)."
     done
     if [ -z "$VERSION" ]; then
         echo "Failed to find a Bitcoin Core release with a macOS archive on" \
@@ -130,7 +160,14 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "Would fetch: $URL"
     echo "Would verify against: $CHECKSUM_URL (signed by $CHECKSUM_SIG_URL)"
     if command -v gpg >/dev/null 2>&1; then
-        PUBKEYS="$(gpg --list-keys --with-colons 2>/dev/null | grep -c '^pub')"
+        # grep -c exits 1 when it counts zero, which under pipefail makes
+        # this assignment's own status 1 -- an empty keyring is exactly
+        # the case the warning below exists for, and set -e would end the
+        # script here instead of reaching it. The count itself is still
+        # correct: grep already printed "0" into the substitution before
+        # exiting non-zero, so the fallback only restates it.
+        PUBKEYS="$(gpg --list-keys --with-colons 2>/dev/null | grep -c '^pub')" \
+          || PUBKEYS=0
         echo "gpg: found, ${PUBKEYS} public key(s) in the local keyring."
         if [ "$PUBKEYS" -eq 0 ]; then
             echo "Warning: with none imported, verification would fail closed" \

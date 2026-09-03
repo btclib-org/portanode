@@ -2367,6 +2367,22 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   return from a `call` rather than ending the script, and with the call
   added there a console opened for the script waited once per binary
   moved back, before it had printed `Rollback complete.`
+- **`update-bitcoin.sh` and `update-electrum.sh` (macOS and Linux) bound
+  their version-detection network calls, and `update-bitcoin.sh` no
+  longer dies on an empty gpg keyring** (closes #348, #354). Under
+  `set -euo pipefail`, `grep -c '^pub'` exits 1 when it counts zero, so
+  `update-bitcoin.sh --dry-run` ended silently at that assignment on a
+  keyring with nothing imported, before reaching the warning immediately
+  below it that names exactly that case; the assignment now falls back
+  to `PUBKEYS=0` on that exit instead. All four scripts' version-index
+  fetch, and `update-bitcoin.sh`'s per-candidate archive probe, carried
+  no bound: `bitcoincore.org` was measured answering the index in 135 s
+  on a repeat request, and either call held `--dry-run` open for however
+  long the publisher took. The index fetch now runs under
+  `--max-time 300` and the probe under `--max-time 30`; the index fetch
+  is still fatal when its bound fires, and the probe skips the
+  candidate, and both name what happened rather than folding into a
+  generic message or leaving curl's own status to say it.
 
 ## [2026.01.27] - Initial Release
 
