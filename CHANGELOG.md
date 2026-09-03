@@ -2246,6 +2246,19 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   a file holding no byte above 127 is named, and converting it to UTF-8
   as the warning advises is a no-op on it.
 
+### The repository is releaseless by decision, and `RELEASING.md` says so
+
+- **`RELEASING.md`'s *The version string* records that no release is owed
+  for `2026.01.27`, and what the `[2026.01.27]` heading means in that
+  state** (closes #240). A release here is an announcement and a fixed
+  point to roll back to, so the tag a re-cut would sit on names a tree
+  `README.md` sends nobody to; the heading, in this file and in
+  `RELEASE_NOTES.md`, dates the entries under it and names nothing on the
+  forge. Both files are append-only, so the sentence sits in the file
+  their headers already point at rather than in a rewritten heading, and
+  *Cutting one*'s second step strikes it with the paragraph above it at
+  the first release.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

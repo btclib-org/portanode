@@ -68,6 +68,14 @@ rather than a version a user can take. *Cutting one* below is how a
 release is made, at the day it is cut rather than at a past one, and its
 second step is what strikes this paragraph.
 
+**Nothing is owed for that string.** Re-cutting `v2026.01.27` is the
+rejected alternative: the tag would sit on the commit whose
+`CHANGELOG.md` holds that section and no other, and `README.md` takes a
+reader to `main`, so the release would announce a tree nobody is sent
+to. The `[2026.01.27]` heading in `CHANGELOG.md` and in
+`RELEASE_NOTES.md` dates the entries under it and names nothing on the
+forge.
+
 ## Cutting one
 
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
@@ -78,8 +86,9 @@ second step is what strikes this paragraph.
    user has to *act* on, and nothing that is merely a change;
    `VERSION` becomes that string. Where *The version string* still
    carries the paragraph saying no release carries `VERSION`'s string,
-   strike that paragraph and this sentence in the same pull request:
-   this release is what falsifies it.
+   strike it, the paragraph on `2026.01.27` after it, and this sentence
+   in the same pull request: this release is what falsifies the first,
+   and the second describes a state this release ends.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
