@@ -73,6 +73,16 @@ folder that is not the boot disk. `README.md` is what a user reads,
   than authenticity: it detects a binary that changed under you, where
   the PGP step above is what says the binary was the publisher's. An
   entry is added after a verified install and never rewritten.
+- **A launcher runs the folder's own client; a utility that only reports
+  may borrow another.** A launcher reaches Bitcoin Core or Electrum by a
+  path under the platform's `bin/` and tests it before using it, so a
+  folder short of that binary stops at the launcher's own message rather
+  than later at the shell's, or at a copy the machine has installed. The
+  `-cli` launchers test `bitcoin-cli` for the reason they test
+  `bitcoind`: the `btc` shortcut they hand the reader runs it.
+  `utilities/health-check` is outside the rule, its subject being the
+  folder's datadir rather than the folder's binaries, so it may query
+  that datadir through whichever client it finds.
 
 ## The primary checkout is the maintainer's
 

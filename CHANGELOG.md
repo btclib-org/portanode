@@ -2143,6 +2143,18 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   carry, writes the constant suffix literally in place of
   `%ROOTDIR%\...`.
 
+### The `-cli` launchers check `bitcoin-cli` before they start anything
+
+- **The regtest `-cli` and `-cli-clean` launchers test `bitcoin-cli` the
+  way they already test `bitcoind`, and refuse before starting the
+  daemon — and, in the `-clean` variants, before deleting the regtest
+  data** (closes #326). Unchecked, the `.sh` and `.command` halves reach
+  the shell's own error the first time the reader types `btc`, and the
+  `.bat` halves reach whatever `bitcoin-cli.exe` is on `PATH`, the
+  `doskey` macro naming the bare binary after a `cd /d` into `win\bin`.
+  `CLAUDE.md` carries the rule this follows and why `health-check`, which
+  reports on the datadir rather than running the folder, is outside it.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
