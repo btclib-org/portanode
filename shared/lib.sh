@@ -43,12 +43,21 @@ resolve_root() {
             (cd "$dir" && pwd -P)
             return 0
         fi
-        local parent
-        parent="$(cd "$dir/.." && pwd -P)"
-        if [ "$parent" = "$dir" ]; then
+        # The walk stops at "/", not where the next directory comes
+        # back equal to the current one. That test never fires: the next
+        # directory is "$dir/..", which at "/" is "//..", and a leading
+        # double slash is implementation-defined in POSIX and kept by
+        # bash -- "//.." resolves to "//" and "///.." back to "/", so the
+        # two alternate and the walk does not end. Measured on bash 3.2
+        # and on 5.x.
+        #
+        # Stopping at "/" is enough because nothing else repeats: the
+        # parent of any other directory has one component fewer, and "//"
+        # steps to "/" rather than to itself.
+        if [ "$dir" = "/" ]; then
             break
         fi
-        dir="$parent"
+        dir="$(cd "$dir/.." && pwd -P)"
     done
 
     (cd "$start_dir" && pwd -P)
