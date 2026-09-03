@@ -15,7 +15,7 @@ call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 echo ROOTDIR is "%ROOTDIR%"
 
 if not exist "%ROOTDIR%\win\bin\bitcoind.exe" (
-    echo Error: Binary not found at "%ROOTDIR%\win\bin\bitcoind.exe"
+    echo Error: Binary not found at "win\bin\bitcoind.exe"
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )

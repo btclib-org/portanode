@@ -22,19 +22,19 @@ ELECTRUM_ARGS=(
 )
 
 if [ ! -d "$BIN_DIR" ]; then
-    echo "Error: Binaries directory not found at $BIN_DIR"
+    echo "Error: Binaries directory not found at ${BIN_DIR#"$ROOTDIR"/}"
     exit 1
 fi
 
 if [ ! -e "$ELECTRUM_APPIMAGE" ]; then
-    echo "Error: Binary not found at $ELECTRUM_APPIMAGE"
+    echo "Error: Binary not found at ${ELECTRUM_APPIMAGE#"$ROOTDIR"/}"
     exit 1
 fi
 
 # A volume mounted noexec fails this test with the bit set, the same way
 # a cleared bit does, and the kernel refuses the exec in both cases.
 if [ ! -x "$ELECTRUM_APPIMAGE" ]; then
-    echo "Error: Binary not executable at $ELECTRUM_APPIMAGE"
+    echo "Error: Binary not executable at ${ELECTRUM_APPIMAGE#"$ROOTDIR"/}"
     exit 1
 fi
 
