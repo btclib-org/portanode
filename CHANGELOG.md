@@ -2155,6 +2155,22 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `CLAUDE.md` carries the rule this follows and why `health-check`, which
   reports on the datadir rather than running the folder, is outside it.
 
+### `health-check` resolves `bitcoin-cli` the same way on every half
+
+- **`win/scripts/utilities/health-check.bat` resolves the client into
+  one variable and falls back to a `bitcoin-cli` on `PATH`, which the
+  two `.sh` halves already do** (closes #303). The Windows half wrote
+  `%ROOTDIR%\win\bin\bitcoin-cli.exe` out at every site that used it
+  and reached no other candidate, so on `windows-latest`, with a folder
+  whose `win\bin\` was empty, a `bitcoin-cli.exe` on `PATH` and a
+  `bitcoind.exe` running, it answered `Bitcoin running: yes (tasklist)`
+  and `Bitcoin sync: unknown` without ever invoking that client.
+  `macos/scripts/utilities/health-check.sh` carries what pins a borrowed
+  client to this folder's own datadir; the other two point at it rather
+  than restating it. A client found on `PATH` is printed by the
+  absolute path `where` returned, a binary outside the folder being
+  outside the ROOTDIR-relative rule rather than an exception to it.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

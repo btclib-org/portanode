@@ -27,6 +27,25 @@ PGREP_OUTPUT="$(pgrep -f -i "$BTC_PGREP_PATTERN" 2>&1 || true)"
 if echo "$PGREP_OUTPUT" | grep -qi "cannot get process list"; then
     echo "Note: process listing unavailable; falling back to CLI/artifacts."
 fi
+# The last candidate is a bitcoin-cli from outside the folder, and the
+# -datadir below is what makes borrowing one safe: Bitcoin Core reads
+# its RPC cookie from the datadir it is given, so a borrowed client
+# answers for this folder's node or does not answer at all.
+# Measured with Core v31.1.0 and a bitcoin-cli living outside every
+# datadir it was pointed at: -datadir=A reported A's block count and
+# -datadir=B reported B's. Against a datadir whose node was not running
+# it printed nothing on stdout; against a node started from a different
+# datadir -- the case a system-wide node holding the RPC port this
+# folder's datadir also wants -- it printed nothing on stdout and
+# "Authorization failed: Incorrect rpcuser or rpcpassword" on stderr.
+# Those two negative results are what the borrowing rests on, this
+# script reading the output for emptiness: a client that cannot
+# authenticate reads as "not running" rather than as a foreign node's
+# height.
+#
+# linux/scripts/utilities/health-check.sh and
+# win/scripts/utilities/health-check.bat end their own candidate lists
+# at the same fallback, and point here rather than restating this.
 BTC_CLI=""
 if [ -x "$ROOTDIR/macos/bin/bitcoin-cli" ]; then
     BTC_CLI="$ROOTDIR/macos/bin/bitcoin-cli"
