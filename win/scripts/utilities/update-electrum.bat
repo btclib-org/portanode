@@ -77,16 +77,21 @@ REM from the key keys\electrum.fingerprints pins, as the portable one's does,
 REM so the verification below is unchanged. win\scripts\electrum\lib.bat
 REM refuses a portable build already installed, this file's change reaching
 REM only an installation made after it.
-set FILE=electrum-%VERSION%.exe
-set SIG_FILE=%FILE%.asc
-set BASE_URL=https://download.electrum.org/%VERSION%/
-set URL=%BASE_URL%%FILE%
+REM VERSION reaches here from the scrape, regex-constrained to
+REM digits and dots, or from --version, quoted by whoever calls
+REM this script -- quoting a caller argument does not stop it
+REM holding a "&", so the set and echo below are what ISS 298
+REM already quotes and delayed-expands for %ROOTDIR%.
+set "FILE=electrum-%VERSION%.exe"
+set "SIG_FILE=%FILE%.asc"
+set "BASE_URL=https://download.electrum.org/%VERSION%/"
+set "URL=%BASE_URL%%FILE%"
 
 if "%DRY_RUN%"=="1" (
     call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
     echo --dry-run: nothing will be downloaded, verified or installed.
-    echo Would install Electrum %VERSION% ^(currently installed: !CURRENT!^).
-    echo Would fetch: %URL%
+    echo Would install Electrum !VERSION! ^(currently installed: !CURRENT!^).
+    echo Would fetch: !URL!
     where gpg >nul 2>&1
     if %errorlevel%==0 (
         echo gpg: found.
@@ -125,7 +130,7 @@ REM directory behind.
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir "%TMPDIR%"
 
-echo Downloading %URL%...
+echo Downloading !URL!...
 set PGP_OK=0
 REM Built as one physical line each -- see :update_checksum in lib.bat
 REM (#144): a caret split across one of these blocks' open quote was a
@@ -160,7 +165,7 @@ if "%PGP_OK%"=="1" (
   echo Warning: PGP signature^(s^) not verified; skipping checksum update.
 )
 
-echo Electrum updated to %VERSION%
+echo Electrum updated to !VERSION!
 
 goto :cleanup
 

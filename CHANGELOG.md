@@ -2120,6 +2120,18 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   success path, with no `exit /b 1` in any of them, so the call sits
   before an `exit /b 0` rather than after an echoed error.
 
+### A `--version` value reaches the `.bat` updaters as data, not as syntax
+
+- **`update-bitcoin.bat` and `update-electrum.bat` quote the `set` of
+  `FILE`, `BASE_URL`, `URL`, `CHECKSUM_URL` and `CHECKSUM_SIG_URL`, and
+  read them back through delayed expansion in every `echo`** (closes
+  #318).
+  `%VERSION%` reaches these two files from a scrape regex-constrained to
+  digits and dots, or from a `--version` argument the caller quotes
+  themselves; quoting a caller's own argument does not stop it holding
+  an `&`, so an unquoted `set` or `echo` downstream of it is the same
+  hazard #298 found in `%ROOTDIR%`, reachable by a different value.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

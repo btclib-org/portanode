@@ -47,16 +47,21 @@ if defined VERSION_OVERRIDE (
     )
     echo Latest Bitcoin Core with a win64 build: !VERSION!
 )
-set FILE=bitcoin-%VERSION%-win64.zip
-set BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/
-set URL=%BASE_URL%%FILE%
-set CHECKSUM_URL=%BASE_URL%SHA256SUMS
-set CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc
+REM VERSION reaches here from the scrape, regex-constrained to
+REM digits and dots, or from --version, quoted by whoever calls
+REM this script -- quoting a caller argument does not stop it
+REM holding a "&", so the set and echo below are what ISS 298
+REM already quotes and delayed-expands for %ROOTDIR%.
+set "FILE=bitcoin-%VERSION%-win64.zip"
+set "BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/"
+set "URL=%BASE_URL%%FILE%"
+set "CHECKSUM_URL=%BASE_URL%SHA256SUMS"
+set "CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc"
 set "CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256"
 
 set STATUS=0
 
-echo Updating Bitcoin Core to %VERSION%...
+echo Updating Bitcoin Core to !VERSION!...
 
 tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
 if %errorlevel%==0 (
@@ -76,9 +81,9 @@ if %errorlevel%==0 (
 if "%DRY_RUN%"=="1" (
     call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENT
     echo --dry-run: nothing will be downloaded, verified or installed.
-    echo Would install Bitcoin Core %VERSION% ^(currently installed: !CURRENT!^).
-    echo Would fetch: %URL%
-    echo Would verify against: %CHECKSUM_URL% ^(signed by %CHECKSUM_SIG_URL%^)
+    echo Would install Bitcoin Core !VERSION! ^(currently installed: !CURRENT!^).
+    echo Would fetch: !URL!
+    echo Would verify against: !CHECKSUM_URL! ^(signed by !CHECKSUM_SIG_URL!^)
     where gpg >nul 2>&1
     if %errorlevel%==0 (
         echo gpg: found.
@@ -118,7 +123,7 @@ set "TMPDIR=%TEMP%\portanode-bitcoin"
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir "%TMPDIR%"
 
-echo Downloading %URL%...
+echo Downloading !URL!...
 set PGP_OK=0
 REM Built as one physical line each -- see :update_checksum in lib.bat
 REM (#144): a caret split across one of these blocks' open quote was a
@@ -193,7 +198,7 @@ if "%PGP_OK%"=="1" (
   echo All Bitcoin binaries verified.
 )
 
-echo Bitcoin Core updated to %VERSION%
+echo Bitcoin Core updated to !VERSION!
 
 goto :cleanup
 
