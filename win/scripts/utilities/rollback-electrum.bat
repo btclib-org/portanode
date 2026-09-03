@@ -101,4 +101,5 @@ echo The backup in win\bin\backup\electrum is consumed: a second rollback has no
 echo update-electrum.bat is what installs the current release again.
 
 popd >nul 2>&1
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0

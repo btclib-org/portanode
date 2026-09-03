@@ -167,6 +167,7 @@ echo The backup in win\bin\backup\bitcoin is consumed: a second rollback has not
 echo update-bitcoin.bat is what installs the current release again.
 
 popd >nul 2>&1
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0
 
 :restore_failed
@@ -187,6 +188,12 @@ REM update-bitcoin.bat copies only what win\bin held when it ran. It is not for
 REM resuming a partial restore -- bitcoin-qt.exe is restored first, so once it
 REM has moved out of the backup the "Backup files not found" gate above stops
 REM any re-run.
+REM
+REM The "exit /b" below return from "call :restore_one" rather than ending
+REM the script, so :pause_if_own_console goes on the returns that end it.
+REM Measured on windows-latest with the call added to the "exit /b 0" that
+REM closes a successful restore: a console opened for this script waited
+REM once per binary moved back, before it had printed "Rollback complete."
 :restore_one
 if not exist "%BACKUP_DIR%\%~1" exit /b 0
 move /y "%BACKUP_DIR%\%~1" "%ROOTDIR%\win\bin\" >nul

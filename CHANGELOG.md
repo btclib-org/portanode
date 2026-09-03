@@ -2340,6 +2340,34 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   connection the unbounded scripts printed neither the size nor the free
   space.
 
+### The Windows utility scripts wait on the return a successful run reaches
+
+- **`rollback-bitcoin.bat`, `rollback-electrum.bat`, `update-bitcoin.bat`,
+  `update-electrum.bat` and `verify-binaries.bat` call
+  `:pause_if_own_console` before the `exit /b` that ends them, whatever
+  the result** (closes #337). Measured on `windows-latest` in a console
+  of the script's own, opened as `cmd /c "<script>"`, which is what a
+  double-click is: a rollback closed on the line that printed `Rollback
+  complete.` and now holds the console for the wait, and
+  `verify-binaries.bat` holds it for `verify-binaries.ps1`'s report on a
+  pass as it already did on a failure. Reached instead through a plain
+  `call` from a console opened for something else, none of them waits.
+  The measurement carried repairs for the checksum guard (issue #360) and
+  the verification report (issue #361) as a fixture, the scripts under
+  test unmodified. Until those land, a rollback stops at that guard and
+  an intact binary reports `FAILED`, so the returns added to the
+  rollbacks and to `verify-binaries.bat` are not reached; the updaters'
+  was, with PGP verification skipped.
+- **`update-bitcoin.bat` and `update-electrum.bat` make the call from
+  `:cleanup`, above `endlocal`**, that being the one return both the
+  success path and `:error` reach. One line below `endlocal` it answers
+  `'"..\root.bat"' is not recognized as an internal or external command`
+  and nothing waits, `SCRIPT_DIR` having been discarded by then.
+- **`rollback-bitcoin.bat`'s `:restore_one` carries none**: its `exit /b`
+  return from a `call` rather than ending the script, and with the call
+  added there a console opened for the script waited once per binary
+  moved back, before it had printed `Rollback complete.`
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
