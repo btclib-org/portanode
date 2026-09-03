@@ -1991,6 +1991,49 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   stands in the way. Section 9 of the organization standard is the rule
   the order satisfies, and `CLAUDE.md` states it beside the block.
 
+### rootdir_taint sweeps every shell, and the READMEs say what a reader may do
+
+- **`REPOSITORY.md` states what it records and what it passes over,
+  where it claimed to be the whole of the settings outside the tree**
+  (issue btclib-org/.github#551). Section 11 of the organization
+  standard rejects the blanket claim on the ground that no command
+  checks it, and asks instead for the settings the standard itself asks
+  about, which is a perimeter a copy can be held to. *What this file
+  passes over* at the foot names the fields no section of the standard
+  states a rule for, the endpoints that answer empty, and what falls
+  inside the scope and is not recorded yet — the default branch and the
+  absence of a Pages site, which are btclib-org/.github#549. *Merge
+  methods* reads `allow_auto_merge` back beside the merge buttons, the
+  auto-merge it describes resting on that setting
+  (btclib-org/.github#566), and the opening no longer claims that nothing
+  here can be recovered by reading the tree (btclib-org/.github#571).
+- **`REVIEWING.md`'s `rootdir_taint` sweep answers for the `.ps1` half, and
+  answers alike in `bash`, `sh` and `zsh`** (closes #294, closes #295). The seed
+  was `ROOTDIR`, which no `.ps1` here spells, so that half was swept by a
+  pattern nothing in it could match; and unquoted expansions left the walk to
+  `IFS`, which `zsh` does not apply to a parameter, so a reviewer pasting the
+  block into their own shell read a short list as a clean tree. The seed carries
+  `$Root` and `$RootDir` beside `ROOTDIR`, the assignment pattern carries
+  PowerShell's `$name = value`, the loops read a line at a time, and the
+  function writes the tainted set to stderr, which is what tells a zero apart
+  from a walk that never left its seed.
+- **`README.md` says how to take the folder, under a heading of its
+  own** (closes #243). *Quick Start* opens at a folder already on the
+  disk, and the routes that put it there were subordinate clauses of a
+  *Prerequisites* bullet whose subject is the executable bit and of a
+  *Troubleshooting* bullet whose subject is a folder that arrived some
+  other way. Each of those keeps its own subject and points at *Getting
+  the folder* for the route.
+- **Every `scripts/utilities/README.md` says a script may be run from
+  any working directory** (closes #245). Each told a reader to run from
+  the project root or the repo root, and no script there reads the
+  working directory: every one resolves the folder's root from its own
+  location or from `PORTANODE_ROOT`. They name that root the way
+  `README.md` and `CLAUDE.md` do, a reader on a removable volume having
+  no repository in front of them. The Windows half also says that the
+  `.ps1` files beside its `.bat` entry points are none of them run
+  directly, each being called by a `.bat` with whatever that call needs.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

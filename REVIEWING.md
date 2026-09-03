@@ -483,37 +483,41 @@ because that document, and not this one, is where the rule lives.
     ```shell
     join_continuations() {
       awk '{ buf = (buf == "") ? $0 : buf " " $0
-             if (buf ~ /[\\^][[:space:]]*$/) {
-               sub(/[\\^][[:space:]]*$/, "", buf); next
+             if (buf ~ /[\\^`][[:space:]]*$/) {
+               sub(/[\\^`][[:space:]]*$/, "", buf); next
              }
              print buf; buf = "" }' "$1"
     }
 
+    assigned_names() {
+      printf '%s\n' "$1" \
+        | grep -oE '(^|[^A-Za-z0-9_$])[A-Za-z_][A-Za-z0-9_]*=' \
+        | grep -oE '[A-Za-z_][A-Za-z0-9_]*'
+      printf '%s\n' "$1" \
+        | grep -oE '\$[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=' \
+        | grep -oE '[A-Za-z_][A-Za-z0-9_]*'
+    }
+
     rootdir_taint() {
       joined=$(join_continuations "$1")
-      vars="ROOTDIR"
+      vars=$(printf '%s\n' ROOTDIR Root RootDir)
       while :; do
-        new=""
-        for v in $(printf '%s\n' "$joined" \
-                     | grep -oE '(^|[^A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_]*=' \
-                     | grep -oE '[A-Za-z_][A-Za-z0-9_]*' | sort -u); do
-          case " $vars " in *" $v "*) continue ;; esac
-          rhs=$(printf '%s\n' "$joined" \
-                  | grep -E "(^|[^A-Za-z0-9_])${v}=")
-          for t in $vars; do
-            if printf '%s' "$rhs" | grep -qE "[\$%!]\{?${t}\}?"; then
-              new="$new $v"
-              break
-            fi
-          done
-        done
-        [ -z "$new" ] && break
-        vars="$vars $new"
+        pat=$(printf '%s\n' "$vars" | paste -sd '|' -)
+        new=$(assigned_names "$joined" | sort -u \
+          | while IFS= read -r v; do
+              printf '%s\n' "$vars" | grep -qxF "$v" && continue
+              printf '%s\n' "$joined" \
+                | grep -E "(^|[^A-Za-z0-9_$])${v}=|\\\$${v}[[:space:]]*=" \
+                | grep -qE "[\$%!]\{?(${pat})\}?" && printf '%s\n' "$v"
+            done)
+        [ -n "$new" ] || break
+        vars=$(printf '%s\n%s\n' "$vars" "$new")
       done
-      pat=$(printf '%s\n' $vars | paste -sd '|' -)
+      printf 'tainted: %s\n' "$(printf '%s\n' "$vars" | paste -sd ' ' -)" >&2
+      pat=$(printf '%s\n' "$vars" | paste -sd '|' -)
       printf '%s\n' "$joined" \
         | grep -inE 'echo|printf|Write-Host|Write-Output' \
-        | grep -E "$pat"
+        | grep -E "[\$%!]\{?(${pat})\}?"
     }
 
     rootdir_taint <file>
@@ -527,10 +531,58 @@ because that document, and not this one, is where the rule lives.
   every print the carve-out covers matches by construction — so a hit is
   read rather than trusted, the same way the literal grep's is.
 
-  A `.ps1` answers nothing whatever verb the pattern names: the seed is
-  the literal `ROOTDIR`, and PowerShell spells the folder's root `$Root`
-  or `$RootDir`, so no line matches and nothing is ever added to the
-  tainted set. That half is read rather than swept.
+  What it does not match is a name written as prose: a hit is a
+  reference — `$name`, `${name}`, `%name%` or `!name!` — and not the bare
+  word.
+
+  The seed carries `ROOTDIR`, which `.sh`, `.command` and `.bat` use, and
+  `Root` and `RootDir`, which the `.ps1` half uses. What decides the list
+  is not where a name is bound — `RootDir` is a
+  `param([string]$RootDir)` exactly as `Path` is — but what the name
+  names. Those hold the folder's root and nothing else, so a value built
+  from one of them is a value built from the root. `Path` and a
+  positional hold whatever their caller passed: `free-space-gb.ps1` is
+  handed the root through `-Path` and `filesystem-type.ps1` a datadir
+  under it, and `$1` is the root in `shared/utilities/lib.sh`'s
+  `verify_binaries` and a string to strip in `_verify_binaries_trim`
+  beside it. A hit under either is no evidence about the root, so those
+  are read rather than swept.
+
+  `ROOTDIR` seeds nothing on the `.ps1` half, no file there spelling it,
+  and `git ls-files '*.ps1'` names what the other two have to reach in
+  its place. A launcher assigns `$Root` from `Resolve-PortaNodeRoot`;
+  `monitor-bitcoin-log.ps1` and `verify-binaries.ps1` take `$RootDir`
+  from the `.bat` that calls them; `free-space-gb.ps1` and
+  `filesystem-type.ps1` take `$Path`; `latest-bitcoin-version.ps1` and
+  `latest-electrum-version.ps1` take no parameter and reach no root; and
+  `win/scripts/root.ps1` is the walk itself, its `$StartDir` naming where
+  the search begins rather than what it finds. The assignment pattern
+  carries PowerShell's `$name = value` beside `NAME=value`, so a `.ps1`
+  line assigning from `$Root` is one the walk can follow, and `Join-Path`
+  derives a path without interpolating anything, which is why the walk
+  follows the assignment rather than the string.
+
+  **Nothing in the block turns on word splitting**, so `bash`, `sh` and
+  `zsh` answer alike. `zsh` leaves an unquoted parameter unsplit, which
+  makes a list held in one a single word there; the loops read theirs a
+  line at a time instead.
+
+  **A zero is a result only once the sweep is known to answer otherwise**,
+  and the `tainted:` line written to stderr is what says how far the walk
+  got — a set holding the seeds and nothing else is a file the walk never
+  left. What says the sweep can answer at all is a file outside the tree
+  carrying the shape being looked for:
+
+    ```shell
+    control="${TMPDIR:-/tmp}/rootdir-taint-control.ps1"
+    printf '%s\n' \
+      '$Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot' \
+      '$binPath = Join-Path $Root "win\bin"' \
+      'Write-Host "Binary not found at $binPath"' > "$control"
+    rootdir_taint "$control"
+    ```
+
+    which reports that last line.
 - **Does the change reach the other platforms?** The same launcher is
   written four ways — `.sh`, `.command`, `.bat`, `.ps1` — and nothing
   keeps them in step. The two halves are not a mirror to begin with,

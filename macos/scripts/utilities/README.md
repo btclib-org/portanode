@@ -51,7 +51,7 @@ Can be used if an update fails.
   `PORTANODE_NO_NOTIFY=1`) suppresses the notification for a scheduled run.
 - `health-check.sh`: Disk space + basic process checks.
 - `clean-artifacts.sh`: Removes macOS artifact files (`._*`, `.DS_Store`) from
-  the repo.
+  the folder.
 - `set-permissions.sh`: Restricts `bitcoin-datadir/` and
   `electrum-datadir/` to the owner (`chmod 700`) on a filesystem that
   stores permissions (APFS). On exFAT or FAT32, macOS synthesises a fixed
@@ -61,8 +61,10 @@ Can be used if an update fails.
 
 ## Notes
 
-- Run scripts from the project root (e.g.,
-  `./macos/scripts/utilities/script.sh`).
+- Each script above may be run from any working directory,
+  `./macos/scripts/utilities/health-check.sh` from the folder's root among
+  them. Each resolves that root from its own location, or from
+  `PORTANODE_ROOT`, and reads the working directory for nothing.
 - Most scripts require internet for downloads; ensure connectivity.
 - Update scripts download, verify and extract or mount on the local
   temp directory, never on the removable volume, and clean up on exit.
