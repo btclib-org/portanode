@@ -2048,6 +2048,23 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `electrum-datadir/.gitignore` points back at it rather than repeating
   it.
 
+### `RELEASING.md`'s rollback commands end in their placeholder
+
+- **`gh release delete --yes v<version>`, `git push origin --delete
+  v<version>` and `git tag -d v<version>` put the placeholder last in
+  every line** (closes #317). Quoted, `<version>` was ordinary text, so
+  an unfilled paste ran all three regardless of position. Unquoted with
+  a word following it — the first line's own prior order,
+  `v<version> --yes` — `<` reads stdin from a file named `version` and
+  `>` writes its target to a file named for the word that follows, so
+  the paste still reached `gh` with the tag truncated to `v` and `--yes`
+  consumed as a redirection target, wherever the paste's own directory
+  held a matching file; `RELEASING.md`'s every other step assumes that
+  directory is the repository root, which holds `VERSION`, and the
+  default macOS volume format resolves that match case-insensitively.
+  Section 9 of the organization standard is the rule that puts the
+  placeholder last.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
