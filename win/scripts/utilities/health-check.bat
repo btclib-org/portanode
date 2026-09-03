@@ -37,11 +37,35 @@ set BTC_INFO=
 set BTC_METHOD=
 set ARTIFACTS=
 set ARTIFACT_NOTE=
-if exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
+REM The client is resolved once here, and every site below reads it out
+REM of BTC_CLI rather than naming a path of its own. The folder's own
+REM binary comes first; where the folder carries none, a bitcoin-cli
+REM found on PATH is borrowed. macos/scripts/utilities/health-check.sh
+REM carries what pins a borrowed client to this folder's own datadir.
+set "BTC_CLI="
+set "BTC_CLI_SHOWN="
+set "BTC_BIN=%ROOTDIR%\win\bin\bitcoin-cli.exe"
+if exist "!BTC_BIN!" set "BTC_CLI=!BTC_BIN!"
+if defined BTC_CLI call "%SCRIPT_DIR%lib.bat" :rootdir_relative "!BTC_BIN!" BTC_CLI_SHOWN
+REM "where" is the PATH lookup cmd.exe has, and it prints every match,
+REM so the guard inside the loop keeps the first line -- the one the
+REM shell itself would run. What it finds sits outside the folder, so
+REM BTC_CLI_SHOWN keeps the absolute path "where" returned: a binary
+REM outside the folder is outside the ROOTDIR-relative rule rather than
+REM an exception to it.
+if not defined BTC_CLI (
+    for /f "usebackq delims=" %%W in (`where bitcoin-cli.exe 2^>nul`) do (
+        if not defined BTC_CLI (
+            set "BTC_CLI=%%W"
+            set "BTC_CLI_SHOWN=%%W"
+        )
+    )
+)
+if defined BTC_CLI (
     REM Built as one physical line -- see :update_checksum in
     REM win/scripts/utilities/lib.bat (#144) on why a caret split across
     REM a powershell -Command block's open quote is not a continuation.
-    for /f "usebackq delims=" %%J in (`powershell -Command "& { try { & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
+    for /f "usebackq delims=" %%J in (`powershell -Command "& { try { & '!BTC_CLI!' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
     if defined BTC_INFO (
         set BTC_RUNNING=1
         set BTC_METHOD=bitcoin-cli
@@ -101,24 +125,21 @@ if "%BTC_RUNNING%"=="0" (
 if "%BTC_RUNNING%"=="1" (
     if defined BTC_METHOD (
         if /i "%BTC_METHOD%"=="bitcoin-cli" (
-            REM The binary is named, not looked up. This arm is reached
-            REM only from the block that ran the folder's own
-            REM bitcoin-cli.exe by its absolute path and got an answer,
-            REM so that file is what answered; a lookup here has no
-            REM other candidate to find, and no honest label to print
-            REM for its own failure.
-            call "%SCRIPT_DIR%lib.bat" :rootdir_relative "%ROOTDIR%\win\bin\bitcoin-cli.exe" BTC_CLI_REL
-            echo Bitcoin running: yes ^(%BTC_METHOD%: !BTC_CLI_REL!^)
+            REM BTC_CLI_SHOWN is what the resolution above settled on,
+            REM not a second lookup: this arm is reached only where that
+            REM resolution produced a client and the client answered, so
+            REM a lookup here could only disagree with what ran.
+            echo Bitcoin running: yes ^(%BTC_METHOD%: !BTC_CLI_SHOWN!^)
         ) else (
             echo Bitcoin running: yes ^(%BTC_METHOD%^)
         )
     ) else (
         echo Bitcoin running: yes
     )
-    if exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
+    if defined BTC_CLI (
         REM Built as one physical line -- see :update_checksum in
         REM lib.bat (#144).
-        for /f "usebackq delims=" %%J in (`powershell -Command "& { try { $info = & '%ROOTDIR%\\win\\bin\\bitcoin-cli.exe' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
+        for /f "usebackq delims=" %%J in (`powershell -Command "& { try { $info = & '!BTC_CLI!' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
         if defined SYNC (
             echo Bitcoin sync: !SYNC!%%
         ) else (

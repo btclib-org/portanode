@@ -24,6 +24,9 @@ fi
 # agree on what counts as a running node; pgrep's regex is extended on both
 # procps and BSD, hence "|" rather than a GNU-BRE "\|".
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
+# The last candidate is a bitcoin-cli from outside the folder;
+# macos/scripts/utilities/health-check.sh carries what pins a borrowed
+# client to this folder's own datadir.
 BTC_CLI=""
 if [ -x "$ROOTDIR/linux/bin/bitcoin-cli" ]; then
     BTC_CLI="$ROOTDIR/linux/bin/bitcoin-cli"
