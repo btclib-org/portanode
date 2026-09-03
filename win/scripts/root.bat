@@ -15,11 +15,32 @@ if defined PORTANODE_ROOT (
 
 set "ROOTDIR=%START_DIR%"
 :find_root
-if exist "%ROOTDIR%\\VERSION" goto :root_resolved
+REM A root is marked by VERSION plus one of macos\, win\ or linux\,
+REM which is the marker resolve_root in shared/lib.sh looks for; the
+REM comment at the head of that loop argues why any one of the three is
+REM enough. The trailing backslash is what makes "if exist" test for a
+REM directory: without it a plain file named win answers here. VERSION
+REM is tested without one, so a directory of that name answers here
+REM where resolve_root's own [ -f ] refuses it.
+if exist "%ROOTDIR%\\VERSION" (
+    if exist "%ROOTDIR%\\macos\" goto :root_resolved
+    if exist "%ROOTDIR%\\win\" goto :root_resolved
+    if exist "%ROOTDIR%\\linux\" goto :root_resolved
+)
 for %%I in ("%ROOTDIR%\\..") do set "PARENT=%%~fI"
-if /I "%PARENT%"=="%ROOTDIR%" goto :root_resolved
+if /I "%PARENT%"=="%ROOTDIR%" goto :find_root_failed
 set "ROOTDIR=%PARENT%"
 goto :find_root
+
+:find_root_failed
+REM A walk that reaches the top of the drive without a match returns
+REM START_DIR rather than the drive root. Neither names a real root, so
+REM what this settles is which directory a failed walk hands back, and
+REM the drive root is also what a hit returns for a folder unpacked at
+REM the top of a volume: a caller handed that value cannot tell the two
+REM apart, where START_DIR is the argument it passed in.
+set "ROOTDIR=%START_DIR%"
+goto :root_resolved
 
 :root_resolved
 REM The root is returned with no trailing separator, and a caller writes the
