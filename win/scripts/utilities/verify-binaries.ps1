@@ -51,9 +51,18 @@ $fail = 0
 foreach ($path in $map.Keys) {
   $relative = $path -replace '/', [IO.Path]::DirectorySeparatorChar
   $filePath = Join-Path $RootDir $relative
-  $expectedVersions = $map[$path] |
+  # @(...): a pipeline that yields exactly one object is assigned as that
+  # object rather than as a one-element array, and Windows PowerShell 5.1
+  # -- what the .bat callers run this under -- gives a bare PSCustomObject
+  # no .Count, so $hashMatches.Count -gt 0 below reads false for an
+  # intact binary with one recorded version (issue #361). @(...) forces
+  # the array even for one result. That was measured for $hashMatches,
+  # whose pipeline yields one; the same wrap on $expectedVersions, whose
+  # pipeline yields a string, is defensive rather than a repair, no 5.1
+  # measurement of the string case having been made.
+  $expectedVersions = @($map[$path] |
     Select-Object -ExpandProperty Version |
-    Select-Object -Unique
+    Select-Object -Unique)
   $expectedText = ''
   if ($expectedVersions.Count -gt 0) {
     $expectedText = ($expectedVersions -join ', ')
@@ -69,7 +78,9 @@ foreach ($path in $map.Keys) {
   }
   $computed = (Get-FileHash -Algorithm SHA256 $filePath).Hash
   $computed = $computed.ToLower()
-  $hashMatches = $map[$path] | Where-Object { $_.Hash -eq $computed }
+  # @(...): see the comment on $expectedVersions above -- the same
+  # single-result collapse applies to a Where-Object result.
+  $hashMatches = @($map[$path] | Where-Object { $_.Hash -eq $computed })
   if ($hashMatches.Count -gt 0) {
     $versions = $hashMatches |
       Select-Object -ExpandProperty Version |

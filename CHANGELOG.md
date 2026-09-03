@@ -2441,6 +2441,31 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   it exits, a download otherwise being the one failure in these scripts
   that reaches the user as `Update failed.` and nothing else.
 
+### The Windows checksum guard and single-match count survive their callers
+
+- **`win/scripts/utilities/lib.bat`'s `:update_checksum` and
+  `:verify_checksum` test `-not (Test-Path $checksum)` in place of
+  `!(Test-Path $checksum)`** (closes #360). Every caller enables delayed
+  expansion, inherited across the `call`, and cmd.exe strips the
+  unmatched `!` from the argument before powershell.exe sees it, so the
+  test reaches PowerShell inverted: `rollback-bitcoin.bat` and
+  `rollback-electrum.bat` refuse every rollback, and a verified install
+  records no checksum entry. `-not` carries no `!` for cmd.exe's parser
+  to strip. `shared/utilities/lib.sh`'s `update_checksum` and
+  `verify_checksum_entry` test `[ ! -f ... ]` in a POSIX shell, which
+  reads no delayed expansion and carries no equivalent defect.
+- **`win/scripts/utilities/verify-binaries.ps1` takes `$hashMatches` and
+  `$expectedVersions` from `@(...)`-wrapped pipelines** (closes #361). A
+  pipeline yielding exactly one object is assigned as that object rather
+  than as a one-element array, and Windows PowerShell 5.1 -- what
+  `verify-binaries.bat` runs the script under -- gives a bare object no
+  `.Count`, so `$hashMatches.Count -gt 0` reads false for an intact
+  binary with one recorded version, and the binary is reported `FAILED`.
+- **The returns #337 added to the rollbacks and to `verify-binaries.bat`
+  are reached**: the checksum guard above no longer refuses a rollback,
+  and `verify-binaries.ps1`'s report reaches the wait on a pass as well
+  as on a failure.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
