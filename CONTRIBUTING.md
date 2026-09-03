@@ -239,8 +239,8 @@ file, no Python at all — so nothing is synced and every command is a
 `uvx`:
 
 ```shell
-uvx pre-commit run --all-files                    # the whole gate
-uvx pre-commit run --all-files markdownlint-cli2  # one hook
+uvx pre-commit run --all-files
+uvx pre-commit run --all-files markdownlint-cli2
 uvx pre-commit validate-config .pre-commit-config.yaml
 ```
 

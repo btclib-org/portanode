@@ -2383,6 +2383,14 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   is still fatal when its bound fires, and the probe skips the
   candidate, and both name what happened rather than folding into a
   generic message or leaving curl's own status to say it.
+- **`CLAUDE.md`, `CONTRIBUTING.md` and `REPOSITORY.md` carry no trailing
+  `#` comment on a command line inside a `shell` fence, and
+  `REVIEWING.md`'s two filing placeholders are bare** (issue
+  btclib-org/.github#771, btclib-org/.github#786, btclib-org/.github#772).
+  An interactive `zsh` leaves `INTERACTIVE_COMMENTS` unset, so a trailing
+  comment reaches the command as an argument and a quoted placeholder
+  reaches the tool as its value rather than failing the paste at the
+  shell.
 
 ## [2026.01.27] - Initial Release
 

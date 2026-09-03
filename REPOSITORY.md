@@ -364,7 +364,8 @@ makes this section its one home per tree, beside the command that
 re-derives it:
 
 ```shell
-gh api orgs/btclib-org --jq .plan.name    # free
+gh api orgs/btclib-org --jq .plan.name
+# free
 ```
 
 [GitHub's own table](https://docs.github.com/en/actions/reference/limits)
