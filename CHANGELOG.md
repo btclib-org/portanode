@@ -2323,6 +2323,23 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   of it, both ending on the same ACL. `/reset` would serve as the repair
   and drop each object's explicit ACEs with it.
 
+### macOS and Linux bound `--dry-run`'s archive-size request too
+
+- **`update-bitcoin.sh` and `update-electrum.sh` under
+  `macos/scripts/utilities/` and `linux/scripts/utilities/` pass
+  `--max-time 30` on `--dry-run`'s archive-size request, discard curl's
+  status, and print an `Archive size: unknown` line where no
+  `Content-Length` comes back** (closes #336). It is the bound the `.bat`
+  half of the same estimate passes as `-TimeoutSec 30` (#327). Measured
+  on `macos-latest` and `ubuntu-latest` against a host that accepts the
+  connection and never answers: each reaches the free-space line and
+  exits, where without the bound each was still inside the request when
+  the probe's own cap killed it. Discarding curl's status is what keeps
+  the rest of the preview: `set -e` with `pipefail` reads a failed
+  request as the end of the run, so against a host refusing the
+  connection the unbounded scripts printed neither the size nor the free
+  space.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
