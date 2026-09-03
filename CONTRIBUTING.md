@@ -239,10 +239,16 @@ file, no Python at all — so nothing is synced and every command is a
 `uvx`:
 
 ```shell
-uvx pre-commit run --all-files          # the whole gate
-uvx pre-commit run markdownlint-cli2    # one hook
+uvx pre-commit run --all-files                    # the whole gate
+uvx pre-commit run --all-files markdownlint-cli2  # one hook
 uvx pre-commit validate-config .pre-commit-config.yaml
 ```
+
+A `pre-commit run` given neither `--all-files` nor `--files` reads what
+is staged, so from a clean tree it reports `(no files to check)Skipped`
+and exits 0. Both `pre-commit run` lines above carry the flag for that
+reason, and the hook id is the whole of what separates the second from
+the first.
 
 That last one is worth running before pushing a change to the hook
 config: it catches what a wrong `types_or` tag or a malformed entry would
