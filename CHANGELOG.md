@@ -2295,6 +2295,34 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   leaves a `&` in the mount path to split the `set` statement itself,
   which is the constraint #145 measured.
 
+### The data directories stay readable to the account they are restricted to
+
+- **`set-permissions.bat` grants on each data directory rather than on
+  every item under it** (closes #333). `icacls` applies each operation
+  on its command line to every item it walks, so a `/t` grant puts
+  `(OI)(CI)F` on the files as well, and those flags carry no access on a
+  file: each file is left with an empty DACL, which denies the account
+  the grant names and Administrators alike. Measured on
+  `windows-latest`, in a process running as that very account:
+  `type bitcoin-datadir\bitcoin.conf` answers `Access is denied.`, and
+  `icacls` prints the file's path with no ACE beside it.
+- **Granted on the directory alone, the ACE is inheritable and covers
+  the subtree.** Over a data directory carrying `blocks\index\`,
+  `testnet4\blocks\index\` and `wallets\my wallet\`, every file reads
+  back as `(I)(F)` and opens, a hidden file included, while a
+  non-administrative account is refused each one and reads a file
+  outside the data directories in the same process.
+- **A second `icacls` call enables inheritance on the directory's
+  contents, so the grant reaches a file an earlier run left protected
+  with an empty DACL.** Such a file takes no inherited ACE until
+  inheritance is enabled on it again. The call names the contents rather
+  than the directory, and follows the grant rather than preceding it:
+  sampling the directory's own ACL while each order ran, `/inheritance:e`
+  given the directory itself leaves it unprotected and carrying
+  `BUILTIN\Users` through most of the walk, and this order through none
+  of it, both ending on the same ACL. `/reset` would serve as the repair
+  and drop each object's explicit ACEs with it.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

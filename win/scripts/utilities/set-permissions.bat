@@ -20,8 +20,34 @@ if not exist "%EDD%" (
 )
 
 echo Setting restrictive permissions on data directories...
-icacls "%BDD%" /inheritance:r /grant "%USERDOMAIN%\%USERNAME%:(OI)(CI)F" /t >nul
-icacls "%EDD%" /inheritance:r /grant "%USERDOMAIN%\%USERNAME%:(OI)(CI)F" /t >nul
+REM icacls applies each operation on its command line to every item it
+REM walks, so /t on the grant would put (OI)(CI)F on the files too, and
+REM those flags carry no access on a file: each file is left with an
+REM empty DACL, which denies every identity, the one granted here and
+REM Administrators included. Measured on windows-latest with /t: "type
+REM bitcoin.conf" answers "Access is denied." and "icacls bitcoin.conf"
+REM prints the path with no ACE beside it. Granted on the directory
+REM alone the ACE is inheritable: a separate run, over a tree carrying
+REM wallets\my wallet\wallet.dat and testnet4\blocks\index\000003.ldb
+REM and locked by the /t form beforehand, read both back as "(I)(F)",
+REM so the subtree is covered without being walked.
+REM
+REM The second call reaches what the first cannot: a file an earlier run
+REM left protected takes no inherited ACE until inheritance is enabled
+REM on it again. It names the directory's contents rather than the
+REM directory, and runs after the grant rather than before it, because
+REM /inheritance:e clears protection on whatever it is given: on %BDD%
+REM itself it leaves the directory inheriting the volume's own ACEs for
+REM the length of the walk. Measured by sampling the directory's ACL
+REM while each order ran: with /inheritance:e first the directory reads
+REM unprotected and carrying BUILTIN\Users through most of the walk, and
+REM in this order through none of it, both ending on the same ACL.
+REM /reset would serve as the repair and drop each object's explicit
+REM ACEs with it.
+icacls "%BDD%" /inheritance:r /grant "%USERDOMAIN%\%USERNAME%:(OI)(CI)F" >nul
+icacls "%BDD%\*" /inheritance:e /t >nul
+icacls "%EDD%" /inheritance:r /grant "%USERDOMAIN%\%USERNAME%:(OI)(CI)F" >nul
+icacls "%EDD%\*" /inheritance:e /t >nul
 
 REM exFAT and FAT32 hold no ACL at all: the icacls calls above ran and
 REM exited 0 regardless, with nothing on disk to show for either. Read back
