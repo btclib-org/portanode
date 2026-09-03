@@ -1981,6 +1981,16 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   top-level `exclude:`, so the hook id is all that narrows the run — the
   `README.md` files under `macos/`, `win/` and `linux/` included.
 
+### The placeholder ends the `git worktree add` command
+
+- **`git worktree add "$WT" origin/main -b <branch>`, the flag and its
+  placeholder last** (issue btclib-org/.github#687). A paste made before
+  `<branch>` is filled in redirects into whatever follows it, so with the
+  placeholder ahead of `"$WT"` the `>` creates a file at that path — the
+  state the block's own removal line leaves behind, where no directory
+  stands in the way. Section 9 of the organization standard is the rule
+  the order satisfies, and `CLAUDE.md` states it beside the block.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
