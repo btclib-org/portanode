@@ -27,17 +27,17 @@ BTC_D="${BIN_DIR}/bitcoind"
 BTC_CLI="${BIN_DIR}/bitcoin-cli"
 
 if [ ! -d "$BIN_DIR" ]; then
-    echo "Error: Binaries directory not found at $BIN_DIR"
+    echo "Error: Binaries directory not found at ${BIN_DIR#"$ROOTDIR"/}"
     exit 1
 fi
 
 if [ ! -e "$BTC_D" ]; then
-    echo "Error: Binary not found at $BTC_D"
+    echo "Error: Binary not found at ${BTC_D#"$ROOTDIR"/}"
     exit 1
 fi
 
 if [ ! -x "$BTC_D" ]; then
-    echo "Error: Binary not executable at $BTC_D"
+    echo "Error: Binary not executable at ${BTC_D#"$ROOTDIR"/}"
     exit 1
 fi
 

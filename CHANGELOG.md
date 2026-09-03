@@ -2132,6 +2132,17 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   an `&`, so an unquoted `set` or `echo` downstream of it is the same
   hazard #298 found in `%ROOTDIR%`, reachable by a different value.
 
+### The network scripts name a missing binary by its ROOTDIR-relative path
+
+- **Every network script under `bitcoin/` and `electrum/` names a
+  missing binary, or the missing binaries directory, by its path under
+  `ROOTDIR` rather than by the absolute path this machine resolved**
+  (closes #205). The `.sh` and `.command` halves strip the `ROOTDIR`
+  prefix with `${x#"$ROOTDIR"/}`, `shared/utilities/lib.sh`'s own
+  idiom, and the `.bat` half, the only Windows half these scripts
+  carry, writes the constant suffix literally in place of
+  `%ROOTDIR%\...`.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

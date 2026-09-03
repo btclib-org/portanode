@@ -26,17 +26,17 @@ BIN_DIR="${ROOTDIR}/linux/bin"
 BTC_QT="${BIN_DIR}/bitcoin-qt"
 
 if [ ! -d "$BIN_DIR" ]; then
-    echo "Error: Binaries directory not found at $BIN_DIR"
+    echo "Error: Binaries directory not found at ${BIN_DIR#"$ROOTDIR"/}"
     exit 1
 fi
 
 if [ ! -e "$BTC_QT" ]; then
-    echo "Error: Binary not found at $BTC_QT"
+    echo "Error: Binary not found at ${BTC_QT#"$ROOTDIR"/}"
     exit 1
 fi
 
 if [ ! -x "$BTC_QT" ]; then
-    echo "Error: Binary not executable at $BTC_QT"
+    echo "Error: Binary not executable at ${BTC_QT#"$ROOTDIR"/}"
     exit 1
 fi
 

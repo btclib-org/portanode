@@ -21,7 +21,7 @@ echo BLOCKCHAINDIR is "%BLOCKCHAINDIR%"
 echo WALLETDIR is "%WALLETDIR%"
 
 if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
-    echo Error: Binary not found at "%ROOTDIR%\win\bin\bitcoin-qt.exe"
+    echo Error: Binary not found at "win\bin\bitcoin-qt.exe"
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )

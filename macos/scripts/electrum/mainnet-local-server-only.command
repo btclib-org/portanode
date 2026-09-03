@@ -14,12 +14,12 @@ ELECTRUM_RUN="${ELECTRUM_MACOS}/run_electrum"
 ELECTRUM_BIN="${ELECTRUM_MACOS}/Electrum"
 
 if [ ! -d "$BIN_DIR" ]; then
-    echo "Error: Binaries directory not found at $BIN_DIR"
+    echo "Error: Binaries directory not found at ${BIN_DIR#"$ROOTDIR"/}"
     exit 1
 fi
 
 if [ ! -x "$ELECTRUM_RUN" ] && [ ! -x "$ELECTRUM_BIN" ]; then
-    echo "Error: binary not found in $ELECTRUM_MACOS"
+    echo "Error: binary not found in ${ELECTRUM_MACOS#"$ROOTDIR"/}"
     exit 1
 fi
 
