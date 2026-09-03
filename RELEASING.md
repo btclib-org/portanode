@@ -127,9 +127,9 @@ second step is what strikes this paragraph.
 and cut them again:
 
 ```shell
-gh release delete "v<version>" --yes
-git push origin --delete "v<version>"
-git tag -d "v<version>"
+gh release delete --yes v<version>
+git push origin --delete v<version>
+git tag -d v<version>
 ```
 
 **After**, do not move the tag. A tag that somebody has fetched is a name
