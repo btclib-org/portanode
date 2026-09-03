@@ -2392,6 +2392,20 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   reaches the tool as its value rather than failing the paste at the
   shell.
 
+### `win/scripts/bitcoin/lib.bat` guards `rmdir` and keeps `$` out of `btc`
+
+- **`win/scripts/bitcoin/lib.bat`'s `:require_deleted` guards `rmdir` with `if
+  exist`, and `:cli_console`'s `btc` macro keeps `ROOTDIR` and `DATADIR` as
+  `%`-references cmd expands only after doskey's own `$`-substitution has
+  run** (closes #352, #355). The first stops a clean first run from printing
+  `rmdir`'s own "The system cannot find the file specified." between the
+  warning and the launcher's DATADIR block, leaving `rmdir`'s own message
+  intact for a directory it genuinely cannot remove. The second keeps a mount
+  path's own `$` out of the macro body doskey stores: measured on
+  windows-latest with a path carrying a `$t`, `doskey /macros` read the
+  stored body back holding the literal `%ROOTDIR%` and `%DATADIR%`
+  rather than either resolved path.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

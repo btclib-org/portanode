@@ -116,7 +116,11 @@ REM besides.
 setlocal
 set "WIPE_DIR_REL=%~1"
 set "WIPE_DIR=%ROOTDIR%\%WIPE_DIR_REL%"
-rmdir "%WIPE_DIR%" /s /q
+REM Guarded by if exist rather than by 2>nul: 2>nul would also swallow
+REM whatever rmdir says about a directory it cannot remove, which is
+REM the only account of why -- the refusal below says only that it
+REM could not be deleted.
+if exist "%WIPE_DIR%\" rmdir "%WIPE_DIR%" /s /q
 if exist "%WIPE_DIR%\" (
     echo Error: could not delete "%WIPE_DIR_REL%".
     exit /b 1
@@ -156,7 +160,30 @@ REM assigned. Measured on windows-latest with the folder mounted at a
 REM path carrying a space and a "&". An ordinary batch line quotes
 REM each path on its own instead, which is also what gets DATADIR its
 REM quotes in the macro.
+REM
+REM ROOTDIR and DATADIR reach the macro body as the literal references
+REM "%ROOTDIR%" and "%DATADIR%" -- doubled below to "%%ROOTDIR%%" and
+REM "%%DATADIR%%" so this line's own batch parsing leaves them
+REM unexpanded -- rather than as either resolved path.
+REM doskey reads its own $-codes ($T a command separator, $G $L $B for
+REM > < |, $1-$9 and $* for arguments) out of a macro body wherever
+REM they occur, and "$" is not one of the characters Windows reserves
+REM in a path, so a ROOTDIR or DATADIR interpolated here would put a
+REM code where the surrounding quotes do not protect it. Measured on
+REM windows-latest with the folder mounted at a path carrying a "$t":
+REM doskey /macros read the stored body back holding the literal
+REM "%ROOTDIR%" and "%DATADIR%" rather than either resolved path, so
+REM none of a mount path's own characters -- "$" included -- ever
+REM reach doskey's own substitution. cmd's
+REM ordinary %-expansion resolves both names when the macro runs,
+REM after doskey's $-substitution is already done, which is what
+REM keeps a "$" in the resolved value from being read as a code a
+REM second time -- not measured here, expansion under a typed "btc"
+REM being out of a hosted runner's reach the way ISS 334 found. This
+REM depends on ROOTDIR and DATADIR still being set in the console the
+REM macro runs in: every caller sets both before "start"ing it, and
+REM "start" hands the new console its own copy of that environment.
 cd /d "%ROOTDIR%\win\bin"
 title %~1
-doskey btc="%ROOTDIR%\win\bin\bitcoin-cli.exe" %~2 -datadir="%DATADIR%" $*
+doskey btc="%%ROOTDIR%%\win\bin\bitcoin-cli.exe" %~2 -datadir="%%DATADIR%%" $*
 exit /b 0
