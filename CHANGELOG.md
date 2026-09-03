@@ -2112,6 +2112,14 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   workflow files — and `code-quality/setup`'s empty list is a different
   feature's answer, not a second reading of the same one.
 
+### `health-check.bat`, `rotate-bitcoin-log.bat`, `clean-artifacts.bat` pause
+
+- **Each calls `:pause_if_own_console` before every `exit /b` it
+  reaches** (closes #299), the same call the rest of
+  `win/scripts/utilities/` already carries. All three return only on a
+  success path, with no `exit /b 1` in any of them, so the call sits
+  before an `exit /b 0` rather than after an echoed error.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

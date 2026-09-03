@@ -24,4 +24,5 @@ powershell -Command "& { $root = '%ROOTDIR%'; $skip = @('bitcoin-datadir','elect
 
 echo Cleanup complete.
 popd >nul 2>&1
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0

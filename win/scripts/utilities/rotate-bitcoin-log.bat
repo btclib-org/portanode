@@ -10,6 +10,7 @@ set MAX_ROTATIONS=5
 
 if not exist "%LOG_FILE%" (
     echo Log file not found: bitcoin-datadir\debug.log
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 0
 )
 
@@ -32,4 +33,5 @@ REM its next run, which is a race it can lose (see monitor-bitcoin-log.ps1).
 if exist "%ROOTDIR%\.last_log_offset" del /f /q "%ROOTDIR%\.last_log_offset"
 
 echo Log rotated: bitcoin-datadir\debug.log
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0

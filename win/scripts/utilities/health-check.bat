@@ -168,4 +168,5 @@ if "%ELECTRUM_RUNNING%"=="1" (
     echo Electrum running: no
 )
 popd >nul 2>&1
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0
