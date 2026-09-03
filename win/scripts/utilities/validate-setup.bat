@@ -67,4 +67,5 @@ if not defined FREE_GB (
 
 echo Setup validation completed.
 popd >nul 2>&1
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0

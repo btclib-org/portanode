@@ -29,6 +29,7 @@ REM each data directory's own filesystem and say which case it is in,
 REM instead of an unconditional "Permissions set."
 call :report_permission_effect "%BDD%" bitcoin-datadir
 call :report_permission_effect "%EDD%" electrum-datadir
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0
 
 REM Two arguments: the path filesystem-type.ps1 is handed, and the
@@ -39,6 +40,16 @@ REM rather than which directory is meant. The name is passed in because
 REM each caller holds it as a literal; cutting %ROOTDIR% off %TARGET%
 REM instead needs the second parse of a "call set" (:rootdir_relative in
 REM lib.bat) for a value that was never in doubt.
+REM
+REM The two "exit /b 0" below return from this "call" rather than ending
+REM the script, so :pause_if_own_console belongs at the exit that ends
+REM it and not here. Measured on windows-latest with the call added
+REM before the "exit /b 0" that closes the NTFS/non-NTFS report, and
+REM taken while the routine still ended in "pause": a double-click met
+REM it once per data directory and again at the end. Each of those is
+REM now a 30-second wait rather than a keypress, so the cost of putting
+REM the call here is paid before the script has printed everything it
+REM has to say.
 :report_permission_effect
 set "TARGET=%~1"
 set "REL=%~2"
