@@ -242,6 +242,39 @@ moves `main`.
     same offset changes the set with nothing in the group itself gained
     or lost, which costs one extra look at the diff rather than a
     missed defect.
+- **The `was read using 'utf_8' encoding` block is on stderr, and it is
+  dropped rather than compared.** Which files it names moves under an
+  ASCII-only edit to an unrelated part of them, so a comparison that
+  keeps the block opens on a difference the diff did not make. The
+  report itself is on stdout, so sending stderr away drops the block and
+  leaves the report whole; a pipe alone does not reach it, and a run
+  that merges the two streams has to filter the lines back out.
+
+    ```shell
+    uvx blinter . --no-config --summary 2>/dev/null
+    ```
+
+    `blinter/io/encoding.py` asks `charset_normalizer` for the file's
+    encoding and keeps that answer only where its `coherence` is above
+    `0.7`, then decodes with the name it kept and reports that name. The
+    guard meant to suppress the warning for a file already read as UTF-8
+    or ASCII compares that name against `utf-8`, `utf-8-sig` and
+    `ascii`, spelled with hyphens, while `charset_normalizer` answers
+    `utf_8` with an underscore — a spelling Python accepts as an alias
+    for the codec and the guard does not accept as a match — so a file
+    holding no byte above 127 is named, and converting it to UTF-8 as
+    the warning advises is a no-op on it. What an edit moves is the
+    coherence, and the `0.7` gate reads it before the guard is reached
+    at all: below the gate the answer is discarded, the file decodes as
+    hyphenated `utf-8`, and the guard matches that — which is what
+    spares a file here rather than the guard's own `ascii` arm, every
+    `.bat` measured that `charset_normalizer` named `ascii` having
+    scored `0.0`, already below the gate. Coherence is derived from the
+    decoded text rather than from its bytes, so ASCII lines can move it;
+    they do not always, and where they do the move depends on where in
+    the file they go — one file stayed at `ascii` under the same block
+    prepended, appended and inserted mid-file, where another crossed the
+    gate downward.
 - **`ROOTDIR` is resolved, never assumed.** Every script derives it from
   its own location or from `PORTANODE_ROOT`, because the folder is
   mounted at a different point on every machine it is plugged into.
