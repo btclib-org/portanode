@@ -2233,6 +2233,19 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `start_dir`, the fallback `CLAUDE.md`'s *`resolve_root` fails
   silently, not loudly* describes, where before it got no answer at all.
 
+### The blinter encoding-warning block is dropped from the comparison
+
+- **`CLAUDE.md` drops the `was read using 'utf_8' encoding` block, which
+  blinter writes to stderr, rather than comparing it across two runs**
+  (closes #335). Which files the block names moves under an ASCII-only
+  edit to an unrelated part of them, so a comparison that keeps it opens
+  on a difference the diff did not make. `blinter/io/encoding.py`
+  reports the encoding name `charset_normalizer` handed it and compares
+  that name against `utf-8`, `utf-8-sig` and `ascii`, while
+  `charset_normalizer` answers `utf_8`, which none of the three matches:
+  a file holding no byte above 127 is named, and converting it to UTF-8
+  as the warning advises is a no-op on it.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
