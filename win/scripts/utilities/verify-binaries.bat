@@ -24,5 +24,5 @@ powershell -NoProfile -ExecutionPolicy Bypass ^
 
 set ERR=%ERRORLEVEL%
 popd >nul 2>&1
-if not "%ERR%"=="0" call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b %ERR%

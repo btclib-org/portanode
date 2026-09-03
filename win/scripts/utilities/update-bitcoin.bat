@@ -218,11 +218,15 @@ goto :cleanup
 
 :error
 echo Update failed.
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 set STATUS=1
 
 :cleanup
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 popd >nul 2>&1
+REM Above endlocal, which discards SCRIPT_DIR: measured on
+REM windows-latest, one line below it the same call answers
+REM '"..\root.bat"' is not recognized as an internal or external
+REM command, and no wait happens.
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 endlocal
 exit /b %STATUS%
