@@ -2426,6 +2426,21 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   way it already matched a space-indented one, `cmd.exe`'s
   quoted-argument parsing carrying the byte through to it unchanged.
 
+### The Windows updaters carry their own failures to the caller
+
+- **`update-bitcoin.bat` and `update-electrum.bat`'s `:cleanup` reads `STATUS`
+  on the same physical line `endlocal` clears it, the backup step's `if
+  exist`/`copy` pairs are one physical line each, and each download's
+  PowerShell block calls `exit 1` on its own failure** (closes #362, #363,
+  #364). `endlocal` on its own line discarded `STATUS` before a separate `exit
+  /b %STATUS%` line read it, so a failed update returned 0; a caret between
+  `if exist` and `copy` wrote `' ' is not recognized` once per backup pair on
+  `windows-latest` instead of running it; and `powershell.exe` exits 0 after
+  an uncaught `Invoke-WebRequest` error, so `|| goto :error` never branched on
+  a failed download. That block prints the exception's own message before
+  it exits, a download otherwise being the one failure in these scripts
+  that reaches the user as `Update failed.` and nothing else.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

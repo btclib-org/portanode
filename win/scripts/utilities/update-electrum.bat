@@ -150,8 +150,19 @@ REM Built as one physical line each -- see :update_checksum in lib.bat
 REM (#144): a caret split across one of these blocks' open quote was a
 REM literal character, not a continuation, so the goto :error guard that
 REM follows never ran and a failed download went undetected.
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' }" || goto :error
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri '%URL%.asc' -OutFile '%TMPDIR%\%SIG_FILE%' }" || goto :error
+REM
+REM The one-line form alone is not enough: powershell.exe exits 0 after
+REM an uncaught Invoke-WebRequest error -- measured on windows-latest,
+REM a 404, on update-bitcoin.bat's own downloads -- so each block also
+REM wraps its request in try/catch and calls exit 1 itself (#364). The
+REM catch prints the exception's own message first: a catch that only
+REM exits leaves a failed download the one failure here that says
+REM nothing about itself, where every other failure below reaches
+REM :error with a message already printed, whether by this file or by
+REM the helper it calls. Write-Host sends it to stdout, so a run that
+REM fails this way still writes nothing to stderr.
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%.asc' -OutFile '%TMPDIR%\%SIG_FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" PGP_OK "%ROOTDIR%\keys\electrum.fingerprints"
 if errorlevel 1 goto :error
@@ -192,5 +203,6 @@ if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 popd >nul 2>&1
 REM Above endlocal, for the reason update-bitcoin.bat's :cleanup gives.
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
-endlocal
-exit /b %STATUS%
+REM One physical line, for the reason update-bitcoin.bat's own
+REM endlocal & exit /b line gives (#362).
+endlocal & exit /b %STATUS%
