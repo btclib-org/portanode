@@ -2034,6 +2034,20 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `.ps1` files beside its `.bat` entry points are none of them run
   directly, each being called by a `.bat` with whatever that call needs.
 
+### Both datadir `.gitignore` files deny by default
+
+- **`bitcoin-datadir/.gitignore` and `electrum-datadir/.gitignore` deny
+  everything and name their own tracked files back in** (closes #196).
+  Each used to enumerate Bitcoin Core's or Electrum's runtime artifacts
+  one at a time, a shape that goes stale the moment either project's
+  own layout gains a file nobody here has named for it. Denying by
+  default makes an unlisted runtime file ignored on sight instead, and
+  a tracked file that goes missing shows up as absent from
+  `git ls-files` rather than as a silent gap in an enumeration. The
+  reasoning is in `bitcoin-datadir/.gitignore`'s own comment, and
+  `electrum-datadir/.gitignore` points back at it rather than repeating
+  it.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
