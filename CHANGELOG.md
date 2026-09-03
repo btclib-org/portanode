@@ -2100,6 +2100,18 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   leaves the count unchanged, where the line numbers themselves still
   differ.
 
+### REPOSITORY.md's Secrets and Security settings sections match their endpoint
+
+- **`REPOSITORY.md`'s Secrets paragraph names a secret held in a store,
+  not the token Actions mints for every workflow's job, so `links.yml`'s
+  `secrets.GITHUB_TOKEN` sits outside the claim rather than contradicting
+  it, and its Security settings paragraph reads CodeQL's own language
+  list off `code-scanning/default-setup` instead of `code-quality/setup`**
+  (closes #307, closes #313). `code-scanning/default-setup` answers
+  `actions`, so CodeQL does have a subject in this tree — its own
+  workflow files — and `code-quality/setup`'s empty list is a different
+  feature's answer, not a second reading of the same one.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

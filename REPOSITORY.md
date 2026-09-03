@@ -209,8 +209,10 @@ is waiting, so those are the ones worth looking at now and then.
 
 ## Secrets
 
-`claude-review.yml` is the only workflow here that reads one, and this
-repository holds none of its own:
+`claude-review.yml` is the only workflow here that reads a secret held in
+a store, and this repository holds none of its own. `links.yml` reads
+`secrets.GITHUB_TOKEN`, which Actions mints for every workflow's job at
+each run rather than drawing from a store, so it sits outside that claim:
 
 ```shell
 gh api repos/btclib-org/portanode/actions/secrets --jq '[.secrets[].name]'
@@ -301,7 +303,8 @@ gh api repos/btclib-org/portanode --jq '.security_and_analysis'
 # enabled, 404 for not
 gh api -i repos/btclib-org/portanode/vulnerability-alerts | head -1
 gh api repos/btclib-org/portanode/private-vulnerability-reporting
-gh api repos/btclib-org/portanode/code-scanning/default-setup --jq '.state'
+gh api repos/btclib-org/portanode/code-scanning/default-setup \
+  --jq '{state, languages}'
 ```
 
 | Setting | State |
@@ -337,11 +340,15 @@ only a preference but the fallback if it does.
 
 [pvr]: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
 
-Code scanning is not configured and nothing here asks for it: there is no
-language CodeQL analyses in this tree — `code-quality/setup` answers with
-an empty `languages` list, which is the same finding said twice — and
-what reads the launchers instead is `shellcheck`, in
-`.pre-commit-config.yaml`'s own hooks.
+Code scanning is not configured, and `code-scanning/default-setup` is the
+endpoint that answers for why: `actions` is the only language it lists,
+so what CodeQL would analyse here is this repository's own workflow
+files, not its launcher scripts, and default setup has simply not been
+turned on for it. `code-quality/setup` answers with an empty `languages`
+list of its own, which is the code-quality feature's state and not
+CodeQL's — the two endpoints cover different features and do not
+corroborate each other. What reads the launchers instead is `shellcheck`,
+in `.pre-commit-config.yaml`'s own hooks.
 
 ## Plan-gated settings
 
