@@ -2279,6 +2279,22 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `prune=` still reads as unpruned here, the `.bat` pattern's class
   holding a space where the `.sh` halves' `[[:space:]]` holds both.
 
+### The Windows `btc` runs the folder's own `bitcoin-cli.exe`
+
+- **The regtest `-cli` and `-cli-clean` launchers hand their second
+  console to `:cli_console` in `win/scripts/bitcoin/lib.bat`, whose
+  `doskey` macro names `bitcoin-cli.exe` by an absolute path under
+  `win\bin` and quotes the data directory it passes** (closes #334). A
+  bare name is resolved against the console's current directory first
+  and `PATH` after, so a `cd` anywhere else in that console left `btc`
+  driving this folder's datadir through whatever `bitcoin-cli.exe` the
+  machine had installed; the `.sh` and `.command` halves expand
+  `"$BTC_CLI"` and cannot reach that state. The macro is defined in an
+  ordinary batch line rather than in a command string the launcher
+  assembles for `cmd /k`, because a quote pair inside such a string
+  leaves a `&` in the mount path to split the `set` statement itself,
+  which is the constraint #145 measured.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
