@@ -1,21 +1,19 @@
-anchors.dat
-banlist.json
-blocks/
-chainstate/
-debug.log
-fee_estimates.dat
-indexes/
-mempool.dat
-peers.dat
-settings.json
-wallets/
-testnet3/
-testnet4/
-regtest/
-
-# macOS artifacts
-._*
-.DS_Store
-/.cookie
-/.lock
-/bitcoind.pid
+# Deny by default: this directory tracks its own configuration and
+# documentation -- `.gitignore`, `README.md`, `bitcoin.conf` -- and
+# nothing else lives under version control here. Everything else this
+# directory ever holds is Bitcoin Core's own runtime state: blocks,
+# chainstate, indexes, wallets, logs, peer and ban lists, and mainnet's
+# own siblings under `testnet3/`, `testnet4/` and `regtest/`. Naming
+# those one at a time is a copy of another project's internals, and it
+# goes stale the moment Core's own layout gains a file nobody here has
+# added a line for -- the gap is silent, because `git status` shows an
+# unlisted runtime file as an ordinary untracked file rather than as a
+# defect in this file. Denying by default inverts the failure: a
+# runtime artifact this file has never heard of is ignored on sight,
+# and a file that belongs here but is missing from the negations
+# below shows up as absent from `git ls-files` the first time anybody
+# looks, rather than as a gap an enumeration cannot announce.
+/*
+!/.gitignore
+!/README.md
+!/bitcoin.conf
