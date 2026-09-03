@@ -2406,6 +2406,26 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   stored body back holding the literal `%ROOTDIR%` and `%DATADIR%`
   rather than either resolved path.
 
+### `validate-setup.bat`'s prune pattern accepts a tab like the `.sh` halves
+
+- **Each of the three character classes in the `findstr` pattern
+  carries a literal tab byte beside the space** (closes #346). Before,
+  the pattern read a leading space only, so a tab-indented `prune=`
+  read as unpruned on Windows against `prune=1000` read as pruned on
+  macOS and Linux, whose `[[:space:]]` classes already covered a tab at
+  all three positions: before `prune`, between `prune` and `=`, and
+  between `=` and the digit. `findstr` has no `\t` escape and no named
+  class, so the byte is typed directly into the source rather than
+  written as one. `bitcoin/src/common/config.cpp` trims `" \t\r\n"`
+  off the whole line before it looks for the `=`, and off the option
+  name and the value either side of it afterwards, so a tab at any of
+  the three positions is as active to Core as a space, and the three
+  halves now agree on it. The tab byte survives
+  this tree's own whitespace hooks unchanged; measured on
+  `windows-latest`, `findstr` matches a tab-indented `prune=1000` the
+  way it already matched a space-indented one, `cmd.exe`'s
+  quoted-argument parsing carrying the byte through to it unchanged.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

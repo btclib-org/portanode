@@ -41,13 +41,20 @@ REM a conf holding no prune= at all reads as pruned and the 700GB
 REM warning below never prints. /R is what keeps the string a regular
 REM expression behind /C:; measured on windows-latest, /I /C: without
 REM /R matches the pattern literally and so answers no match for a
-REM bitcoin.conf carrying "prune=1000". The pattern matches a
-REM leading space, not a tab -- this tree's own bitcoin.conf indents
-REM with neither, so a tab-indented "prune=" would be missed here where
-REM the macOS script's [[:space:]] class would still catch it.
+REM bitcoin.conf carrying "prune=1000". Each of the three character
+REM classes below carries a literal tab byte beside the space --
+REM findstr has no named class and no backslash escape for one, so
+REM the byte is typed directly into the source instead. That
+REM matches bitcoin/src/common/config.cpp, which trims the pattern
+REM " \t\r\n" off the whole line before it looks for the "=", and off
+REM the option name and the value either side of it afterwards, so a
+REM tab at any of the three positions is as active to Core as a
+REM space; measured to survive this tree's own
+REM whitespace hooks unchanged and to reach findstr unchanged
+REM through cmd.exe's quoted-argument parsing, on windows-latest.
 set PRUNED=0
 if exist "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" (
-    findstr /R /I /C:"^[ ]*prune[ ]*=[ ]*[1-9]" ^
+    findstr /R /I /C:"^[ 	]*prune[ 	]*=[ 	]*[1-9]" ^
       "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" >nul 2>&1
     if not errorlevel 1 set PRUNED=1
 )
