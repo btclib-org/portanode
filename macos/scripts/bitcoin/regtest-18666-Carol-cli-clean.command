@@ -26,6 +26,16 @@ if [ ! -x "$BTC_D" ]; then
     exit 1
 fi
 
+if [ ! -e "$BTC_CLI" ]; then
+    echo "Error: Binary not found at ${BTC_CLI#"$ROOTDIR"/}"
+    exit 1
+fi
+
+if [ ! -x "$BTC_CLI" ]; then
+    echo "Error: Binary not executable at ${BTC_CLI#"$ROOTDIR"/}"
+    exit 1
+fi
+
 DATADIR="${ROOTDIR}/bitcoin-datadir/regtest_carol"
 
 # Refuse to wipe a datadir a node is using: on Unix "rm -rf" deletes files held

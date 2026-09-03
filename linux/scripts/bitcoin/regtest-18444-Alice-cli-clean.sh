@@ -26,6 +26,16 @@ if [ ! -x "$BTC_D" ]; then
     exit 1
 fi
 
+if [ ! -e "$BTC_CLI" ]; then
+    echo "Error: Binary not found at ${BTC_CLI#"$ROOTDIR"/}"
+    exit 1
+fi
+
+if [ ! -x "$BTC_CLI" ]; then
+    echo "Error: Binary not executable at ${BTC_CLI#"$ROOTDIR"/}"
+    exit 1
+fi
+
 # Refuse to wipe regtest data while a regtest node is using this datadir: on
 # Unix "rm -rf" deletes files held open by the running process and corrupts it.
 if pgrep -f -i -- "-datadir=${ROOTDIR}/bitcoin-datadir -regtest" >/dev/null 2>&1

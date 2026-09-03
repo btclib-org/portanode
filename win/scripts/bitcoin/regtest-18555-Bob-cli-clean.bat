@@ -20,6 +20,12 @@ if not exist "%ROOTDIR%\win\bin\bitcoind.exe" (
     exit /b 1
 )
 
+if not exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
+    echo Error: Binary not found at "win\bin\bitcoin-cli.exe"
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
+
 call "%SCRIPT_DIR%lib.bat" :require_datadir_free ^
   "bitcoin-datadir\regtest_bob"
 if errorlevel 1 (

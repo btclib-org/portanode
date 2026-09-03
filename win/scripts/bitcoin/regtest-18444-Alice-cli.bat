@@ -30,6 +30,21 @@ if not exist "%ROOTDIR%\win\bin\bitcoind.exe" (
     exit /b 1
 )
 
+REM bitcoin-cli.exe is checked here rather than left to CLI_CMD below,
+REM whose doskey macro names the bare binary after a "cd /d" into
+REM win\bin: cmd looks in that directory first and in PATH after.
+REM Measured on windows-latest with another bitcoin-cli.exe on PATH,
+REM "where bitcoin-cli.exe" run from win\bin answers with the folder's
+REM copy where there is one and with the PATH copy where there is not,
+REM and the bare name runs whichever it answered with -- so without
+REM this guard btc would drive this folder's datadir through a binary
+REM the folder never verified.
+if not exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
+    echo Error: Binary not found at "win\bin\bitcoin-cli.exe"
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
+
 rem rmdir "%ROOTDIR%\bitcoin-datadir\regtest" /s /q
 
 REM Measured on windows-latest: a "^" at the end of a line continues a
