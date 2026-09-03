@@ -2090,6 +2090,16 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `!`-expanded one only once that line executes, past the point cmd.exe
   would otherwise have split it.
 
+### The blinter comparison key adds each group's line-number set
+
+- **`CLAUDE.md`'s blinter bullet compares a diff's two sides by file, by
+  rule code, and by the set of line numbers each group's own
+  `Line N, M:` header carries** (closes #301). A count of that same
+  header is not enough: a fixed instance of a code paired with a
+  different, newly introduced instance of it elsewhere in the file
+  leaves the count unchanged, where the line numbers themselves still
+  differ.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

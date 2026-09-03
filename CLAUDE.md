@@ -211,13 +211,27 @@ moves `main`.
 
     So a session reading only that exit code cannot tell its own red from
     the tree's. What a diff is judged on is the findings its own changed
-    lines produce, read by file and by the `Context:` line blinter
-    attaches to each finding — not the exit code, and not a rule code's
-    count, because the same code fires independently elsewhere: a file
-    can carry two unrelated findings under one code, one on a line a diff
-    removes and one that stays, and the code's count in that file is then
-    identical before and after even though the diff's own finding is
-    gone.
+    lines produce, read by file, by rule code, and by the set of line
+    numbers each group's own `Line N, M:` header carries — not the exit
+    code, and not a rule code's count, because the same code fires
+    independently elsewhere: a file can carry two unrelated findings
+    under one code, one on a line a diff removes and one that stays, and
+    the code's count in that file is then identical before and after
+    even though the diff's own finding is gone. A count of the header's
+    own line numbers is not the key either, for the same reason: it is
+    that same rejected quantity under another name, so a fixed instance
+    paired with a different, newly introduced instance of the same code
+    still reads as no change, and `Context:` offers no help where its
+    text is the same generic phrase for both, as it is for a
+    delayed-expansion finding. The line numbers themselves still show
+    that swap, and show it even where blinter's own dedup — one
+    `Context:` per (file, code) group when every instance in it shares
+    one string — has collapsed two same-shaped instances to a single
+    line. What this key does not clear is a pure shift: an unrelated
+    edit earlier in the file that moves every later finding down by the
+    same offset changes the set with nothing in the group itself gained
+    or lost, which costs one extra look at the diff rather than a
+    missed defect.
 - **`ROOTDIR` is resolved, never assumed.** Every script derives it from
   its own location or from `PORTANODE_ROOT`, because the folder is
   mounted at a different point on every machine it is plugged into.
