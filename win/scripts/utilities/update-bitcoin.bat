@@ -39,6 +39,20 @@ if defined VERSION_OVERRIDE (
     set VERSION=
     for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
       -File "%SCRIPT_DIR%latest-bitcoin-version.ps1"`) do set VERSION=%%V
+    REM latest-bitcoin-version.ps1 prints INDEX_UNREACHABLE when it could
+    REM not read the release index, an expired -TimeoutSec included, and
+    REM nothing when it read the index and found in it no release with a
+    REM win64 archive; its own header says why the two are told apart on
+    REM stdout. Delayed expansion, not percent: percent expansion runs
+    REM when cmd.exe parses this whole else block, before the for /f
+    REM above has run.
+    if "!VERSION!"=="INDEX_UNREACHABLE" (
+        echo Error: failed to fetch the release index from
+        echo bitcoincore.org ^(Invoke-WebRequest -TimeoutSec 300^).
+        popd >nul 2>&1
+        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+        exit /b 1
+    )
     if not defined VERSION (
         echo Error: could not determine a Bitcoin Core release with a win64 build.
         popd >nul 2>&1
@@ -97,11 +111,10 @@ if "%DRY_RUN%"=="1" (
     REM :update_checksum comment (#144) on why a "^" split across a
     REM powershell -Command block's open quote is not a continuation.
     REM
-    REM -TimeoutSec 30, the value latest-bitcoin-version.ps1 and
-    REM latest-electrum-version.ps1 pass on their own requests: a HEAD
-    REM the server accepts and then answers at its leisure holds
-    REM --dry-run open for as long as the host chooses, and --dry-run is
-    REM the side-effect-free preview.
+    REM -TimeoutSec 30, the value latest-bitcoin-version.ps1 passes on
+    REM its own archive HEAD probe: a HEAD the server accepts and then
+    REM answers at its leisure holds --dry-run open for as long as the
+    REM host chooses, and --dry-run is the side-effect-free preview.
     for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
     if defined ARCHIVE_LEN (
         set /a ARCHIVE_MB=!ARCHIVE_LEN!/1024/1024
