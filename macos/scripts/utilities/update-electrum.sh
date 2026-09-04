@@ -150,7 +150,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
         # bound firing, a request that failed and a response carrying no
         # Content-Length all reach here alike.
         echo "Archive size: unknown (the HEAD request returned no" \
-             "Content-Length within 30 seconds)."
+             "Content-Length)."
     fi
     df -h "$ROOTDIR" | awk -v r="$ROOTDIR" 'NR==2 {print "Free space at " r ": " $4}'
     exit 0

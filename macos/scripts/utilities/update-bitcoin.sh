@@ -201,8 +201,12 @@ if [ "$DRY_RUN" -eq 1 ]; then
         # nobody attempted. It names the absence rather than a cause: the
         # bound firing, a request that failed and a response carrying no
         # Content-Length all reach here alike.
+        #
+        # The candidate probe that picks the version does name the bound
+        # in its own message, printing only where curl exits 28 -- the
+        # status curl returns when the time-out period is reached.
         echo "Archive size: unknown (the HEAD request returned no" \
-             "Content-Length within 30 seconds)."
+             "Content-Length)."
     fi
     df -h "$ROOTDIR" | awk -v r="$ROOTDIR" 'NR==2 {print "Free space at " r ": " $4}'
     exit 0
