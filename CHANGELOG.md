@@ -2611,6 +2611,8 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   on `windows-latest` too, with a plain call to the same command as its
   control.
 
+### The `--dry-run` archive-size comment cites the probe it is true of
+
 - **The `--dry-run` archive-size comment in
   `macos/scripts/utilities/update-bitcoin.sh`,
   `macos/scripts/utilities/update-electrum.sh`, their two
@@ -2705,6 +2707,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the label now matches them rather than gaining a behavior neither had.
   `del` declines a hidden or system file, and there the label refuses
   with a message where it used to return 0 in silence.
+
+### `claude-review.yml`'s fork-condition comment instances its own case
+
 - **`.github/workflows/claude-review.yml`'s fork-condition comment no
   longer illustrates the `.fork` argument with `btclib-org/bbt`** (issue
   btclib-org/.github#456). `bbt` is not a fork -- `gh api
