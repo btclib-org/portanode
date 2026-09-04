@@ -2797,6 +2797,47 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   promptly after a newer one's probe expires is still reported as that
   version was measured under PowerShell 7.6.5 rather than under 5.1.
 
+### `rollback-*.bat` and `lib.bat`'s PGP guard survive an expanded `!`
+
+- **`rollback-bitcoin.bat` and `rollback-electrum.bat` no longer enable
+  delayed expansion** (issue #374). cmd.exe's delayed-expansion pass
+  strips an unmatched `!` from the *expanded* value of a variable
+  exactly as it would from one written in the script text; in the
+  unfixed file the strip lands on `%~dp0` itself, at the `set
+  "SCRIPT_DIR=%~dp0"` line, so the `call "%SCRIPT_DIR%..\root.bat"`
+  right after it fails outright and `ROOTDIR` comes back empty rather
+  than merely missing its `!`. The `--dry-run` block's two
+  delayed-expansion reads are a `goto` past the `( )` block they were
+  in, reading `%BACKUPVER%`/`%CURRENTVER%` fresh instead. Measured on
+  `windows-latest`, at a mount path containing an unmatched `!`, with a
+  backup binary and a matching checksum entry in place:
+  `rollback-electrum.bat --dry-run` and `rollback-bitcoin.bat --dry-run`
+  both report the checksum recognized and the backup's version, where
+  the unfixed pair stop earlier still, at the `if not exist
+  "%BACKUP_DIR%"` gate: `The system cannot find the path specified.` and
+  `No backup found in win\bin\backup\{bitcoin,electrum}`.
+- **`lib.bat`'s `:warn_if_no_pubkeys` and `:verify_pgp_signature` read
+  their `%TEMP%`-derived paths with `!...!` rather than `%...%`** (issue
+  #393). A delayed-expansion read substitutes a variable's value once
+  rather than re-scanning the result for a bang to strip, where a
+  `%TEMP%` read is expanded before that same pass runs and is stripped
+  like a literal `!` would be; `OUTVAR` is untouched, so the constraint
+  against `lib.bat` calling `setlocal` for itself still holds. Measured
+  on `windows-latest`, with a real `gpg` key and a real detached
+  signature, and `TEMP` pointed at a directory containing an unmatched
+  `!`: `:verify_pgp_signature` accepts the signature, matching a control
+  run with `TEMP` unchanged; the unfixed file's `STATUS_FILE` line
+  resolved to a directory that did not exist, so gpg's status output was
+  never written and the signature was refused as invalid regardless of
+  whether it was good.
+- **`update-bitcoin.bat`, `update-electrum.bat` and
+  `set-permissions.bat` still enable delayed expansion over their own
+  `%ROOTDIR%`/`%TEMP%`-derived paths** (issue #374, issue #393): a `call`
+  into `lib.bat` or `root.bat` re-parses its own target path and its
+  arguments under the same delayed-expansion pass, stripping a bang from
+  an already-correct value a second time. The fix these three files need
+  is past what fixed the other three (issue #411).
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

@@ -1,10 +1,18 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal disabledelayedexpansion
 REM Rollback Bitcoin Core binaries (Windows)
 
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 set "BACKUP_DIR=%ROOTDIR%\win\bin\backup\bitcoin"
+REM Explicitly disabled above (line 2) rather than merely not
+REM enabled, so the guarantee holds regardless of what a caller set:
+REM cmd.exe's delayed-expansion pass strips an unmatched "!" from the
+REM *expanded* value of "%ROOTDIR%" exactly as it would from one
+REM written in the script text, and a folder mounted at a path
+REM containing one is legal on exFAT and NTFS alike (#374). With it on,
+REM CHECKSUM_FILE below would lose that "!" before lib.bat's checksum
+REM guard ever tests it.
 set "CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256"
 
 set "DRY_RUN=0"
@@ -126,16 +134,22 @@ if not exist "%BACKUP_DIR%\bitcoin-qt.exe" (
     exit /b 1
 )
 
-if "%DRY_RUN%"=="1" (
-    call "%SCRIPT_DIR%lib.bat" :installed_version "%BACKUP_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" BACKUPVER
-    call "%SCRIPT_DIR%lib.bat" :installed_version "%ROOTDIR%\win\bin\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENTVER
-    echo --dry-run: nothing will be changed.
-    echo Backup found in win\bin\backup\bitcoin, checksum recognized: version !BACKUPVER!.
-    echo Currently installed: !CURRENTVER!.
-    echo Would replace win\bin binaries with the backup.
-    popd >nul 2>&1
-    exit /b 0
-)
+REM Flat rather than the "( )" block this replaced: with delayed
+REM expansion disabled (line 2), a read-after-write in one block
+REM would see BACKUPVER/CURRENTVER as they stood when the block was
+REM entered -- empty -- rather than as :installed_version just set
+REM them; each "%BACKUPVER%"/"%CURRENTVER%" below is its own
+REM statement, read fresh at the line that runs it.
+if not "%DRY_RUN%"=="1" goto :do_rollback
+call "%SCRIPT_DIR%lib.bat" :installed_version "%BACKUP_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" BACKUPVER
+call "%SCRIPT_DIR%lib.bat" :installed_version "%ROOTDIR%\win\bin\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENTVER
+echo --dry-run: nothing will be changed.
+echo Backup found in win\bin\backup\bitcoin, checksum recognized: version %BACKUPVER%.
+echo Currently installed: %CURRENTVER%.
+echo Would replace win\bin binaries with the backup.
+popd >nul 2>&1
+exit /b 0
+:do_rollback
 
 REM The backup is moved rather than copied, so a rollback consumes it: the slot
 REM holds the version installed before the last update, and a copy left behind
