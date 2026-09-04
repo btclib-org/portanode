@@ -1,7 +1,7 @@
 Param()
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-. (Join-Path $ScriptRoot "win\\scripts\\root.ps1")
+. (Join-Path $ScriptRoot "win\scripts\root.ps1")
 $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
 # win\scripts\root.bat's :pause_if_own_console reads this. The menu

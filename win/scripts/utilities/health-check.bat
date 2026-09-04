@@ -65,7 +65,7 @@ if defined BTC_CLI (
     REM Built as one physical line -- see :update_checksum in
     REM win/scripts/utilities/lib.bat (#144) on why a caret split across
     REM a powershell -Command block's open quote is not a continuation.
-    for /f "usebackq delims=" %%J in (`powershell -Command "& { try { & '!BTC_CLI!' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
+    for /f "usebackq delims=" %%J in (`powershell -Command "& { try { & '!BTC_CLI!' -datadir='%ROOTDIR%\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
     if defined BTC_INFO (
         set BTC_RUNNING=1
         set BTC_METHOD=bitcoin-cli
@@ -139,7 +139,7 @@ if "%BTC_RUNNING%"=="1" (
     if defined BTC_CLI (
         REM Built as one physical line -- see :update_checksum in
         REM lib.bat (#144).
-        for /f "usebackq delims=" %%J in (`powershell -Command "& { try { $info = & '!BTC_CLI!' -datadir='%ROOTDIR%\\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
+        for /f "usebackq delims=" %%J in (`powershell -Command "& { try { $info = & '!BTC_CLI!' -datadir='%ROOTDIR%\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
         if defined SYNC (
             echo Bitcoin sync: !SYNC!%%
         ) else (
