@@ -53,11 +53,14 @@ Can be used if an update fails.
 - `clean-artifacts.sh`: Removes macOS artifact files (`._*`, `.DS_Store`) from
   the folder.
 - `set-permissions.sh`: Restricts `bitcoin-datadir/` and
-  `electrum-datadir/` to the owner (`chmod 700`) on a filesystem that
-  stores permissions (APFS). On exFAT or FAT32, macOS synthesises a fixed
-  mode for every file regardless of what `chmod` asks, so the `chmod`
-  calls change nothing there; the script reports which case it found
-  instead of claiming success on a volume it cannot restrict.
+  `electrum-datadir/` to the owner (`chmod 700`) and drops any ACL on a
+  filesystem that stores permissions (APFS) -- an ACE can grant another
+  identity access that `chmod` alone does not revoke, including one
+  inherited from a parent directory. On exFAT or FAT32, macOS
+  synthesises a fixed mode for every file regardless of what `chmod`
+  asks and carries no ACL concept at all, so neither call changes
+  anything there; the script reports which case it found instead of
+  claiming success on a volume it cannot restrict.
 
 ## Notes
 

@@ -24,11 +24,43 @@ fi
 # run where everything was set. chmod's diagnostics are left on stderr
 # because they name the path that failed, which the messages below do
 # not.
+#
+# -H makes the recursive chmod dereference $dir when it is itself a
+# symlink -- BSD chmod's default for -R is -P, which changes the
+# symlink's own mode and never reaches what it points at, leaving every
+# file under a symlinked data directory at whatever mode it already had
+# (measured: a fixture with bitcoin-datadir a symlink to
+# bitcoin-datadir-real read the target at 700 and bitcoin.conf inside it
+# unchanged at 644, with plain -R). -H dereferences only the argument
+# named on the command line; a symlink met while walking the tree is
+# left alone, so a file inside the data directory that itself points
+# elsewhere is not reached through it (measured against a nested symlink
+# pointing outside the tree: its target's mode was untouched). Where
+# bitcoin-datadir is a symlink, -H is also what makes the recursive call
+# reach past this folder: everything under wherever the link points now
+# gets u=rwX,go=, not only what is physically inside the folder.
+#
+# -N drops the directory's ACL. chmod does not touch one, and macOS
+# evaluates an ACL ahead of the POSIX mode, so an inherited or
+# hand-added ACE granting another identity access survives every chmod
+# call above it: a directory read back at 700 can still be reachable by
+# whoever the ACE names (measured: an "everyone allow list,search" ACE
+# added before the run was still present after a plain chmod 700).
+# -N is idempotent on APFS, exiting 0 whether or not a directory already
+# carries an ACL (measured). exFAT and FAT32 carry no ACL concept at
+# all, and -N there is refused rather than a no-op -- "Operation not
+# supported", exit 1 (measured on a loopback exFAT image) -- which is
+# not a failure of anything this script asked for, so its stderr is
+# discarded and its exit status left out of rc: the ACL readback below
+# is what actually says whether one is present, on every filesystem,
+# the same way the mode readback below is trusted over chmod 700's own
+# exit status.
 restrict() {
     local dir="$1"
     local rc=0
-    chmod -R u=rwX,go= "$dir" || rc=$?
+    chmod -R -H u=rwX,go= "$dir" || rc=$?
     chmod 700 "$dir" || rc=$?
+    chmod -N "$dir" 2>/dev/null || true
     return "$rc"
 }
 
@@ -47,11 +79,26 @@ restrict() {
 # alone in octal, where %Op carries the file type and the high mode bits
 # beside them -- a file at 4700 reads 700 under the first and 104700
 # under the second -- so the comparison below is against a mode; and -L
-# gives the read the same subject as the -d test above and the chmod 700
-# in restrict(), both of which follow a symlink where stat does not,
-# answering 755 for a link to a 700 directory. The chmod -R beside it
-# does not follow one, so where a data directory is a symlink this reads
-# the target's 700 while the files under it keep their modes (#394).
+# gives the read the same subject as the -d test above and both chmod
+# calls in restrict(), all of which follow a symlink where stat does
+# not: without -L a symlinked data directory would report the link's
+# own mode rather than the target's.
+#
+# The ACL readback is separate from the mode because macOS keeps the
+# two independent: ls -lde prints one line for the directory and, below
+# it, one line per ACL entry, so a directory with no ACL prints exactly
+# one line and a directory carrying one prints more. It is the only
+# signal this script trusts for the ACL: restrict()'s own chmod -N exits
+# 1 on exFAT and FAT32, which carry no ACL to clear, so that exit status
+# is discarded there rather than read as a failure, and this readback is
+# what says whether one is actually still present, on every filesystem.
+# A trailing slash on $dir is what makes ls -e follow a symlink here: -d
+# alone, with or without -L or -H beside it, still reports the link's
+# own (empty) ACL rather than descending through it -- measured against
+# a fixture, ls -lde on a symlinked directory read 1 line where ls -lde
+# on the same path with a trailing slash, and ls -lde on the real path
+# directly, both read 2 -- so this is the same dereferencing the mode
+# above needs -L for, in ls's own idiom rather than stat's.
 #
 # That readback needs no control in front of it, unlike a search whose
 # informative answer is a miss: stat prints the mode on stdout and prints
@@ -60,12 +107,19 @@ restrict() {
 # of the modes it could report.
 report_permission_effect() {
     local dir="$1" chmod_rc="$2"
-    local rel mode device personality
+    local rel mode device personality acl_lines
     rel="${dir#"$ROOTDIR/"}"
     mode="$(stat -L -f '%OLp' "$dir" 2>/dev/null || true)"
     device="$(df -P "$dir" 2>/dev/null | tail -1 | awk '{print $1}')"
     personality="$(diskutil info "$device" 2>/dev/null \
         | awk -F': +' '/File System Personality/ {print $2}')"
+    # ls -e is BSD's ACL listing and has no find equivalent; SC2012 reads
+    # this as parsing an arbitrary directory listing, but $dir is always
+    # one of the two fixed data-directory paths above, never a name built
+    # from user input, so the filenames-with-newlines case the check
+    # guards against does not apply here.
+    # shellcheck disable=SC2012
+    acl_lines="$(ls -lde "$dir/" 2>/dev/null | wc -l | tr -d ' ')"
     case "$personality" in
         ExFAT|MS-DOS*|FAT32)
             echo "Warning: $rel is on $personality, which does not store" \
@@ -87,9 +141,15 @@ report_permission_effect() {
                      "$chmod_rc)."
             elif [ "$chmod_rc" -ne 0 ]; then
                 echo "Warning: $rel is on $personality and reads 700, but" \
-                     "chmod exited $chmod_rc: at least one path it" \
-                     "was given kept the mode it had. List what under $rel" \
-                     "is not owner-only with: find \"$dir\" -perm +077"
+                     "chmod exited $chmod_rc: at least one path it was" \
+                     "given kept the mode it had. List what under $rel is" \
+                     "not owner-only with: find \"$dir\" -perm +077"
+            elif [ "$acl_lines" -gt 1 ]; then
+                echo "Warning: $rel is on $personality and reads 700, but" \
+                     "still carries an ACL entry chmod -N did not clear" \
+                     "-- ls -lde \"$dir/\" lists it. macOS evaluates an ACL" \
+                     "ahead of the mode, so an entry granting another" \
+                     "identity access can still reach $rel."
             else
                 echo "$rel is on $personality and reads 700: permissions" \
                      "restricted to the owner."

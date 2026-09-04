@@ -23,12 +23,28 @@ fi
 # and for anybody else it exits 1 with "Operation not permitted" -- both
 # measured on a loopback exFAT image on a GitHub Actions ubuntu-latest
 # runner. Neither status says whether the directory ended up restricted,
-# which is why the mode is read back below instead.
+# which is why the mode is read back below instead. chmod's diagnostics
+# are left on stderr because they name the path that failed, which the
+# messages below do not -- at the cost of one such line per path under
+# a large data directory on a mount carrying somebody else's uid, rather
+# than the single summary report_permission_effect already prints for
+# that case (btclib-org/portanode#410, measured the same way).
+#
+# GNU chmod -R has no -P/-H/-L distinction: measured on a GitHub Actions
+# ubuntu-latest runner (coreutils' chmod), -R on a symlinked directory
+# dereferences the command-line argument and recurses into what it
+# points at -- a file inside read the recursive call's mode afterwards,
+# where BSD chmod's default for -R leaves such a file untouched (see
+# macos/scripts/utilities/set-permissions.sh's restrict(), which needs
+# -H for the same call to reach it). A symlink met while walking the
+# tree, rather than named on the command line, is left alone either way
+# -- measured with a second symlink inside the directory pointing
+# outside it, whose target's mode did not move.
 restrict() {
     local dir="$1"
     local rc=0
-    chmod -R u=rwX,go= "$dir" 2>/dev/null || rc=$?
-    chmod 700 "$dir" 2>/dev/null || rc=$?
+    chmod -R u=rwX,go= "$dir" || rc=$?
+    chmod 700 "$dir" || rc=$?
     return "$rc"
 }
 
@@ -84,12 +100,21 @@ mount_options() {
 # built for"). Neither platform's behaviour follows the volume: the next
 # machine mounts it with its own options, which is why the closing line
 # below names encryption and physical control rather than a mode.
+#
+# -L makes the readback follow $dir when it is itself a symlink to the
+# data directory. Without it, a Linux symlink -- always reported as
+# 777 by stat, its permission bits carrying no meaning -- is what gets
+# read and compared against 700, which fails for every symlinked data
+# directory whatever the target's real mode is: measured against the
+# GNU chmod behaviour recorded in restrict()'s own comment, a symlinked
+# bitcoin-datadir that chmod -R had correctly restricted to 700 (600 on
+# the file inside it) was reported as reading 777 and not restricted.
 MODELESS_VOLUME=0
 report_permission_effect() {
     local dir="$1" chmod_rc="$2"
     local rel mode fstype opts
     rel="${dir#"$ROOTDIR/"}"
-    mode="$(stat -c '%a' "$dir" 2>/dev/null || true)"
+    mode="$(stat -L -c '%a' "$dir" 2>/dev/null || true)"
     fstype="$(filesystem_type "$dir")"
     opts="$(mount_options "$dir")"
 
@@ -113,13 +138,18 @@ report_permission_effect() {
                  "reads ${mode:-unknown} after the chmod above."
             ;;
         *)
-            if [ "$mode" = "700" ]; then
-                echo "$rel is on $fstype, which stores a Unix mode, and" \
-                     "reads 700: restricted to its owner."
-            else
+            if [ "$mode" != "700" ]; then
                 echo "Warning: $rel is on $fstype, which stores a Unix" \
                      "mode, and reads ${mode:-unknown} rather than 700" \
                      "after the chmod above (chmod exit $chmod_rc)."
+            elif [ "$chmod_rc" -ne 0 ]; then
+                echo "Warning: $rel is on $fstype and reads 700, but" \
+                     "chmod exited $chmod_rc: at least one path it was" \
+                     "given kept the mode it had. List what under $rel" \
+                     "is not owner-only with: find \"$dir\" -perm /077"
+            else
+                echo "$rel is on $fstype, which stores a Unix mode, and" \
+                     "reads 700: restricted to its owner."
             fi
             ;;
     esac
