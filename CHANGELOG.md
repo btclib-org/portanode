@@ -2703,6 +2703,51 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `del` declines a hidden or system file, and there the label refuses
   with a message where it used to return 0 in silence.
 
+### `set-permissions.sh`'s restricted sentence matches what chmod actually left
+
+- **macOS's `restrict()` dereferences a symlinked data directory with
+  `chmod -R -H` and drops its ACL with `chmod -N`, and
+  `report_permission_effect` reads the ACL back with `ls -lde` and folds
+  that into the restricted sentence beside the mode and the chmod exit
+  status it already checked** (closes #394, #395). BSD `chmod -R`'s
+  default (`-P`) never follows the argument named on the command line,
+  so a symlinked `bitcoin-datadir` left every file inside at its
+  original mode while the directory itself read 700, measured against a
+  fixture where `bitcoin.conf` stayed 644 under a directory `chmod` had
+  set to 700. `chmod` never touches an ACL, and macOS evaluates one
+  ahead of the POSIX mode, so an inherited or hand-added ACE survived
+  every `chmod` call above it, measured with an `everyone allow
+  list,search` ACE that outlived a plain `chmod 700`. `chmod -N` exits 0
+  whether or not a directory already carries an ACL on APFS, but exFAT
+  and FAT32 carry no ACL concept at all and refuse it outright
+  ("Operation not supported", measured on a loopback exFAT image), so
+  its exit status is left out of `restrict()`'s own and its stderr
+  discarded, on every filesystem rather than on those two; the ACL
+  readback is the only signal this script trusts for whether one is
+  actually still present. That readback
+  reads a symlinked `bitcoin-datadir` through a trailing slash on the
+  path: `ls -lde` on the symlink itself, with or without `-L` or `-H`
+  beside it, reports the link's own empty ACL rather than the target's
+  -- measured against a fixture where `ls -lde` on the link read 1
+  line and the same call on the link with a trailing slash, or on the
+  real path directly, both read 2. `macos/scripts/utilities/README.md`'s
+  own entry now says the script drops an ACL too, not only that it runs
+  `chmod 700`.
+- **Linux's `*)` arm reads the `chmod` exit status it already captures
+  before printing the restricted sentence, on the same footing as the
+  two arms beside it that already did, `restrict()` no longer sends
+  `chmod`'s own diagnostics to `/dev/null`, and the mode readback gained
+  `-L`** (closes #396). A `chattr +i` file measured the first three: the
+  directory read 700 and the sentence printed restricted while the file
+  stayed at 644, with no diagnostic anywhere in the output. `-L` answers
+  a different measurement: GNU `chmod -R` already dereferences a
+  symlinked data directory with no flag needed, measured on a GitHub
+  Actions `ubuntu-latest` runner, where GNU `chmod` has no `-H`/`-P`/`-L`
+  distinction at all, unlike BSD's; the plain `stat` reading the mode
+  back does not dereference on its own, so a symlinked,
+  correctly-restricted `bitcoin-datadir` read the symlink's own
+  meaningless 777 and printed a false warning.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
