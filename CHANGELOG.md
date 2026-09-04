@@ -2921,6 +2921,21 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `chmod` diagnostic at all, the one-line summary alone explaining the
   refusal.
 
+### `:update_checksum` checks `Get-FileHash`'s own result before `.Hash`
+
+- **`win/scripts/utilities/lib.bat`'s `:update_checksum` checks
+  `Get-FileHash`'s own result before reading `.Hash` off it** (closes #420).
+  An unreadable file leaves `Get-FileHash` returning nothing rather than
+  raising, so `.Hash` on that empty result is `$null` and `.ToLower()` -- a
+  method call on that `$null` -- is what throws. An unresolvable cmdlet raises
+  instead, at command resolution, before `.Hash` is ever reached. Either way
+  `$fh` never gets assigned, and without a guard the throw aborts only that
+  one assignment rather than the script, so the append-only `checksums.sha256`
+  gained an entry whose hash field was empty. `:verify_checksum` already fails
+  closed on the same `$null` unguarded, because PowerShell binds a `$null`
+  argument into `String.StartsWith` as a false match rather than raising, so
+  the fix is on the write side alone.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
