@@ -2879,6 +2879,42 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `version=<new>` entry landed in `checksums.sha256` anyway; guarded,
   the run exits 1 and writes no entry.
 
+### `set-permissions.sh`'s restricted sentence and its flood, settled on Linux
+
+- **A POSIX *access* ACL naming another identity does not survive
+  `chmod 700` on Linux the way an ACE survives it on macOS** (issue
+  #405). `acl(5)` has `chmod`'s own group-class bits set an access
+  ACL's mask entry where one is present, and measuring it on an `ext4`
+  filesystem confirms the reading: a `setfacl`-added `user:other:r-x`
+  entry read `#effective:---` in `getfacl`'s own output after the
+  restricting `chmod 700`, and that user's own attempt to list the
+  directory was refused. The restricted sentence already read the mode
+  and `chmod`'s exit status; no readback of the access ACL itself is
+  added, because neither changes what it reports. A **default** ACL is
+  a different mechanism `chmod` never touches at all: every `default:`
+  entry `setfacl -d -m` added stayed exactly as added, with no
+  `#effective:` reduction on any of them, and it governs what is
+  created under the directory afterwards rather than access to the
+  directory now -- a file the owner created next under `umask 077`
+  still read `644`, `other::r--`, because the default ACL's own entries
+  set its mode instead of the umask. What this script should do about a
+  default ACL is left to #419, which carries the fuller measurement.
+- **`restrict()` now checks the filesystem before either `chmod` call
+  runs, and suppresses `chmod`'s own diagnostics only on a filesystem
+  that stores no Unix mode** (closes #410). A mount not carrying the
+  caller's uid refuses every path under a recursive `chmod` the same
+  way, and `report_permission_effect`'s own summary already names that
+  refusal without walking the tree, so the per-path repetition is
+  discarded there instead of reaching the reader. A filesystem that
+  does store a mode keeps `chmod`'s raw diagnostics, since they are the
+  only trace of a per-path failure such as an immutable (`chattr +i`)
+  file (#396) that nothing else in this script's output carries;
+  measured on a GitHub Actions `ubuntu-latest` runner, an immutable file
+  under an `ext4` `bitcoin-datadir` still reaches stderr with the branch
+  applied, and a loopback exFAT image mounted for another uid prints no
+  `chmod` diagnostic at all, the one-line summary alone explaining the
+  refusal.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
