@@ -100,28 +100,37 @@ if "%ERRORLEVEL%"=="2" (
 exit /b 0
 
 :require_deleted
-REM Deletes the directory the first argument names and refuses to go on
-REM where it is still there afterward.
+REM Deletes what the first argument names, a directory or a file, and
+REM refuses to go on where it is still there afterward.
 REM
 REM Measured on windows-latest: rmdir /s /q exits 0 whether the directory
 REM never existed, deleted cleanly, or left a file another process held
 REM open still standing inside it -- so rmdir's own exit code carries no
 REM information here, and what this checks is the state left behind
 REM instead. A file another process holds open, a volume gone read-only,
-REM or an exFAT directory the driver refuses to remove all leave the
-REM directory standing afterward, and that is what a caller sees as the
-REM failure -- the running-node guard above catches the common case of
-REM the first, and this catches what gets past it and every other cause
-REM besides.
+REM an exFAT directory the driver refuses to remove, and a hidden or
+REM system file del declines to touch each leave the path standing
+REM afterward, and that is what a caller sees as the failure -- the
+REM running-node guard above catches the common case of the first, and
+REM this catches what gets past it and every other cause besides.
 setlocal
 set "WIPE_DIR_REL=%~1"
 set "WIPE_DIR=%ROOTDIR%\%WIPE_DIR_REL%"
 REM Guarded by if exist rather than by 2>nul: 2>nul would also swallow
-REM whatever rmdir says about a directory it cannot remove, which is
+REM whatever rmdir or del says about a path it cannot remove, which is
 REM the only account of why -- the refusal below says only that it
 REM could not be deleted.
+REM The first if exist tests with a trailing backslash, the form that
+REM is false for a file, so a directory is the only thing rmdir is
+REM asked to remove; the second drops the backslash, matching a file
+REM or a directory alike, and is guarded against a directory rmdir
+REM left standing, del not being what removes one. The refusal drops
+REM the backslash too, which is what makes it reachable for a file at
+REM all: with the backslash it is false for one, and a file left
+REM behind returned 0 in silence.
 if exist "%WIPE_DIR%\" rmdir "%WIPE_DIR%" /s /q
-if exist "%WIPE_DIR%\" (
+if exist "%WIPE_DIR%" if not exist "%WIPE_DIR%\" del /f /q "%WIPE_DIR%"
+if exist "%WIPE_DIR%" (
     echo Error: could not delete "%WIPE_DIR_REL%".
     exit /b 1
 )
