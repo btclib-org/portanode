@@ -2541,6 +2541,25 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   snapshot, and the push offers that checkout's `HEAD` rather than the
   worktree's.
 
+### The Windows Bitcoin extraction fails before the backup block runs
+
+- **`update-bitcoin.bat` extracts inside a `try`/`catch` with
+  `-ErrorAction Stop` and an `exit 1` of its own, and `BIN_DIR`,
+  `BACKUP_DIR` and the paths built on them carry a single backslash**
+  (closes #366, #368). `powershell.exe` exits 0 after a non-terminating
+  `Expand-Archive` error, so `|| goto :error` did not branch and the
+  backup block ran between the failed extraction and the `if not exist`
+  guard that caught it: the run overwrote `win\bin\backup\bitcoin` with
+  the binaries already installed, leaving `rollback-bitcoin.bat` that
+  same version to restore and the reader a message about missing
+  extracted binaries rather than about the extraction. The block now
+  takes the shape the downloads carry, and the comment above them no
+  longer draws its contrast against the checksum block alone, which left
+  the extraction step outside it. The doubled backslashes were an
+  inconsistency with `update-electrum.bat` rather than a defect, Windows
+  collapsing a repeated path separator; the `\\s+` in the checksum
+  comment is a regex and stays doubled.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

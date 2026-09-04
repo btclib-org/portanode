@@ -28,8 +28,8 @@ exit /b 1
 
 pushd "%ROOTDIR%" >nul 2>&1
 
-set "BIN_DIR=%ROOTDIR%\\win\\bin"
-set "BACKUP_DIR=%BIN_DIR%\\backup\\bitcoin"
+set "BIN_DIR=%ROOTDIR%\win\bin"
+set "BACKUP_DIR=%BIN_DIR%\backup\bitcoin"
 
 if defined VERSION_OVERRIDE (
     set "VERSION=%VERSION_OVERRIDE%"
@@ -57,7 +57,7 @@ set "BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/"
 set "URL=%BASE_URL%%FILE%"
 set "CHECKSUM_URL=%BASE_URL%SHA256SUMS"
 set "CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc"
-set "CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256"
+set "CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256"
 
 set STATUS=0
 
@@ -149,12 +149,13 @@ REM an uncaught Invoke-WebRequest error -- measured on windows-latest,
 REM a 404 -- so each block also wraps its request in try/catch and
 REM calls exit 1 itself (#364). The catch prints the exception's own
 REM message first: a catch that only exits leaves a failed download the
-REM one failure here that says nothing about itself, where the checksum
-REM block below prints before its own exit. Write-Host sends it to
+REM one failure here that says nothing about itself, where every other
+REM failure below reaches :error with a message already printed, whether
+REM by this file or by the helper it calls. Write-Host sends it to
 REM stdout, so a run that fails this way still writes nothing to stderr.
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\\%FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\\SHA256SUMS' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' -OutFile '%TMPDIR%\\SHA256SUMS.asc' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\SHA256SUMS' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' -OutFile '%TMPDIR%\SHA256SUMS.asc' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK "%ROOTDIR%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
@@ -164,32 +165,38 @@ REM and powershell.exe splits its command line by the Windows argument
 REM rules, where a backslash is literal unless it precedes a double
 REM quote. A doubled \\s+ therefore reaches the .NET regex engine as a
 REM literal backslash followed by one or more s, and no SHA256SUMS line
-REM holds a backslash. The doubling in the paths is a separate case and
-REM harmless: Windows collapses a repeated path separator.
+REM holds a backslash.
 REM Built as one physical line -- see :update_checksum in lib.bat (#144).
-powershell -Command "& { $sum = Get-Content '%TMPDIR%\\SHA256SUMS' | Select-String -Pattern '%FILE%' | Select-Object -First 1; if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } $expected = ($sum -split '\s+')[0].ToLower(); $actual = (Get-FileHash -Algorithm SHA256 '%TMPDIR%\\%FILE%').Hash.ToLower(); if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } Write-Host '%FILE%: OK' }" || goto :error
+powershell -Command "& { $sum = Get-Content '%TMPDIR%\SHA256SUMS' | Select-String -Pattern '%FILE%' | Select-Object -First 1; if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } $expected = ($sum -split '\s+')[0].ToLower(); $actual = (Get-FileHash -Algorithm SHA256 '%TMPDIR%\%FILE%').Hash.ToLower(); if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } Write-Host '%FILE%: OK' }" || goto :error
 
-powershell -Command ^
-  "& { Expand-Archive -Force '%TMPDIR%\\%FILE%' '%TMPDIR%\\' }" ^
-  || goto :error
+REM Expand-Archive writes a non-terminating error and leaves
+REM powershell.exe exiting 0 -- measured on windows-latest, an archive
+REM that is absent and one whose central directory is corrupt -- so this
+REM block carries the try/catch and the exit 1 of the downloads above
+REM (#368). Without them the backup block below runs on a failed
+REM extraction and overwrites win\bin\backup\bitcoin with the binaries
+REM currently installed, leaving rollback-bitcoin.bat the version already
+REM there to restore.
+REM Built as one physical line -- see :update_checksum in lib.bat (#144).
+powershell -Command "& { try { Expand-Archive -Force '%TMPDIR%\%FILE%' '%TMPDIR%\' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
 if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
 REM One physical line each, matching update-electrum.bat's own backup
 REM line: a caret continuation between "if exist" and "copy" wrote
 REM "' ' is not recognized" once per pair on windows-latest (#363).
-if exist "%BIN_DIR%\\bitcoin-qt.exe" copy /y "%BIN_DIR%\\bitcoin-qt.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoind.exe" copy /y "%BIN_DIR%\\bitcoind.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin-cli.exe" copy /y "%BIN_DIR%\\bitcoin-cli.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin-wallet.exe" copy /y "%BIN_DIR%\\bitcoin-wallet.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin-tx.exe" copy /y "%BIN_DIR%\\bitcoin-tx.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin-util.exe" copy /y "%BIN_DIR%\\bitcoin-util.exe" "%BACKUP_DIR%\\" >nul
-if exist "%BIN_DIR%\\bitcoin.exe" copy /y "%BIN_DIR%\\bitcoin.exe" "%BACKUP_DIR%\\" >nul
+if exist "%BIN_DIR%\bitcoin-qt.exe" copy /y "%BIN_DIR%\bitcoin-qt.exe" "%BACKUP_DIR%\" >nul
+if exist "%BIN_DIR%\bitcoind.exe" copy /y "%BIN_DIR%\bitcoind.exe" "%BACKUP_DIR%\" >nul
+if exist "%BIN_DIR%\bitcoin-cli.exe" copy /y "%BIN_DIR%\bitcoin-cli.exe" "%BACKUP_DIR%\" >nul
+if exist "%BIN_DIR%\bitcoin-wallet.exe" copy /y "%BIN_DIR%\bitcoin-wallet.exe" "%BACKUP_DIR%\" >nul
+if exist "%BIN_DIR%\bitcoin-tx.exe" copy /y "%BIN_DIR%\bitcoin-tx.exe" "%BACKUP_DIR%\" >nul
+if exist "%BIN_DIR%\bitcoin-util.exe" copy /y "%BIN_DIR%\bitcoin-util.exe" "%BACKUP_DIR%\" >nul
+if exist "%BIN_DIR%\bitcoin.exe" copy /y "%BIN_DIR%\bitcoin.exe" "%BACKUP_DIR%\" >nul
 
-if not exist "%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe" (
+if not exist "%TMPDIR%\bitcoin-%VERSION%\bin\bitcoin-qt.exe" (
     echo Error: extracted binaries not found.
     goto :error
 )
-copy /y "%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe" "%BIN_DIR%\\" >nul
+copy /y "%TMPDIR%\bitcoin-%VERSION%\bin\*.exe" "%BIN_DIR%\" >nul
 
 if "%PGP_OK%"=="1" (
   call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-qt.exe" "%VERSION%"
