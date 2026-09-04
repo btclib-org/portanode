@@ -6,18 +6,60 @@ if "%ACTION%"=="" goto :eof
 shift
 goto %ACTION%
 
+REM :warn_if_no_pubkeys
+REM Reports on the local keyring and never fails the caller: both
+REM --dry-run, the side-effect-free preview, and :verify_pgp_signature
+REM call it, and neither wants that question answered by an error.
+REM Measured on windows-latest (#382), against the keyring directory
+REM gpg creates on its own first run: a for /f over gpg piped into
+REM findstr does not return, where the same listing redirected to a
+REM file returns in about a second. The wait is the pipe rather than
+REM gpg, so the listing goes to a file and nothing here reads a
+REM running command's output.
+REM The bound is Start-Process with WaitForExit, at the value the
+REM archive-size request in the same --dry-run block passes as
+REM -TimeoutSec 30, rather than a second number to defend. It covers
+REM a gpg slow for its own reasons, which is not the case measured
+REM above.
+REM An empty answer file is not a keyring holding no key, so the two
+REM print different warnings and neither ends the run: --dry-run
+REM reaches its free-space line and exits 0 either way (#327, #336).
+REM That warning names the absence rather than a cause, as the
+REM archive-size line in the same block does and for the same reason:
+REM the bound firing, a gpg that is not on PATH and a probe that could
+REM not run all reach it alike.
+REM Delayed expansion is inherited from every caller, so the argument
+REM below carries no "!" for cmd.exe to strip (#360); it is one
+REM physical line for the reason :update_checksum's comment gives.
 :warn_if_no_pubkeys
-set "HAS_PUBKEYS="
-for /f %%A in ('gpg --list-keys --with-colons 2^>nul ^| findstr /B "pub"') do set HAS_PUBKEYS=1
-if not defined HAS_PUBKEYS echo Warning: no public keys found in local keyring.
+set "WNP_ANSWER_FILE=%TEMP%\pn_pubkeys_%RANDOM%%RANDOM%.txt"
+type nul > "%WNP_ANSWER_FILE%"
+powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $p = Start-Process -FilePath 'gpg' -ArgumentList '--batch','--list-keys','--with-colons' -NoNewWindow -PassThru -RedirectStandardOutput $out -RedirectStandardError $err; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { $p.Kill() }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+set "WNP_ANSWER="
+set /p WNP_ANSWER=<"%WNP_ANSWER_FILE%"
+del "%WNP_ANSWER_FILE%" >nul 2>&1
+if "%WNP_ANSWER%"=="yes" exit /b 0
+if "%WNP_ANSWER%"=="no" echo Warning: no public keys found in local keyring.
+if "%WNP_ANSWER%"=="" (
+    echo Warning: the local keyring was not read; whether a public key
+    echo is imported is unknown.
+)
 exit /b 0
 
 REM :verify_pgp_signature SIG DATA LABEL OUTVAR [FPR_FILE]
 REM Fails CLOSED (exit /b 1) unless a good signature is found. If FPR_FILE has
 REM any 40-hex fingerprint line, additionally requires a VALIDSIG from a listed
 REM key (pinning). Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT recommended).
-REM Written flat (no %var% set-and-read inside a ( ) block) because lib.bat has
-REM no delayed expansion and must not enable it (it sets the caller's OUTVAR).
+REM Written flat (no %var% set-and-read inside a ( ) block) because the
+REM bang-delimited read that would fix one needs delayed expansion, and
+REM lib.bat cannot turn that on for itself: the local scoping it comes
+REM with would confine the OUTVAR this file sets for its caller. It
+REM inherits whatever the callers set, which the comment above
+REM :warn_if_no_pubkeys depends on, but that is theirs to decide rather
+REM than this file's to count on. Both constructs are named here rather
+REM than spelled, because spelled out they read to the batch linter as
+REM this file asking for what the paragraph forbids, and it then prints
+REM that advice against exit points throughout the file.
 :verify_pgp_signature
 set "SIG_FILE=%~1"
 set "DATA_FILE=%~2"

@@ -2618,6 +2618,39 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   was false of it. No `--max-time` or `-TimeoutSec` value moves with the
   wording: the archive-size requests keep 30 on every platform.
 
+### `--dry-run`'s keyring warning is bounded and reads no pipe
+
+- **`win/scripts/utilities/lib.bat`'s `:warn_if_no_pubkeys` writes gpg's
+  key listing to a file and reads that file** (closes #382). Measured on
+  `windows-latest`, against the keyring directory gpg creates on its own
+  first run: a `for /f` over `gpg --list-keys --with-colons` piped into
+  `findstr` does not return and its step was killed on the step's own
+  limit, where the same listing redirected to a file returns in about a
+  second. The wait is the pipe, so a bound on gpg alone would not have
+  ended it.
+- **The listing carries a bound as well**: `Start-Process` with
+  `WaitForExit`, at the value the archive-size request in the same
+  `--dry-run` block passes as `-TimeoutSec 30`. It covers a gpg slow for
+  reasons of its own, which is not the case measured above.
+- **A keyring that was not read and a keyring holding no key print
+  different warnings, and neither ends the run.** Measured on
+  `windows-latest` with a console application named `gpg.exe` that only
+  sleeps placed ahead of gpg on `PATH`,
+  `update-electrum.bat --version 9.9.9 --dry-run` said the keyring was
+  not read, reached its free-space line and exited 0; against an empty
+  keyring it said no public key was found, and against a keyring holding
+  a generated key it said neither. That warning names the absence rather
+  than a cause, the bound firing and a gpg that is not on `PATH` reaching
+  it alike.
+- **The macOS and Linux halves are unchanged**, and carry no
+  `warn_if_no_pubkeys` to change: each `update-bitcoin.sh` counts the
+  keyring inline in its own `--dry-run` block, and
+  `update-electrum.sh` asks for the pinned fingerprint instead. Measured
+  against a fresh `GNUPGHOME` on `ubuntu-latest` and on `macos-latest`,
+  `gpg --list-keys --with-colons` returns in milliseconds and
+  `update-bitcoin.sh --version 99.0 --dry-run` runs end to end in under a
+  second, exit 0.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
