@@ -2661,6 +2661,33 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   organization standard is the rule, the prose beside such a guard
   included.
 
+### `.ps1` launchers, `root.bat` and `health-check.bat` carry one backslash
+
+- **`Bitcoin-Launcher.ps1`, `Electrum-Launcher.ps1` and
+  `Utilities-Launcher.ps1`'s `Join-Path` argument, `win/scripts/root.bat`'s
+  `%ROOTDIR%` tests and its `for %%I in ("%ROOTDIR%\..")`, and
+  `win/scripts/utilities/health-check.bat`'s `-datadir` arguments now
+  write a single backslash** (closes #390). The doubled backslashes were
+  the same inconsistency
+  [ISS 366](https://github.com/btclib-org/portanode/issues/366) recorded
+  for `update-bitcoin.bat`, Windows collapsing a repeated path separator
+  rather than the doubling being a defect:
+
+    ```shell
+    git archive origin/main | tar -x -C <tmpdir>
+    grep -rn '\\\\' <tmpdir> --include='*.bat' --include='*.ps1'
+    ```
+
+    now returns only `win/scripts/bitcoin/lib.bat`'s `-replace '\\+','\'`
+    and `win/scripts/utilities/verify-binaries.ps1`'s `-replace '\\',
+    '/'`, which are regexes and stay doubled, alongside
+    `update-bitcoin.bat`'s own `\\s+` checksum comment.
+- **`.pre-commit-config.yaml`'s comment on why blinter is not a hook no
+  longer says the doubled backslashes sit in plain batch paths**, the
+  sweep above leaving none there: what it returns is regexes inside a
+  PowerShell fragment a `.bat` builds, a `.ps1` regex, and a `REM`
+  naming one.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

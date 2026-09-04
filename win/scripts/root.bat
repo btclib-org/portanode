@@ -22,12 +22,12 @@ REM enough. The trailing backslash is what makes "if exist" test for a
 REM directory: without it a plain file named win answers here. VERSION
 REM is tested without one, so a directory of that name answers here
 REM where resolve_root's own [ -f ] refuses it.
-if exist "%ROOTDIR%\\VERSION" (
-    if exist "%ROOTDIR%\\macos\" goto :root_resolved
-    if exist "%ROOTDIR%\\win\" goto :root_resolved
-    if exist "%ROOTDIR%\\linux\" goto :root_resolved
+if exist "%ROOTDIR%\VERSION" (
+    if exist "%ROOTDIR%\macos\" goto :root_resolved
+    if exist "%ROOTDIR%\win\" goto :root_resolved
+    if exist "%ROOTDIR%\linux\" goto :root_resolved
 )
-for %%I in ("%ROOTDIR%\\..") do set "PARENT=%%~fI"
+for %%I in ("%ROOTDIR%\..") do set "PARENT=%%~fI"
 if /I "%PARENT%"=="%ROOTDIR%" goto :find_root_failed
 set "ROOTDIR=%PARENT%"
 goto :find_root

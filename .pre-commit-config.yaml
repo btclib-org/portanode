@@ -38,8 +38,8 @@
 # wrap with leaves `for /f` looking like it lost its `do` and a quoted
 # string looking unterminated; `-ExecutionPolicy Bypass` is how a
 # launcher runs the PowerShell beside it; a doubled backslash reads as a
-# UNC path, of which the tree has none, and those sit both inside quoted
-# PowerShell and, more often, in plain batch paths; English prose inside
+# UNC path, of which the tree has none, every one it carries being a
+# regex or a comment on one rather than a path; English prose inside
 # a `REM` is read as code, comments not being stripped. Blinter
 # suppresses by rule code and not by line, so adopting it means turning
 # off the rules that gate or rewriting every `.bat` to suit it. It is
