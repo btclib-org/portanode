@@ -93,6 +93,65 @@ mount_options() {
     findmnt -n -o OPTIONS --target "$dir" 2>/dev/null | tail -1
 }
 
+# A default ACL set on $dir is inherited by every subdirectory created
+# under it from that point on, each as its own independent copy -- POSIX
+# ACL inheritance is copy-on-create, not a live reference to the parent's
+# entry. setfacl -k on $dir alone therefore does not reach one already
+# copied onto bitcoin-datadir/wallets or bitcoin-datadir/blocks, and a
+# file created next inside such a subdirectory keeps reading a mode the
+# default ACL sets rather than the umask -- measured on ext4: setfacl -d
+# -m on the datadir, a subdirectory created under it, setfacl -k on the
+# datadir alone, and this script's own restricted sentence printing clean
+# afterwards, while the subdirectory still carried its own "default:"
+# entries and a file created inside it next still read 644,
+# "user:nobody:r-x #effective:r--". So both the check and the remedy this
+# prints have to walk the tree rather than stop at $dir, and the same
+# asymmetry runs the other way: a default ACL set on a subdirectory alone,
+# with none on $dir itself, is invisible to a check that only reads $dir.
+#
+# getfacl is not always installed, and its absence is reported rather
+# than read as "no default ACL": a command that is not there answers
+# nothing about what it would have found. Where getfacl is present, a
+# directory carrying no default ACL prints no "default:" line at all --
+# measured on ext4, both before and after this script's own chmod -- so
+# grep's own no-match exit status is a true negative rather than a
+# masked error. find ... -exec getfacl -p {} + batches every directory
+# under $dir into as few getfacl invocations as the argument list allows,
+# rather than one getfacl -R read of every file: measured against a
+# bitcoin-datadir-shaped tree of plain files under a few directories, the
+# find-and-batch shape ran in a small fraction of the time a recursive
+# getfacl -R took over the same tree, the difference being that getfacl
+# -R also opens every plain file and this script has no reason to.
+#
+# The walk carries -H because find does not descend into $dir when
+# $dir is itself a symlink to the data directory, and this script
+# supports that layout: the mode readback, the chmod and the setfacl
+# -k -R the warning prints all dereference it. -H follows the
+# starting argument and leaves a symlink met while walking alone,
+# which is what restrict()'s own chmod -R already does. -L is the
+# wrong one and was measured: against a datadir holding a symlink to
+# a directory outside the tree, -L reports that directory's own
+# default ACL, which setfacl -k -R "$dir" then does not clear.
+report_default_acl() {
+    local dir="$1"
+    local rel="${dir#"$ROOTDIR/"}"
+    if ! command -v getfacl >/dev/null 2>&1; then
+        echo "Note: getfacl is not installed; whether $rel or a" \
+             "directory under it carries a default POSIX ACL, which" \
+             "chmod does not touch, could not be checked."
+        return
+    fi
+    if find -H "$dir" -type d -exec getfacl -p {} + 2>/dev/null \
+        | grep -q '^default:'; then
+        echo "Warning: $rel or a directory under it carries a default" \
+             "POSIX ACL, which chmod does not touch: a file created" \
+             "under that directory afterward takes its mode from the" \
+             "ACL rather than from the umask. find -H \"$dir\" -type d" \
+             "-exec getfacl -p {} + lists which directory; setfacl -k" \
+             "-R \"$dir\" clears every one under $rel, itself included."
+    fi
+}
+
 # What this utility can and cannot guarantee, measured on a loopback exFAT
 # image on a GitHub Actions ubuntu-latest runner (kernel 6.17, exfatprogs
 # 1.2.2) rather than derived from the driver's source:
@@ -163,9 +222,14 @@ mount_options() {
 # rather than access to the directory itself, so its survival is
 # invisible to the restricted sentence: a file the owner created next
 # under umask 077 still read 644, "other::r--", because the default
-# ACL's own entries set its mode instead of the umask. Whether this
-# script should clear, report, or accept a default ACL is open at
-# btclib-org/portanode#419.
+# ACL's own entries set its mode instead of the umask
+# (btclib-org/portanode#419). This is not the access ACL's situation
+# above: chmod's own group-class bits already reduced that one to no
+# effective permissions, so there was nothing left to do about it. A
+# default ACL is not reduced by anything this script runs, so
+# report_default_acl below reports the survival instead of clearing it
+# with setfacl -k -R -- whether the user set the entry on purpose is not
+# this script's to judge.
 #
 # fstype is passed in rather than resolved again here: restrict() above
 # already needed filesystem_type()'s own answer before this ran, and
@@ -199,6 +263,7 @@ report_permission_effect() {
         "")
             echo "Warning: could not determine the filesystem of $rel; it" \
                  "reads ${mode:-unknown} after the chmod above."
+            report_default_acl "$dir"
             ;;
         *)
             if [ "$mode" != "700" ]; then
@@ -214,6 +279,7 @@ report_permission_effect() {
                 echo "$rel is on $fstype, which stores a Unix mode, and" \
                      "reads 700: restricted to its owner."
             fi
+            report_default_acl "$dir"
             ;;
     esac
 }
