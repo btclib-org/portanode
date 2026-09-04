@@ -2560,6 +2560,22 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   collapsing a repeated path separator; the `\\s+` in the checksum
   comment is a regex and stays doubled.
 
+### macOS's `set-permissions.sh` reports the mode it reads back
+
+- **`macos/scripts/utilities/set-permissions.sh` keeps each `chmod`'s
+  exit status and reads the data directory's mode back with `stat -L -f
+  '%OLp'`, printing the restricted sentence only where that mode is 700
+  and the `chmod` exited 0** (closes #376). Derived from `diskutil`'s
+  `File System Personality` alone, that sentence printed over a `chmod`
+  the filesystem had nothing to do with refusing: measured on an APFS
+  fixture whose `bitcoin-datadir` held a `uchg`-flagged `bitcoin.conf`,
+  which the run left at 644 under a directory it had set to 700, while
+  reporting that directory restricted to its owner. A `chmod` that
+  failed now names its exit code, and a directory that reads something
+  other than 700 is reported with the mode it does read. The messages
+  name the filesystem without an article, `diskutil`'s answers not all
+  taking the same one.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
