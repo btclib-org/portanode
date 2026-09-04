@@ -178,7 +178,23 @@ REM "(Test-Path $checksum)", the test inverted, wherever delayed
 REM expansion happens to be on and strips the "!" first (#360). "-not"
 REM is used in place of that operator regardless; it carries nothing
 REM for cmd.exe's parser to strip either way.
-powershell -Command "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $entry = $hash + '  %FILEPATH_ENTRY%  version=' + $version; $existing = Get-Content $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
+REM Get-FileHash's own failure is non-terminating, returning nothing so
+REM ".Hash" on that empty result is $null and it is ".ToLower()" -- a
+REM method call on that $null -- that throws "You cannot call a method
+REM on a null-valued expression": that is the unreadable-file arm. The
+REM cmdlet itself failing to resolve (Windows PowerShell 5.1 failing to
+REM autoload Microsoft.PowerShell.Utility, #420) raises instead, at
+REM command resolution, before ".Hash" is ever reached. Neither throw
+REM aborts more than the one assignment, so without a guard $hash stays
+REM unset either way, coerces to an empty string in $entry, and
+REM Add-Content still appends an entry whose hash field is empty into
+REM the append-only checksums.sha256. $fh is checked before ".Hash" is
+REM read, so either failure leaves it unset and exits 1 with nothing
+REM appended. :verify_checksum below already fails closed on the same
+REM $null unguarded, because PowerShell binds a $null argument into
+REM String.StartsWith as a false match rather than raising.
+powershell -Command "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 $file; if (-not $fh) { Write-Host 'Error: could not hash %FILEPATH_ENTRY%; not appending to win/checksums.sha256.'; exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  %FILEPATH_ENTRY%  version=' + $version; $existing = Get-Content $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
+if errorlevel 1 exit /b 1
 exit /b 0
 
 :verify_checksum
