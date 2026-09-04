@@ -2702,6 +2702,14 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the label now matches them rather than gaining a behavior neither had.
   `del` declines a hidden or system file, and there the label refuses
   with a message where it used to return 0 in silence.
+- **`.github/workflows/claude-review.yml`'s fork-condition comment no
+  longer illustrates the `.fork` argument with `btclib-org/bbt`** (issue
+  btclib-org/.github#456). `bbt` is not a fork -- `gh api
+  repos/btclib-org/bbt --jq .fork` answers `false` -- so the sentence had
+  stopped instancing the case it argued from; the comment now reasons
+  from a repository the organization has taken over instead, and reads
+  back this repository's own `gh api repos/btclib-org/portanode --jq
+  .fork`, which also answers `false`.
 
 ### `set-permissions.sh`'s restricted sentence matches what chmod actually left
 
