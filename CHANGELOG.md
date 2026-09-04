@@ -2367,6 +2367,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   return from a `call` rather than ending the script, and with the call
   added there a console opened for the script waited once per binary
   moved back, before it had printed `Rollback complete.`
+
+### macOS and Linux bound their version detection and survive an empty keyring
+
 - **`update-bitcoin.sh` and `update-electrum.sh` (macOS and Linux) bound
   their version-detection network calls, and `update-bitcoin.sh` no
   longer dies on an empty gpg keyring** (closes #348, #354). Under
@@ -2383,6 +2386,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   is still fatal when its bound fires, and the probe skips the
   candidate, and both name what happened rather than folding into a
   generic message or leaving curl's own status to say it.
+
+### The instruction files carry no trailing `#` inside a `shell` fence
+
 - **`CLAUDE.md`, `CONTRIBUTING.md` and `REPOSITORY.md` carry no trailing
   `#` comment on a command line inside a `shell` fence, and
   `REVIEWING.md`'s two filing placeholders are bare** (issue
