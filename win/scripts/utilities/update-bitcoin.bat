@@ -40,15 +40,24 @@ if defined VERSION_OVERRIDE (
     for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
       -File "%SCRIPT_DIR%latest-bitcoin-version.ps1"`) do set VERSION=%%V
     REM latest-bitcoin-version.ps1 prints INDEX_UNREACHABLE when it could
-    REM not read the release index, an expired -TimeoutSec included, and
-    REM nothing when it read the index and found in it no release with a
-    REM win64 archive; its own header says why the two are told apart on
-    REM stdout. Delayed expansion, not percent: percent expansion runs
-    REM when cmd.exe parses this whole else block, before the for /f
-    REM above has run.
+    REM not read the release index, an expired -TimeoutSec included;
+    REM PROBE_TIMEOUT when the -TimeoutSec 30 archive HEAD probe expired
+    REM on at least one candidate and no candidate's archive was found
+    REM either way; and nothing when the index was read, every
+    REM candidate's probe answered, and none names a win64 archive. Its
+    REM own header says why the three are told apart on stdout. Delayed
+    REM expansion, not percent: percent expansion runs when cmd.exe
+    REM parses this whole else block, before the for /f above has run.
     if "!VERSION!"=="INDEX_UNREACHABLE" (
         echo Error: failed to fetch the release index from
         echo bitcoincore.org ^(Invoke-WebRequest -TimeoutSec 300^).
+        popd >nul 2>&1
+        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+        exit /b 1
+    )
+    if "!VERSION!"=="PROBE_TIMEOUT" (
+        echo Error: bitcoincore.org did not answer a release's win64
+        echo archive check within 30 seconds.
         popd >nul 2>&1
         call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
         exit /b 1
