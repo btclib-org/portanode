@@ -2688,6 +2688,21 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   PowerShell fragment a `.bat` builds, a `.ps1` regex, and a `REM`
   naming one.
 
+### `require_deleted` also removes a file at the wipe path
+
+- **`win/scripts/bitcoin/lib.bat`'s `:require_deleted` also tests the
+  wipe path without a trailing backslash, and deletes what that finds
+  when it is not a directory** (closes #369). `if exist "%WIPE_DIR%\"`
+  is false for a file, so a file sitting where the data directory
+  belongs passed the guard unremoved and unreported: measured on
+  windows-latest, the label returned 0 with the file still standing and
+  printed nothing, `rmdir`'s own diagnostic never reached because its
+  guard was already false. The macOS and Linux launchers remove a file
+  at that path through `rm -rf`, so for a file with ordinary attributes
+  the label now matches them rather than gaining a behavior neither had.
+  `del` declines a hidden or system file, and there the label refuses
+  with a message where it used to return 0 in silence.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
