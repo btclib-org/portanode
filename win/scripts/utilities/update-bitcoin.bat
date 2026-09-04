@@ -108,7 +108,11 @@ if "%DRY_RUN%"=="1" (
     echo Would fetch: !URL!
     echo Would verify against: !CHECKSUM_URL! ^(signed by !CHECKSUM_SIG_URL!^)
     where gpg >nul 2>&1
-    if %errorlevel%==0 (
+    REM Delayed expansion, not percent: this block sits inside the
+    REM DRY_RUN block opened above, so percent expansion would read
+    REM whatever errorlevel held when cmd.exe parsed that whole outer
+    REM block, before where gpg ran -- see ISS 383.
+    if !errorlevel!==0 (
         echo gpg: found.
         call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
     ) else (
@@ -219,6 +223,10 @@ if not exist "%TMPDIR%\bitcoin-%VERSION%\bin\bitcoin-qt.exe" (
     goto :error
 )
 copy /y "%TMPDIR%\bitcoin-%VERSION%\bin\*.exe" "%BIN_DIR%\" >nul
+if errorlevel 1 (
+    echo Error: failed to install Bitcoin Core binaries.
+    goto :error
+)
 
 if "%PGP_OK%"=="1" (
   call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-qt.exe" "%VERSION%"

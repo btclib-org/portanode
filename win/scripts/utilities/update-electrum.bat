@@ -104,7 +104,11 @@ if "%DRY_RUN%"=="1" (
     echo Would install Electrum !VERSION! ^(currently installed: !CURRENT!^).
     echo Would fetch: !URL!
     where gpg >nul 2>&1
-    if %errorlevel%==0 (
+    REM Delayed expansion, not percent: this block sits inside the
+    REM DRY_RUN block opened above, so percent expansion would read
+    REM whatever errorlevel held when cmd.exe parsed that whole outer
+    REM block, before where gpg ran -- see ISS 383.
+    if !errorlevel!==0 (
         echo gpg: found.
         call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
     ) else (
@@ -186,6 +190,10 @@ if not exist "%TMPDIR%\%FILE%" (
     goto :error
 )
 copy /y "%TMPDIR%\%FILE%" "%BIN_DIR%\electrum.exe" >nul
+if errorlevel 1 (
+    echo Error: failed to install Electrum.
+    goto :error
+)
 
 if "%PGP_OK%"=="1" (
   call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/electrum.exe" "%VERSION%"

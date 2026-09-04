@@ -2856,6 +2856,29 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   comment on `\s+`, whose own shape has no trailing backslash for the UNC
   pattern to match, regardless of the comment around it.
 
+### The Windows updaters' `--dry-run` gpg check and install copy are guarded
+
+- **`--dry-run`'s gpg check reads `!errorlevel!` rather than
+  `%errorlevel%`** (closes #383). The check sits inside the
+  `if "%DRY_RUN%"=="1" (` block, so cmd.exe expands a percent-read at
+  the point it parses that whole block, before `where gpg` runs, and
+  the branch taken reflects whatever errorlevel was on entry to the
+  block rather than `where gpg`'s own status. Measured on
+  `windows-latest` with gpg on `PATH`: unfixed, `update-bitcoin.bat
+  --dry-run` printed `gpg: not found` regardless; fixed, it prints
+  `gpg: found.`
+- **The `copy` that installs the verified binaries reaches `:error` on
+  its own failure**, joining every download, the checksum comparison
+  and the PGP call above it, which already did (closes #388). Unguarded,
+  a failed copy left `:update_checksum` hashing the binary already in
+  `win/bin` -- unchanged, the copy never having landed -- and appending
+  that hash to `checksums.sha256`'s own append-only file under the
+  version just downloaded. Measured on `windows-latest` with the
+  destination binary held open by another process: unguarded, the copy
+  failed, the binary in `win/bin` stayed the previous one, and a
+  `version=<new>` entry landed in `checksums.sha256` anyway; guarded,
+  the run exits 1 and writes no entry.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
