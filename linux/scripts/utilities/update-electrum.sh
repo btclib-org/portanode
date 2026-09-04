@@ -171,12 +171,12 @@ if [ "$DRY_RUN" -eq 1 ]; then
         echo "gpg: not found -- verification would fail closed unless" \
              "PORTANODE_ALLOW_UNVERIFIED=1 is set."
     fi
-    # --max-time 30, the bound latest-bitcoin-version.ps1 and
-    # latest-electrum-version.ps1 pass as -TimeoutSec 30: a host that
-    # accepts the connection and then answers at its leisure holds
-    # --dry-run open for as long as it chooses, where --dry-run is the
-    # side-effect-free preview. One flag covers it, --max-time bounding
-    # the whole request rather than the connect alone.
+    # --max-time 30, the bound latest-bitcoin-version.ps1 passes as
+    # -TimeoutSec 30 on its own archive HEAD probe: a host that accepts
+    # the connection and then answers at its leisure holds --dry-run open
+    # for as long as it chooses, where --dry-run is the side-effect-free
+    # preview. One flag covers it, --max-time bounding the whole request
+    # rather than the connect alone.
     #
     # The status is discarded rather than left to set -e: with pipefail
     # curl's own failure -- the bound firing, or a host refusing the

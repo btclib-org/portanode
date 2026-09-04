@@ -51,6 +51,17 @@ if defined VERSION_OVERRIDE (
     set VERSION=
     for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
       -File "%SCRIPT_DIR%latest-electrum-version.ps1"`) do set VERSION=%%V
+    REM latest-electrum-version.ps1 prints INDEX_UNREACHABLE when it
+    REM could not read the release index, an expired -TimeoutSec
+    REM included, and nothing when it read the index and found no version
+    REM listed in it; its own header says why the two are told apart on
+    REM stdout. Delayed expansion here for the reason the REM below the
+    REM block gives.
+    if "!VERSION!"=="INDEX_UNREACHABLE" (
+        echo Error: failed to fetch the release index from
+        echo download.electrum.org ^(Invoke-WebRequest -TimeoutSec 300^).
+        goto :error
+    )
     REM "if not defined", not a string test on an expanded VERSION:
     REM cmd.exe expands a percent variable when it parses the whole else
     REM block, before the for /f above has run, so a string test reads
@@ -105,11 +116,10 @@ if "%DRY_RUN%"=="1" (
     REM (#144) on why a caret split across an open quote is not a
     REM continuation.
     REM
-    REM -TimeoutSec 30, the value latest-bitcoin-version.ps1 and
-    REM latest-electrum-version.ps1 pass on their own requests: a HEAD
-    REM the server accepts and then answers at its leisure holds
-    REM --dry-run open for as long as the host chooses, and --dry-run is
-    REM the side-effect-free preview.
+    REM -TimeoutSec 30, the value latest-bitcoin-version.ps1 passes on
+    REM its own archive HEAD probe: a HEAD the server accepts and then
+    REM answers at its leisure holds --dry-run open for as long as the
+    REM host chooses, and --dry-run is the side-effect-free preview.
     for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
     if defined ARCHIVE_LEN (
         set /a ARCHIVE_MB=!ARCHIVE_LEN!/1024/1024

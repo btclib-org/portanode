@@ -2583,6 +2583,41 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   not, and the `<` fails first, ending the line before the `>` opens
   anything.
 
+### The Windows version helpers bound the release index and report a failure
+
+- **`win/scripts/utilities/latest-bitcoin-version.ps1` and
+  `latest-electrum-version.ps1` fetch the release index under
+  `-TimeoutSec 300` and print `INDEX_UNREACHABLE` where they could not
+  read it, and `update-bitcoin.bat` and `update-electrum.bat` print a
+  message naming that case instead of the one for an index that lists no
+  matching build** (closes #367). 300 s is the bound `update-bitcoin.sh`
+  and `update-electrum.sh` put on the same fetch (#354), sized against
+  the 135 s `bitcoincore.org` was measured answering it in, which is
+  past the 30 s the helpers carried. The two cases are told apart on
+  stdout rather than by an exit code: a `for /f` leaves `errorlevel` at
+  whatever it held before the loop rather than at the exit code of the
+  command inside it, where the same command called plainly sets it, and
+  a version is digits and dots, so the word cannot be one. Measured on
+  `windows-latest` under Windows PowerShell 5.1, against a local listener that
+  answers the index after a delay, with the bound lowered below that delay:
+  each helper prints `INDEX_UNREACHABLE` and each `.bat` names the publisher
+  and the bound, where the same listener against `origin/main`'s helpers
+  reaches the message for an index that lists nothing. Raising the bound above
+  the delay returns a version from that listener, which is what says the bound
+  fired rather than the listener failing. The `for /f` behaviour was measured
+  on `windows-latest` too, with a plain call to the same command as its
+  control.
+
+- **The `--dry-run` archive-size comment in
+  `macos/scripts/utilities/update-bitcoin.sh`,
+  `macos/scripts/utilities/update-electrum.sh`, their two
+  `linux/scripts/utilities/` siblings and both `.bat` updaters cites
+  `latest-bitcoin-version.ps1`'s own archive HEAD probe** (closes #392).
+  That probe is the request still passing `-TimeoutSec 30`, where
+  `latest-electrum-version.ps1` passes only 300 and the clause naming it
+  was false of it. No `--max-time` or `-TimeoutSec` value moves with the
+  wording: the archive-size requests keep 30 on every platform.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
