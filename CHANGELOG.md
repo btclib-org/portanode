@@ -2472,6 +2472,24 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   and `verify-binaries.ps1`'s report reaches the wait on a pass as well
   as on a failure.
 
+### `.github/PULL_REQUEST_TEMPLATE.md` is this repository's own
+
+- **`.github/PULL_REQUEST_TEMPLATE.md` is tracked here, its Checks
+  naming the gate this tree runs** (issue btclib-org/.github#781,
+  btclib-org/.github#785). Section 2 of the organization standard puts
+  the file under `.github/` and gives `.github/` to every tier, and
+  section 16's checklist gives it to a repository being set up; a
+  repository holding none of its own is served `btclib-org/.github`'s
+  copy, which sits in no clone of this one. The Checks of that copy read
+  `uv run pre-commit run --all-files` and `uv run pytest`, where
+  `CONTRIBUTING.md` here gives `uvx pre-commit run --all-files` — there
+  being no project, no `pyproject.toml` and no Python for `uv run` to
+  sync — and where there is no suite for a second line to name. So the
+  file landed here carries the `uvx` command and no suite checkbox; what
+  stands in for a suite is under *How it was verified*, running the
+  launcher on a macOS, a Windows and a Linux machine from a volume that
+  is not the boot disk.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
