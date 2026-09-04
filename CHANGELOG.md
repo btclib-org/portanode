@@ -2838,6 +2838,24 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   an already-correct value a second time. The fix these three files need
   is past what fixed the other three (issue #411).
 
+### The Blinter UNC-path example names where the exemption applies
+
+- **The doubled-backslash example names what SEC020 keys on and why it does
+  not reach this tree, instead of naming a finding Blinter 1.1.21 does not
+  produce here** (closes #406). SEC020 fires on a line whose first word is
+  `copy`, `xcopy`, `robocopy`, `move` or `pushd`, or that matches the UNC
+  shape `\\name\`, measured against constructed fixtures covering both
+  triggers and the near-misses `type`, `echo` and `if defined` leave alone.
+  The tree's own doubled backslashes never reach it. The SET lines in
+  `win/scripts/bitcoin/lib.bat` build a PowerShell regex inside a block
+  Blinter's embedded-script detector skips whole: the same lines with their
+  leading `set` stripped still carry no SEC020 in a whole-file run, where the
+  same content handed directly to the SEC020 checker does, which is what
+  tells the file-level skip apart from the SET safe-context exemption.
+  `win/scripts/utilities/update-bitcoin.bat`'s doubled backslash is a `REM`
+  comment on `\s+`, whose own shape has no trailing backslash for the UNC
+  pattern to match, regardless of the comment around it.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
