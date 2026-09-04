@@ -2490,6 +2490,28 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   launcher on a macOS, a Windows and a Linux machine from a volume that
   is not the boot disk.
 
+### `set-permissions.bat` reports the ACL it set rather than assuming it
+
+- **`:report_permission_effect` reads the ACL back off each data directory
+  instead of printing an unconditional "permissions restricted to"** (closes
+  #349). Every `icacls` call sent its output to `nul` and left its exit code
+  unread, so the routine decided what to print from `filesystem-type.ps1`'s
+  answer alone: on NTFS it announced the restriction whatever `icacls` had
+  done. It now runs `icacls` against the directory and looks for the exact
+  ACE the grant asked for, printing the restricted line only once that ACE
+  is found. That search runs behind a control, its informative answer being
+  a miss: `findstr` answers 1 where the string is absent, where the file is
+  empty and where the file is not there at all, three states behind one
+  code, measured on `windows-latest`. `icacls` echoes the path it was given,
+  so a search for that path separates a report that arrived from one that
+  did not, and an ACL that could not be read gets its own message rather
+  than being reported as a missing ACE. The propagation call reaches the
+  directory's existing contents rather than the directory itself, so a
+  directory-level readback cannot see whether it succeeded; its exit code is
+  captured beside the call it came from and passed in, and a nonzero one
+  gets its own warning quoting that code. The exFAT and FAT32 branch is
+  unchanged, having already said `icacls` changed nothing there.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
