@@ -2936,6 +2936,37 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   argument into `String.StartsWith` as a false match rather than raising, so
   the fix is on the write side alone.
 
+### `set-permissions.sh` reports a default POSIX ACL anywhere under the datadir
+
+- **A default POSIX ACL under `bitcoin-datadir` or `electrum-datadir`,
+  on the directory itself or on a subdirectory that inherited it, is
+  now named in the script's own output** (closes #419, closes #405).
+  `chmod` never touches a directory's default ACL, so one already set
+  there survives `restrict()` intact and decides the mode of every file
+  created under it afterwards instead of the creating process's umask
+  -- measured on `ext4` with `setfacl -d -m u:other:rx`: every
+  `default:` entry read back unchanged after the script's own `chmod`
+  calls, and a file created next under `umask 077` read `644`,
+  `other::r--`. Inheritance copies the entry onto every subdirectory
+  created afterwards, each independently of its parent, so the check
+  and the remedy this prints both walk the whole tree rather than stop
+  at the top: a directory created under `bitcoin-datadir` before the
+  default ACL was cleared there keeps its own copy, and one carrying a
+  default ACL of its own with none on `bitcoin-datadir` itself is
+  reported the same way. A symlinked `bitcoin-datadir` is followed by
+  `find -H`, the same dereferencing `chmod -R` already does elsewhere in
+  this script for the command-line argument alone, leaving a symlink
+  met while walking the tree untouched -- measured with a second
+  symlink inside the datadir pointing at a directory outside it, whose
+  own default ACL stayed unreported. Unlike the access ACL, whose
+  effective permissions `chmod`'s own group-class bits already reduce
+  to nothing, nothing here neutralizes a default ACL, so the script
+  neither clears it with `setfacl -k -R` nor stays silent about it: a
+  new `getfacl` readback names the exposure and the command that clears
+  it, leaving the decision with whoever set the ACL in the first place.
+  `getfacl` not being installed is reported as such rather than read as
+  no default ACL being present.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
