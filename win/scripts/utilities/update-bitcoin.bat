@@ -114,7 +114,7 @@ if "%DRY_RUN%"=="1" (
         REM since the timeout above, a request that failed and a response
         REM carrying no Content-Length all reach here alike.
         echo Archive size: unknown ^(the HEAD request returned no
-        echo Content-Length within 30 seconds^).
+        echo Content-Length^).
     )
     set FREE_GB=
     for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^

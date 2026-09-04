@@ -2512,6 +2512,25 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   gets its own warning quoting that code. The exFAT and FAT32 branch is
   unchanged, having already said `icacls` changed nothing there.
 
+### `--dry-run`'s `Archive size: unknown` line names no wait
+
+- **`update-bitcoin` and `update-electrum` under
+  `linux/scripts/utilities/`, `macos/scripts/utilities/` and
+  `win/scripts/utilities/` print `Archive size: unknown (the HEAD
+  request returned no Content-Length).`** (closes #356). The
+  `within 30 seconds` dropped from that line named a wait that expired,
+  where a host name that does not resolve, an archive absent from the
+  URL the script built and a refused connection each reach the line in
+  milliseconds; the request's status is discarded, so nothing there
+  tells those apart from the bound firing. The comment beside the line
+  says it names the absence rather than a cause, which those words
+  contradicted.
+- **`linux/scripts/utilities/update-bitcoin.sh` and
+  `macos/scripts/utilities/update-bitcoin.sh` say why the candidate
+  probe's own message still names the bound**: that message prints
+  behind `[ "$curl_rc" -eq 28 ]`, `curl`'s status for the time-out
+  period being reached, so there the wait did fire.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
