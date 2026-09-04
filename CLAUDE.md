@@ -130,15 +130,14 @@ the narrower case of a coder and its reviewer holding a worktree at
 once, which the ordinary sequence avoids by each removing its own.
 
 An issue of `btclib-org/.github`'s tracker worked in `btclib` by a coder
-names its worktree `wt-github-255-btclib-coder`. No `uv sync` follows
-the `cd` — there is no project here — and the editing, the gates and the
-commits all happen in the worktree before the push.
+names its worktree `wt-github-255-btclib-coder`. Nothing syncs a
+project afterwards — there is no project here — and the editing, the
+gates and the commits all happen in the worktree before the push.
 
 ```shell
 WT=<scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
 git worktree add "$WT" origin/main -b <branch>
-cd "$WT"
-git push origin HEAD:refs/heads/<branch>
+git -C "$WT" push origin HEAD:refs/heads/<branch>
 ```
 
 `-b <branch>` sits after the path and the commit-ish so that the
@@ -146,6 +145,17 @@ placeholder ends the command, which is section 9 of the organization
 standard's rule. With the placeholder ahead of `"$WT"` the `>` closing
 it takes that path as its target, and a path with no directory at it is
 a file the paste creates.
+
+The push names the worktree with `git -C "$WT"` because a `cd` binds the
+shell that runs it: a session that runs each line as its own command
+starts the next one in the directory it began in, the primary checkout,
+so a push after a `cd` offers that checkout's `HEAD` instead of the
+worktree's. `env -C <dir>` is the same binding for a command that takes
+no `-C` of its own. Neither binding rescues the assignment above it: a
+session that loses the `cd` loses `WT` with it, and `git -C ""` is
+documented to leave the working directory unchanged, so that push lands
+the same way, exit 0 and no diagnostic. What the `-C` buys is a path
+that can be written out in full; write it out.
 
 Removing the worktree is part of finishing, and it stands in a block of
 its own: the block above ends in a placeholder, and a shell that
@@ -219,8 +229,8 @@ moves `main`.
   --summary` still exits non-zero against an unmodified tree:
 
     ```shell
-    git archive origin/main | tar -x -C <tmpdir> && cd <tmpdir>
-    uvx blinter . --no-config --summary; echo $?
+    git archive origin/main | tar -x -C <tmpdir>
+    env -C <tmpdir> uvx blinter . --no-config --summary; echo $?
     ```
 
     So a session reading only that exit code cannot tell its own red from
@@ -255,7 +265,7 @@ moves `main`.
   that merges the two streams has to filter the lines back out.
 
     ```shell
-    uvx blinter . --no-config --summary 2>/dev/null
+    env -C <tmpdir> uvx blinter . --no-config --summary 2>/dev/null
     ```
 
     `blinter/io/encoding.py` asks `charset_normalizer` for the file's

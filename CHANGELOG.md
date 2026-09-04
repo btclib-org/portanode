@@ -2531,6 +2531,16 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   behind `[ "$curl_rc" -eq 28 ]`, `curl`'s status for the time-out
   period being reached, so there the wait did fire.
 
+### CLAUDE.md's blocks name the directory each command runs in
+
+- **The blinter snapshot runs with `env -C <tmpdir>` and the worktree
+  block pushes with `git -C "$WT"`** (closes #347). A `cd` binds the
+  shell that runs it, so a session that runs each line as its own
+  command reaches the next line in the directory it started in, the
+  primary checkout: blinter reports on that tree rather than on the
+  snapshot, and the push offers that checkout's `HEAD` rather than the
+  worktree's.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
