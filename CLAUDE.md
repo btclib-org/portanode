@@ -142,9 +142,14 @@ git -C "$WT" push origin HEAD:refs/heads/<branch>
 
 `-b <branch>` sits after the path and the commit-ish so that the
 placeholder ends the command, which is section 9 of the organization
-standard's rule. With the placeholder ahead of `"$WT"` the `>` closing
-it takes that path as its target, and a path with no directory at it is
-a file the paste creates.
+standard's rule. With the placeholder ahead of `"$WT"`, `<` and `>` are
+performed left to right, so the `>` closing the placeholder is reached
+only where the reader's own directory already holds a file named
+`branch`: there the `<` succeeds, the line runs, and the `>` takes
+`"$WT"` as its target — a path with no directory at it is the file it
+creates. Ordinarily no such file exists, and the `<` fails first
+(`no such file or directory: branch`), ending the line before the `>`
+opens anything.
 
 The push names the worktree with `git -C "$WT"` because a `cd` binds the
 shell that runs it: a session that runs each line as its own command

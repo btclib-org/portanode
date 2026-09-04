@@ -2575,6 +2575,13 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   other than 700 is reported with the mode it does read. The messages
   name the filesystem without an article, `diskutil`'s answers not all
   taking the same one.
+- **`CLAUDE.md`'s worktree paragraph names the condition under which a
+  paste with `-b <branch>` ahead of `"$WT"` writes a file** (closes
+  #386). `<` and `>` are performed left to right, so the `>` closing the
+  placeholder is reached, and the file written, only where the reader's
+  own directory already holds a file named `branch`; ordinarily it does
+  not, and the `<` fails first, ending the line before the `>` opens
+  anything.
 
 ## [2026.01.27] - Initial Release
 
