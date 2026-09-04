@@ -2651,6 +2651,16 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `update-bitcoin.sh --version 99.0 --dry-run` runs end to end in under a
   second, exit 0.
 
+### CLAUDE.md's worktree removal fence refuses an unset `WT`
+
+- **`git worktree remove --force "${WT:?}"`, and the paragraph above
+  the block says what the guard does** (issue btclib-org/.github#790).
+  The fence stands alone, so a paste of it is a command and it runs
+  with whatever `$WT` the reader's shell holds; with no `$WT` set the
+  expansion fails and the removal does not run. Section 9 of the
+  organization standard is the rule, the prose beside such a guard
+  included.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
