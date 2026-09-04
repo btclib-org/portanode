@@ -2748,6 +2748,39 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   correctly-restricted `bitcoin-datadir` read the symlink's own
   meaningless 777 and printed a false warning.
 
+### `latest-bitcoin-version.ps1`'s candidate probe tells a timeout apart
+
+- **The candidate probe's `catch` block tells the `-TimeoutSec 30`
+  archive HEAD expiring apart from the archive genuinely missing, and
+  `update-bitcoin.bat` gains a branch naming the first** (closes #397).
+  Windows PowerShell 5.1's `Invoke-WebRequest` -- the interpreter
+  `update-bitcoin.bat` invokes -- throws `System.Net.WebException` with
+  a `Timeout` status on expiry, where a 404 throws that same type with a
+  `ProtocolError` status; PowerShell 7's throws
+  `System.Threading.Tasks.TaskCanceledException` instead, checked the
+  same way. A 404 satisfies neither arm on either runtime. On that
+  distinction the loop prints `PROBE_TIMEOUT` once every remaining
+  candidate has answered or expired with none found, converging with
+  `update-bitcoin.sh`'s own timeout branch in intent rather than in
+  shape: the `.ps1`'s single stdout
+  channel to `update-bitcoin.bat` carries only the last line, so the
+  distinction surfaces as a sentinel once the loop ends rather than per
+  candidate, and a candidate whose probe times out but an older one
+  still answers is reported as that older version, not as a timeout.
+  `update-bitcoin.bat` reports the sentinel as bitcoincore.org not
+  answering within 30 seconds rather than as no release shipping a
+  win64 build, and the script's own header and the `.bat`'s `REM` block
+  both name the outcome now told apart on stdout alongside the other
+  two. The probe bound itself is unchanged: `update-bitcoin.sh`'s own
+  archive HEAD keeps `--max-time 30` too, ISS 367 having raised only the
+  index fetch. Measured on `windows-latest` under Windows PowerShell 5.1
+  against a local listener, with the archive-probe bound patched down for
+  the first of them: every candidate's probe expiring prints
+  `PROBE_TIMEOUT`, and every candidate answering promptly and 404ing
+  still reports nothing, as before. That an older candidate answering
+  promptly after a newer one's probe expires is still reported as that
+  version was measured under PowerShell 7.6.5 rather than under 5.1.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
