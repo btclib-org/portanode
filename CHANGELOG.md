@@ -1991,7 +1991,7 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   stands in the way. Section 9 of the organization standard is the rule
   the order satisfies, and `CLAUDE.md` states it beside the block.
 
-### rootdir_taint sweeps every shell, and the READMEs say what a reader may do
+### `REPOSITORY.md` states what it records and what it passes over
 
 - **`REPOSITORY.md` states what it records and what it passes over,
   where it claimed to be the whole of the settings outside the tree**
@@ -2007,6 +2007,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   auto-merge it describes resting on that setting
   (btclib-org/.github#566), and the opening no longer claims that nothing
   here can be recovered by reading the tree (btclib-org/.github#571).
+
+### `rootdir_taint` sweeps every shell
+
 - **`REVIEWING.md`'s `rootdir_taint` sweep answers for the `.ps1` half, and
   answers alike in `bash`, `sh` and `zsh`** (closes #294, closes #295). The seed
   was `ROOTDIR`, which no `.ps1` here spells, so that half was swept by a
@@ -2017,6 +2020,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   PowerShell's `$name = value`, the loops read a line at a time, and the
   function writes the tainted set to stderr, which is what tells a zero apart
   from a walk that never left its seed.
+
+### The READMEs say what a reader may do
+
 - **`README.md` says how to take the folder, under a heading of its
   own** (closes #243). *Quick Start* opens at a folder already on the
   disk, and the routes that put it there were subordinate clauses of a
