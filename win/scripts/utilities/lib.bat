@@ -42,8 +42,8 @@ REM and it is stripped a second time out of the caller's own
 REM "call" line, which is #411 and is measured at
 REM update-bitcoin.bat's comment on its own second line. Neither
 REM source implies the other: a plain mount path with a bangy TEMP
-REM reaches this label with a working call target. Nothing checks
-REM that every caller still disables it (#448).
+REM reaches this label with a working call target. The state at
+REM each call is checked by a hook in .pre-commit-config.yaml (#448).
 :warn_if_no_pubkeys
 set "WNP_ANSWER_FILE=%TEMP%\pn_pubkeys_%RANDOM%%RANDOM%.txt"
 type nul > "%WNP_ANSWER_FILE%"
@@ -178,13 +178,9 @@ REM "-not" rather than PowerShell's own negation operator, which is
 REM the character cmd.exe's delayed-expansion pass consumes:
 REM "!(Test-Path $checksum)" would reach PowerShell as
 REM "(Test-Path $checksum)", the test inverted, wherever delayed
-REM expansion is on (#360). The callers of :update_checksum and
-REM :verify_checksum disable it (#374, #411); some callers reaching
-REM this file for :rootdir_arg or :rootdir_relative alone leave it
-REM on, and verify-binaries.bat reaches :rootdir_arg without
-REM enabling it, which leaves it off. So this shared code cannot
-REM assume either state: "-not" carries nothing for cmd.exe's
-REM parser to strip under both.
+REM expansion is on (#360). "-not" carries nothing for cmd.exe's
+REM parser to strip under either state, so this line holds whichever
+REM one a caller leaves (#374, #411).
 REM Get-FileHash's own failure is non-terminating, returning nothing so
 REM ".Hash" on that empty result is $null and it is ".ToLower()" -- a
 REM method call on that $null -- that throws "You cannot call a method

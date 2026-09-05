@@ -281,6 +281,53 @@ repos:
         name: macOS is spelled the way Apple spells it
         language: pygrep
         entry: '(?<!Contents/)\b(?!macOS\b)(?!macos\b)[Mm][Aa][Cc][Oo][Ss]\b'
+      # `win/scripts/utilities/lib.bat` opens no delayed-expansion scope
+      # of its own, so its lines are parsed under whatever the caller
+      # left on, and the paths it builds on `%TEMP%` are read with
+      # `%...%`. That is correct only while the pass is off where the
+      # call is made, and the pass is the caller's to set. This reads
+      # each caller's own scope sequence and answers with a `call`
+      # reached with it on.
+      #
+      # The alternative -- a form inside `lib.bat` correct under either
+      # pass -- reaches the `%TEMP%` source and not the mount-path one.
+      # Measured on `windows-latest`: opening a disabling scope on a
+      # label's own first line restores a `!` that `%TEMP%` carries into
+      # it, and does not restore one the caller's own `call` line has
+      # already eaten out of an argument, that pass running before
+      # `lib.bat`'s first line does. The mount path's `!` is therefore
+      # gone whatever `lib.bat` says next, and the state at the call is
+      # what both sources rest on.
+      #
+      # The scope words count only where they open a line and a line
+      # opening `REM` or `::` is passed over, these files writing both
+      # the words and a `call` into `lib.bat` in prose as well, where a
+      # match would name a line nothing runs. The `call` itself is left
+      # unanchored, one reached through an `if` being an ordinary shape
+      # here. What this cannot see is a scope another scope encloses,
+      # and control flow. What ends the span is an `endlocal` or a
+      # `setlocal` disabling the pass, and nothing else: a nested scope
+      # that is neither leaves it running, which is right, that scope
+      # inheriting the enclosing enabled pass. The silence is the inner
+      # `endlocal` -- it returns the enclosing enabled scope, and the
+      # span has already ended on it, so a call after it draws nothing.
+      # Nesting is not a shape a regular expression tracks, and the
+      # check is silent on it rather than wrong about it. Control flow
+      # is the same silence for a different reason: it reads the file in
+      # text order, so a label reached by `goto` from another scope is
+      # outside it. Which constructs end the span was measured against
+      # this pattern rather than reasoned about, as were the shapes it
+      # does catch -- an option written before the scope word, the
+      # `%~dp0` spelling of the call, and the call unquoted.
+      - id: win-lib-bat-delayed-expansion-off
+        name: lib.bat is called with delayed expansion off
+        language: pygrep
+        args: [--multiline, --ignore-case]
+        files: ^win/scripts/utilities/.*\.bat$
+        # one line and no literal space in it, for the reason
+        # local-link-prefix above gives
+        entry: |-
+          ^[\x20\t]*@?setlocal(?:[\x20\t]+[a-z]+)*?[\x20\t]+enabledelayedexpansion\b(?:(?!^[\x20\t]*@?(?:endlocal\b|setlocal(?:[\x20\t]+[a-z]+)*?[\x20\t]+disabledelayedexpansion\b)).)*?^(?![\x20\t]*(?:@?rem\b|::))[^\n]*?\bcall[\x20\t]+"?%(?:SCRIPT_DIR%|~dp0)lib\.bat"?
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.9.6
     hooks:

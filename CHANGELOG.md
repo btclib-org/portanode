@@ -3238,6 +3238,38 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   each on an attached VHD. What it costs is a PowerShell start per data
   directory, beside the one `filesystem-type.ps1` already takes.
 
+### A hook refuses a `lib.bat` call made with delayed expansion on
+
+- **`.pre-commit-config.yaml` carries a `pygrep` hook that refuses a `call`
+  into `lib.bat` written under an enabled delayed-expansion scope in
+  `win/scripts/utilities/*.bat`** (closes #448). It reads the scope words
+  where they open a line, so it is silent on a scope another scope encloses
+  and on a label reached by `goto`, both measured against the pattern rather
+  than reasoned about and both named in its own comment. `lib.bat` opens no
+  such scope of its own, so the `%TEMP%` paths it builds are read under
+  whatever its caller left on, and the file `:verify_pgp_signature`
+  redirects gpg's `--status-fd 1` output to is one of them. Measured on
+  `windows-latest`, against a signature the same routine accepts with the
+  pass off: a `!` in `%TEMP%` under the pass leaves the redirection
+  reporting `The system cannot find the path specified.` and the routine
+  refusing a good signature with `Error: no valid PGP signature`. A `!` in
+  the signature's own directory instead is eaten out of the caller's own
+  `call` line, where the two arguments carrying it collapse into one and the
+  message names the argument after the label rather than the label. Neither
+  refusal names its cause, and a tampered file is refused in every cell of
+  that matrix. A form inside `lib.bat` correct under either pass reaches the
+  `%TEMP%` source alone, the caller's own `call` line having eaten the mount
+  path's `!` before `lib.bat`'s first line runs, so the state at the call is
+  what both sources rest on.
+
+### `lib.bat`'s `-not` comment rests on the operator, not on its callers
+
+- **The comment above `:update_checksum`'s PowerShell argument gives
+  `-not`'s reason without listing which callers leave delayed expansion
+  on** (issue #374). Every caller of that file disables it, so the list
+  named a division the tree does not have, and `-not` is chosen for
+  holding under either state whatever the callers do.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
