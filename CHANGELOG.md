@@ -2995,6 +2995,22 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the same unreadable file already with no guard of its own, so this is
   on the write side alone.
 
+### Every `powershell` invocation under `win/scripts/` passes `-NoProfile`
+
+- **A `powershell -Command` call under `win/scripts/` runs with
+  `-NoProfile`** (closes #373). `for /f` iterates every line the child
+  writes, so a `$PROFILE` that prints one -- a prompt framework's
+  banner, an `Import-Module` that is not silent -- is an iteration of
+  the loop as much as the value is, and the last iteration is what the
+  script keeps. In `health-check.bat` that reached what the script
+  reports: measured on `windows-latest` against a `bitcoin-cli` writing
+  nothing, a folder whose node is not running was reported as running
+  and its sync line carried the profile's text. Where nothing reads a
+  child's stdout -- the downloads, the checksum work and the archive
+  extraction the updaters and `lib.bat` do,
+  `rotate-bitcoin-log.bat`'s copy, `clean-artifacts.bat`'s sweep -- the
+  flag saves the profile's load and changes nothing the script reports.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

@@ -25,7 +25,7 @@ for /l %%I in (%START%,-1,1) do (
 REM Built as one physical line -- see :update_checksum in
 REM win/scripts/utilities/lib.bat (#144) on why a caret split across a
 REM powershell -Command block's open quote is not a continuation.
-powershell -Command "& { Copy-Item -Force '%LOG_FILE%' '%LOG_FILE%.1'; Clear-Content -Path '%LOG_FILE%' }"
+powershell -NoProfile -Command "& { Copy-Item -Force '%LOG_FILE%' '%LOG_FILE%.1'; Clear-Content -Path '%LOG_FILE%' }"
 
 REM The monitor's stored offset is now past the end of the truncated file;
 REM clear it here rather than leaving the monitor to catch the mismatch on
