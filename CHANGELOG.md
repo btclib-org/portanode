@@ -3055,6 +3055,16 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   draws nothing, and so does the same line with the flag respelled `-NoPrfle`,
   which drops the substring and leaves the loop intact.
 
+### The workflow-status badge links filter the runs page to `main`
+
+- **Each workflow-status badge link in `README.md` carries
+  `?query=branch%3Amain`** (issue btclib-org/.github#762). Section 2 of
+  the organization standard gives the link that filter in the spelling
+  the runs page takes: the image's `?branch=main` is ignored there,
+  `branch:main` reaching the served page's filter box under the
+  qualified spelling alone, so a click-through lands on the runs the
+  badge beside it answers for.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
