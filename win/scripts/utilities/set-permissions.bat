@@ -26,77 +26,90 @@ if not exist "%EDD%" (
 )
 
 echo Setting restrictive permissions on data directories...
-REM icacls applies each operation on its command line to every item it
-REM walks, so /t on the grant would put (OI)(CI)F on the files too, and
-REM those flags carry no access on a file: each file is left with an
-REM empty DACL, which denies every identity, the one granted here and
-REM Administrators included. Measured on windows-latest with /t: "type
-REM bitcoin.conf" answers "Access is denied." and "icacls bitcoin.conf"
-REM prints the path with no ACE beside it. Granted on the directory
-REM alone the ACE is inheritable: a separate run, over a tree carrying
-REM wallets\my wallet\wallet.dat and testnet4\blocks\index\000003.ldb
-REM and locked by the /t form beforehand, read both back as "(I)(F)",
-REM so the subtree is covered without being walked.
+REM set-datadir-acl.ps1 replaces the directory's DACL in one write with a
+REM protected one granting %USERDOMAIN%\%USERNAME% full control,
+REM inheritable by the directory's contents. That is the DACL an "icacls
+REM <dir> /reset" followed by an "icacls <dir> /inheritance:r /grant
+REM <account>:(OI)(CI)F" arrives at: measured on windows-latest against a
+REM directory taken through each, the two compare equal as SDDL, both
+REM protected, and icacls reads the same "(OI)(CI)(F)" line off either.
+REM Those two icacls calls do not fold into one command line -- measured,
+REM "icacls dir /reset /inheritance:r /grant ..." answers Invalid
+REM parameter "/inheritance:r", exits 87, and leaves the ACL as it found
+REM it -- and run in sequence they leave the directory carrying whatever
+REM its parent offers between them, BUILTIN\Users:(I)(OI)(CI)(RX) among
+REM them on a volume root. Writing the DACL in one operation is what
+REM removes that: measured on windows-latest with a second process
+REM reading the ACL back in a loop while each ran, the loop saw the
+REM protected DACL throughout the .ps1's write, and saw the parent's ACEs
+REM appear and go again across the icacls pair.
 REM
-REM /inheritance:r removes inherited ACEs and leaves explicit ones
-REM standing, so the grant alone restricts nothing where another
-REM identity already holds an explicit ACE on the directory: that ACE
-REM keeps its own (OI)(CI) flags and goes on granting what it grants
-REM under a directory this script reports as restricted. Measured on
-REM windows-latest with Everyone granted (OI)(CI)F on bitcoin-datadir
-REM ahead of a run of the grant alone: Everyone read back explicit on
-REM the directory, inherited on a subdirectory that already existed,
-REM and inherited on a file created after the run. /reset replaces the
-REM directory's DACL with the ACEs its parent offers, and the
-REM /inheritance:r below removes those in turn, so the pair leaves the
-REM grant as the only ACE on the directory. The two do not fold into
-REM one command line: measured, "icacls dir /reset /inheritance:r
-REM /grant ..." answers Invalid parameter "/inheritance:r", exits 87,
-REM and leaves the ACL as it found it. What the separation costs is a
-REM window: between the two calls the directory carries whatever its
-REM parent offers, which on a volume root includes
-REM BUILTIN\Users:(I)(OI)(CI)(RX) -- measured by reading the ACL back
-REM between them -- so a run reopens a directory an earlier run had
-REM closed. The next line closes it again, and where that line fails
-REM it stays open: measured with a second run whose account did not
-REM resolve, the directory read its parent's ACEs afterwards, under
-REM the warning below that the grant may have failed. That is one
-REM command's exposure, reported where it lasts longer, against an
-REM explicit ACE that lasts until somebody removes it by hand.
+REM An ACE another identity holds explicitly on the directory survives
+REM none of it, the granted rule being the whole of the DACL written --
+REM measured on windows-latest with Everyone:(OI)(CI)F set on the
+REM directory beforehand: the write left the granted ACE alone, where
+REM "icacls /inheritance:r /grant" against the same setup left Everyone
+REM standing beside it, /inheritance:r removing inherited ACEs and not
+REM explicit ones.
 REM
-REM The third call reaches what the grant cannot: the grant covers the
-REM directory's contents by inheritance, which an item an earlier run
-REM left protected takes none of, and which removes nothing an item
-REM carries explicitly of its own. /reset drops such an explicit ACE
-REM and clears the protection in one pass, where /inheritance:e clears
-REM the protection alone -- measured on windows-latest against a file
-REM given Everyone:(F) and then protected with /inheritance:r: after
-REM /reset /t it read the granted account's own (I)(F) and nothing
-REM else, after /inheritance:e /t it read both explicit ACEs still
-REM standing with the inherited one added beside them. A subdirectory
-REM reads the same way: one granted Everyone:(OI)(CI)F explicitly,
-REM with the data directory itself clean, kept that ACE through a run
-REM of the grant and the /inheritance:e form, and read the granted
-REM account's own (I)(OI)(CI)(F) and nothing else after /reset /t.
-REM This call names the directory's contents rather than the
-REM directory, and runs after the grant rather than before it: /reset
-REM clears protection on whatever it is given, so on %BDD% itself it
-REM would hold the window above open for as long as the walk takes,
-REM and ahead of the grant it would leave the contents inheriting an
-REM ACL the grant has not written yet.
-icacls "%BDD%" /reset >nul
-icacls "%BDD%" /inheritance:r /grant "%USERDOMAIN%\%USERNAME%:(OI)(CI)F" >nul
+REM Where the account does not resolve nothing is written and the
+REM directory keeps the DACL it had -- measured on windows-latest with an
+REM account that does not exist, against a directory carrying its
+REM parent's ACEs and against one already restricted, the ACL comparing
+REM equal before and after in both. Unchanged is not the same as closed:
+REM a directory that was inheriting from its parent goes on doing so, and
+REM :report_permission_effect below is what says which of the two the
+REM reader has. What the write costs is a PowerShell start, which this
+REM script already pays once per data directory for filesystem-type.ps1.
+REM
+REM The write reaches the directory's contents by inheritance rather than
+REM by a walk: measured, a file created under the directory afterwards
+REM reads "(I)(F)" and a subdirectory "(I)(OI)(CI)(F)". Writing
+REM (OI)(CI)F onto each item instead -- icacls's /t on a grant -- leaves
+REM each file with an empty DACL, those flags carrying no access on a
+REM file, which denies every identity including the granted one: measured
+REM on windows-latest, "type bitcoin.conf" then answers "Access is
+REM denied." and "icacls bitcoin.conf" prints the path with no ACE beside
+REM it.
+REM
+REM The icacls call under each write reaches what inheritance cannot: an
+REM item an earlier run left protected takes no inherited ACE, and an ACE
+REM an item carries explicitly of its own is removed by nothing above.
+REM /reset drops such an explicit ACE and clears the protection in one
+REM pass, where /inheritance:e clears the protection alone -- measured on
+REM windows-latest against a file given Everyone:(F) and then protected
+REM with /inheritance:r: after /reset /t it read the granted account's
+REM own (I)(F) and nothing else, after /inheritance:e /t it read both
+REM explicit ACEs still standing with the inherited one added beside
+REM them. A subdirectory reads the same way: one granted
+REM Everyone:(OI)(CI)F explicitly, with the data directory itself clean,
+REM kept that ACE through a run of the grant and the /inheritance:e form,
+REM and read the granted account's own (I)(OI)(CI)(F) and nothing else
+REM after /reset /t. That call names the directory's contents rather than
+REM the directory, and runs after the write rather than before it:
+REM /reset replaces the DACL of whatever it is given with the ACEs its
+REM parent offers, so on %BDD% itself it would undo the write for as long
+REM as the walk takes, and ahead of the write it would leave the contents
+REM inheriting an ACL that has not been written yet.
+REM
+REM The write carries no ">nul": it prints nothing on success, and on
+REM failure its stderr names the account and the path, which is what a
+REM reader has to go on where the report below finds the directory
+REM unrestricted.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%set-datadir-acl.ps1" -Path "%BDD%" -Account "%USERDOMAIN%\%USERNAME%"
 icacls "%BDD%\*" /reset /t >nul
 set "BDD_INHERIT_RC=%ERRORLEVEL%"
-icacls "%EDD%" /reset >nul
-icacls "%EDD%" /inheritance:r /grant "%USERDOMAIN%\%USERNAME%:(OI)(CI)F" >nul
+powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%set-datadir-acl.ps1" -Path "%EDD%" -Account "%USERDOMAIN%\%USERNAME%"
 icacls "%EDD%\*" /reset /t >nul
 set "EDD_INHERIT_RC=%ERRORLEVEL%"
 
-REM exFAT and FAT32 hold no ACL at all: the icacls calls above ran and
-REM exited 0 regardless, with nothing on disk to show for either. Read back
-REM each data directory's own filesystem and say which case it is in,
-REM instead of an unconditional "Permissions set."
+REM exFAT and FAT32 hold no ACL at all: the write and the icacls call
+REM above each ran and exited 0 regardless, with nothing on disk to show
+REM for either -- measured on windows-latest against an exFAT volume and
+REM a FAT32 one on attached VHDs, each directory reading "No permissions
+REM are set. All users have full control." afterwards. Read back each data
+REM directory's own filesystem and say which case it is in, instead of an
+REM unconditional "Permissions set."
 call :report_permission_effect "%BDD%" bitcoin-datadir "%BDD_INHERIT_RC%"
 call :report_permission_effect "%EDD%" electrum-datadir "%EDD_INHERIT_RC%"
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
@@ -106,7 +119,7 @@ REM The arguments are the path filesystem-type.ps1 is handed, the
 REM ROOTDIR-relative name the messages use, and the exit code of the
 REM "icacls ... /reset /t" call already made against that path.
 REM The caller captures that code on the line below the call it came
-REM from because the other data directory's own icacls calls run between
+REM from because the other data directory's own calls run between
 REM the two "call" lines, and ERRORLEVEL holds whichever command ran
 REM last; a "call" does not discard it. The folder is mounted at a
 REM different point on every machine it is plugged into, so a message
@@ -117,15 +130,13 @@ REM instead needs the second parse of a "call set" (:rootdir_relative in
 REM lib.bat) for a value that was never in doubt.
 REM
 REM The filesystem alone does not say the restriction in the message
-REM below is in force: the "icacls ... /grant" above can exit non-zero
-REM for a reason its caller never sees, its own output routed to nul.
-REM So on NTFS this routine reads the ACL back off the directory itself
-REM and looks both for the exact ACE the grant asked for and for any ACE
-REM that is not it, rather than trust that the grant and the /reset
-REM ahead of it ran at all. That readback says nothing about the third
-REM call's own reach into the directory's existing contents, so its exit
-REM code, passed in above, is what the warning below is built from
-REM instead.
+REM below is in force: the caller reads no exit code off the write
+REM above. So on NTFS this routine reads the ACL back off the directory
+REM itself and looks both for the exact ACE the write asked for and for
+REM any ACE that is not it, rather than trust that the write ran at all.
+REM That readback says nothing about the icacls call's own reach into
+REM the directory's existing contents, so that call's exit code, passed
+REM in above, is what the warning below is built from instead.
 REM
 REM The second search is the first one's complement: findstr /v drops
 REM every line holding the granted ACE, wherever in the report icacls
@@ -198,7 +209,7 @@ for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass
   -File "%SCRIPT_DIR%filesystem-type.ps1" -Path "%TARGET%"`) do set "FS_NAME=%%F"
 if not defined FS_NAME (
     echo Warning: could not determine the filesystem of %REL%; assuming
-    echo the icacls above took effect.
+    echo the write above took effect.
     exit /b 0
 )
 setlocal enabledelayedexpansion
@@ -219,7 +230,7 @@ if /i "%FS_NAME%"=="NTFS" (
     ) else if not "!ACE_RC!"=="0" (
         echo Warning: %REL% is on an NTFS volume, but !TARGET! does
         echo not carry an ACE granting !USERDOMAIN!\!USERNAME! full
-        echo control; the grant above may have failed. Check with
+        echo control; the write above may have failed. Check with
         echo icacls "!TARGET!".
     ) else if "!OTHER_RC!"=="0" (
         echo Warning: %REL% is on an NTFS volume and grants
@@ -239,7 +250,7 @@ if /i "%FS_NAME%"=="NTFS" (
     )
 ) else (
     echo Warning: %REL% is on a %FS_NAME% volume, which does not store
-    echo ACLs. icacls above changed nothing on disk; the directory is
+    echo ACLs. The write above changed nothing on disk; the directory is
     echo still readable by anyone with access to the volume. Restrict
     echo access with encryption or physical control of the device instead.
 )

@@ -3212,6 +3212,32 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   comment arm answers first, and the `\s+` around it has no trailing
   backslash for the UNC shape to match either.
 
+### `set-permissions.bat` writes a data directory's DACL in one operation
+
+- **The DACL that replaces what a data directory inherits is written
+  once, by `win/scripts/utilities/set-datadir-acl.ps1`, so no reader
+  finds the directory carrying its parent's ACEs and a write that fails
+  leaves the DACL it found** (closes #434). An `icacls /reset` followed
+  by an `icacls /inheritance:r /grant` arrives at the same DACL --
+  measured on `windows-latest`, the two compare equal as SDDL, both
+  protected, and `icacls` reads the same `(OI)(CI)(F)` line off either --
+  and passes through the parent's ACEs on the way,
+  `BUILTIN\Users:(I)(OI)(CI)(RX)` among them on a volume root: a second
+  process reading the ACL back in a loop saw those appear and go again
+  across the pair, and saw the protected DACL throughout the single
+  write. An `Everyone:(OI)(CI)F` set on the directory beforehand
+  survives neither, the granted rule being the whole of the DACL
+  written, where `/inheritance:r` alone leaves it standing. Where the
+  account does not resolve the rule cannot be added to the descriptor,
+  so nothing is written at all; on an already restricted directory that
+  leaves the restriction standing, and on one inheriting from its parent
+  it leaves the open state that directory already had, which the
+  readback in `:report_permission_effect` is what reports. exFAT and
+  FAT32 store no DACL, so the write there exits 0 with nothing on disk
+  to show for it exactly as `icacls` does -- measured against a volume of
+  each on an attached VHD. What it costs is a PowerShell start per data
+  directory, beside the one `filesystem-type.ps1` already takes.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

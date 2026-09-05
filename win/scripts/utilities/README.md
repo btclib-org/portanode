@@ -52,11 +52,11 @@ Can be used if an update fails
 - `health-check.bat`: Disk space + basic process checks.
 - `clean-artifacts.bat`: Removes Windows artifact files from the folder.
 - `set-permissions.bat`: Restricts `bitcoin-datadir/` and
-  `electrum-datadir/` to `%USERDOMAIN%\%USERNAME%` (`icacls`) on a
-  filesystem that stores ACLs (NTFS). exFAT and FAT32 hold no ACL at
-  all, so `icacls` there writes nothing and exits 0 regardless; the
-  script reports which case it found instead of claiming success on a
-  volume it cannot restrict.
+  `electrum-datadir/` to `%USERDOMAIN%\%USERNAME%` on a filesystem that
+  stores ACLs (NTFS). exFAT and FAT32 hold no ACL at all, so the write
+  there changes nothing and exits 0 regardless; the script reports which
+  case it found instead of claiming success on a volume it cannot
+  restrict.
 
 ## Notes
 
@@ -66,8 +66,9 @@ Can be used if an update fails
   nothing. The `.ps1` files beside them are not entry points: each is
   called by a `.bat` with whatever that call needs — the root for
   `free-space-gb.ps1`, `monitor-bitcoin-log.ps1` and
-  `verify-binaries.ps1`, a datadir for `filesystem-type.ps1`, nothing at
-  all for the two `latest-*-version.ps1` — and none is run directly.
+  `verify-binaries.ps1`, a datadir for `filesystem-type.ps1`, a datadir
+  and an account for `set-datadir-acl.ps1`, nothing at all for the two
+  `latest-*-version.ps1` — and none is run directly.
 - Most scripts require internet for downloads; ensure connectivity.
 - Update scripts download, verify and (for Bitcoin Core) extract on
   the local disk (`%TEMP%`), never on the removable volume, and clean up
