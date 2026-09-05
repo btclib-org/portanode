@@ -20,7 +20,7 @@ REM already one of $root's own children.
 REM Built as one physical line -- see :update_checksum in
 REM win/scripts/utilities/lib.bat (#144) on why a caret split across a
 REM powershell -Command block's open quote is not a continuation.
-powershell -Command "& { $root = '%ROOTDIR%'; $skip = @('bitcoin-datadir','electrum-datadir'); $paths = (Get-ChildItem -LiteralPath $root -Force -ErrorAction SilentlyContinue | Where-Object { $skip -notcontains $_.Name }).FullName; if ($paths) { Get-ChildItem -Path $paths -Recurse -Force -ErrorAction SilentlyContinue -Include 'ehthumbs.db','Thumbs.db','*.stackdump' | Remove-Item -Force -ErrorAction SilentlyContinue } }"
+powershell -NoProfile -Command "& { $root = '%ROOTDIR%'; $skip = @('bitcoin-datadir','electrum-datadir'); $paths = (Get-ChildItem -LiteralPath $root -Force -ErrorAction SilentlyContinue | Where-Object { $skip -notcontains $_.Name }).FullName; if ($paths) { Get-ChildItem -Path $paths -Recurse -Force -ErrorAction SilentlyContinue -Include 'ehthumbs.db','Thumbs.db','*.stackdump' | Remove-Item -Force -ErrorAction SilentlyContinue } }"
 
 echo Cleanup complete.
 popd >nul 2>&1

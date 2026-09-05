@@ -65,7 +65,17 @@ if defined BTC_CLI (
     REM Built as one physical line -- see :update_checksum in
     REM win/scripts/utilities/lib.bat (#144) on why a caret split across
     REM a powershell -Command block's open quote is not a continuation.
-    for /f "usebackq delims=" %%J in (`powershell -Command "& { try { & '!BTC_CLI!' -datadir='%ROOTDIR%\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
+    REM -NoProfile keeps this capture to the client's own answer: for /f
+    REM iterates every line the child writes, so a $PROFILE that prints
+    REM one -- a prompt framework's banner, an Import-Module that is not
+    REM silent -- is an iteration too, and the last one is what BTC_INFO
+    REM keeps. Measured on windows-latest, against a profile whose body
+    REM is Write-Output 'banner' and a bitcoin-cli that writes nothing:
+    REM without the flag the run reports the node running, by
+    REM bitcoin-cli, and its sync as that banner; with it, not running.
+    REM Where nothing reads a child's stdout the flag saves the
+    REM profile's load and decides nothing else.
+    for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { & '!BTC_CLI!' -datadir='%ROOTDIR%\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
     if defined BTC_INFO (
         set BTC_RUNNING=1
         set BTC_METHOD=bitcoin-cli
@@ -139,7 +149,8 @@ if "%BTC_RUNNING%"=="1" (
     if defined BTC_CLI (
         REM Built as one physical line -- see :update_checksum in
         REM lib.bat (#144).
-        for /f "usebackq delims=" %%J in (`powershell -Command "& { try { $info = & '!BTC_CLI!' -datadir='%ROOTDIR%\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
+        REM -NoProfile for the reason at the first capture above.
+        for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { $info = & '!BTC_CLI!' -datadir='%ROOTDIR%\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
         if defined SYNC (
             echo Bitcoin sync: !SYNC!%%
         ) else (
@@ -165,7 +176,8 @@ if "%BTC_RUNNING%"=="1" (
 set ELECTRUM_RUNNING=0
 set ELECTRUM_METHOD=
 REM Built as one physical line -- see :update_checksum in lib.bat (#144).
-for /f "usebackq delims=" %%P in (`powershell -Command "& { $p = Get-Process electrum -ErrorAction SilentlyContinue; if ($p) { $p | Select-Object -ExpandProperty Path } }"`) do (
+REM -NoProfile for the reason at the first capture above.
+for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "& { $p = Get-Process electrum -ErrorAction SilentlyContinue; if ($p) { $p | Select-Object -ExpandProperty Path } }"`) do (
     echo %%P | find /i "\win\bin\electrum.exe" >nul
     if !errorlevel!==0 (
         set ELECTRUM_RUNNING=1

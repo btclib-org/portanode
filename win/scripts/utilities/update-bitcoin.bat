@@ -179,9 +179,9 @@ REM one failure here that says nothing about itself, where every other
 REM failure below reaches :error with a message already printed, whether
 REM by this file or by the helper it calls. Write-Host sends it to
 REM stdout, so a run that fails this way still writes nothing to stderr.
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\SHA256SUMS' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
-powershell -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' -OutFile '%TMPDIR%\SHA256SUMS.asc' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_URL%' -OutFile '%TMPDIR%\SHA256SUMS' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%CHECKSUM_SIG_URL%' -OutFile '%TMPDIR%\SHA256SUMS.asc' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK "%ROOTDIR%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
@@ -193,7 +193,7 @@ REM quote. A doubled \\s+ therefore reaches the .NET regex engine as a
 REM literal backslash followed by one or more s, and no SHA256SUMS line
 REM holds a backslash.
 REM Built as one physical line -- see :update_checksum in lib.bat (#144).
-powershell -Command "& { $sum = Get-Content '%TMPDIR%\SHA256SUMS' | Select-String -Pattern '%FILE%' | Select-Object -First 1; if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } $expected = ($sum -split '\s+')[0].ToLower(); $actual = (Get-FileHash -Algorithm SHA256 '%TMPDIR%\%FILE%').Hash.ToLower(); if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } Write-Host '%FILE%: OK' }" || goto :error
+powershell -NoProfile -Command "& { $sum = Get-Content '%TMPDIR%\SHA256SUMS' | Select-String -Pattern '%FILE%' | Select-Object -First 1; if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } $expected = ($sum -split '\s+')[0].ToLower(); $actual = (Get-FileHash -Algorithm SHA256 '%TMPDIR%\%FILE%').Hash.ToLower(); if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } Write-Host '%FILE%: OK' }" || goto :error
 
 REM Expand-Archive writes a non-terminating error and leaves
 REM powershell.exe exiting 0 -- measured on windows-latest, an archive
@@ -204,7 +204,7 @@ REM extraction and overwrites win\bin\backup\bitcoin with the binaries
 REM currently installed, leaving rollback-bitcoin.bat the version already
 REM there to restore.
 REM Built as one physical line -- see :update_checksum in lib.bat (#144).
-powershell -Command "& { try { Expand-Archive -Force '%TMPDIR%\%FILE%' '%TMPDIR%\' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -NoProfile -Command "& { try { Expand-Archive -Force '%TMPDIR%\%FILE%' '%TMPDIR%\' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
 if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
 REM One physical line each, matching update-electrum.bat's own backup

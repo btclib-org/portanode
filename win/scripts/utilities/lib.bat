@@ -193,7 +193,7 @@ REM read, so either failure leaves it unset and exits 1 with nothing
 REM appended. :verify_checksum below already fails closed on the same
 REM $null unguarded, because PowerShell binds a $null argument into
 REM String.StartsWith as a false match rather than raising.
-powershell -Command "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 $file; if (-not $fh) { Write-Host 'Error: could not hash %FILEPATH_ENTRY%; not appending to win/checksums.sha256.'; exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  %FILEPATH_ENTRY%  version=' + $version; $existing = Get-Content $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
+powershell -NoProfile -Command "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 $file; if (-not $fh) { Write-Host 'Error: could not hash %FILEPATH_ENTRY%; not appending to win/checksums.sha256.'; exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  %FILEPATH_ENTRY%  version=' + $version; $existing = Get-Content $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
 if errorlevel 1 exit /b 1
 exit /b 0
 
@@ -215,7 +215,7 @@ REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 REM "-not" rather than "!" for the same reason: see :update_checksum's
 REM comment above on why delayed expansion cannot be assumed either way.
-powershell -Command "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
+powershell -NoProfile -Command "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0
 
