@@ -3111,6 +3111,22 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   bang form, and a `--version` argument holding `&echo INJECTED` printed
   whole through the bang form these scopes keep.
 
+### `CLAUDE.md` names the skip its blinter comparison key cannot see
+
+- **The blinter bullet names the embedded-script skip, which takes a line
+  out of every per-line checker, as what the comparison key reads as a
+  clean line** (closes #432). `blinter/parsing/embedded.py`'s
+  `_detect_embedded_script_blocks` returns the line numbers it reads as
+  embedded script and `blinter/checkers/orchestration.py`'s
+  `_process_file_checks` runs none of the per-line checkers on those, so a
+  defect a diff puts on one of them changes nothing in the key. The
+  classification is by pattern and takes ordinary batch code with it — a
+  batch `if` line assigning a path ending `set-permissions.bat` matches
+  the PowerShell pattern `Set-\w+`, where the same line naming a file
+  without the hyphen matches nothing. The global checkers still report on
+  a skipped line, so the report gives no sign of the skip, and the bullet
+  carries the command that asks blinter for the set.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
