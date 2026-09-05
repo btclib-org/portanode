@@ -1,7 +1,13 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal disabledelayedexpansion
 REM Validate setup
 
+REM Explicitly disabled on line 2 rather than merely not enabled, so
+REM the guarantee holds regardless of what a caller set. cmd.exe runs
+REM its delayed-expansion pass after percent expansion, so with it on
+REM an unmatched "!" is stripped out of the expanded "%~dp0" below and
+REM out of every path built on ROOTDIR, and a folder mounted at a path
+REM holding one is legal on exFAT and NTFS alike (#374).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
@@ -62,23 +68,30 @@ if exist "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" (
 set FREE_GB=
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
   -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR_ARG%"`) do set FREE_GB=%%F
+REM Flat rather than the "else ( )" block this replaced: with delayed
+REM expansion off, a "%FREE_GB%" or "%PRUNED%" read inside that block
+REM is expanded when cmd.exe parses the whole block, before the "for /f"
+REM above has set FREE_GB and before the "prune=" test has set PRUNED.
+REM Each read below is its own statement, expanded at the moment it
+REM runs.
 if not defined FREE_GB (
     echo WARNING: Could not determine disk free space.
-) else (
-    echo Disk free space: !FREE_GB! GB
-    if !FREE_GB! lss 100 (
-        echo ERROR: Less than 100GB free.
-        popd >nul 2>&1
-        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
-        exit /b 1
-    )
-    if !PRUNED!==0 if !FREE_GB! lss 700 (
-        echo WARNING: Less than 700GB free, and
-        echo bitcoin-datadir\bitcoin.conf has no active prune=. An
-        echo unpruned mainnet full sync needs 700GB; enable pruning,
-        echo or use testnet/regtest, if this is not one.
-    )
+    goto :free_space_done
 )
+echo Disk free space: %FREE_GB% GB
+if %FREE_GB% lss 100 (
+    echo ERROR: Less than 100GB free.
+    popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
+if "%PRUNED%"=="0" if %FREE_GB% lss 700 (
+    echo WARNING: Less than 700GB free, and
+    echo bitcoin-datadir\bitcoin.conf has no active prune=. An
+    echo unpruned mainnet full sync needs 700GB; enable pruning,
+    echo or use testnet/regtest, if this is not one.
+)
+:free_space_done
 
 echo Setup validation completed.
 popd >nul 2>&1
