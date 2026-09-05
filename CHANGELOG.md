@@ -3040,6 +3040,21 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   volume root, and where the grant then fails it stays that way -- which
   the readback reports in place of the restricted sentence.
 
+### `CONTRIBUTING.md` names what `W036` matches in a `for /f` file set
+
+- **The Blinter paragraph names `-NoProfile` as what a `W036` on a
+  `for /f` capture is matching, beside the two shapes `E010` covers**
+  (closes #431). Blinter 1.1.21's `W036` tests the file set for the
+  substring `file` and reports a data file whose header row a `skip=`
+  option should discard; a file set backquoted under `usebackq` is a command
+  rather than a path, so no file is read and `skip=1` would discard the first
+  line of the child's answer. `usebackq` alone does not settle which it is, a
+  double-quoted file set under it being a path the loop really reads. Measured
+  with `win/scripts/utilities/update-bitcoin.bat`'s archive-size probe in a
+  file of its own: as it stands it draws `W036`; with the flag removed it
+  draws nothing, and so does the same line with the flag respelled `-NoPrfle`,
+  which drops the substring and leaves the loop intact.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
