@@ -263,6 +263,32 @@ moves `main`.
     same offset changes the set with nothing in the group itself gained
     or lost, which costs one extra look at the diff rather than a
     missed defect.
+
+    **A line blinter skipped is absent from that key rather than clean in
+    it.** `blinter/parsing/embedded.py`'s `_detect_embedded_script_blocks`
+    returns the line numbers it reads as embedded script, and
+    `blinter/checkers/orchestration.py`'s `_process_file_checks` runs none
+    of the per-line checkers on those, so a defect a diff puts on one of
+    them changes nothing in the key. What lands in the set is decided by
+    pattern and reaches ordinary batch code: `Set-\w+` is one of the
+    PowerShell patterns, so a batch `if` line assigning a path ending
+    `set-permissions.bat` matches it, where the same line naming a file
+    without the hyphen matches nothing. The global checkers run over a
+    skipped line regardless, so it goes on carrying findings of its own
+    and nothing in the report says it was skipped; ask blinter for the
+    set rather than reading it off the report.
+
+    ```shell
+    uvx --from blinter python -c '
+    import sys
+    from blinter.io.encoding import _validate_and_read_file
+    from blinter.parsing.embedded import _detect_embedded_script_blocks
+    lines, _encoding, _endings = _validate_and_read_file(sys.argv[1])
+    print(sorted(_detect_embedded_script_blocks(lines)))' <path>
+    ```
+
+    An empty list is an answer and not a failed invocation, a `.bat` here
+    answering both ways.
 - **The `was read using 'utf_8' encoding` block is on stderr, and it is
   dropped rather than compared.** Which files it names moves under an
   ASCII-only edit to an unrelated part of them, so a comparison that
