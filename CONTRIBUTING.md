@@ -308,6 +308,17 @@ continuation, and cmd.exe genuinely loses the loop's `do`. Which shape a
 given `E010` names is read from where the caret sits relative to the
 backquotes, not from the code.
 
+**`W036` reads a `for /f`'s file set as a data file with a header row
+whenever it holds the substring `file` and the loop passes no `skip=`, and
+`-NoProfile` carries that substring.** A file set backquoted under
+`usebackq` is a command rather than a path, so a capture passing the flag to
+PowerShell draws the finding wherever blinter reads that operand at all,
+though no file is read, and the `skip=1` it recommends would discard the
+first line of the child's answer. Whether a given `W036` has a data file
+under it is read from what sits between `in (` and the first `)`, not from
+the rule code and not from `usebackq`, whose double-quoted file set is a
+path the loop really reads.
+
 ### What gates a merge, and what only reports
 
 **`lint.yml` runs the gate above on every pull request**, with `uvx
