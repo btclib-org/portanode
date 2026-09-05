@@ -2086,12 +2086,18 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `-LiteralPath` fix**, the pattern `filesystem-type.ps1` and
   `free-space-gb.ps1` already carry: both build the path they test from
   `$RootDir`, the value the bullet above is about.
+
+### The `.bat` utilities quote their `%ROOTDIR%` and `%~dp0` expansions
+
 - **The `.bat` utilities' `set` and `echo` of `%ROOTDIR%` and `%~dp0`
   are quoted** (closes #298). Unquoted, an `&` arriving through either
   expansion ends the command at the `&` and runs the remainder as a
   command of its own, or truncates the assignment silently and leaves
   the script running on the truncated value; `health-check.bat`'s own
   `%~dp0` capture reached this before `%ROOTDIR%` was even resolved.
+
+### `set-permissions.bat` echoes the account name through delayed expansion
+
 - **`set-permissions.bat`'s `%USERDOMAIN%\%USERNAME%` echo reads them
   through delayed expansion instead** (closes #300), the file already
   running under `setlocal enabledelayedexpansion`: a `%`-expanded value
@@ -2223,6 +2229,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `rotate-bitcoin-log.bat` read `State=Running` and
   `LastTaskResult=0x41301` ninety seconds in, and reads `Ready` and
   `0x0` once the wait expires on its own.
+
+### `validate-setup.bat`, `set-permissions.bat`, `monitor-bitcoin-log.bat` wait
+
 - **`validate-setup.bat`, `set-permissions.bat` and
   `monitor-bitcoin-log.bat` call it before every `exit /b` that ends
   them, the success return included** (closes #324).
@@ -2469,6 +2478,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   to strip. `shared/utilities/lib.sh`'s `update_checksum` and
   `verify_checksum_entry` test `[ ! -f ... ]` in a POSIX shell, which
   reads no delayed expansion and carries no equivalent defect.
+
+### `verify-binaries.ps1` reads `.Count` off `@(...)`-wrapped pipelines
+
 - **`win/scripts/utilities/verify-binaries.ps1` takes `$hashMatches` and
   `$expectedVersions` from `@(...)`-wrapped pipelines** (closes #361). A
   pipeline yielding exactly one object is assigned as that object rather
@@ -2476,6 +2488,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `verify-binaries.bat` runs the script under -- gives a bare object no
   `.Count`, so `$hashMatches.Count -gt 0` reads false for an intact
   binary with one recorded version, and the binary is reported `FAILED`.
+
+### The rollbacks and `verify-binaries.bat` reach their success-path wait
+
 - **The returns #337 added to the rollbacks and to `verify-binaries.bat`
   are reached**: the checksum guard above no longer refuses a rollback,
   and `verify-binaries.ps1`'s report reaches the wait on a pass as well
@@ -2876,6 +2891,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `windows-latest` with gpg on `PATH`: unfixed, `update-bitcoin.bat
   --dry-run` printed `gpg: not found` regardless; fixed, it prints
   `gpg: found.`
+
+### The Windows updaters' install `copy` reaches `:error` on its own failure
+
 - **The `copy` that installs the verified binaries reaches `:error` on
   its own failure**, joining every download, the checksum comparison
   and the PGP call above it, which already did (closes #388). Unguarded,
