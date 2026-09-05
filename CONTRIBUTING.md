@@ -294,8 +294,8 @@ uvx blinter . --no-config --summary
 
 It exits non-zero here, and `.pre-commit-config.yaml`'s header says why
 that is not a hook: not one of the findings the rules that set its exit
-code produce here is a defect, and it suppresses by rule code rather
-than by line. Read what it reports before believing it, and take the
+code produce here is a defect, and the header carries what suppressing
+one would cost. Read what it reports before believing it, and take the
 file with `git archive` rather than with `git show` — `CLAUDE.md`'s
 bullet on these files says why.
 

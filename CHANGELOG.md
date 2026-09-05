@@ -3176,6 +3176,42 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   empty `ROOTDIR`, hands PowerShell a `-File` argument that does not
   exist and reports that program's own update banner as the free space.
 
+### The Blinter header states what a per-line suppression costs
+
+- **`.pre-commit-config.yaml`'s header and `CONTRIBUTING.md`'s Blinter
+  paragraph rest on what Blinter 1.1.21 suppresses rather than on its
+  offering nothing narrower than a rule code** (closes #446). `REM
+  LINT:IGNORE <code>` above a line suppresses that code on it, and the
+  same directive with the code omitted suppresses every rule on it,
+  under the `--no-config` the invocation here passes: a fixture whose
+  `for /f` draws `W036` loses that finding under the directive and keeps
+  the `W037` on the same line, and the `LINT:IGNORE-LINE` spelling
+  placed above the capture leaves `W036` where it is, which is the
+  control that the form is positional. So the ground for running Blinter
+  by hand is no longer that only a rule code can be turned off; what the
+  header states instead is the price of the directive -- a comment about
+  Blinter's reading rather than about the script, bound to the physical
+  next line, so a line inserted between the two restores the finding
+  with nothing marking the directive stale.
+
+### The Blinter header states that SEC020 is silent here, not why
+
+- **The doubled-backslash clause says the rule draws nothing on this
+  tree and names no mechanism as the reason** (closes #447). The
+  mechanism it named is not what holds: `_check_path_security` asks
+  `_is_command_in_safe_context` before it reaches SEC020, and the
+  `set "PSFIND=..."` lines in `win/scripts/bitcoin/lib.bat` answer that
+  guard `True` through its SET arm, so the checker returns nothing.
+  Replacing `_detect_embedded_script_blocks` with one returning the
+  empty set, over an export of the whole tree, gains findings elsewhere
+  and no SEC020 anywhere, while forcing the guard to `False` makes both
+  lines draw SEC020; the zero is the rule's silence rather than a dead
+  run, a fixture whose `copy` names a real UNC path drawing SEC020 under
+  the same invocation. `win/scripts/utilities/update-bitcoin.bat`'s
+  doubled backslash is overdetermined the same way -- the guard's
+  comment arm answers first, and the `\s+` around it has no trailing
+  backslash for the UNC shape to match either.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
