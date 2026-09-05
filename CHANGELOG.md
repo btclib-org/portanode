@@ -3011,6 +3011,35 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `rotate-bitcoin-log.bat`'s copy, `clean-artifacts.bat`'s sweep -- the
   flag saves the profile's load and changes nothing the script reports.
 
+### `set-permissions.bat` leaves the grant as the data directory's only ACE
+
+- **An explicit ACE another identity holds on `bitcoin-datadir` or
+  `electrum-datadir` is dropped rather than granted alongside, and what
+  survives is read back and named** (closes #426). `icacls
+  /inheritance:r` removes inherited ACEs alone, so an explicit one
+  outlives the grant with its `(OI)(CI)` flags intact and goes on
+  granting what it grants -- measured on `windows-latest` with
+  `Everyone:(OI)(CI)F` set beforehand: the script printed its restricted
+  sentence while `Everyone` still read back explicit on the directory,
+  inherited on a subdirectory that already existed, and inherited on a
+  file created after the run. Where the Linux half reports a surviving
+  default POSIX ACL rather than clearing it, the directory's own `700`
+  refusing everybody meanwhile, here the surviving grant is live the
+  moment the sentence prints, so it is removed. `/reset` ahead of the
+  grant replaces the directory's DACL with what its parent offers and
+  the `/inheritance:r` after it removes those in turn, leaving the grant
+  as the only ACE; `/reset /t` over the directory's contents clears both
+  an item's protection and an explicit ACE it carries, where
+  `/inheritance:e /t` clears the protection alone. The readback searches
+  the ACL for the granted ACE and for any ACE that is not it, and prints
+  a warning in place of the restricted sentence where it finds the
+  second, so an ACE the `/reset` could not remove is named rather than
+  assumed away. What this costs is a window: the two do not fold into one
+  `icacls` command line, so between them the directory carries whatever
+  its parent offers, `BUILTIN\Users:(I)(OI)(CI)(RX)` among them on a
+  volume root, and where the grant then fails it stays that way -- which
+  the readback reports in place of the restricted sentence.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

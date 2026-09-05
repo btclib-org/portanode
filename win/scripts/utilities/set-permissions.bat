@@ -32,23 +32,59 @@ REM wallets\my wallet\wallet.dat and testnet4\blocks\index\000003.ldb
 REM and locked by the /t form beforehand, read both back as "(I)(F)",
 REM so the subtree is covered without being walked.
 REM
-REM The second call reaches what the first cannot: a file an earlier run
-REM left protected takes no inherited ACE until inheritance is enabled
-REM on it again. It names the directory's contents rather than the
-REM directory, and runs after the grant rather than before it, because
-REM /inheritance:e clears protection on whatever it is given: on %BDD%
-REM itself it leaves the directory inheriting the volume's own ACEs for
-REM the length of the walk. Measured by sampling the directory's ACL
-REM while each order ran: with /inheritance:e first the directory reads
-REM unprotected and carrying BUILTIN\Users through most of the walk, and
-REM in this order through none of it, both ending on the same ACL.
-REM /reset would serve as the repair and drop each object's explicit
-REM ACEs with it.
+REM /inheritance:r removes inherited ACEs and leaves explicit ones
+REM standing, so the grant alone restricts nothing where another
+REM identity already holds an explicit ACE on the directory: that ACE
+REM keeps its own (OI)(CI) flags and goes on granting what it grants
+REM under a directory this script reports as restricted. Measured on
+REM windows-latest with Everyone granted (OI)(CI)F on bitcoin-datadir
+REM ahead of a run of the grant alone: Everyone read back explicit on
+REM the directory, inherited on a subdirectory that already existed,
+REM and inherited on a file created after the run. /reset replaces the
+REM directory's DACL with the ACEs its parent offers, and the
+REM /inheritance:r below removes those in turn, so the pair leaves the
+REM grant as the only ACE on the directory. The two do not fold into
+REM one command line: measured, "icacls dir /reset /inheritance:r
+REM /grant ..." answers Invalid parameter "/inheritance:r", exits 87,
+REM and leaves the ACL as it found it. What the separation costs is a
+REM window: between the two calls the directory carries whatever its
+REM parent offers, which on a volume root includes
+REM BUILTIN\Users:(I)(OI)(CI)(RX) -- measured by reading the ACL back
+REM between them -- so a run reopens a directory an earlier run had
+REM closed. The next line closes it again, and where that line fails
+REM it stays open: measured with a second run whose account did not
+REM resolve, the directory read its parent's ACEs afterwards, under
+REM the warning below that the grant may have failed. That is one
+REM command's exposure, reported where it lasts longer, against an
+REM explicit ACE that lasts until somebody removes it by hand.
+REM
+REM The third call reaches what the grant cannot: the grant covers the
+REM directory's contents by inheritance, which an item an earlier run
+REM left protected takes none of, and which removes nothing an item
+REM carries explicitly of its own. /reset drops such an explicit ACE
+REM and clears the protection in one pass, where /inheritance:e clears
+REM the protection alone -- measured on windows-latest against a file
+REM given Everyone:(F) and then protected with /inheritance:r: after
+REM /reset /t it read the granted account's own (I)(F) and nothing
+REM else, after /inheritance:e /t it read both explicit ACEs still
+REM standing with the inherited one added beside them. A subdirectory
+REM reads the same way: one granted Everyone:(OI)(CI)F explicitly,
+REM with the data directory itself clean, kept that ACE through a run
+REM of the grant and the /inheritance:e form, and read the granted
+REM account's own (I)(OI)(CI)(F) and nothing else after /reset /t.
+REM This call names the directory's contents rather than the
+REM directory, and runs after the grant rather than before it: /reset
+REM clears protection on whatever it is given, so on %BDD% itself it
+REM would hold the window above open for as long as the walk takes,
+REM and ahead of the grant it would leave the contents inheriting an
+REM ACL the grant has not written yet.
+icacls "%BDD%" /reset >nul
 icacls "%BDD%" /inheritance:r /grant "%USERDOMAIN%\%USERNAME%:(OI)(CI)F" >nul
-icacls "%BDD%\*" /inheritance:e /t >nul
+icacls "%BDD%\*" /reset /t >nul
 set "BDD_INHERIT_RC=%ERRORLEVEL%"
+icacls "%EDD%" /reset >nul
 icacls "%EDD%" /inheritance:r /grant "%USERDOMAIN%\%USERNAME%:(OI)(CI)F" >nul
-icacls "%EDD%\*" /inheritance:e /t >nul
+icacls "%EDD%\*" /reset /t >nul
 set "EDD_INHERIT_RC=%ERRORLEVEL%"
 
 REM exFAT and FAT32 hold no ACL at all: the icacls calls above ran and
@@ -62,7 +98,7 @@ exit /b 0
 
 REM The arguments are the path filesystem-type.ps1 is handed, the
 REM ROOTDIR-relative name the messages use, and the exit code of the
-REM "icacls ... /inheritance:e /t" call already made against that path.
+REM "icacls ... /reset /t" call already made against that path.
 REM The caller captures that code on the line below the call it came
 REM from because the other data directory's own icacls calls run between
 REM the two "call" lines, and ERRORLEVEL holds whichever command ran
@@ -78,11 +114,27 @@ REM The filesystem alone does not say the restriction in the message
 REM below is in force: the "icacls ... /grant" above can exit non-zero
 REM for a reason its caller never sees, its own output routed to nul.
 REM So on NTFS this routine reads the ACL back off the directory itself
-REM and looks for the exact ACE the grant asked for, rather than trust
-REM that the grant ran at all. That readback says nothing about the
-REM propagation call's own reach into the directory's existing
-REM contents, so its exit code, passed in above, is what the warning
-REM below is built from instead.
+REM and looks both for the exact ACE the grant asked for and for any ACE
+REM that is not it, rather than trust that the grant and the /reset
+REM ahead of it ran at all. That readback says nothing about the third
+REM call's own reach into the directory's existing contents, so its exit
+REM code, passed in above, is what the warning below is built from
+REM instead.
+REM
+REM The second search is the first one's complement: findstr /v drops
+REM every line holding the granted ACE, wherever in the report icacls
+REM prints it, and what survives is searched for ":(", which every
+REM remaining ACE line carries and neither the blank line nor icacls's
+REM own "Successfully processed" summary does. The path icacls echoes
+REM ahead of the first ACE cannot supply that pair either: ':' is not a
+REM legal character in a Windows file name, and a drive letter's own
+REM colon is followed by a backslash. Measured on windows-latest against
+REM a directory carrying the granted ACE alone and one carrying it
+REM beside Everyone:(OI)(CI)F -- the second of which icacls printed with
+REM Everyone on the path line and the granted ACE indented below it, so
+REM the filter is read against the order it does not expect as well as
+REM the one it does -- the search answered 1 on the first and 0 on the
+REM second.
 REM
 REM The readback runs a control before it runs the search, because the
 REM search is one whose informative answer is a miss: findstr answers 1
@@ -133,27 +185,33 @@ if /i "%FS_NAME%"=="NTFS" (
     set "READ_RC=!errorlevel!"
     findstr /i /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" "!ACL_FILE!" >nul 2>&1
     set "ACE_RC=!errorlevel!"
+    findstr /i /v /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" "!ACL_FILE!" | findstr /c:":(" >nul 2>&1
+    set "OTHER_RC=!errorlevel!"
     del "!ACL_FILE!" >nul 2>&1
     if not "!READ_RC!"=="0" (
         echo Warning: %REL% is on an NTFS volume, but its ACL could not be
         echo read back, so whether the restriction is in force is unknown.
         echo Check with icacls "!TARGET!".
-    ) else if "!ACE_RC!"=="0" (
-        if "!INHERIT_RC!"=="0" (
-            echo %REL% is on an NTFS volume: permissions restricted to
-            echo !USERDOMAIN!\!USERNAME!.
-        ) else (
-            echo %REL% is on an NTFS volume: !TARGET! itself now
-            echo restricts access to !USERDOMAIN!\!USERNAME!, but icacls
-            echo reported an error extending that restriction to items
-            echo already inside it, exit !INHERIT_RC!. Check with
-            echo icacls "!TARGET!\*".
-        )
-    ) else (
+    ) else if not "!ACE_RC!"=="0" (
         echo Warning: %REL% is on an NTFS volume, but !TARGET! does
         echo not carry an ACE granting !USERDOMAIN!\!USERNAME! full
         echo control; the grant above may have failed. Check with
         echo icacls "!TARGET!".
+    ) else if "!OTHER_RC!"=="0" (
+        echo Warning: %REL% is on an NTFS volume and grants
+        echo !USERDOMAIN!\!USERNAME! full control, but !TARGET! still
+        echo carries an ACE for another identity, so access to it is not
+        echo restricted to that account. icacls "!TARGET!" names that
+        echo identity, and icacls with /remove takes its ACE off.
+    ) else if not "!INHERIT_RC!"=="0" (
+        echo %REL% is on an NTFS volume: !TARGET! itself now
+        echo restricts access to !USERDOMAIN!\!USERNAME!, but icacls
+        echo reported an error extending that restriction to items
+        echo already inside it, exit !INHERIT_RC!. Check with
+        echo icacls "!TARGET!\*".
+    ) else (
+        echo %REL% is on an NTFS volume: permissions restricted to
+        echo !USERDOMAIN!\!USERNAME!.
     )
 ) else (
     echo Warning: %REL% is on a %FS_NAME% volume, which does not store
