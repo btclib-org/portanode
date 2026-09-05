@@ -557,7 +557,8 @@ because that document, and not this one, is where the rule lives.
   its place. A launcher assigns `$Root` from `Resolve-PortaNodeRoot`;
   `monitor-bitcoin-log.ps1` and `verify-binaries.ps1` take `$RootDir`
   from the `.bat` that calls them; `free-space-gb.ps1` and
-  `filesystem-type.ps1` take `$Path`; `latest-bitcoin-version.ps1` and
+  `filesystem-type.ps1` take `$Path`, and `set-datadir-acl.ps1` takes an
+  `$Account` beside its own; `latest-bitcoin-version.ps1` and
   `latest-electrum-version.ps1` take no parameter and reach no root; and
   `win/scripts/root.ps1` is the walk itself, its `$StartDir` naming where
   the search begins rather than what it finds. The assignment pattern
