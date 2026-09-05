@@ -2970,6 +2970,31 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `getfacl` not being installed is reported as such rather than read as
   no default ACL being present.
 
+### `update_checksum` checks the hash it computed before building an entry
+
+- **`shared/utilities/lib.sh`'s `update_checksum` checks the hash it
+  computed before building an entry from it** (closes #425). `shasum` and
+  `sha256sum` write to stderr and print nothing on stdout for a file they
+  cannot read, so `awk` prints nothing, the assignment's own status is
+  `awk`'s where `pipefail` is off, and `hash` is the empty string; the
+  entry built from it carries an empty hash field into the append-only
+  `checksums.sha256`, where it can neither be rewritten nor ever match,
+  `verify_checksum_entry` selecting on `$1 == h && $2 == p` and awk's
+  field splitting reading such a line's path as `$1`. A `chmod 000` file
+  and one carrying a `deny read` ACL give that same empty capture; a
+  volume with no free space does not, the read needing none. What held
+  that line out of `checksums.sha256` was no check but the updaters' own
+  `set -euo pipefail`, errexit and pipefail together aborting at the
+  assignment rather than at the append; under either option alone the
+  empty-hash line was appended and the function returned 0.
+  `update_checksum` now normalises a failed capture to the empty string
+  in a `||` list, which is also what suppresses errexit long enough for
+  the check to run, tests `hash` rather than any exit status, and on an
+  empty one names the file, says nothing was appended, and returns 1
+  without touching `checksums.sha256`. `verify_checksum_entry` refuses
+  the same unreadable file already with no guard of its own, so this is
+  on the write side alone.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
