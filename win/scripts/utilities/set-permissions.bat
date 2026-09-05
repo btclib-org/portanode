@@ -1,7 +1,13 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal disabledelayedexpansion
 REM Set restrictive permissions for PortaNode data directories (Windows)
 
+REM Disabled explicitly rather than merely left off: every call below
+REM builds its target from %SCRIPT_DIR% or carries %BDD%/%EDD%, and
+REM update-bitcoin.bat's own comment on the same line gives what a
+REM "call" does to a "!" in either under delayed expansion (#411).
+REM :report_permission_effect turns it back on for its own block, at
+REM the line that block's comment names.
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 
@@ -151,11 +157,28 @@ REM
 REM TARGET is read as !TARGET! inside the NTFS block below rather than
 REM as %TARGET%: percent expansion runs before cmd.exe matches that
 REM block's parentheses, so a closing parenthesis in the mount point
-REM would end the block early (#211, #298, #300). USERDOMAIN and
-REM USERNAME in the same block already carry that form. REL and FS_NAME
-REM stay percent-expanded there: each caller passes REL as one of two
-REM literals held in this file, and FS_NAME is filesystem-type.ps1's
-REM answer, so neither carries the mount point's own characters.
+REM would end the block early (#211, #298, #300). Measured on
+REM windows-latest against a directory whose name ends in a close
+REM parenthesis: an unquoted "%TARGET%" inside such a block ends the
+REM block at that character and abandons the run with "was unexpected
+REM at this time", where a quoted one is read as the path it names.
+REM USERDOMAIN and USERNAME in the same block already carry the bang
+REM form. REL and FS_NAME stay percent-expanded there: each caller
+REM passes REL as one of two literals held in this file, and FS_NAME is
+REM filesystem-type.ps1's answer, so neither carries the mount point's
+REM own characters.
+REM
+REM The scope enabling delayed expansion opens below the three
+REM arguments rather than at the top of this file, because a "!" in the
+REM mount point reaches here through %~1: with delayed expansion on,
+REM the pass that substitutes !TARGET! strips an unmatched "!" from the
+REM value %~1 expands to, and from the target path of every call in
+REM this file besides (#411). Captured with it off and read with it on,
+REM the character survives both -- measured on windows-latest with the
+REM folder at C:\Port!Node and TEMP pointed at a directory holding a
+REM "!" of its own, this routine's own shape reading back TARGET and a
+REM TEMP-derived ACL_FILE unchanged.
+REM The block holds no call, which is what lets it be enabled at all.
 REM
 REM The two "exit /b 0" below return from this "call" rather than ending
 REM the script, so :pause_if_own_console belongs at the exit that ends
@@ -178,8 +201,9 @@ if not defined FS_NAME (
     echo the icacls above took effect.
     exit /b 0
 )
+setlocal enabledelayedexpansion
 if /i "%FS_NAME%"=="NTFS" (
-    set "ACL_FILE=%TEMP%\pn_acl_%RANDOM%%RANDOM%.txt"
+    set "ACL_FILE=!TEMP!\pn_acl_%RANDOM%%RANDOM%.txt"
     icacls "!TARGET!" > "!ACL_FILE!" 2>nul
     findstr /i /c:"!TARGET!" "!ACL_FILE!" >nul 2>&1
     set "READ_RC=!errorlevel!"

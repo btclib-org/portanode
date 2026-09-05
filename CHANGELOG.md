@@ -3083,6 +3083,34 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   qualified spelling alone, so a click-through lands on the runs the
   badge beside it answers for.
 
+### The Windows updaters and `set-permissions.bat` disable delayed expansion
+
+- **`update-bitcoin.bat`, `update-electrum.bat` and `set-permissions.bat`
+  disable delayed expansion, so a `!` in the mount path or in `%TEMP%`
+  reaches `lib.bat` and `root.bat` across a `call`** (closes #411, issue
+  #374, issue #393). `call` re-parses its own target path and its
+  arguments under the delayed-expansion pass, which strips an unmatched
+  `!` out of what `%SCRIPT_DIR%` expanded to, so with that pass on the
+  exposure is in the call itself rather than only in whichever argument
+  it carries -- measured on `windows-latest` against a `.bat` under
+  `C:\Port!Node`: with delayed expansion off the callee runs and
+  receives `C:\Port!Node\x.txt` unchanged, with it on the callee is not
+  reached, cmd.exe answers `The system cannot find the path specified.`
+  and the call sets `errorlevel 1`. Reading the value with `!VAR!`
+  rather than `%VAR%` does not reach it, and neither does capturing it
+  before the `setlocal`: every later `call` line re-corrupts the value
+  at that line. `lib.bat`'s `:verify_pgp_signature` and
+  `:warn_if_no_pubkeys` read their `%TEMP%`-derived paths with `%...%`
+  again, that being what carries the character where the caller's pass
+  is off. The blocks whose `!VAR!` reads were a read-after-write are
+  flat, each `%VAR%` then being read at the line that runs it; the
+  echoes printing a `VERSION` or a `ROOTDIR` keep a delayed-expansion scope
+  of their own, because a value's own `&` reaches an unquoted `%VAR%` echo
+  as syntax: a fixture echoing one both ways ran the text after the `&` as a
+  command of its own under the percent form and printed it whole under the
+  bang form, and a `--version` argument holding `&echo INJECTED` printed
+  whole through the bang form these scopes keep.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

@@ -28,24 +28,29 @@ REM That warning names the absence rather than a cause, as the
 REM archive-size line in the same block does and for the same reason:
 REM the bound firing, a gpg that is not on PATH and a probe that could
 REM not run all reach it alike.
-REM Delayed expansion is inherited from every caller, so the argument
-REM below carries no "!" for cmd.exe to strip (#360); it is one
-REM physical line for the reason :update_checksum's comment gives.
-REM WNP_ANSWER_FILE is read with "!...!" rather than "%TEMP%" from
-REM here on, for a different reason than the one above: TEMP is the
-REM caller's to set, not this file's, and an account name or a
-REM redirected TEMP holding an unmatched "!" is legal on Windows.
-REM Delayed expansion, inherited enabled from every current caller,
-REM substitutes "!VAR!" once and does not re-scan its own result, where
-REM "%VAR%" is expanded before that same pass runs and so is stripped
-REM exactly as a literal "!" would be (#393).
+REM The powershell argument below is one physical line for the reason
+REM :update_checksum's comment gives.
+REM WNP_ANSWER_FILE is TEMP-derived, and TEMP is the caller's to set,
+REM not this file's: an account name or a redirected TEMP holding an
+REM unmatched "!" is legal on Windows. It is read with "%...%"
+REM because every caller reaches this label with delayed expansion
+REM disabled, which is what leaves the character standing: with it
+REM on, the pass that would substitute a "!VAR!" strips an
+REM unmatched "!" out of what "%TEMP%" expanded to (#393). A "!"
+REM in the mount path is a separate source with a separate owner,
+REM and it is stripped a second time out of the caller's own
+REM "call" line, which is #411 and is measured at
+REM update-bitcoin.bat's comment on its own second line. Neither
+REM source implies the other: a plain mount path with a bangy TEMP
+REM reaches this label with a working call target. Nothing checks
+REM that every caller still disables it (#448).
 :warn_if_no_pubkeys
-set "WNP_ANSWER_FILE=!TEMP!\pn_pubkeys_%RANDOM%%RANDOM%.txt"
-type nul > "!WNP_ANSWER_FILE!"
+set "WNP_ANSWER_FILE=%TEMP%\pn_pubkeys_%RANDOM%%RANDOM%.txt"
+type nul > "%WNP_ANSWER_FILE%"
 powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $p = Start-Process -FilePath 'gpg' -ArgumentList '--batch','--list-keys','--with-colons' -NoNewWindow -PassThru -RedirectStandardOutput $out -RedirectStandardError $err; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { $p.Kill() }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
 set "WNP_ANSWER="
-set /p WNP_ANSWER=<"!WNP_ANSWER_FILE!"
-del "!WNP_ANSWER_FILE!" >nul 2>&1
+set /p WNP_ANSWER=<"%WNP_ANSWER_FILE%"
+del "%WNP_ANSWER_FILE%" >nul 2>&1
 if "%WNP_ANSWER%"=="yes" exit /b 0
 if "%WNP_ANSWER%"=="no" echo Warning: no public keys found in local keyring.
 if "%WNP_ANSWER%"=="" (
@@ -58,20 +63,20 @@ REM :verify_pgp_signature SIG DATA LABEL OUTVAR [FPR_FILE]
 REM Fails CLOSED (exit /b 1) unless a good signature is found. If FPR_FILE has
 REM any 40-hex fingerprint line, additionally requires a VALIDSIG from a listed
 REM key (pinning). Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT recommended).
-REM Written flat (no %var% set-and-read inside a ( ) block) because the
-REM bang-delimited read that would fix one needs delayed expansion, and
-REM lib.bat cannot turn that on for itself: the local scoping it comes
-REM with would confine the OUTVAR this file sets for its caller. It
-REM inherits whatever the callers set instead, and now counts on that
-REM being on for STATUS_FILE and FPR_CLEAN below (#393), the same way
-REM :warn_if_no_pubkeys already counts on it for WNP_ANSWER_FILE:
-REM update-bitcoin.bat and update-electrum.bat, this subroutine's only
-REM callers, both enable it. With it off, "!STATUS_FILE!" is literal
-REM text and the guard writes into a directory named that. Both
-REM constructs are named here rather than spelled, because spelled out
-REM they read to the batch linter as this file asking for what the
-REM paragraph forbids, and it then prints that advice against exit
-REM points throughout the file.
+REM Written flat (no %var% set-and-read inside a ( ) block) because a
+REM read of that shape inside one answers with the value the variable
+REM held when cmd.exe parsed the block. Delayed expansion is the other
+REM way of fixing that, and lib.bat cannot turn it on for itself: the
+REM local scoping it comes with would confine the OUTVAR this file sets
+REM for its caller. Written flat, none of STATUS_FILE, FPR_CLEAN or
+REM the caller's own SIG_FILE and DATA_FILE needs it -- each is read
+REM at a line that runs after the line setting it -- and the callers
+REM reach this label with delayed expansion disabled, which is what
+REM lets a "!" in TEMP or in the mount path survive as far as here
+REM (#393, #411). The construct is named rather than spelled, because
+REM spelled out it reads to the batch linter as this file asking for
+REM what the paragraph forbids, and it then prints that advice against
+REM exit points throughout the file.
 :verify_pgp_signature
 set "SIG_FILE=%~1"
 set "DATA_FILE=%~2"
@@ -96,24 +101,25 @@ if not %errorlevel%==0 (
 
 call :warn_if_no_pubkeys
 echo Verifying %LABEL% signature...
-REM STATUS_FILE is read with "!...!" from here on: see the comment
-REM above :warn_if_no_pubkeys's own TEMP-derived WNP_ANSWER_FILE
-REM (#393); "%SIG_FILE%"/"%DATA_FILE%" are the caller's own paths
-REM rather than this file's, and stay as they were.
-set "STATUS_FILE=!TEMP!\pgp_status_%RANDOM%%RANDOM%.txt"
-gpg --status-fd 1 --verify "%SIG_FILE%" "%DATA_FILE%" 1> "!STATUS_FILE!" 2>nul
+REM STATUS_FILE is TEMP-derived: see the comment above
+REM :warn_if_no_pubkeys's own WNP_ANSWER_FILE on why that makes the
+REM caller's delayed-expansion state the thing it depends on (#393,
+REM #411). "%SIG_FILE%"/"%DATA_FILE%" are the caller's own paths rather
+REM than this file's, and depend on it the same way.
+set "STATUS_FILE=%TEMP%\pgp_status_%RANDOM%%RANDOM%.txt"
+gpg --status-fd 1 --verify "%SIG_FILE%" "%DATA_FILE%" 1> "%STATUS_FILE%" 2>nul
 
-findstr /c:"[GNUPG:] BADSIG" "!STATUS_FILE!" >nul 2>&1
+findstr /c:"[GNUPG:] BADSIG" "%STATUS_FILE%" >nul 2>&1
 if %errorlevel%==0 (
     echo Error: BAD PGP signature on %LABEL%.
-    del "!STATUS_FILE!" >nul 2>&1
+    del "%STATUS_FILE%" >nul 2>&1
     exit /b 1
 )
-findstr /c:"[GNUPG:] GOODSIG" "!STATUS_FILE!" >nul 2>&1
+findstr /c:"[GNUPG:] GOODSIG" "%STATUS_FILE%" >nul 2>&1
 if not %errorlevel%==0 (
     echo Error: no valid PGP signature on %LABEL% ^(is the signer's key imported?^).
     echo Import the signing key, or set PORTANODE_ALLOW_UNVERIFIED=1 ^(NOT recommended^).
-    del "!STATUS_FILE!" >nul 2>&1
+    del "%STATUS_FILE%" >nul 2>&1
     exit /b 1
 )
 
@@ -121,25 +127,25 @@ REM Optional fingerprint pinning: enforce only if FPR_FILE lists a fingerprint.
 REM Pre-filter to hex-only lines in a temp file (so the loop never echoes
 REM comment text containing ) or > etc.), then require a pinned fingerprint to
 REM appear on a VALIDSIG line (which carries both signing and primary key fprs).
-set "FPR_CLEAN=!TEMP!\pn_fpr_%RANDOM%%RANDOM%.txt"
+set "FPR_CLEAN=%TEMP%\pn_fpr_%RANDOM%%RANDOM%.txt"
 set "PIN=0"
-if not "%FPR_FILE%"=="" if exist "%FPR_FILE%" findstr /i /r "^[0-9A-F][0-9A-F]*$" "%FPR_FILE%" > "!FPR_CLEAN!" 2>nul
-if exist "!FPR_CLEAN!" for %%Z in ("!FPR_CLEAN!") do if %%~zZ GTR 0 set "PIN=1"
+if not "%FPR_FILE%"=="" if exist "%FPR_FILE%" findstr /i /r "^[0-9A-F][0-9A-F]*$" "%FPR_FILE%" > "%FPR_CLEAN%" 2>nul
+if exist "%FPR_CLEAN%" for %%Z in ("%FPR_CLEAN%") do if %%~zZ GTR 0 set "PIN=1"
 if "%PIN%"=="1" (
     set "MATCHED="
-    for /f "usebackq delims=" %%K in ("!FPR_CLEAN!") do (
-        findstr /c:"[GNUPG:] VALIDSIG" "!STATUS_FILE!" | findstr /i /c:"%%K" >nul 2>&1 && set "MATCHED=1"
+    for /f "usebackq delims=" %%K in ("%FPR_CLEAN%") do (
+        findstr /c:"[GNUPG:] VALIDSIG" "%STATUS_FILE%" | findstr /i /c:"%%K" >nul 2>&1 && set "MATCHED=1"
     )
     if not defined MATCHED (
         echo Error: %LABEL% signed, but not by a pinned key in "%FPR_FILE%".
-        del "!STATUS_FILE!" >nul 2>&1
-        del "!FPR_CLEAN!" >nul 2>&1
+        del "%STATUS_FILE%" >nul 2>&1
+        del "%FPR_CLEAN%" >nul 2>&1
         exit /b 1
     )
 )
 
-del "!FPR_CLEAN!" >nul 2>&1
-del "!STATUS_FILE!" >nul 2>&1
+del "%FPR_CLEAN%" >nul 2>&1
+del "%STATUS_FILE%" >nul 2>&1
 if not "%OUTVAR%"=="" set "%OUTVAR%=1"
 exit /b 0
 
@@ -168,16 +174,17 @@ REM is split into argv, along with the space either side of it, turning
 REM "$hash  ...  $version" into three bare, unquoted tokens and a parse
 REM error. Every other quoted PowerShell string in this file is already
 REM single-quoted for the same reason.
-REM update-bitcoin.bat and update-electrum.bat, :update_checksum's
-REM only callers, enable delayed expansion in their own second line,
-REM inherited across this call. :verify_checksum is also called from
-REM rollback-bitcoin.bat and rollback-electrum.bat, which explicitly
-REM disable it instead (#374), so this shared code cannot assume
-REM either state: "!(Test-Path $checksum)" would reach PowerShell as
+REM "-not" rather than PowerShell's own negation operator, which is
+REM the character cmd.exe's delayed-expansion pass consumes:
+REM "!(Test-Path $checksum)" would reach PowerShell as
 REM "(Test-Path $checksum)", the test inverted, wherever delayed
-REM expansion happens to be on and strips the "!" first (#360). "-not"
-REM is used in place of that operator regardless; it carries nothing
-REM for cmd.exe's parser to strip either way.
+REM expansion is on (#360). The callers of :update_checksum and
+REM :verify_checksum disable it (#374, #411); some callers reaching
+REM this file for :rootdir_arg or :rootdir_relative alone leave it
+REM on, and verify-binaries.bat reaches :rootdir_arg without
+REM enabling it, which leaves it off. So this shared code cannot
+REM assume either state: "-not" carries nothing for cmd.exe's
+REM parser to strip under both.
 REM Get-FileHash's own failure is non-terminating, returning nothing so
 REM ".Hash" on that empty result is $null and it is ".ToLower()" -- a
 REM method call on that $null -- that throws "You cannot call a method
@@ -213,8 +220,8 @@ exit /b 1
 if "%CHECKSUM_FILE%"=="" exit /b 1
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
-REM "-not" rather than "!" for the same reason: see :update_checksum's
-REM comment above on why delayed expansion cannot be assumed either way.
+REM "-not" rather than "!" for the reason :update_checksum's comment
+REM above gives.
 powershell -NoProfile -Command "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0

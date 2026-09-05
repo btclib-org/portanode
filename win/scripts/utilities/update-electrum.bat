@@ -1,7 +1,11 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal disabledelayedexpansion
 REM Update Electrum version (Windows)
 
+REM Disabled explicitly rather than merely left off, and the echoes
+REM below that print a value carry a delayed-expansion scope of their
+REM own: update-bitcoin.bat's own comment on the same two lines gives
+REM the reason for each (#411).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
@@ -44,36 +48,41 @@ if %errorlevel%==0 (
     exit /b 1
 )
 
-if defined VERSION_OVERRIDE (
-    set "VERSION=%VERSION_OVERRIDE%"
-    echo Requested Electrum version: !VERSION!
-) else (
-    set VERSION=
-    for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-      -File "%SCRIPT_DIR%latest-electrum-version.ps1"`) do set VERSION=%%V
-    REM latest-electrum-version.ps1 prints INDEX_UNREACHABLE when it
-    REM could not read the release index, an expired -TimeoutSec
-    REM included, and nothing when it read the index and found no version
-    REM listed in it; its own header says why the two are told apart on
-    REM stdout. Delayed expansion here for the reason the REM below the
-    REM block gives.
-    if "!VERSION!"=="INDEX_UNREACHABLE" (
-        echo Error: failed to fetch the release index from
-        echo download.electrum.org ^(Invoke-WebRequest -TimeoutSec 300^).
-        goto :error
-    )
-    REM "if not defined", not a string test on an expanded VERSION:
-    REM cmd.exe expands a percent variable when it parses the whole else
-    REM block, before the for /f above has run, so a string test reads
-    REM what VERSION held on entry and takes this branch whatever the
-    REM scrape returned. Clearing VERSION above is what leaves "defined"
-    REM answering for the scrape and not for an inherited environment.
-    if not defined VERSION (
-        echo Error: Failed to determine latest Electrum version.
-        goto :error
-    )
-    echo Latest Electrum version: !VERSION!
+REM Flat rather than the "if ... ( ) else ( )" this replaced: each
+REM "%VERSION%" below is its own statement, read at the line that runs
+REM it, where inside one block cmd.exe would expand every one of them
+REM when it parsed the block -- before the for /f had run.
+if not defined VERSION_OVERRIDE goto :scrape_version
+set "VERSION=%VERSION_OVERRIDE%"
+setlocal enabledelayedexpansion
+echo Requested Electrum version: !VERSION!
+endlocal
+goto :version_ready
+:scrape_version
+set VERSION=
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+  -File "%SCRIPT_DIR%latest-electrum-version.ps1"`) do set VERSION=%%V
+REM latest-electrum-version.ps1 prints INDEX_UNREACHABLE when it
+REM could not read the release index, an expired -TimeoutSec
+REM included, and nothing when it read the index and found no version
+REM listed in it; its own header says why the two are told apart on
+REM stdout.
+if "%VERSION%"=="INDEX_UNREACHABLE" (
+    echo Error: failed to fetch the release index from
+    echo download.electrum.org ^(Invoke-WebRequest -TimeoutSec 300^).
+    goto :error
 )
+REM "if not defined", not a string test on an expanded VERSION:
+REM clearing VERSION above is what leaves "defined" answering for the
+REM scrape and not for an inherited environment.
+if not defined VERSION (
+    echo Error: Failed to determine latest Electrum version.
+    goto :error
+)
+setlocal enabledelayedexpansion
+echo Latest Electrum version: !VERSION!
+endlocal
+:version_ready
 
 REM The standalone build, not electrum-<version>-portable.exe. The portable
 REM one assigns its own data directory -- electrum_data under the working
@@ -91,65 +100,76 @@ REM only an installation made after it.
 REM VERSION reaches here from the scrape, regex-constrained to
 REM digits and dots, or from --version, quoted by whoever calls
 REM this script -- quoting a caller argument does not stop it
-REM holding a "&", so the set and echo below are what ISS 298
-REM already quotes and delayed-expands for %ROOTDIR%.
+REM holding a "&". The sets below quote it for the reason ISS 298
+REM quotes %ROOTDIR%, and every echo of it or of a URL built on it
+REM sits in a delayed-expansion scope for the other half of that
+REM issue's reason.
 set "FILE=electrum-%VERSION%.exe"
 set "SIG_FILE=%FILE%.asc"
 set "BASE_URL=https://download.electrum.org/%VERSION%/"
 set "URL=%BASE_URL%%FILE%"
 
-if "%DRY_RUN%"=="1" (
-    call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
-    echo --dry-run: nothing will be downloaded, verified or installed.
-    echo Would install Electrum !VERSION! ^(currently installed: !CURRENT!^).
-    echo Would fetch: !URL!
-    where gpg >nul 2>&1
-    REM Delayed expansion, not percent: this block sits inside the
-    REM DRY_RUN block opened above, so percent expansion would read
-    REM whatever errorlevel held when cmd.exe parsed that whole outer
-    REM block, before where gpg ran -- see ISS 383.
-    if !errorlevel!==0 (
-        echo gpg: found.
-        call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
-    ) else (
-        echo gpg: not found -- verification would fail closed unless
-        echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
-    )
-    set ARCHIVE_LEN=
-    REM Built as one physical line -- see :update_checksum in lib.bat
-    REM (#144) on why a caret split across an open quote is not a
-    REM continuation.
-    REM
-    REM -TimeoutSec 30, the value latest-bitcoin-version.ps1 passes on
-    REM its own archive HEAD probe: a HEAD the server accepts and then
-    REM answers at its leisure holds --dry-run open for as long as the
-    REM host chooses, and --dry-run is the side-effect-free preview.
-    for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
-    if defined ARCHIVE_LEN (
-        set /a ARCHIVE_MB=!ARCHIVE_LEN!/1024/1024
-        echo Archive size: !ARCHIVE_MB! MB ^(downloaded to local temp
-        echo storage, not the removable disk^).
-    ) else (
-        REM Printed rather than the block falling silent: with no line at
-        REM all, an estimate that could not be made reads the same as one
-        REM nobody attempted. It names the absence rather than a cause,
-        REM since the timeout above, a request that failed and a response
-        REM carrying no Content-Length all reach here alike.
-        echo Archive size: unknown ^(the HEAD request returned no
-        echo Content-Length^).
-    )
-    set FREE_GB=
-    for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-      -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR_ARG%"`) do set FREE_GB=%%F
-    if defined FREE_GB (
-        REM Delayed expansion, not percent: percent expansion runs before
-        REM cmd.exe matches this block's parentheses, so a closing
-        REM parenthesis in the mount point would end the block early.
-        echo Free space at !ROOTDIR!: !FREE_GB! GB
-    )
-    popd >nul 2>&1
-    exit /b 0
+REM Flat rather than the one "if ... ( )" this replaced, for the reason
+REM the scrape above is flat: CURRENT, ARCHIVE_LEN, ARCHIVE_MB and
+REM FREE_GB are each set and read here, and inside one block cmd.exe
+REM would read all four as they stood when it parsed the block. The
+REM errorlevel of the "where gpg" below is the same case (#383), and
+REM the one that decides whether a preview reports gpg as present:
+REM measured on windows-latest, "%errorlevel%" read at top level after
+REM two commands in turn answers for each of them, where inside a block
+REM it answers for whatever ran before the block was parsed.
+if not "%DRY_RUN%"=="1" goto :dry_run_done
+call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
+echo --dry-run: nothing will be downloaded, verified or installed.
+setlocal enabledelayedexpansion
+echo Would install Electrum !VERSION! ^(currently installed: !CURRENT!^).
+echo Would fetch: !URL!
+endlocal
+where gpg >nul 2>&1
+if %errorlevel%==0 (
+    echo gpg: found.
+    call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
+) else (
+    echo gpg: not found -- verification would fail closed unless
+    echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
 )
+set ARCHIVE_LEN=
+REM Built as one physical line -- see :update_checksum in lib.bat
+REM (#144) on why a caret split across an open quote is not a
+REM continuation.
+REM
+REM -TimeoutSec 30, the value latest-bitcoin-version.ps1 passes on
+REM its own archive HEAD probe: a HEAD the server accepts and then
+REM answers at its leisure holds --dry-run open for as long as the
+REM host chooses, and --dry-run is the side-effect-free preview.
+for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
+if not defined ARCHIVE_LEN goto :archive_size_unknown
+REM ARCHIVE_MB is set /a's own output, so it carries no character the
+REM echo below has to be protected from.
+set /a "ARCHIVE_MB=%ARCHIVE_LEN%/1024/1024"
+echo Archive size: %ARCHIVE_MB% MB ^(downloaded to local temp
+echo storage, not the removable disk^).
+goto :archive_size_done
+:archive_size_unknown
+REM Printed rather than the branch falling silent: with no line at
+REM all, an estimate that could not be made reads the same as one
+REM nobody attempted. It names the absence rather than a cause,
+REM since the timeout above, a request that failed and a response
+REM carrying no Content-Length all reach here alike.
+echo Archive size: unknown ^(the HEAD request returned no
+echo Content-Length^).
+:archive_size_done
+set FREE_GB=
+for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+  -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR_ARG%"`) do set FREE_GB=%%F
+if not defined FREE_GB goto :free_space_done
+setlocal enabledelayedexpansion
+echo Free space at !ROOTDIR!: !FREE_GB! GB
+endlocal
+:free_space_done
+popd >nul 2>&1
+exit /b 0
+:dry_run_done
 
 REM Download/verify on the local disk (%TEMP%), never on the removable volume;
 REM only the final, verified electrum.exe is copied onto win\bin. Created
@@ -158,7 +178,9 @@ REM directory behind.
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir "%TMPDIR%"
 
+setlocal enabledelayedexpansion
 echo Downloading !URL!...
+endlocal
 set PGP_OK=0
 REM Built as one physical line each -- see :update_checksum in lib.bat
 REM (#144): a caret split across one of these blocks' open quote was a
@@ -208,7 +230,9 @@ if "%PGP_OK%"=="1" (
   echo Warning: PGP signature^(s^) not verified; skipping checksum update.
 )
 
+setlocal enabledelayedexpansion
 echo Electrum updated to !VERSION!
+endlocal
 
 goto :cleanup
 
