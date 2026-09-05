@@ -237,13 +237,37 @@ update_checksum() {
     fi
 
     if command -v shasum >/dev/null 2>&1; then
-        hash="$(shasum -a 256 "$file" | awk '{print $1}')"
+        hash="$(shasum -a 256 "$file" | awk '{print $1}')" || hash=""
     elif command -v sha256sum >/dev/null 2>&1; then
-        hash="$(sha256sum "$file" | awk '{print $1}')"
+        hash="$(sha256sum "$file" | awk '{print $1}')" || hash=""
     else
         echo "Warning: shasum/sha256sum not found;"
         echo "checksums not updated."
         return 0
+    fi
+
+    # shasum and sha256sum write to stderr and print nothing on stdout
+    # for a file they cannot read, so awk prints nothing and hash is
+    # empty. The entry built below would then carry an empty hash field
+    # into the append-only checksums.sha256, where it can neither be
+    # rewritten nor ever match: verify_checksum_entry's awk reads such a
+    # line's path as $1, and no real hash equals a path. A chmod 000
+    # file and one carrying a "deny read" ACL both produce that empty
+    # capture; a full volume does not, a read needing no free space.
+    #
+    # What is tested is the result rather than the status, because
+    # without pipefail the assignment's status is awk's, which is 0. And
+    # "|| hash=''" above is what lets the test run at all: under errexit
+    # and pipefail together the command substitution carries shasum's
+    # own non-zero status and the caller dies at the assignment, with
+    # only shasum's stderr behind it, where a "||" list suppresses
+    # errexit for it and leaves the refusal here, named and returned.
+    # Which callers set which options is not listed here -- `git grep -n
+    # '^set ' -- '*/scripts/utilities/update-*.sh'` answers it live.
+    if [ -z "$hash" ]; then
+        echo "Error: could not hash ${file#"$ROOTDIR"/};"
+        echo "nothing appended to ${checksum_file#"$ROOTDIR"/}."
+        return 1
     fi
 
     if [ ! -f "$checksum_file" ]; then
