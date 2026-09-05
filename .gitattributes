@@ -18,6 +18,20 @@
 # it has — a count is exactly such an edit, and union would have kept
 # both numbers.
 #
+# The other price falls where two branches each append an entry at the
+# same anchor rather than editing one. Union keeps both blocks and the
+# result is one line shorter than the two of them whole: the blank line
+# between them is what goes, leaving the second block's `###` heading with
+# a non-blank line above it. The merge exits 0 and conflicts with nothing,
+# so `git merge-tree --write-tree` exiting 0 is not evidence a branch can
+# land — the trees merge and the merged file is unsound. markdownlint
+# reports it as MD032 and MD022 and `--fix` repairs both, so the gate
+# re-run after the rebase is what stands between that and a landing. The
+# fixer restores a blank line and answers nothing about where the entry
+# landed or what it holds; where that matters, splice the branch's own
+# added lines onto the new base's blob at the anchor and `cmp` — the
+# stronger form of the rebase read section 9 prescribes.
+#
 # The driver is a checkout's, and the forge does not apply it: a pull
 # request whose changelog or release notes overlap its base is reported
 # CONFLICTING however cleanly the same pair merges under the driver, and
