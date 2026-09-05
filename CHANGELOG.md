@@ -2030,6 +2030,9 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   *Troubleshooting* bullet whose subject is a folder that arrived some
   other way. Each of those keeps its own subject and points at *Getting
   the folder* for the route.
+
+### The utilities READMEs say a script may be run from any working directory
+
 - **Every `scripts/utilities/README.md` says a script may be run from
   any working directory** (closes #245). Each told a reader to run from
   the project root or the repo root, and no script there reads the
