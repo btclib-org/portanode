@@ -3270,6 +3270,21 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   named a division the tree does not have, and `-not` is chosen for
   holding under either state whatever the callers do.
 
+### `.gitattributes` names the line `merge=union` loses at a shared anchor
+
+- **`.gitattributes`' `merge=union` comment names the blank line the driver
+  drops where two branches each append an entry at one anchor** (closes
+  #453). Union keeps both blocks and the result is one line shorter than the
+  two of them whole, leaving the second block's `###` heading with a
+  non-blank line above it; the merge exits 0 and conflicts with nothing, so
+  `git merge-tree --write-tree` exiting 0 does not say a branch can land.
+  `markdownlint` reports the result as MD032 and MD022 and `--fix` repairs
+  both, which puts the gate re-run after a rebase between that and a
+  landing. The fixer restores a blank line and answers nothing about where
+  the entry landed or what it holds, so the comment names reconstruction --
+  the branch's own added lines spliced onto the new base's blob at the
+  anchor, and `cmp` -- for where that matters.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
