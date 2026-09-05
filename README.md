@@ -434,6 +434,19 @@ list, and it is the only list.
   above — and each script reports which case it found; see *The folder
   is unencrypted, and it is portable* under *Limitations, not
   vulnerabilities* for what actually protects data on that volume.
+
+    Each answers in the exit status as well as in the text, with the
+    same values on every platform: `0` where the data directories are
+    restricted to the owner, read back off the directory rather than
+    assumed from the write; `1` where the run fell short of that and
+    acting on what the message names is what would reach it — an account
+    that does not resolve, a path `chmod` was refused, an entry granting
+    somebody else access; `2` where the volume stores no permissions at
+    all, so no run of these scripts restricts anything and encryption or
+    physical control of the device is the remedy. A run covering both
+    data directories exits with the higher of their two statuses, which
+    is the outcome the reader has least recourse against; each
+    directory's own message is printed either way.
 - **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are
   ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` or
   `win/scripts/utilities/clean-artifacts.bat` to remove existing ones.

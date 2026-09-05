@@ -105,6 +105,27 @@ restrict() {
 # nothing at all when it fails, for a path that is absent and for a path
 # under an unsearchable directory alike, so the empty answer is not one
 # of the modes it could report.
+#
+# What this returns is the status the script exits with, and README.md's
+# Permissions bullet states them for every platform: 0 where the
+# directory is restricted to its owner, 1 where this run fell short
+# of that and acting on what the message names is what would reach it, 2
+# where the volume stores no mode and no run of this script restricts
+# the directory at all.
+#
+# The filesystem is read ahead of the mode rather than after it because
+# on a volume storing no mode the mode is not evidence: macOS
+# synthesises rwx------ there, so the readback answers the same 700 a
+# real restriction does -- measured on macos-latest against an exFAT
+# disk image, which read 700 after a run that changed nothing on it.
+# win/scripts/utilities/set-permissions.bat's own readback does not have
+# that problem, icacls answering "No permissions are set. All users have
+# full control." on a volume that holds no ACL, so there the readback
+# rather than the name is what says whether the restriction is in force.
+# What a filesystem missing from the case below costs therefore differs
+# by platform: here the mode alone reports it restricted; there the
+# readback reports it unrestricted and the run exits 1, the status for a
+# run that fell short, against the 2 the named volumes exit with.
 report_permission_effect() {
     local dir="$1" chmod_rc="$2"
     local rel mode device personality acl_lines
@@ -127,11 +148,13 @@ report_permission_effect() {
                  "disk; the directory is still readable by anyone with" \
                  "access to the volume. Restrict access with encryption or" \
                  "physical control of the device instead."
+            return 2
             ;;
         "")
             echo "Warning: could not determine the filesystem of $rel; it" \
                  "reads ${mode:-unknown} after the chmod above (chmod exit" \
                  "$chmod_rc)."
+            return 1
             ;;
         *)
             if [ "$mode" != "700" ]; then
@@ -139,20 +162,24 @@ report_permission_effect() {
                      "POSIX permissions, and reads ${mode:-unknown}" \
                      "rather than 700 after the chmod above (chmod exit" \
                      "$chmod_rc)."
+                return 1
             elif [ "$chmod_rc" -ne 0 ]; then
                 echo "Warning: $rel is on $personality and reads 700, but" \
                      "chmod exited $chmod_rc: at least one path it was" \
                      "given kept the mode it had. List what under $rel is" \
                      "not owner-only with: find \"$dir\" -perm +077"
+                return 1
             elif [ "$acl_lines" -gt 1 ]; then
                 echo "Warning: $rel is on $personality and reads 700, but" \
                      "still carries an ACL entry chmod -N did not clear" \
                      "-- ls -lde \"$dir/\" lists it. macOS evaluates an ACL" \
                      "ahead of the mode, so an entry granting another" \
                      "identity access can still reach $rel."
+                return 1
             else
                 echo "$rel is on $personality and reads 700: permissions" \
                      "restricted to the owner."
+                return 0
             fi
             ;;
     esac
@@ -163,5 +190,22 @@ restrict "$ROOTDIR/bitcoin-datadir" || BITCOIN_RC=$?
 ELECTRUM_RC=0
 restrict "$ROOTDIR/electrum-datadir" || ELECTRUM_RC=$?
 
-report_permission_effect "$ROOTDIR/bitcoin-datadir" "$BITCOIN_RC"
-report_permission_effect "$ROOTDIR/electrum-datadir" "$ELECTRUM_RC"
+BITCOIN_STATUS=0
+report_permission_effect "$ROOTDIR/bitcoin-datadir" "$BITCOIN_RC" \
+    || BITCOIN_STATUS=$?
+ELECTRUM_STATUS=0
+report_permission_effect "$ROOTDIR/electrum-datadir" "$ELECTRUM_RC" \
+    || ELECTRUM_STATUS=$?
+
+# The higher of the two is what the script exits with, which orders the
+# statuses by how far the answer is out of a caller's reach: a directory
+# this run fell short on is reachable by acting on what its own message
+# names, and a volume storing no mode is reachable by neither that nor a
+# second run. Each directory's own message is printed either way, so
+# what the single status drops is which of the two directories it came
+# from rather than anything the reader is not told.
+STATUS="$BITCOIN_STATUS"
+if [ "$ELECTRUM_STATUS" -gt "$STATUS" ]; then
+    STATUS="$ELECTRUM_STATUS"
+fi
+exit "$STATUS"

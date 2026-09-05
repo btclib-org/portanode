@@ -110,10 +110,28 @@ REM a FAT32 one on attached VHDs, each directory reading "No permissions
 REM are set. All users have full control." afterwards. Read back each data
 REM directory's own filesystem and say which case it is in, instead of an
 REM unconditional "Permissions set."
+REM
+REM Each report's own status is captured on the line below the call it
+REM came from, for the reason :report_permission_effect's own comment
+REM gives for INHERIT_RC: the other data directory's calls run between
+REM the two "call" lines and ERRORLEVEL holds whichever command ran
+REM last. The higher of the two is what this script exits with, which
+REM orders the statuses by how far the answer is out of a caller's
+REM reach: a directory this run fell short on is reachable by acting on
+REM what its own message names, and a volume storing no ACL is reachable
+REM by neither that nor a second run. Each directory's own message is
+REM printed either way, so what the single status drops is which of the
+REM two directories it came from rather than anything the reader is not
+REM told. STATUS is settled before :pause_if_own_console runs, that call
+REM setting an ERRORLEVEL of its own.
 call :report_permission_effect "%BDD%" bitcoin-datadir "%BDD_INHERIT_RC%"
+set "BDD_STATUS=%ERRORLEVEL%"
 call :report_permission_effect "%EDD%" electrum-datadir "%EDD_INHERIT_RC%"
+set "EDD_STATUS=%ERRORLEVEL%"
+set "STATUS=%BDD_STATUS%"
+if %EDD_STATUS% GTR %STATUS% set "STATUS=%EDD_STATUS%"
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
-exit /b 0
+exit /b %STATUS%
 
 REM The arguments are the path filesystem-type.ps1 is handed, the
 REM ROOTDIR-relative name the messages use, and the exit code of the
@@ -129,14 +147,38 @@ REM each caller holds it as a literal; cutting %ROOTDIR% off %TARGET%
 REM instead needs the second parse of a "call set" (:rootdir_relative in
 REM lib.bat) for a value that was never in doubt.
 REM
+REM What this returns is the status the script exits with, and
+REM README.md's Permissions bullet states them for every platform: 0
+REM where the directory is restricted to the account named,
+REM 1 where this run fell short of that and acting on what the message
+REM names is what would reach it, 2 where the volume stores no ACL and
+REM no run of this script restricts the directory at all.
+REM
 REM The filesystem alone does not say the restriction in the message
 REM below is in force: the caller reads no exit code off the write
-REM above. So on NTFS this routine reads the ACL back off the directory
-REM itself and looks both for the exact ACE the write asked for and for
-REM any ACE that is not it, rather than trust that the write ran at all.
+REM above. So this routine reads the ACL back off the directory itself
+REM and looks both for the exact ACE the write asked for and for any ACE
+REM that is not it, rather than trust that the write ran at all.
 REM That readback says nothing about the icacls call's own reach into
 REM the directory's existing contents, so that call's exit code, passed
 REM in above, is what the warning below is built from instead.
+REM
+REM The filesystem's name decides only which volumes are answered
+REM without a readback -- those that hold no ACL for one to read, where
+REM icacls prints "No permissions are set. All users have full control."
+REM and the ACE the write asked for is missing for a reason no re-run
+REM addresses. Every other name reaches the readback, so a filesystem
+REM this file has never heard of is judged by what its directory
+REM actually carries rather than by its name. The two ways of being
+REM wrong about that name are not the same size: a filesystem
+REM missing from the list below is reported unrestricted, which the
+REM readback has established, with the generic "the write above may have
+REM failed" in place of the volume's own explanation, where a filesystem
+REM wrongly on it would be reported unrestricted without the readback
+REM ever running. macos/scripts/utilities/set-permissions.sh reads its
+REM own filesystem first for the opposite reason: macOS synthesises
+REM rwx------ on a volume storing no mode, so there the readback answers
+REM the same 700 a real restriction does.
 REM
 REM The second search is the first one's complement: findstr /v drops
 REM every line holding the granted ACE, wherever in the report icacls
@@ -165,8 +207,8 @@ REM its first line, so a search for TARGET itself answers 0 on a report
 REM that arrived and 1 on an empty file; that is the control, and only
 REM once it passes does a miss on the ACE mean the ACE is absent.
 REM
-REM TARGET is read as !TARGET! inside the NTFS block below rather than
-REM as %TARGET%: percent expansion runs before cmd.exe matches that
+REM TARGET is read as !TARGET! inside the readback block below rather
+REM than as %TARGET%: percent expansion runs before cmd.exe matches that
 REM block's parentheses, so a closing parenthesis in the mount point
 REM would end the block early (#211, #298, #300). Measured on
 REM windows-latest against a directory whose name ends in a close
@@ -191,15 +233,14 @@ REM "!" of its own, this routine's own shape reading back TARGET and a
 REM TEMP-derived ACL_FILE unchanged.
 REM The block holds no call, which is what lets it be enabled at all.
 REM
-REM The two "exit /b 0" below return from this "call" rather than ending
+REM Every "exit /b" below returns from this "call" rather than ending
 REM the script, so :pause_if_own_console belongs at the exit that ends
 REM it and not here. Measured on windows-latest with the call added
-REM before the "exit /b 0" that closes the NTFS/non-NTFS report, and
-REM taken while the routine still ended in "pause": a double-click met
-REM it once per data directory and again at the end. Each of those is
-REM now a 30-second wait rather than a keypress, so the cost of putting
-REM the call here is paid before the script has printed everything it
-REM has to say.
+REM before the "exit /b 0" that closes the report, and taken while the
+REM routine still ended in "pause": a double-click met it once per data
+REM directory and again at the end. Each of those is now a 30-second
+REM wait rather than a keypress, so the cost of putting the call here is
+REM paid before the script has printed everything it has to say.
 :report_permission_effect
 set "TARGET=%~1"
 set "REL=%~2"
@@ -208,50 +249,58 @@ set "FS_NAME="
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
   -File "%SCRIPT_DIR%filesystem-type.ps1" -Path "%TARGET%"`) do set "FS_NAME=%%F"
 if not defined FS_NAME (
-    echo Warning: could not determine the filesystem of %REL%; assuming
-    echo the write above took effect.
-    exit /b 0
+    echo Warning: could not determine the filesystem of %REL%, so
+    echo whether the write above restricted it is not established.
+    exit /b 1
+)
+set "NO_ACL="
+if /i "%FS_NAME%"=="exFAT" set "NO_ACL=1"
+if /i "%FS_NAME%"=="FAT32" set "NO_ACL=1"
+if /i "%FS_NAME%"=="FAT" set "NO_ACL=1"
+if defined NO_ACL (
+    echo Warning: %REL% is on %FS_NAME%, which does not store ACLs. The
+    echo write above changed nothing on disk; the directory is still
+    echo readable by anyone with access to the volume. Restrict access
+    echo with encryption or physical control of the device instead.
+    exit /b 2
 )
 setlocal enabledelayedexpansion
-if /i "%FS_NAME%"=="NTFS" (
-    set "ACL_FILE=!TEMP!\pn_acl_%RANDOM%%RANDOM%.txt"
-    icacls "!TARGET!" > "!ACL_FILE!" 2>nul
-    findstr /i /c:"!TARGET!" "!ACL_FILE!" >nul 2>&1
-    set "READ_RC=!errorlevel!"
-    findstr /i /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" "!ACL_FILE!" >nul 2>&1
-    set "ACE_RC=!errorlevel!"
-    findstr /i /v /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" "!ACL_FILE!" | findstr /c:":(" >nul 2>&1
-    set "OTHER_RC=!errorlevel!"
-    del "!ACL_FILE!" >nul 2>&1
-    if not "!READ_RC!"=="0" (
-        echo Warning: %REL% is on an NTFS volume, but its ACL could not be
-        echo read back, so whether the restriction is in force is unknown.
-        echo Check with icacls "!TARGET!".
-    ) else if not "!ACE_RC!"=="0" (
-        echo Warning: %REL% is on an NTFS volume, but !TARGET! does
-        echo not carry an ACE granting !USERDOMAIN!\!USERNAME! full
-        echo control; the write above may have failed. Check with
-        echo icacls "!TARGET!".
-    ) else if "!OTHER_RC!"=="0" (
-        echo Warning: %REL% is on an NTFS volume and grants
-        echo !USERDOMAIN!\!USERNAME! full control, but !TARGET! still
-        echo carries an ACE for another identity, so access to it is not
-        echo restricted to that account. icacls "!TARGET!" names that
-        echo identity, and icacls with /remove takes its ACE off.
-    ) else if not "!INHERIT_RC!"=="0" (
-        echo %REL% is on an NTFS volume: !TARGET! itself now
-        echo restricts access to !USERDOMAIN!\!USERNAME!, but icacls
-        echo reported an error extending that restriction to items
-        echo already inside it, exit !INHERIT_RC!. Check with
-        echo icacls "!TARGET!\*".
-    ) else (
-        echo %REL% is on an NTFS volume: permissions restricted to
-        echo !USERDOMAIN!\!USERNAME!.
-    )
+set "ACL_FILE=!TEMP!\pn_acl_%RANDOM%%RANDOM%.txt"
+icacls "!TARGET!" > "!ACL_FILE!" 2>nul
+findstr /i /c:"!TARGET!" "!ACL_FILE!" >nul 2>&1
+set "READ_RC=!errorlevel!"
+findstr /i /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" "!ACL_FILE!" >nul 2>&1
+set "ACE_RC=!errorlevel!"
+findstr /i /v /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" "!ACL_FILE!" | findstr /c:":(" >nul 2>&1
+set "OTHER_RC=!errorlevel!"
+del "!ACL_FILE!" >nul 2>&1
+if not "!READ_RC!"=="0" (
+    echo Warning: %REL% is on %FS_NAME%, but its ACL could not be read
+    echo back, so whether the restriction is in force is not established.
+    echo Check with icacls "!TARGET!".
+    exit /b 1
+) else if not "!ACE_RC!"=="0" (
+    echo Warning: %REL% is on %FS_NAME%, but !TARGET! does not
+    echo carry an ACE granting !USERDOMAIN!\!USERNAME! full
+    echo control; the write above may have failed. Check with
+    echo icacls "!TARGET!".
+    exit /b 1
+) else if "!OTHER_RC!"=="0" (
+    echo Warning: %REL% is on %FS_NAME% and grants
+    echo !USERDOMAIN!\!USERNAME! full control, but !TARGET! still
+    echo carries an ACE for another identity, so access to it is not
+    echo restricted to that account. icacls "!TARGET!" names that
+    echo identity, and icacls with /remove takes its ACE off.
+    exit /b 1
+) else if not "!INHERIT_RC!"=="0" (
+    echo Warning: %REL% is on %FS_NAME% and !TARGET! itself now
+    echo restricts access to !USERDOMAIN!\!USERNAME!, but icacls
+    echo reported an error extending that restriction to items
+    echo already inside it, exit !INHERIT_RC!. Check with
+    echo icacls "!TARGET!\*".
+    exit /b 1
 ) else (
-    echo Warning: %REL% is on a %FS_NAME% volume, which does not store
-    echo ACLs. The write above changed nothing on disk; the directory is
-    echo still readable by anyone with access to the volume. Restrict
-    echo access with encryption or physical control of the device instead.
+    echo %REL% is on %FS_NAME%: permissions restricted to
+    echo !USERDOMAIN!\!USERNAME!.
+    exit /b 0
 )
-exit /b 0

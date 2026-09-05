@@ -3300,6 +3300,67 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   carries the hazard is that tree's question and was already filed
   there as btclib-org/.github#760, which holds the census.
 
+### `set-permissions` answers in its exit status and not only in its text
+
+- **`macos/scripts/utilities/set-permissions.sh`,
+  `linux/scripts/utilities/set-permissions.sh` and
+  `win/scripts/utilities/set-permissions.bat` exit `0` where the data
+  directories are restricted to the owner, `1` where the run fell short
+  of that, and `2` where the volume stores no permissions for a
+  restriction to live in** (closes #456). What separates the second from
+  the third is the remedy a reader has: an account that does not
+  resolve, a path `chmod` is refused, an entry granting another identity
+  access are each reachable by acting on what the message names, where a
+  volume holding neither an ACL nor a Unix mode is reachable by neither
+  that nor a second run, and encryption or physical control of the
+  device is what restricts it. A run covering both data directories
+  exits with the higher of their two statuses, the outcome a reader has
+  least recourse against; each directory's own message is printed either
+  way, so what the single status drops is which directory it came from.
+  `Utilities-Launcher.command`, `Utilities-Launcher.bat` and
+  `Utilities-Launcher.ps1` each read the status of the script they call
+  and print `Command failed (exit N).` on a non-zero one, so a volume
+  storing no permissions draws that line after the warning it already
+  draws. Measured on `windows-latest` against the runner's NTFS disk and
+  against VHDs formatted `exfat`, `fat32` and `fat`, on `macos-latest`
+  against APFS and an exFAT disk image, and on `ubuntu-latest` against
+  ext4 and a loopback exFAT image: `0` wherever the readback found the
+  restriction in force, `1` for an account that does not resolve and for
+  a file carrying `chattr +i` under a data directory, `2` on every
+  volume storing neither an ACL nor a mode, and `Command failed (exit
+  2).` from the launcher's own line on the exFAT VHD. A default POSIX
+  ACL leaves the status where it found it, that entry governing what is
+  created under the directory later rather than access to the directory
+  itself, which the mode read back is what answers for.
+
+### `set-permissions.bat` decides restriction from the ACL it reads back
+
+- **`win/scripts/utilities/set-permissions.bat` matches the filesystem's
+  name against the volumes that hold no ACL for a readback to read, and
+  judges every other volume by the ACL it reads off the data directory**
+  (closes #459). exFAT, FAT32 and FAT are answered from the name; a name
+  the script does not carry reaches the readback, so a filesystem that
+  stores an ACL is reported restricted without being named anywhere in
+  the tree. ReFS is that case, measured on `windows-latest` rather than
+  reasoned about: a VHD formatted `fs=refs quick` attaches,
+  `filesystem-type.ps1` answers `ReFS`, and against the same volume the
+  branch reports both data directories restricted where `origin/main`
+  warns that the volume does not store ACLs and the directory is
+  readable by anyone with access to it -- with `icacls` reading the
+  granted `(OI)(CI)(F)` ACE off that same directory in both runs. The
+  two ways of being wrong about a name are not the same size: a volume
+  storing no ACL that the script does not name is still reported
+  unrestricted, the readback having established that,
+  with the generic "the write above may have failed" standing in for the
+  volume's own explanation, where a volume wrongly named would be
+  reported unrestricted with no readback run at all.
+  `macos/scripts/utilities/set-permissions.sh` reads its own filesystem
+  ahead of the mode for the opposite reason, which its comment now
+  carries: macOS synthesises `rwx------` on a volume that stores no
+  mode, so there the readback answers the same `700` a real restriction
+  does -- measured on `macos-latest`, an exFAT disk image reading `700`
+  after a run that restricted nothing on it.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
