@@ -1,7 +1,15 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal disabledelayedexpansion
 REM Clean Windows artifacts
 
+REM Explicitly disabled on line 2 rather than merely not enabled, so
+REM the guarantee holds regardless of what a caller set. cmd.exe runs
+REM its delayed-expansion pass after percent expansion, so with it on
+REM an unmatched "!" is stripped out of the expanded "%~dp0" below and
+REM out of every path built on ROOTDIR, and a folder mounted at a path
+REM holding one is legal on exFAT and NTFS alike (#374). Nothing here
+REM reads a bang-delimited variable, so disabling it outright costs
+REM nothing.
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 

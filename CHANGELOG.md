@@ -3127,6 +3127,55 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   a skipped line, so the report gives no sign of the skip, and the bullet
   carries the command that asks blinter for the set.
 
+### The utilities below survive a `!` in an expanded `%ROOTDIR%`
+
+- **`clean-artifacts.bat` and `monitor-bitcoin-log.bat` no longer enable
+  delayed expansion** (issue #374), neither of them reading a
+  bang-delimited variable, and the argument is spelled out rather than
+  left bare because a bare `setlocal` inherits whatever a caller left
+  the state at. Measured on `windows-latest` at a mount path holding an
+  unmatched `!`: `clean-artifacts.bat` removes a planted `Thumbs.db` and
+  `monitor-bitcoin-log.bat` reaches `bitcoin-datadir\debug.log`, where the
+  unfixed pair leaves the file in place and reports the log missing.
+- **`rotate-bitcoin-log.bat` renames through a `:rotate_one`
+  subroutine** (issue #374). Its `for /l` body read `!NEXT!` between the
+  `set /a` that computes it and the `ren` that consumes it, which is
+  what the file enabled delayed expansion for; a `%NEXT%` read there is
+  expanded when cmd.exe parses the whole block, before `set /a` has run.
+  Called once per index, each line of the subroutine is its own
+  statement. Measured on `windows-latest` at a bang mount path, with
+  `debug.log` and its numbered rotations in place: each rotation moves
+  up one number and `debug.log.1` is the fresh copy of the live log,
+  where the unfixed file reports `Log file not found:
+  bitcoin-datadir\debug.log` and leaves every rotation where it was.
+- **`validate-setup.bat`'s free-space report is a flat sequence rather
+  than an `else ( )` block** (issue #374), so `FREE_GB` and `PRUNED` are
+  read at the statement that uses them rather than through the delayed
+  expansion the block required, and the prune comparison is quoted on
+  both sides like its neighbours. Driven on `windows-latest` with the
+  region extracted into a harness of its own: an undefined `FREE_GB`
+  warns and skips the rest, `50` exits 1 on the 100GB floor, `300` with
+  `PRUNED=0` prints the 700GB warning, `300` with `PRUNED=1` prints
+  neither, and `1000` prints neither. At a bang mount path the script
+  names the folder it validated with the `!` intact, where the unfixed
+  file prints `Validating setup at ""`.
+- **`health-check.bat` resolves everything derived from the mount path
+  with delayed expansion off, and turns it on for the reporting body
+  alone** (issue #374). That body reads variables it writes inside one
+  `( )` block, so it cannot do without delayed expansion; what it reads
+  through delayed expansion as well is `ROOTDIR` and the resolved
+  client, such a read substituting a value once instead of re-scanning
+  the result for a bang to strip. An `endlocal` at the foot puts the
+  file back before the closing `:pause_if_own_console` call, a `call`
+  otherwise re-parsing its own target under the same pass and stripping
+  a bang a second time (issue #411); measured on `windows-latest`,
+  `endlocal` restores the disabled state and leaves the `pushd` for the
+  `popd` after it. At a bang mount path the disk line names the mount
+  point with its `!` and the artifact detection reports `.cookie`,
+  `bitcoind.pid` and a stale pid, where the unfixed file resolves an
+  empty `ROOTDIR`, hands PowerShell a `-File` argument that does not
+  exist and reports that program's own update banner as the free space.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
