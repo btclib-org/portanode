@@ -3361,6 +3361,30 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   does -- measured on `macos-latest`, an exFAT disk image reading `700`
   after a run that restricted nothing on it.
 
+### SEC020 needs a doubled backslash on the line, whatever its first word
+
+- **The clause under *The Blinter UNC-path example names where the
+  exemption applies* names a line's first word being `copy`, `xcopy`,
+  `robocopy`, `move` or `pushd` as a trigger of its own, where Blinter
+  1.1.21 reaches the finding only on a line that also carries a doubled
+  backslash** (closes #444). A `.bat` holding `@echo off` and one of
+  those words with no doubled backslash on the line draws no SEC020:
+
+    ```shell
+    env -C <dir> uvx blinter . --no-config --summary 2>/dev/null \
+      | grep -c SEC020
+    ```
+
+    answers zero for each of them, and reports the finding where the same
+    `copy` line names `\\server\share\x`; the silent runs report other
+    rules against that line, so the zero is the rule's silence rather
+    than an empty run. The tree carries the same control:
+    `win/scripts/utilities/verify-binaries.bat`'s `pushd "%ROOTDIR%"`
+    draws SEC020 in a whole-tree run once a doubled backslash is put
+    inside its argument, and draws none as it stands.
+    `.pre-commit-config.yaml`'s Blinter paragraph needs no change, its
+    subject being the doubled backslash rather than the command.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
