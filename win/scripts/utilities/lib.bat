@@ -145,6 +145,46 @@ if %errorlevel%==0 (
     del "%STATUS_FILE%" >nul 2>&1
     exit /b 1
 )
+
+REM gpg's own doc/DETAILS gives NEWSIG as issued right before a
+REM signature verification starts, so a status file holding none is
+REM gpg reporting that it never reached one.
+REM The GOODSIG test below cannot separate that from a signature
+REM gpg read and could not validate, and names the keyring for both.
+REM DETAILS says under GOODSIG that the per-signature codes "were
+REM used as a marker for a new signature; new code should use the
+REM NEWSIG status instead", so the dependence is the one upstream
+REM asks for; nothing in this tree states a minimum gpg, and the
+REM oldest measured against it is 2.4.4.
+REM gpg's own exit status does not separate them either: a key that
+REM is not imported and a signature file that cannot be opened both
+REM leave errorlevel 2. Nor does the FAILURE line, which reads
+REM "verify" for a signature file that is missing or empty and
+REM "gpg-exit" for one holding something that is not a signature and
+REM for a file to check that is missing; a test on it would leave
+REM those last two on the keyring message.
+REM Measured with gpg 2.4.9 on windows-latest: NEWSIG is present for
+REM a good signature, for a tampered one and for a key that is not
+REM imported, and absent where the signature file is missing, empty
+REM or not a signature and where the file it signs is missing. A file
+REM the account is denied by ACL is not among them: icacls granting
+REM the runner no access at all left gpg reading it, so an unreadable
+REM file is measured on the POSIX half alone.
+REM The message names what gpg did not do rather than a cause,
+REM several reaching it alike, as :warn_if_no_pubkeys does of its own
+REM unknown branch. A signature file that is present and readable and
+REM merely not a signature is one of them -- the shape a download
+REM answering 200 with an error page leaves -- so advice to check
+REM presence and readability would send that reader to confirm two
+REM things already true.
+findstr /c:"[GNUPG:] NEWSIG" "%STATUS_FILE%" >nul 2>&1
+if not %errorlevel%==0 (
+    echo Error: gpg found no PGP signature to check on %LABEL%.
+    echo Check the signature file and the file it signs.
+    del "%STATUS_FILE%" >nul 2>&1
+    exit /b 1
+)
+
 findstr /c:"[GNUPG:] GOODSIG" "%STATUS_FILE%" >nul 2>&1
 if not %errorlevel%==0 (
     echo Error: no valid PGP signature on %LABEL% ^(is the signer's key imported?^).
