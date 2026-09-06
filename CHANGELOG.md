@@ -3285,6 +3285,21 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the branch's own added lines spliced onto the new base's blob at the
   anchor, and `cmp` -- for where that matters.
 
+### The union-driver paragraph sits in this repository's own half
+
+- **`.gitattributes`' paragraph on the line `merge=union` loses at a
+  shared anchor moves under `## This repository in particular`**
+  (issue btclib-org/.github#830). The entry above it says the
+  `merge=union` comment names that line; the comment above the attribute
+  is section 14's, held verbatim by every repository in the
+  organization, so a paragraph added to it there is added to all of them
+  from a tree that is not where it is authored. Hashing the half above
+  the marker with trailing newlines stripped puts this tree back with
+  the other eight; before this it stood alone, and the eight agreeing is
+  the control that the comparison reads. Whether the shared half
+  carries the hazard is that tree's question and was already filed
+  there as btclib-org/.github#760, which holds the census.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
