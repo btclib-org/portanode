@@ -3604,6 +3604,63 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   create condition and removal guard converge* named two entries it
   falsifies and not that one; this entry supersedes that sentence.
 
+### `free-space-gb.ps1` answers for the volume holding the path
+
+- **`win/scripts/utilities/free-space-gb.ps1` asks `GetDiskFreeSpaceEx`
+  for the directory itself, rather than reading the drive letter's own
+  root off the path string with `[System.IO.Path]::GetPathRoot` and
+  handing that to `System.IO.DriveInfo`** (closes #474). A folder whose
+  root is a Windows volume mount point was sized from whatever volume the
+  drive letter carries, and `win/scripts/utilities/validate-setup.bat`
+  refuses a folder reporting under 100 and exits 1, so the figure decides
+  a refusal rather than only a line of output; `health-check.bat` and the
+  two updaters' `--dry-run` summaries print it and compare nothing.
+  Measured on `windows-latest` with a 1GB exFAT VHD mounted with
+  `mountvol` at a directory on a 200GB NTFS one and the folder's root
+  there: this branch prints `Disk free space: 0 GB`, refuses with `ERROR:
+  Less than 100GB free.` and exits 1, where `origin/main` prints `Disk
+  free space: 199 GB`, completes and exits 0 -- and both answer 199 and
+  exit 0 for a root on the drive letter itself.
+  `lpFreeBytesAvailableToCaller` is the field read, being the one a disk
+  quota applies to: measured equal to `DriveInfo.AvailableFreeSpace`
+  against NTFS, exFAT, FAT32 and ReFS volumes.
+- **A folder reached over a share is given the share's figure instead of
+  being reported unknown**, which is the decision the issue reserved for
+  the file's own comment. `GetDiskFreeSpaceEx` takes a UNC path where
+  `DriveInfo` throws on one: measured on `windows-latest` against a share
+  of a directory on `C:`, the share root with no trailing separator, the
+  same with one, and a subdirectory under it each report the whole
+  gigabytes `C:\` itself reports, where `origin/main` exits without a
+  figure for all three. The root is measured beside the subdirectory
+  because a folder mounted at a share root reaches the script carrying no
+  trailing separator, which is what the call's own documentation asks for
+  on a UNC name. What refusing would cost is the check: a caller told the
+  space is unknown carries on, so `validate-setup.bat`'s 100GB refusal
+  could not fire for such a folder. What lands on that folder's volume is
+  the chain data under `bitcoin-datadir`, which is what the 100GB and
+  700GB thresholds are about; the updaters' own downloads unpack under
+  `%TEMP%` on the local disk and do not.
+  `win/scripts/utilities/filesystem-type.ps1` names such a folder's
+  filesystem rather than declining it, so the two now answer for the same
+  folder. Against everything else measured the answer is `origin/main`'s:
+  drive letters carrying NTFS, exFAT, FAT32 and ReFS, a `subst` letter, a
+  mapped network drive letter, a path that does not exist, an unreachable
+  UNC path and an unmapped drive letter.
+- **`Add-Type` needs a writable `%TEMP%`, and where it has none the
+  refusal does not fire.** Measured with `%TEMP%` on an unmapped drive
+  letter, this script exits 1 and `validate-setup.bat` prints `Could not
+  determine disk free space.` and carries on to exit 0, where
+  `origin/main` answers and its test runs. Falling back to `GetPathRoot`
+  there is the rejected alternative, twice over: an `Add-Type` that does
+  not compile leaves no call made at all, so there is nothing to fall back
+  from, and `GetPathRoot` answers a different volume from the one asked
+  about, so a folder at a mount point would be validated on the drive
+  letter's figure rather than reported unknown. That is why
+  `win/scripts/utilities/filesystem-type.ps1` carries such a fallback and
+  this file does not -- there it follows a call that ran and failed, and for
+  the `subst` target it exists for it answers the volume that call would
+  have.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
