@@ -4,6 +4,33 @@ if "%ACTION%"=="" goto :eof
 shift
 goto %ACTION%
 
+REM Every caller reaches this label with delayed expansion off, and
+REM each spells that state out on its own line 2 rather than leaving
+REM it at whatever the console had. This file cannot spell it out for
+REM them: it is called by label, so it runs inside the caller's scope,
+REM and a "setlocal" here would confine the OUTVAR below to this file
+REM -- the reason win\scripts\utilities\lib.bat gives for opening no
+REM scope of its own.
+REM
+REM What rests on that state is START_DIR. A caller builds it from
+REM "%~dp0", and cmd.exe runs its delayed-expansion pass after percent
+REM expansion, so with the pass on an unmatched "!" is stripped from
+REM that value before the walk below sees it, and from the target path
+REM of the "call" that reaches this file besides (#411). A folder
+REM mounted at a path holding one is legal on exFAT and NTFS alike.
+REM
+REM Measured on windows-latest, run 34020028270, against two copies of
+REM one tree at C:\p473\ba!ng, one with the callers' line 2 left bare.
+REM Under a "cmd /V:ON", and under a "cmd" given no /V flag at all
+REM once the Command Processor key under HKCU\Software\Microsoft has
+REM its DelayedExpansion value at 1, the bare copy's launcher prints
+REM its root as "" where the other prints the folder, and
+REM mainnet-8333-qt.bat reports WALLETDIR as "\bitcoin-datadir\wallets"
+REM rather than the data directory itself. That second one is the
+REM shape to keep in view: the walk having returned nothing, the "if
+REM exist" that chooses between the two wallet layouts tests a path
+REM that is not there and takes the other branch, so the failure is a
+REM different decision rather than a shorter path.
 :resolve_root
 set "START_DIR=%~1"
 set "OUTVAR=%~2"
