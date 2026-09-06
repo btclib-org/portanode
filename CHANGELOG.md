@@ -3442,6 +3442,30 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   what this adds is `verify-binaries.bat`, which opened a bare `setlocal`,
   and a check for the shape a scope-reading pattern cannot see.
 
+### The worktree fence's create condition and removal guard converge
+
+- **The create's condition is the reader's own directory already holding
+  the placeholder's name** (issue btclib-org/.github#824), where
+  *CLAUDE.md's worktree paragraph names when a paste writes a file*
+  above says a file of that name. A directory named `branch` lets the
+  `<` succeed as readily: measured with `:` in place of `git`, one
+  script file per shell and a fresh directory per case, a file and a
+  directory each leave the target created, where a directory holding
+  neither ends the line with nothing created -- exit 1 under `/bin/zsh`
+  5.9 and the `bash` 3.2.57 macOS ships as `/bin/bash` and `/bin/sh`,
+  exit 2 under `/bin/dash`, which do not all print the same diagnostic.
+- **The guard sentence says `${WT:?}` fails with `$WT` unset or empty**,
+  where *CLAUDE.md's worktree removal fence refuses an unset `WT`* above
+  names the unset case alone. `WT=` is set and does not expand, and
+  under `/bin/zsh`, `/bin/bash` and `/bin/sh` unset and empty both
+  refuse from a script file, where a space, a word and a stale path each
+  run.
+- **`btclib-org/.github`'s `CLAUDE.md` at `20ad654` is named as the
+  converged form**, so a later reader compares these sentences against a
+  tree rather than against an issue's quotation of one. The fence's
+  `git -C "$WT" push` and the paragraph below it are unchanged: that
+  file's paragraph at `20ad654` is this tree's byte for byte.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
