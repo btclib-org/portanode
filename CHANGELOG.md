@@ -3385,6 +3385,26 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
     `.pre-commit-config.yaml`'s Blinter paragraph needs no change, its
     subject being the doubled backslash rather than the command.
 
+### A gpg status file that was never written is not an unimported key
+
+- **`shared/utilities/lib.sh`'s `pgp_verify_or_fail` and
+  `win/scripts/utilities/lib.bat`'s `:verify_pgp_signature` refuse a
+  status file that is absent or empty before looking in it for a
+  `GOODSIG`** (closes #458). A file gpg's status output never reached and
+  a file holding no `GOODSIG` are one answer to `grep` and to `findstr`
+  alike, so where the redirection could not be opened the reader was told
+  to import a key that is already imported. Measured on `ubuntu-latest`,
+  `mktemp` fails where `TMPDIR` names a directory that is missing or not
+  writable, which leaves the redirection unopened and gpg unrun; measured
+  on `windows-latest`, a `%TEMP%` under an unmapped drive letter does the
+  same, where one that is merely missing is created by the PowerShell
+  `:warn_if_no_pubkeys` runs first. gpg's own exit code is read on
+  neither half: on `windows-latest` a redirection `cmd.exe` cannot open
+  leaves `errorlevel` at the value a good signature leaves. The added
+  check exits non-zero on both halves, and the outcomes measured beside it
+  are unchanged: a good signature, a bad one, and a key that is not
+  imported.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
