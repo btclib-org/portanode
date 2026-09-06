@@ -328,6 +328,38 @@ repos:
         # local-link-prefix above gives
         entry: |-
           ^[\x20\t]*@?setlocal(?:[\x20\t]+[a-z]+)*?[\x20\t]+enabledelayedexpansion\b(?:(?!^[\x20\t]*@?(?:endlocal\b|setlocal(?:[\x20\t]+[a-z]+)*?[\x20\t]+disabledelayedexpansion\b)).)*?^(?![\x20\t]*(?:@?rem\b|::))[^\n]*?\bcall[\x20\t]+"?%(?:SCRIPT_DIR%|~dp0)lib\.bat"?
+      # The check above reads what a file turns on; this one reads what
+      # it leaves alone. A bare `setlocal` sets no delayed-expansion
+      # state, it keeps the caller's, and the caller of a file here is
+      # the console the reader started it from -- so the pass can be on
+      # at line 1 with nothing in the file saying so, and the check
+      # above sees a file that opens no scope of its own. Measured on
+      # `windows-latest` with the folder at `C:\p374\ba!ng\portanode`: a
+      # `.bat` opening `setlocal` reads `%~dp0` as `C:\p374\bang\` and
+      # `%TEMP%` with its own `!` gone under a `cmd /V:ON`, and under a
+      # `cmd` given no `/V` flag at all once
+      # `HKCU\Software\Microsoft\Command Processor\DelayedExpansion` is
+      # `1`; the same file opening `setlocal disabledelayedexpansion`
+      # reads both back whole at either caller state, which is the
+      # control that the difference is the line and not the path
+      # (#374, #393).
+      #
+      # `lib.bat` is excluded, and the reason is its own: the comment
+      # above `:verify_pgp_signature` says a `setlocal` there would
+      # confine the `OUTVAR` that file sets for its caller. Its lines
+      # run under the caller's state, and the two checks here are what
+      # hold that state to what those lines need. `--negate` inverts
+      # the hook, so what fails is a file the pattern does not match,
+      # and the report is the file name rather than a line.
+      - id: win-utilities-bat-delayed-expansion-off
+        name: each win/scripts/utilities .bat opens with the pass off
+        language: pygrep
+        args: [--multiline, --negate, --ignore-case]
+        files: ^win/scripts/utilities/(?!lib\.bat$).*\.bat$
+        # one line and no literal space in it, for the reason
+        # local-link-prefix above gives
+        entry: |-
+          \A@echo[\x20\t]+off\r?\n[\x20\t]*@?setlocal[\x20\t]+disabledelayedexpansion[\x20\t]*\r?$
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.9.6
     hooks:
