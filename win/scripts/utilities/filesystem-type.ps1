@@ -31,9 +31,30 @@
 # GetVolumePathName("S:\sub") answers "S:\sub\", the subst target reading as a
 # mount point, and GetVolumeInformation refuses that with error 144, where
 # GetPathRoot's "S:\" reads NTFS -- which is the answer a folder run from such
-# a letter has. The second root is tried only when the first yields no name,
-# so an ordinary mount point is never answered by its drive letter, and the
-# worst this falls back to is what GetPathRoot alone would have said.
+# a letter has.
+#
+# 144 is ERROR_DIRECTORY_NOT_ROOT, the answer for a path that is not a volume
+# root, and it is that code the second root is conditioned on rather than the
+# first call having failed at all. A genuine mount point can fail for a
+# reason that leaves the drive letter's volume the wrong answer: measured on
+# the same runner against a VHD partitioned and left unformatted, mounted at
+# a directory on C:, GetVolumePathName answers the mount point and
+# GetVolumeInformation refuses it with 1005, ERROR_UNRECOGNIZED_VOLUME, where
+# GetPathRoot's "C:\" reads NTFS. Conditioned on the failure alone that NTFS
+# is what such a directory is named at exit 0, which is the answer this file
+# exists to avoid; conditioned on 144 it is named nothing and exits 1. Only
+# the subst target answered 144, measured across an ordinary directory, a
+# drive root, an exFAT volume mounted at a directory and a directory inside
+# it, the unformatted mount point, a subst letter's root and a path under it,
+# a UNC share root and a path under it, and a mapped drive letter and a path
+# under it.
+#
+# Where GetVolumePathName itself fails the second root is still tried, which
+# is a case rather than an oversight: measured on the same runner, the subst
+# letter's own root "S:\" answers false with error 87 there, and GetPathRoot's
+# "S:\" is what names NTFS for it. So a mount point whose path does not fit
+# the buffer is still answered by its drive letter, which is what the buffer
+# below is sized against.
 #
 # GetVolumeInformation rather than System.IO.DriveInfo for the name, because
 # handing DriveInfo the mount point GetVolumePathName returns changes nothing:
@@ -92,22 +113,36 @@ public static extern bool GetVolumeInformation(string lpRootPathName,
     uint nFileSystemNameSize);
 '@
     $size = 261
-    $roots = @()
-    $mount = New-Object -TypeName System.Text.StringBuilder -ArgumentList $size
-    if ([PortaNode.Volume]::GetVolumePathName($full, $mount, $size)) {
-        $roots += $mount.ToString()
-    }
-    $roots += [System.IO.Path]::GetPathRoot($full)
     $name = New-Object -TypeName System.Text.StringBuilder -ArgumentList $size
     $serial = 0
     $components = 0
     $flags = 0
-    foreach ($root in $roots) {
-        if ([PortaNode.Volume]::GetVolumeInformation($root, $null, 0,
-                [ref]$serial, [ref]$components, [ref]$flags, $name, $size)) {
+    $mount = New-Object -TypeName System.Text.StringBuilder -ArgumentList $size
+    if ([PortaNode.Volume]::GetVolumePathName($full, $mount, $size)) {
+        $m = $mount.ToString()
+        $ok = [PortaNode.Volume]::GetVolumeInformation($m, $null, 0,
+            [ref]$serial, [ref]$components, [ref]$flags, $name, $size)
+        # Marshal::GetLastWin32Error reads a value the runtime caches at each
+        # P/Invoke declared SetLastError, so nothing goes between it and the
+        # call above. Measured under pwsh against a failing libc open, the
+        # runtime being what caches this rather than the platform: read on the
+        # next line it answers that call's own error, and with a Test-Path
+        # between the two -- a statement that makes a P/Invoke without looking
+        # like one -- it answers 0.
+        $err = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
+        if ($ok) {
             Write-Output $name.ToString()
             exit 0
         }
+        if ($err -ne 144) {
+            exit 1
+        }
+    }
+    $root = [System.IO.Path]::GetPathRoot($full)
+    if ([PortaNode.Volume]::GetVolumeInformation($root, $null, 0,
+            [ref]$serial, [ref]$components, [ref]$flags, $name, $size)) {
+        Write-Output $name.ToString()
+        exit 0
     }
     exit 1
 } catch {
