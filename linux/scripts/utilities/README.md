@@ -71,7 +71,8 @@ Can be used if an update fails.
   dmask=077` as the mount options that restrict such a volume, and names
   `fmask=133` as the setting that removes the execute bit the launchers
   and the `linux/bin` binaries need. Its own comment carries the
-  measurement.
+  measurement, and `README.md`'s *Permissions* bullet under *Security
+  Notes* has the exit statuses.
 
 ## Notes
 

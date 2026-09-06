@@ -60,7 +60,8 @@ Can be used if an update fails.
   synthesises a fixed mode for every file regardless of what `chmod`
   asks and carries no ACL concept at all, so neither call changes
   anything there; the script reports which case it found instead of
-  claiming success on a volume it cannot restrict.
+  claiming success on a volume it cannot restrict. `README.md`'s
+  *Permissions* bullet under *Security Notes* has the exit statuses.
 
 ## Notes
 

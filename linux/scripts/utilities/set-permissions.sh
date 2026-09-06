@@ -237,17 +237,29 @@ report_default_acl() {
 # reading a different answer if the volume were remounted in between --
 # unlike mount_options() below, whose own findmnt call reads a
 # different field (OPTIONS, not FSTYPE) and is not this repetition.
-MODELESS_VOLUME=0
+#
+# What this returns is the status the script exits with, and README.md's
+# Permissions bullet states them for every platform: 0 where the
+# directory is restricted to its owner, 1 where this run fell short
+# of that and acting on what the message names is what would reach it, 2
+# where the volume stores no mode and no run of this script restricts
+# the directory at all.
+#
+# report_default_acl's own warning leaves the status where it found it.
+# A default ACL decides the mode of what is created under the directory
+# afterwards and grants nobody access to the directory itself, which is
+# what the mode read back above answers for; the access ACL, which would
+# be such a grant, is already reduced to no effective permissions by
+# chmod's own group-class bits, as this comment records above.
 report_permission_effect() {
     local dir="$1" chmod_rc="$2" fstype="$3"
-    local rel mode opts
+    local rel mode opts status=0
     rel="${dir#"$ROOTDIR/"}"
     mode="$(stat -L -c '%a' "$dir" 2>/dev/null || true)"
     opts="$(mount_options "$dir")"
 
     case "$fstype" in
         exfat|vfat|msdos|fat)
-            MODELESS_VOLUME=1
             echo "Warning: $rel is on $fstype, which stores no Unix mode." \
                  "The chmod above changed nothing on disk; $rel reads" \
                  "${mode:-unknown} because the mount says so, and every" \
@@ -259,27 +271,32 @@ report_permission_effect() {
             if [ -n "$opts" ]; then
                 echo "Mount options: $opts"
             fi
+            return 2
             ;;
         "")
             echo "Warning: could not determine the filesystem of $rel; it" \
                  "reads ${mode:-unknown} after the chmod above."
             report_default_acl "$dir"
+            return 1
             ;;
         *)
             if [ "$mode" != "700" ]; then
                 echo "Warning: $rel is on $fstype, which stores a Unix" \
                      "mode, and reads ${mode:-unknown} rather than 700" \
                      "after the chmod above (chmod exit $chmod_rc)."
+                status=1
             elif [ "$chmod_rc" -ne 0 ]; then
                 echo "Warning: $rel is on $fstype and reads 700, but" \
                      "chmod exited $chmod_rc: at least one path it was" \
                      "given kept the mode it had. List what under $rel" \
                      "is not owner-only with: find \"$dir\" -perm /077"
+                status=1
             else
                 echo "$rel is on $fstype, which stores a Unix mode, and" \
                      "reads 700: restricted to its owner."
             fi
             report_default_acl "$dir"
+            return "$status"
             ;;
     esac
 }
@@ -291,15 +308,17 @@ ELECTRUM_FSTYPE="$(filesystem_type "$ROOTDIR/electrum-datadir")"
 ELECTRUM_RC=0
 restrict "$ROOTDIR/electrum-datadir" "$ELECTRUM_FSTYPE" || ELECTRUM_RC=$?
 
+BITCOIN_STATUS=0
 report_permission_effect "$ROOTDIR/bitcoin-datadir" "$BITCOIN_RC" \
-    "$BITCOIN_FSTYPE"
+    "$BITCOIN_FSTYPE" || BITCOIN_STATUS=$?
+ELECTRUM_STATUS=0
 report_permission_effect "$ROOTDIR/electrum-datadir" "$ELECTRUM_RC" \
-    "$ELECTRUM_FSTYPE"
+    "$ELECTRUM_FSTYPE" || ELECTRUM_STATUS=$?
 
 # Said once rather than after each directory: it is the volume's property,
 # and both data directories are on one volume in the layout this folder is
 # used in.
-if [ "$MODELESS_VOLUME" -eq 1 ]; then
+if [ "$BITCOIN_STATUS" -eq 2 ] || [ "$ELECTRUM_STATUS" -eq 2 ]; then
     echo "Restricting such a volume is a mount option and not a chmod:" \
          "uid=<your uid>,fmask=077,dmask=077 makes every file and directory" \
          "on it owner-only and keeps the execute bit the launchers and the" \
@@ -309,3 +328,16 @@ if [ "$MODELESS_VOLUME" -eq 1 ]; then
          "the volume with its own. Encryption or physical control of the" \
          "device is what restricts it everywhere."
 fi
+
+# The higher of the two is what the script exits with, which orders the
+# statuses by how far the answer is out of a caller's reach: a directory
+# this run fell short on is reachable by acting on what its own message
+# names, and a volume storing no mode is reachable by neither that nor a
+# second run. Each directory's own message is printed either way, so
+# what the single status drops is which of the two directories it came
+# from rather than anything the reader is not told.
+STATUS="$BITCOIN_STATUS"
+if [ "$ELECTRUM_STATUS" -gt "$STATUS" ]; then
+    STATUS="$ELECTRUM_STATUS"
+fi
+exit "$STATUS"

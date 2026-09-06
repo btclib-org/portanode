@@ -52,11 +52,13 @@ Can be used if an update fails
 - `health-check.bat`: Disk space + basic process checks.
 - `clean-artifacts.bat`: Removes Windows artifact files from the folder.
 - `set-permissions.bat`: Restricts `bitcoin-datadir/` and
-  `electrum-datadir/` to `%USERDOMAIN%\%USERNAME%` on a filesystem that
-  stores ACLs (NTFS). exFAT and FAT32 hold no ACL at all, so the write
-  there changes nothing and exits 0 regardless; the script reports which
-  case it found instead of claiming success on a volume it cannot
-  restrict.
+  `electrum-datadir/` to `%USERDOMAIN%\%USERNAME%`, then reads the ACL
+  back off each directory and reports what it found there rather than
+  what the filesystem's name predicts. exFAT, FAT32 and FAT hold no ACL
+  for a readback to read, and are answered from the name; every other
+  filesystem is judged by what its directory carries, so one that stores
+  an ACL is reported restricted without being named here. `README.md`'s
+  *Permissions* bullet under *Security Notes* has the exit statuses.
 
 ## Notes
 

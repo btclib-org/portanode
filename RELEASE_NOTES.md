@@ -66,6 +66,27 @@ directory needs the room the download used to take on the folder itself.
 The macOS copy re-reads what it wrote and retries until it matches, which
 is what the exFAT corruption this works around asked for.
 
+**`set-permissions` now exits non-zero where it did not restrict the
+data directories**, where an exit of 0 followed every outcome. On exFAT
+or FAT32 — a filesystem this folder may be built on — the run exits 2,
+and the Utilities Launcher prints `Command failed (exit 2).` after the
+warning that volume already drew: nothing about the folder has changed
+there, and encryption or physical control of the device is still what
+protects it. Exit 1 is the run falling short of what the volume can
+hold — an account that does not resolve, a path `chmod` was refused, an
+entry granting somebody else access — and acting on what the message
+names is what clears it. A script or a scheduled job chaining one of
+these scripts now sees a failure where it saw success.
+
+**A Windows folder on ReFS is reported as what it is.**
+`set-permissions.bat` reads the ACL back off each data directory rather
+than trusting the filesystem's name, so any volume that stores an ACL is
+reported on what it carries; ReFS drew the warning that the directory is
+readable by anyone with access to the volume while in fact carrying the
+grant. Where that warning was acted on — by moving the folder off
+ReFS, or by adding protection around it — the reason for doing so was
+not there, and this release is what says so.
+
 ## [2026.01.27] - Initial Release
 
 The first release. Nothing to act on: there was no earlier folder to
