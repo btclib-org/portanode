@@ -3661,6 +3661,42 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the `subst` target it exists for it answers the volume that call would
   have.
 
+### `filesystem-type.ps1` falls back only on `ERROR_DIRECTORY_NOT_ROOT`
+
+- **`win/scripts/utilities/filesystem-type.ps1` takes its second root only
+  where `GetVolumeInformation` refused the first with error 144, read with
+  `[Runtime.InteropServices.Marshal]::GetLastWin32Error()` immediately
+  after the call, rather than on that call failing at all** (closes #481).
+  144 is `ERROR_DIRECTORY_NOT_ROOT`, the answer for a path that is not a
+  volume root, which is the shape a `subst` target has and a mount point
+  does not; on any other failure the script now prints nothing and exits 1
+  rather than naming the volume the drive letter carries.
+- **A genuine mount point can fail for another reason, and that case is
+  reproducible rather than argued.** Measured on `windows-latest` in run
+  [34067386137](https://github.com/btclib-org/portanode/actions/runs/34067386137),
+  against a VHD partitioned and left unformatted, mounted at a directory on
+  `C:`: `GetVolumePathName` answers the mount point,
+  `GetVolumeInformation` refuses it with 1005,
+  `ERROR_UNRECOGNIZED_VOLUME`, and `GetPathRoot`'s `C:\` reads NTFS.
+  `origin/main` prints `NTFS` at exit 0 there -- the drive letter's volume
+  for a directory that is not on it, which is the answer
+  [#463](https://github.com/btclib-org/portanode/issues/463) was about --
+  where this branch prints nothing and exits 1. The issue was filed with
+  that case marked as not run; it is run here.
+- **Every other shape measured answers as before.** In the same run, an
+  ordinary directory, `C:\`, an exFAT volume mounted at a directory and a
+  directory inside it, a `subst` letter's root and a path under it, a UNC
+  share root and a path under it, and a mapped drive letter and a path
+  under it all print the same name at the same exit status on both. Only
+  the `subst` target answered 144, so narrowing to that code changes the
+  answer for the unformatted mount point and for nothing else.
+- **The `GetVolumePathName` failure keeps its own fallback**, which the
+  narrowing does not touch: measured in the same run, the `subst` letter's
+  own root `S:\` answers false with error 87 there, and `GetPathRoot`'s
+  `S:\` is what names NTFS for it. A mount point whose path does not fit
+  the buffer is still answered by its drive letter, and the file's comment
+  says so rather than claiming a mount point is never answered that way.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
