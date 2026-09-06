@@ -3497,6 +3497,51 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   never reached, and the check it adds sits ahead of this one, so a
   redirection that lands nowhere meets that message rather than this.
 
+### `filesystem-type.ps1` answers for the volume holding the path
+
+- **`win/scripts/utilities/filesystem-type.ps1` finds the volume with
+  `GetVolumePathName` and names it with `GetVolumeInformation`, rather
+  than reading the drive letter's own root off the path string with
+  `[System.IO.Path]::GetPathRoot` and handing that to
+  `System.IO.DriveInfo`** (closes #463). `GetPathRoot` answers for the
+  volume the drive letter carries, so a data directory that is itself a
+  Windows volume mount point is answered for by a volume it is not on,
+  where `linux/scripts/utilities/set-permissions.sh`'s `findmnt
+  --target` and `macos/scripts/utilities/set-permissions.sh`'s `df -P`
+  each resolve the mount holding the directory. Measured on
+  `windows-latest` against an exFAT VHD mounted with `mountvol` at a
+  directory on an NTFS one: the branch answers `exFAT` and
+  `win/scripts/utilities/set-permissions.bat` warns that the volume
+  stores no ACL and exits 2, where `origin/main` answers `NTFS` and that
+  script reports the directory restricted to the account and exits 0.
+  The ACL readback does not catch the difference: `icacls` reads the
+  granted ACE off the mount point, where a file inside the same
+  directory answers `No permissions are set. All users have full
+  control.` The opposite arrangement is unreachable rather than merely
+  cheaper -- an NTFS volume at a directory on the exFAT one is refused
+  with `Incorrect function.` and exit 1, `mountvol`'s own usage naming
+  an NTFS directory as where a mount point resides. `GetPathRoot` is
+  asked second where the first root yields no name, which is what keeps
+  a drive letter made by `subst` reading as it did: `GetVolumePathName`
+  answers `S:\sub\` there and `GetVolumeInformation` refuses it.
+  Measured against the rest, the answer is `origin/main`'s: drive
+  letters carrying NTFS, exFAT, FAT32 and ReFS, a `subst` letter, a
+  mapped network drive letter, a path that does not exist, and an
+  unmapped drive letter. Two answers move besides the mount point's. A
+  reachable UNC path reads `NTFS` where `origin/main` gives no name,
+  `DriveInfo` refusing a path that begins `\\`. And where `%TEMP%`
+  cannot be written `Add-Type` does not compile, so a data directory on
+  exFAT is reported of undetermined filesystem at exit 1 rather than as
+  storing no ACL at exit 2 -- warning to warning and non-zero to
+  non-zero, against a `%TEMP%` that already stops the ACL readback every
+  other filesystem reaches. Neither `.sh` half is changed, measured
+  rather than read off the code: on `ubuntu-latest` a loopback exFAT
+  image mounted at a directory on ext4 reads `exfat` from `findmnt
+  --target` and from `stat -f -c '%T'` alike, and on macOS 26.6.2 an
+  exFAT disk image attached at such a directory has `df -P` name the
+  image's own device and `diskutil info` read `ExFAT` off it, each
+  script printing the volume's own warning and exiting 2.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
