@@ -3589,6 +3589,21 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   what its closing sentence -- which names the launchers as outside the
   hook's `files:` -- was pointing at.
 
+### The create condition also falsifies the redirection sentence
+
+- **The create's condition is the reader's own directory already
+  holding the placeholder's name** (issue btclib-org/.github#863). The
+  `>` is reached only where the `<` succeeds, and the `<` succeeds only
+  where the reader's own directory already holds the name `branch`; a
+  directory holding neither a file nor a directory of that name ends
+  the line at the `<`, with nothing created -- measured in `/bin/zsh`,
+  `/bin/bash`, `/bin/sh` and `/bin/dash`, which do not all print the
+  same diagnostic. *The placeholder ends the `git worktree add`
+  command* above says the `>` creates a file at the target path with
+  no condition on the `<` succeeding first, and *The worktree fence's
+  create condition and removal guard converge* named two entries it
+  falsifies and not that one; this entry supersedes that sentence.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
