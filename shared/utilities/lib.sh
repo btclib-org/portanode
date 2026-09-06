@@ -197,6 +197,40 @@ pgp_verify_or_fail() {
         rm -f "$status_file"
         return 1
     fi
+
+    # gpg's own doc/DETAILS gives NEWSIG as issued right before a
+    # signature verification starts, so a status file holding none is gpg
+    # reporting that it never reached one. The GOODSIG test below cannot
+    # separate that from a signature gpg read and could not validate, and
+    # names the keyring for both. DETAILS says under GOODSIG that the
+    # per-signature codes "were used as a marker for a new signature; new
+    # code should use the NEWSIG status instead", so the dependence is the
+    # one upstream asks for; nothing in this tree states a minimum gpg,
+    # and the oldest measured against it is 2.4.4.
+    # gpg's own exit status does not separate them either: a key that is
+    # not imported and a signature file that cannot be opened both leave
+    # 2. Nor does the FAILURE line, which reads "verify" for a signature
+    # file that is missing, empty or unreadable and "gpg-exit" for one
+    # holding something that is not a signature and for a file to check
+    # that cannot be opened; a test on it would leave those last two on
+    # the keyring message.
+    # Measured with gpg 2.5.21 on macOS and gpg 2.4.4 on ubuntu-latest:
+    # NEWSIG is present for a good signature, for a tampered one and for
+    # a key that is not imported, and absent where the signature file is
+    # missing, empty, unreadable or not a signature and where the file it
+    # signs is missing or unreadable.
+    # The advice below names no cause, several reaching it alike. A
+    # signature file that is present and readable and merely not a
+    # signature is one of them -- the shape a download answering 200 with
+    # an error page leaves -- so advice to check presence and readability
+    # would send that reader to confirm two things already true.
+    if ! grep -q '^\[GNUPG:\] NEWSIG' "$status_file"; then
+        echo "Error: gpg found no PGP signature to check on ${label}."
+        echo "Check the signature file and the file it signs."
+        rm -f "$status_file"
+        return 1
+    fi
+
     if ! grep -q '^\[GNUPG:\] GOODSIG' "$status_file"; then
         echo "Error: no valid PGP signature on ${label}" \
              "(is the signer's key imported?)."

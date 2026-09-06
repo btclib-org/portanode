@@ -3466,6 +3466,37 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `git -C "$WT" push` and the paragraph below it are unchanged: that
   file's paragraph at `20ad654` is this tree's byte for byte.
 
+### A signature gpg never read is not an unimported key
+
+- **`shared/utilities/lib.sh`'s `pgp_verify_or_fail` and
+  `win/scripts/utilities/lib.bat`'s `:verify_pgp_signature` require a
+  `NEWSIG` line in the status file before reading it for a `GOODSIG`**
+  (closes #469). gpg's own `doc/DETAILS` gives `NEWSIG` as issued right
+  before a signature verification starts, and says under `GOODSIG` that
+  the per-signature codes "were used as a marker for a new signature; new
+  code should use the `NEWSIG` status instead", so a status file holding
+  no `NEWSIG` is gpg reporting that it never reached a signature, where
+  the message named an unimported key. Measured in run 34018268101 on
+  `ubuntu-latest` with gpg 2.4.4 and on `windows-latest` with gpg 2.4.9:
+  at the base both halves name the key where the signature file is
+  missing, empty or not a signature and where the file it signs is
+  missing, and on this branch each of those reaches the new message with
+  the return still non-zero and the caller's out-variable still 0. The
+  new message names no cause, several reaching it alike -- a signature
+  file that is present and readable and merely not a signature is one of
+  them. Neither gpg's exit status nor its `FAILURE` line separates those
+  from a key that really is not imported: that key and a signature file
+  gpg cannot open both leave 2, and `FAILURE` reads `gpg-exit` rather
+  than `verify` for a signature file holding something that is not a
+  signature. A download that fails reaches none of it, the POSIX callers
+  running under `set -euo pipefail` and the Windows callers ending each
+  download line `|| goto :error`; one that succeeds carrying something
+  that is not a signature does, no caller reading what it received.
+  *A gpg status file that was never written is not an unimported key*
+  above stays where it is: its subject is a status file gpg's output
+  never reached, and the check it adds sits ahead of this one, so a
+  redirection that lands nowhere meets that message rather than this.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
