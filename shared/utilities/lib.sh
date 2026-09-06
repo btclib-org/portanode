@@ -173,6 +173,25 @@ pgp_verify_or_fail() {
     gpg --status-fd 1 --verify "$sig_file" "$data_file" 1> "$status_file" \
         2>/dev/null || true
 
+    # A status file that is absent or empty is gpg's answer lost rather
+    # than a signature refused, and the greps below cannot separate the
+    # two: on a name no file answers to, grep exits non-zero exactly as
+    # it does on a file holding no GOODSIG. Measured on ubuntu-latest,
+    # mktemp fails where TMPDIR names a directory that is missing or not
+    # writable; status_file is then empty, the redirection above is never
+    # opened and gpg does not run at all, which is why its exit status is
+    # not what is read here. Where gpg does run it writes a status line
+    # for a signature it refuses as much as for one it accepts, and the
+    # tests below are what read that. -s rather than -e, an empty file
+    # answering no more than a missing one; no case measured here
+    # separates the two.
+    if [ ! -s "$status_file" ]; then
+        echo "Error: gpg's status output for ${label} was not read;" \
+             "whether the signature is good is unknown."
+        rm -f "$status_file"
+        return 1
+    fi
+
     if grep -q '^\[GNUPG:\] BADSIG' "$status_file"; then
         echo "Error: BAD PGP signature on ${label}."
         rm -f "$status_file"

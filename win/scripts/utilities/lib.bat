@@ -109,6 +109,36 @@ REM than this file's, and depend on it the same way.
 set "STATUS_FILE=%TEMP%\pgp_status_%RANDOM%%RANDOM%.txt"
 gpg --status-fd 1 --verify "%SIG_FILE%" "%DATA_FILE%" 1> "%STATUS_FILE%" 2>nul
 
+REM A status file that is absent or empty is gpg's answer lost rather
+REM than a signature refused, and the findstr below cannot separate
+REM the two: measured on windows-latest, it exits 1 on a file that is
+REM not there exactly as it does on one holding no GOODSIG.
+REM The exit code of the line above separates them the wrong way
+REM round, so it is not read at all: a redirection cmd.exe cannot open
+REM leaves errorlevel 0, which is what a good signature leaves, where
+REM a bad signature leaves 1 and a key not imported leaves 2.
+REM The test is on size rather than existence, an empty file answering
+REM no more than a missing one; no case measured here separates the
+REM two.
+REM A %TEMP% that is merely missing does not reach this line, the
+REM powershell :warn_if_no_pubkeys runs above creating it, nor does an
+REM unset %TEMP%, whose path resolves to the current drive's root, nor
+REM one whose ACL grants the account read and execute alone, an
+REM Administrators entry beside it still granting a group the account
+REM is in full control. What reaches it is a %TEMP% under which
+REM cmd.exe cannot create the file at all -- a drive letter that is
+REM not mapped, a path whose own directory component is a file.
+REM The message names the absence rather than a cause, for the reason
+REM :warn_if_no_pubkeys's comment gives of its own unknown branch.
+set "STATUS_OK=0"
+if exist "%STATUS_FILE%" for %%S in ("%STATUS_FILE%") do if %%~zS GTR 0 set "STATUS_OK=1"
+if "%STATUS_OK%"=="0" (
+    echo Error: gpg's status output for %LABEL% was not read; whether the
+    echo signature is good is unknown.
+    del "%STATUS_FILE%" >nul 2>&1
+    exit /b 1
+)
+
 findstr /c:"[GNUPG:] BADSIG" "%STATUS_FILE%" >nul 2>&1
 if %errorlevel%==0 (
     echo Error: BAD PGP signature on %LABEL%.
