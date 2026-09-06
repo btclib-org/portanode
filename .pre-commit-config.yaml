@@ -281,13 +281,20 @@ repos:
         name: macOS is spelled the way Apple spells it
         language: pygrep
         entry: '(?<!Contents/)\b(?!macOS\b)(?!macos\b)[Mm][Aa][Cc][Oo][Ss]\b'
-      # `win/scripts/utilities/lib.bat` opens no delayed-expansion scope
-      # of its own, so its lines are parsed under whatever the caller
-      # left on, and the paths it builds on `%TEMP%` are read with
+      # A `lib.bat` opens no delayed-expansion scope of its own, so its
+      # lines are parsed under whatever the caller left on, and the paths
+      # `win/scripts/utilities/lib.bat` builds on `%TEMP%` are read with
       # `%...%`. That is correct only while the pass is off where the
       # call is made, and the pass is the caller's to set. This reads
       # each caller's own scope sequence and answers with a `call`
       # reached with it on.
+      #
+      # The file set is every `.bat` less the ones called by label, which
+      # is the set the check below runs over: the two ask one question
+      # from opposite sides, so the anchor holds them to one list rather
+      # than leaving a reader to compare two regexes. Which files those
+      # are is decided by `goto %ACTION%`, which is what a label-called
+      # file dispatches on and what no launcher has.
       #
       # The alternative -- a form inside `lib.bat` correct under either
       # pass -- reaches the `%TEMP%` source and not the mount-path one.
@@ -323,7 +330,8 @@ repos:
         name: lib.bat is called with delayed expansion off
         language: pygrep
         args: [--multiline, --ignore-case]
-        files: ^win/scripts/utilities/.*\.bat$
+        files: \.bat$
+        exclude: &label_called ^win/scripts/(?:root|(?:bitcoin|electrum|utilities)/lib)\.bat$
         # one line and no literal space in it, for the reason
         # local-link-prefix above gives
         entry: |-
@@ -342,20 +350,44 @@ repos:
       # `1`; the same file opening `setlocal disabledelayedexpansion`
       # reads both back whole at either caller state, which is the
       # control that the difference is the line and not the path
-      # (#374, #393).
+      # (#374, #393). What that costs a launcher is in
+      # `win/scripts/root.bat`, above `:resolve_root`, the walk there
+      # being what a stripped `%~dp0` reaches first (#473).
       #
-      # `lib.bat` is excluded, and the reason is its own: the comment
-      # above `:verify_pgp_signature` says a `setlocal` there would
-      # confine the `OUTVAR` that file sets for its caller. Its lines
-      # run under the caller's state, and the two checks here are what
-      # hold that state to what those lines need. `--negate` inverts
-      # the hook, so what fails is a file the pattern does not match,
-      # and the report is the file name rather than a line.
-      - id: win-utilities-bat-delayed-expansion-off
-        name: each win/scripts/utilities .bat opens with the pass off
+      # What the exclusion names is the files called by label -- the
+      # three `lib.bat` and `win/scripts/root.bat`, which dispatch on
+      # `goto %ACTION%` and run inside the caller's own scope. Two of
+      # them set a variable for that caller, so a `setlocal` in them
+      # would confine it, which is the reason the comment above
+      # `:verify_pgp_signature` gives. It is written as `exclude:` rather
+      # than as a lookahead in `files:` because `check-useless-excludes`
+      # above examines an `exclude:` and never examines a lookahead: its
+      # `exclude_matches_any` returns early on the default `^$`, which is
+      # what a hook without one carries. What that buys is narrow, and
+      # worth stating so nobody widens it: the meta hook reports when the
+      # *whole* pattern has gone stale, not when one alternative in it
+      # has, since it answers on the first file matching both `files` and
+      # `exclude`. A single entry renamed away leaves it silent.
+      #
+      # Nothing is lost when that happens. A label-called file that falls
+      # out of the exclusion is picked up by the check below and named,
+      # `--negate` failing any file that does not open `@echo off` and
+      # `setlocal disabledelayedexpansion` -- which a label-called file
+      # does not, that being what makes it label-called. So the choice
+      # between the two forms is about which check notices, not about
+      # whether one does. Enumerating the covered directories instead was
+      # the other alternative, and what it costs is a list -- a launcher
+      # directory added later is uncovered with nothing to say so.
+      #
+      # `--negate` inverts the hook, so what fails is a file the pattern
+      # does not match, and the report is the file name rather than a
+      # line.
+      - id: bat-delayed-expansion-off
+        name: each .bat a reader starts opens with the pass off
         language: pygrep
         args: [--multiline, --negate, --ignore-case]
-        files: ^win/scripts/utilities/(?!lib\.bat$).*\.bat$
+        files: \.bat$
+        exclude: *label_called
         # one line and no literal space in it, for the reason
         # local-link-prefix above gives
         entry: |-

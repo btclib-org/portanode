@@ -3542,6 +3542,53 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   image's own device and `diskutil info` read `ExFAT` off it, each
   script printing the volume's own warning and exiting 2.
 
+### The Windows launchers spell the delayed-expansion state out
+
+- **Every `.bat` a reader starts opens `setlocal disabledelayedexpansion`
+  rather than a bare `setlocal`, and `win/scripts/root.bat` carries the
+  reasoning above `:resolve_root`** (closes #473). A bare `setlocal` sets no
+  delayed-expansion state and keeps the caller's, which for a launcher is
+  the console it was started from. Measured on `windows-latest` against two
+  copies of one tree at `C:\p473\ba!ng`, one copy with its line 2 left bare:
+  under a `cmd /V:ON`, and under a `cmd` given no `/V` flag at all once the
+  Command Processor key under `HKCU\Software\Microsoft` has its
+  `DelayedExpansion` value at `1`, the bare copy's `Utilities-Launcher.bat`
+  prints its root as `""` where the other prints the folder. Asked for a
+  utility, the bare copy under the pass produced none of the lines that
+  utility prints, where the other ran it under either caller state.
+  Removing the registry value restores the bare copy's own answer, and the
+  fixed tree answers the same at a path holding no `!`: those are the two
+  controls that the difference is the line and the value rather than the
+  run.
+- **`win/scripts/root.bat`'s reasoning above `:resolve_root` names what a
+  stripped root costs beyond a shorter path** (issue #473). Measured in the
+  same run: the bare copy's `mainnet-8333-qt.bat` reports `WALLETDIR` as
+  `\bitcoin-datadir\wallets` rather than the data directory itself. The
+  walk having returned nothing, the `if exist` that chooses between the two
+  wallet layouts tests a path that is not there and takes the other branch,
+  so what the mount point's `!` changes is a decision and not only a
+  prefix.
+- **`.pre-commit-config.yaml`'s two delayed-expansion hooks run over every
+  `.bat` less the ones called by label** (issue #473). One reads what a file
+  turns on and the other what it leaves alone, so they are held to one file
+  list by a YAML anchor rather than to two regexes a reader has to compare.
+  The excluded files are the three `lib.bat` and `win/scripts/root.bat`,
+  which dispatch on `goto %ACTION%` and run inside the caller's own scope;
+  it is written as `exclude:` rather than as a lookahead in `files:` because
+  `check-useless-excludes` examines an `exclude:` and never examines a
+  lookahead, its `exclude_matches_any` returning early on the default `^$` a
+  hook without one carries. That reports the whole pattern going stale
+  rather than one alternative in it, and nothing is lost when one does go
+  stale: a label-called file falling out of the exclusion is named by the
+  `--negate` check itself, which fails any file not opening `@echo off` and
+  `setlocal disabledelayedexpansion`. Enumerating the covered directories
+  was the other alternative, and what it costs is a list: a launcher
+  directory added later is uncovered with nothing to say so.
+  *`verify-binaries.bat` disables delayed expansion, and a hook
+  checks it* above stays where it is, and the file list stated here is
+  what its closing sentence -- which names the launchers as outside the
+  hook's `files:` -- was pointing at.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.

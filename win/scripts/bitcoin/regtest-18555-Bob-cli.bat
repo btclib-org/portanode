@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal disabledelayedexpansion
 REM Launch Bitcoin Core daemon for regtest as Bob.
 REM Data directory: bitcoin-datadir\regtest_bob
 REM P2P port: 18555
@@ -10,6 +10,10 @@ REM Creates data directory if not exists.
 REM Starts daemon and CLI command prompts.
 REM Connects to: localhost:18444 (Alice), localhost:18666 (Carol)
 REM
+REM Explicitly disabled on line 2 rather than merely not enabled: a bare
+REM "setlocal" keeps whatever state the caller left the pass at, and the
+REM caller here is the console this was started from. The measurement is
+REM in win\scripts\root.bat, above :resolve_root (#473).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
 echo ROOTDIR is "%ROOTDIR%"
