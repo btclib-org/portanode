@@ -3405,6 +3405,43 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   are unchanged: a good signature, a bad one, and a key that is not
   imported.
 
+### `verify-binaries.bat` disables delayed expansion, and a hook checks it
+
+- **`win/scripts/utilities/verify-binaries.bat` opens `setlocal
+  disabledelayedexpansion` rather than a bare `setlocal`** (closes #374,
+  closes #393). A bare `setlocal` sets no delayed-expansion state and keeps
+  the caller's, and `README.md`'s *Security Notes* sends a reader to run
+  this file from a console of their own. Measured on `windows-latest` with
+  the folder at `C:\p374\ba!ng\portanode`: under a `cmd /V:ON` it answers
+  `Error: win/checksums.sha256 not found.`, where the same call under a
+  `cmd /V:OFF` reads the file and reports on each binary.
+  `win/scripts/utilities/validate-setup.bat`, which spells the state out,
+  answers `Validating setup at "C:\p374\ba!ng\portanode"` at either caller
+  state, and that is the control that the difference is the line rather
+  than the path.
+- **`.pre-commit-config.yaml` carries a `pygrep` hook that refuses a `.bat`
+  under `win/scripts/utilities/` whose second line is not `setlocal
+  disabledelayedexpansion`** (issue #374, issue #393). The hook beside it
+  reads what a file turns on, which a file leaving the state to its caller
+  never does, so that one is silent on this shape. The state is not the
+  caller's to be trusted with: measured on `windows-latest` at the same
+  path, a `.bat` opening a bare `setlocal` reads `%~dp0` back as
+  `C:\p374\bang\` and loses a `!` in `%TEMP%` as well, both under a
+  `cmd /V:ON` and under a `cmd` given no `/V` flag at all once the user's
+  own `HKCU\Software\Microsoft\Command Processor\DelayedExpansion` is
+  `1` -- a `REG_DWORD` set per account rather than per invocation.
+  `lib.bat` is outside the hook, a `setlocal` there confining the `OUTVAR`
+  it sets for its caller, which the comment above `:verify_pgp_signature`
+  states. `--negate` inverts the hook, so what fails is a file the pattern
+  does not match; the control is the same pattern over a file opening a
+  bare `setlocal`, which it names. The launchers under
+  `win/scripts/bitcoin/` and `win/scripts/electrum/`, and those at the root,
+  open bare `setlocal` too and are outside this hook's `files:`, which is
+  issue #473. The entries above that turn the pass off in the other files of
+  this directory stay as they are, and so does the hook entry beside them:
+  what this adds is `verify-binaries.bat`, which opened a bare `setlocal`,
+  and a check for the shape a scope-reading pattern cannot see.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
