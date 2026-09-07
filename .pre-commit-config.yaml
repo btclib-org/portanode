@@ -454,9 +454,13 @@ repos:
         # Declared rather than left to the machine, so that a commit and
         # CI check the same thing -- the runner image happens to carry
         # shellcheck, so leaving it to chance means CI checking more than
-        # a commit does. Pinned, unlike a rev, because nothing bumps an
-        # additional dependency: pre-commit.ci moves rev, dependabot has
-        # no pre-commit ecosystem. That is the point rather than the cost
+        # a commit does. Pinned, unlike a rev, because nothing bumps this
+        # dependency today: pre-commit.ci moves rev, and this tree
+        # configures no dependabot `pre-commit` ecosystem entry to move
+        # an additional dependency -- one that exists, and would reach
+        # this hook, whose repo is neither `local` nor `meta` and whose
+        # language resolves to `python`, which that ecosystem's own
+        # parser covers. That absence is the point rather than the cost
         # -- a shellcheck release adding a check would otherwise turn a
         # pull request red for having changed nothing
         additional_dependencies:

@@ -3958,6 +3958,19 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   pin's own `v1` alias is a persistent GitHub Release the issue names
   as reused -- its `published_at` is over a year older than its own
   `created_at`, which tracks the alias's last move.
+- **`.github/dependabot.yml`'s head comment and `.pre-commit-config.yaml`'s
+  `shellcheck-py` comment stop calling dependabot's `pre-commit`
+  ecosystem nonexistent** (closes #508). `check-jsonschema`'s own
+  vendored dependabot schema accepts `package-ecosystem: pre-commit`
+  today, and `dependabot-core`'s `pre_commit` module predates both
+  sentences. Its file parser reaches `additional_dependencies` only
+  where a hook's `repo:` is neither `local` nor `meta` and its
+  resolved language has a parser registered for it; `shellcheck-py`'s
+  hook clears both -- its language reads as `python`, from
+  `actionlint-py`'s own hook definition since the config here names
+  none locally -- so the second file's freeze argument now rests on
+  the ecosystem not being configured here rather than on it not
+  existing.
 
 ## [2026.01.27] - Initial Release
 
