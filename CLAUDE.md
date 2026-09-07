@@ -279,13 +279,17 @@ moves `main`.
     `blinter/checkers/orchestration.py`'s `_process_file_checks` runs none
     of the per-line checkers on those, so a defect a diff puts on one of
     them changes nothing in the key. What lands in the set is decided by
-    pattern and reaches ordinary batch code: `Set-\w+` is one of the
-    PowerShell patterns, so a batch `if` line assigning a path ending
-    `set-permissions.bat` matches it, where the same line naming a file
-    without the hyphen matches nothing. The global checkers run over a
-    skipped line regardless, so it goes on carrying findings of its own
-    and nothing in the report says it was skipped; ask blinter for the
-    set rather than reading it off the report.
+    pattern and reaches ordinary batch code: `\$\w+\s*=` is one of the
+    PowerShell patterns, so a batch `set` whose value is PowerShell text —
+    `set "PSFIND=$ErrorActionPreference = 'Stop';"` — matches it, where the
+    same assignment carrying no `$name =` matches nothing. A match opens a
+    block rather than skipping the one line, so the plain batch after it
+    lands in the set too, until a line blinter reads as batch closes the
+    block: a `del` redirected to `nul` is in the set behind a
+    `powershell` invocation while matching nothing on its own. The global
+    checkers run over a skipped line regardless, so it goes on carrying
+    findings of its own and nothing in the report says it was skipped; ask
+    blinter for the set rather than reading it off the report.
 
     ```shell
     uvx --from blinter python -c '

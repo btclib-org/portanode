@@ -10,6 +10,20 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 
 ## [2026.01.29] - git main branch
 
+- **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
+  example name what blinter leaves rather than what it fixed** (closes
+  #437). 1.1.24 stopped `-NoProfile` on its own from drawing `W036`,
+  and narrowed the cmdlet patterns by what precedes the name, which
+  took `Utilities-Launcher.bat`'s assignment of a hyphenated file name
+  out of the embedded-script skip set and left
+  `set-permissions.bat`'s `"%SCRIPT_DIR%set-datadir-acl.ps1"` in it
+  until 1.1.25, `\` being in 1.1.24's lookbehind class and `%` not.
+  What still draws `W036` here is a backquoted command carrying a
+  parenthesis of its own, the operand being taken to the first `)`
+  rather than to the one that balances the opener; and the skip set
+  still reaches ordinary batch code, a batch line carrying PowerShell
+  text opening a block that runs on over the plain batch after it until
+  a line blinter reads as batch closes it.
 - **`CONTRIBUTING.md`'s Blinter paragraph names the two shapes `E010`
   covers, and `REVIEWING.md`'s ROOTDIR bullet gains a control that
   crosses a continuation line and follows a path into a variable**

@@ -309,15 +309,18 @@ given `E010` names is read from where the caret sits relative to the
 backquotes, not from the code.
 
 **`W036` reads a `for /f`'s file set as a data file with a header row
-whenever it holds the substring `file` and the loop passes no `skip=`, and
-`-NoProfile` carries that substring.** A file set backquoted under
-`usebackq` is a command rather than a path, so a capture passing the flag to
-PowerShell draws the finding wherever blinter reads that operand at all,
-though no file is read, and the `skip=1` it recommends would discard the
+whenever it holds the substring `file` and the loop passes no `skip=`.** A
+file set backquoted under `usebackq` is a command rather than a path, and
+blinter recognises one — until the command carries a parenthesis of its
+own, the operand being taken to the first `)` rather than to the one that
+balances the opener, which leaves the closing backquote outside it. Every
+`W036` here is that shape: a capture of a PowerShell command holding
+`(Invoke-WebRequest ...)`, whose `-NoProfile` supplies the substring. No
+file is read, and the `skip=1` the finding recommends would discard the
 first line of the child's answer. Whether a given `W036` has a data file
-under it is read from what sits between `in (` and the first `)`, not from
-the rule code and not from `usebackq`, whose double-quoted file set is a
-path the loop really reads.
+under it is read from what sits between `in (` and the balancing `)`, not
+from the rule code and not from `usebackq`, whose double-quoted file set is
+a path the loop really reads.
 
 ### What gates a merge, and what only reports
 
