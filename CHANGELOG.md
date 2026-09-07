@@ -3720,6 +3720,26 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `0000`, and the mount at `0077` runs the script, exit 0 — and the
   paragraph is a user's summary of a bullet this change rewrites.
 
+### The *Permissions* bullet's exFAT clause names its platform
+
+- **`README.md`'s *Permissions* bullet under *Prerequisites* scopes its
+  exFAT clause to the platform it holds on, and gives the condition it
+  holds under on Linux** (closes #486). The clause promised that an
+  exFAT volume reports every file as executable whatever its mode, which
+  is macOS's synthesis; Linux computes the mode from the mount's own
+  `fmask`, and run
+  [34089659242](https://github.com/btclib-org/portanode/actions/runs/34089659242)
+  on `ubuntu-latest` mounts a loopback exFAT image with an explicit
+  `fmask=133` under a umask of `000`: the script reads `-rw-r--r--` and
+  running it fails, `Permission denied`, exit 126, where the arms at
+  umasks `022`, `077` and `000`, which name no mask, run it at exit 0.
+- **`linux/scripts/utilities/set-permissions.sh` prints such a mask to
+  whoever runs it on such a volume**: on a filesystem storing no Unix
+  mode its message names `uid=<your uid>,fmask=077,dmask=077` as what
+  restricts the volume and `fmask=133` as the setting that takes the
+  execute bit away and stops the launchers starting. That is the mount
+  the *Permissions* bullet excludes rather than covers.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
