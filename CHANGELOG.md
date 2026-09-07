@@ -3936,6 +3936,15 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   rather than only a folder that reached the disk some other way: the
   bullet named the symptom without a remedy, and the pointer that
   followed it did not invite that reader across.
+- **`CLAUDE.md`'s blinter comparison key and its skip-set query hold every
+  invocation of one comparison to a version captured once, rather than
+  letting each call resolve `uv`'s own latest** (closes #497). A before run
+  and an after run taken apart could straddle a release with nothing in the
+  tree between them differing; `blinter --version`'s answer, which PEP 440
+  accepts with its leading `v` unchanged, is now what `--from` names for
+  both. No literal version lands in the file: that would be a line nothing
+  here reads and no gate re-derives, the same trade `.python-version` already
+  declines for the interpreter.
 
 ## [2026.01.27] - Initial Release
 

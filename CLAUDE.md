@@ -242,11 +242,25 @@ moves `main`.
 - **`blinter`'s exit code is not the gate's signal, and neither is a rule
   code's count across the whole tree.** `.pre-commit-config.yaml`'s own
   header says it is run by hand and does not gate; `uvx blinter . --no-config
-  --summary` still exits non-zero against an unmodified tree:
+  --summary` still exits non-zero against an unmodified tree. `uvx blinter`
+  resolves `uv`'s own latest independently on each call, so a before run and
+  an after run of one comparison taken apart can land on two different
+  linters with nothing in the tree between them having changed; capture the
+  version once and hold every invocation of that comparison to it —
+  `--version` answers with a leading `v`, which PEP 440 accepts unchanged in
+  `--from`. A pin written into this file instead would make the same trade
+  the `.python-version` bullet above already declines for the interpreter.
+  `$V` is what holds one run's two halves to one linter; what a before run
+  and an after run taken on separate days share instead is whatever version
+  the first run's own report named, `$V` itself not surviving into a second
+  shell — so that is where `blinter --version`'s answer belongs, not in this
+  file:
 
     ```shell
+    V=$(uvx blinter --version)
     git archive origin/main | tar -x -C <tmpdir>
-    env -C <tmpdir> uvx blinter . --no-config --summary; echo $?
+    env -C <tmpdir> uvx --from "blinter==$V" \
+      blinter . --no-config --summary; echo $?
     ```
 
     So a session reading only that exit code cannot tell its own red from
@@ -289,10 +303,11 @@ moves `main`.
     `powershell` invocation while matching nothing on its own. The global
     checkers run over a skipped line regardless, so it goes on carrying
     findings of its own and nothing in the report says it was skipped; ask
-    blinter for the set rather than reading it off the report.
+    blinter for the set rather than reading it off the report, at the same
+    `$V` captured above.
 
     ```shell
-    uvx --from blinter python -c '
+    uvx --from "blinter==$V" python -c '
     import sys
     from blinter.io.encoding import _validate_and_read_file
     from blinter.parsing.embedded import _detect_embedded_script_blocks
@@ -304,14 +319,16 @@ moves `main`.
     answering both ways.
 - **The `was read using 'utf_8' encoding` block is on stderr, and it is
   dropped rather than compared.** Which files it names moves under an
-  ASCII-only edit to an unrelated part of them, so a comparison that
-  keeps the block opens on a difference the diff did not make. The
-  report itself is on stdout, so sending stderr away drops the block and
-  leaves the report whole; a pipe alone does not reach it, and a run
-  that merges the two streams has to filter the lines back out.
+  ASCII-only edit to an unrelated part of them, so a comparison that keeps
+  the block opens on a difference the diff did not make. The report itself is
+  on stdout, so sending stderr away drops the block and leaves the report
+  whole; a pipe alone does not reach it, and a run that merges the two
+  streams has to filter the lines back out. `$V` here is the version captured
+  above, held for this half of the comparison too:
 
     ```shell
-    env -C <tmpdir> uvx blinter . --no-config --summary 2>/dev/null
+    env -C <tmpdir> uvx --from "blinter==$V" \
+      blinter . --no-config --summary 2>/dev/null
     ```
 
     `blinter/io/encoding.py` asks `charset_normalizer` for the file's
