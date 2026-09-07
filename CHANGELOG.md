@@ -8,7 +8,9 @@ using YYYY.MM.DD format.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
-## [2026.01.29] - git main branch
+## [Unreleased]
+
+## [2026.09.07] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
   example name what blinter leaves rather than what it fixed** (closes

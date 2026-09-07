@@ -51,53 +51,41 @@ included — before falling back. Renaming that file, or deleting it,
 breaks every launcher that was not given `PORTANODE_ROOT`, and does so
 with a "binary not found" rather than with anything naming the cause.
 
-`CHANGELOG.md` names the version being worked on in its top heading,
-where `VERSION` still names the one before it. The two agree only between
-the release and the next change, and that is by construction rather than
-by drift.
-
-**No release carries the string `VERSION` holds.** The check at the top
-of this file answers empty, and
-
-```shell
-gh api repos/btclib-org/portanode/tags --jq '.[].name'
-```
-
-prints nothing, so `2026.01.27` is the day the folder was assembled
-rather than a version a user can take. *Cutting one* below is how a
-release is made, at the day it is cut rather than at a past one, and its
-second step is what strikes this paragraph.
-
-**Nothing is owed for that string.** Re-cutting `v2026.01.27` is the
-rejected alternative: the tag would sit on the commit whose
-`CHANGELOG.md` holds that section and no other, and `README.md` takes a
-reader to `main`, so the release would announce a tree nobody is sent
-to. The `[2026.01.27]` heading in `CHANGELOG.md` and in
-`RELEASE_NOTES.md` dates the entries under it and names nothing on the
-forge.
+`CHANGELOG.md` and `RELEASE_NOTES.md` carry `## [Unreleased]` as their
+topmost `##` heading at every commit on the default branch, where
+`VERSION` holds the string a release is cut at. The heading and `VERSION`
+never agree, and that is by construction rather than by drift: step 2
+below retitles the open heading and opens a new one in the same pull
+request, so no commit is left with a released version at the top of
+either file. A dated placeholder heading would not do — it names a
+version before the date it is cut on is known.
 
 ## Cutting one
 
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
    --all-files`, exit code 0, then `git status --porcelain` empty.
 1. Decide the date, and make the three files say it. `CHANGELOG.md`'s
-   top heading becomes `## [YYYY.MM.DD] - <what this release is>`;
-   `RELEASE_NOTES.md` gets a section under the same version saying what a
-   user has to *act* on, and nothing that is merely a change;
-   `VERSION` becomes that string. Where *The version string* still
-   carries the paragraph saying no release carries `VERSION`'s string,
-   strike it, the paragraph on `2026.01.27` after it, and this sentence
-   in the same pull request: this release is what falsifies the first,
-   and the second describes a state this release ends.
+   `## [Unreleased]` heading becomes `## [YYYY.MM.DD] - <what this
+   release is>`; `RELEASE_NOTES.md`'s does the same, its retitled
+   section saying what a user has to *act* on, and nothing that is
+   merely a change; `VERSION` becomes that string. This pull request
+   also opens a new, empty `## [Unreleased]` above the retitled heading
+   in both files — the heading ordinary branches append under, and the
+   one this same step retitles the next time a release is cut.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
-1. Tag the merged commit, **signed**:
+1. Tag the merged commit, **signed**, from the primary checkout brought
+   forward under `CLAUDE.md`'s *The primary checkout is the maintainer's*
+   preconditions — on `main` and clean — plus the ancestry `--ff-only`
+   itself requires. Chained with `&&`, so a refusal on either of the
+   first two commands stops the sequence rather than signing and pushing
+   a tag on whatever commit `HEAD` was left at:
 
     ```shell
-    git fetch origin && git checkout origin/main
-    git tag -s "v$(cat VERSION)" -m "PortaNode $(cat VERSION)"
-    git push origin "v$(cat VERSION)"
+    git fetch origin && git merge --ff-only origin/main && \
+      git tag -s "v$(cat VERSION)" -m "PortaNode $(cat VERSION)" && \
+      git push origin "v$(cat VERSION)"
     ```
 
     `-s` and not a bare `git tag`: `tag-integrity` requires a signature
