@@ -4,12 +4,19 @@ A release here is a signed tag and a GitHub release, cut by hand. Nothing
 in `.github/workflows` cuts one —
 
 ```shell
-gh api repos/btclib-org/portanode/actions/workflows \
-  --jq '[.workflows[].name]'
+git ls-tree --name-only -r origin/main -- .github/workflows
 ```
 
-is what says which workflows there are — and there is nothing to publish
-to an index either: what this repository ships is scripts and
+is what says which workflows the tree holds: it reads `origin/main`'s
+own tree object, never the index and never the working directory, so a
+file only staged or only present on disk does not appear in it. That
+needs a checkout with `origin/main` fetched, where the API read it
+replaces needed only `gh`'s own authentication and no clone at all. The
+API's own `actions/workflows` list answers a neighbouring question in
+any case — which workflows GitHub will run — and keeps a workflow's
+entry after the branch carrying its file is deleted, so the two diverge
+wherever such a branch has existed. And there is nothing to publish to
+an index either: what this repository ships is scripts and
 configuration, and the binaries they install are downloaded from their
 own publishers at update time rather than attached here.
 
