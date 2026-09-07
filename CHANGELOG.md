@@ -3,14 +3,14 @@
 All notable changes to PortaNode will be documented in this file.
 
 The format is based on [Calendar Versioning](https://calver.org/),
-using YYYY.MM.DD format.
+using YYYY.M.D format.
 
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
 ## [Unreleased]
 
-## [2026.09.07] - First Tagged Release
+## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
   example name what blinter leaves rather than what it fixed** (closes
@@ -4019,6 +4019,31 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   mark exactly the ones they reproduced it on. The Operating system and
   Volume and filesystem fields' own examples gain a Linux entry to
   match.
+- **PortaNode's version scheme becomes `YYYY.M.D`, unpadded, matching
+  section 12 of the organization standard.** `VERSION`, both
+  changelogs' retitled `[2026.9.7]` heading, `CLAUDE.md`'s own summary
+  of the scheme, and the bug-report template's placeholder all name the
+  unpadded form. `RELEASING.md`'s *The version string* now cites
+  section 12 for the scheme itself, the standard being its source
+  rather than a decision of this repository's own. The historical
+  `[2026.01.27]` heading, in both files, and the #240 entry naming it
+  stay padded: `REPOSITORY.md`'s *Rulesets* section states that a
+  release failing half-way is recovered by deleting the tag and
+  re-cutting it rather than blocked; this entry reads `v2026.09.07`'s
+  deletion and this branch's own unpadded `VERSION` as that same
+  recovery, still short of a `v*` tag — a reading this entry makes of
+  that rule rather than one `REPOSITORY.md` itself extends to a
+  heading. `2026.01.27` never entered that recovery at all, #236 and
+  #240 having closed on the decision that no tag was ever owed for it.
+  Section 9 of the organization standard is why the two
+  spellings then stand in one file rather than one replacing the other:
+  it binds what is written next and refuses to correct what predates
+  it, so the #514 entry's own claim about what `RELEASING.md`'s *The
+  version string* gave on the day it landed stays exactly as written,
+  and is superseded here instead of edited there. The standard's
+  month-only string between releases is not part of this change: it
+  belongs to the pull request that opens the next cycle, once a release
+  actually carries the unpadded form.
 
 ## [2026.01.27] - Initial Release
 

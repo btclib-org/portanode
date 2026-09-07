@@ -4,7 +4,7 @@ Notable changes are documented here.
 [CHANGELOG.md](./CHANGELOG.md) is the record behind them: this file says
 what a user has to act on, that one says what changed and why.
 
-Versions are *[calendar versions](https://calver.org/)*, `YYYY.MM.DD`,
+Versions are *[calendar versions](https://calver.org/)*, `YYYY.M.D`,
 and `VERSION` holds the string a release is cut at. The number says when
 the folder was assembled, which is the useful thing to know about a
 bundle of somebody else's binaries; it promises nothing about
@@ -18,7 +18,7 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 
 ## [Unreleased]
 
-## [2026.09.07] - First Tagged Release
+## [2026.9.7] - First Tagged Release
 
 This is the first release published on the forge, and every entry in
 this section states what changed relative to the folder as assembled on

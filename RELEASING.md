@@ -30,10 +30,13 @@ answering `[]` is what confirms the claim above.
 
 ## The version string
 
-`YYYY.MM.DD`, the day the folder was assembled — *[calendar
-versioning](https://calver.org/)* — and the tag is that string with a `v`
-in front. There is no fourth component and no release candidate: a fix to
-a release that shipped broken is another day's release.
+[Section 12 of the organization
+standard](https://github.com/btclib-org/.github#12-releasing) sets
+calendar versioning, `YYYY.M.D`. The tag is that string with a `v` in
+front, per section 11's `tag-integrity` ruleset and its `refs/tags/v*`
+target; here that string names the day the folder was assembled. There
+is no fourth component and no release candidate: a fix to a release
+that shipped broken is another day's release.
 
 `VERSION` holds the string a release is cut at, and it is the release
 step that moves it. That is worth knowing before editing it for any
@@ -65,7 +68,7 @@ version before the date it is cut on is known.
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
    --all-files`, exit code 0, then `git status --porcelain` empty.
 1. Decide the date, and make the three files say it. `CHANGELOG.md`'s
-   `## [Unreleased]` heading becomes `## [YYYY.MM.DD] - <what this
+   `## [Unreleased]` heading becomes `## [YYYY.M.D] - <what this
    release is>`; `RELEASE_NOTES.md`'s does the same, its retitled
    section saying what a user has to *act* on, and nothing that is
    merely a change; `VERSION` becomes that string. This pull request
