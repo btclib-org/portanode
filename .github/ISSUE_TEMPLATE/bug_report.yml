@@ -81,7 +81,7 @@ body:
       description: >
         The `VERSION` file, plus `git rev-parse --short HEAD` if you are on a
         checkout rather than a release.
-      placeholder: "2026.01.27"
+      placeholder: "YYYY.MM.DD"
     validations:
       required: true
 
