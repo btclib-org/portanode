@@ -3991,6 +3991,17 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   hours six minutes short of its own, and neither gap says whether the
   boundary is a date rather than a time-of-day comparison, or a scheduler
   that rounds.
+- **`.github/ISSUE_TEMPLATE/bug_report.yml`'s *PortaNode version*
+  placeholder is the format rather than a date** (closes #514).
+  `YYYY.MM.DD` is the form `RELEASING.md`'s *The version string* gives,
+  and the string itself is read from `VERSION`, where the field's own
+  description already sends the reporter. A date literal in the
+  placeholder is a second copy of `VERSION` that *Cutting one* does not
+  name among the files a release moves, so a release leaves it naming
+  the string before it, and no hook compares the two. Naming this file
+  there is the rejected alternative: it keeps the example a reporter can
+  match character for character, at the cost of a fourth file to edit by
+  hand in a procedure nothing gates.
 
 ## [2026.01.27] - Initial Release
 
