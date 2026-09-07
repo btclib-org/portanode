@@ -116,12 +116,19 @@ and Ubuntu it has to run under, not on a single default:
   Pruned mainnet, regtest and testnet require less. Below 100GB free
   `validate-setup` fails outright, whatever the network and whether or not
   pruning is on.
-- **Permissions**: Ensure the external disk is mounted and writable. A folder
-  taken by either route in *Getting the folder* below needs nothing made
-  runnable by hand: the launchers carry the executable bit in the repository
-  and both routes keep it, and an exFAT volume reports every file as
-  executable whatever its mode. A folder that reached the disk some other way
-  is under *Troubleshooting*.
+- **Permissions**: Ensure the external disk is mounted and writable. A
+  folder taken by either route in *Getting the folder* below needs
+  nothing made runnable by hand: the launchers carry the executable bit
+  in the repository and both routes keep it, and exFAT, which stores no
+  mode of its own, reports every file as executable on macOS regardless
+  of `chmod` and on Linux under any mount whose `fmask` does not carry
+  `1` in its owner digit — *Choosing a filesystem* above has both
+  measurements. A Linux mount whose `fmask` does carry it is outside
+  that, and `linux/scripts/utilities/set-permissions.sh` names one,
+  `fmask=133`, as the setting that stops the launchers starting: what
+  such a volume reports comes from the mount rather than from the file,
+  so remounting is what changes it. A folder that reached the disk some
+  other way is under *Troubleshooting*.
 - **Dependencies**: None required beyond standard OS tools. For advanced use,
   ensure Python (for Electrum) and command-line tools are available.
 
