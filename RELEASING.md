@@ -46,9 +46,27 @@ is no fourth component and no release candidate: a fix to a release
 that shipped broken is another day's release.
 
 `VERSION` holds the string a release is cut at, and it is the release
-step that moves it. That is worth knowing before editing it for any
-other reason: **`VERSION` is also the marker the launchers find the root
-by.**
+step that moves it there. Between releases it holds `YYYY.M`, month
+only, so a checkout of `main` reports itself as work in progress rather
+than as a day nothing was assembled on. The month is the one after the
+month of the release just cut, rather than the calendar's current one;
+those two differ whenever a release is cut in the month already
+running. Comparison is component-wise and a missing component reads as
+`0`, so `2026.9` sorts *below* `2026.9.7` — a checkout declaring
+`2026.9` after that release would report itself older than the release
+it already contains — where `2026.10` sorts above it.
+
+What the rule holds is each commit against the releases reachable from
+it, not the sequence of values `VERSION` takes across `main`. A second
+release cut in the same month moves the string down, to that release's
+own day, and the bump after it moves it back up; at each of those
+commits `VERSION` is the newest release contained or above it, which is
+the whole of what is required. The numbers do fall, so reading the rule
+as one about a rising sequence is the misreading available, and it
+answers a question nothing here asks.
+
+This is worth knowing before editing `VERSION` for any other reason:
+**it is also the marker the launchers find the root by.**
 
 ```shell
 grep -rn 'VERSION' shared/lib.sh win/scripts/root.bat win/scripts/root.ps1
@@ -63,11 +81,13 @@ with a "binary not found" rather than with anything naming the cause.
 
 `CHANGELOG.md` and `RELEASE_NOTES.md` carry `## [Unreleased]` as their
 topmost `##` heading at every commit on the default branch, where
-`VERSION` holds the string a release is cut at. The heading and `VERSION`
-never agree, and that is by construction rather than by drift: step 2
-below retitles the open heading and opens a new one in the same pull
-request, so no commit is left with a released version at the top of
-either file. A dated placeholder heading would not do — it names a
+`VERSION` holds either a released day or a between-releases month. The
+heading and `VERSION` never agree, and that is by construction rather
+than by drift: step 2 below retitles the open heading and opens a new
+one in the same pull request, so no commit is left with a released
+version at the top of either file, and the later bump step moves
+`VERSION` past the day that retitling names without ever making the two
+agree either. A dated placeholder heading would not do — it names a
 version before the date it is cut on is known.
 
 ## Cutting one
@@ -127,6 +147,12 @@ version before the date it is cut on is known.
     answers `tag`, not `commit`. A `commit` there means the tag went up
     unsigned, and the fix is to delete and re-cut it — which is why
     `tag-integrity` carries no `deletion` rule.
+1. Open a separate pull request that bumps `VERSION` to `YYYY.M`, the
+   month that sorts above the day just tagged — see *The version string*
+   above. It does not travel with the release: every command above reads
+   `$(cat VERSION)` literally, so a tree already bumped before the tag is
+   cut tags and publishes the month-only string instead of the release's
+   own day.
 
 ## If something goes wrong
 

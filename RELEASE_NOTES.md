@@ -4,10 +4,11 @@ Notable changes are documented here.
 [CHANGELOG.md](./CHANGELOG.md) is the record behind them: this file says
 what a user has to act on, that one says what changed and why.
 
-Versions are *[calendar versions](https://calver.org/)*, `YYYY.M.D`,
-and `VERSION` holds the string a release is cut at. The number says when
-the folder was assembled, which is the useful thing to know about a
-bundle of somebody else's binaries; it promises nothing about
+Versions are *[calendar versions](https://calver.org/)*. `VERSION` holds
+`YYYY.M.D` at a release, the day the folder was assembled, and `YYYY.M`,
+month only, between releases — `RELEASING.md`'s *version string* section
+has why. The day, where there is one, is the useful thing to know about
+a bundle of somebody else's binaries; it promises nothing about
 compatibility, so anything that has to be done by hand on an existing
 folder — a datadir that must be moved, a key that must be re-imported, a
 launcher that has been renamed — is announced here rather than left to be

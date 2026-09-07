@@ -19,6 +19,20 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   --name-only -r origin/main -- .github/workflows` reads that ref's own
   tree object, so neither an uncommitted local file nor a stale API
   entry can appear in its answer.
+- **`VERSION` moves to `2026.10`, and `RELEASING.md` and `CLAUDE.md` now
+  say what it holds between releases.** Section 12 of the organization
+  standard sets the declared version to `YYYY.M`, month only, between
+  releases, and this tree carried no such rule. The month is the one
+  after the month of the release just cut rather than the calendar's
+  current one, comparison being component-wise with a missing component
+  read as `0` — `2026.9` sorts below `2026.9.7`, so `2026.10` is what
+  keeps a checkout from declaring itself older than the release it
+  already contains. What is held is each commit against the releases
+  reachable from it, not a rising sequence of values across `main`.
+  `RELEASING.md`'s *Cutting one* also
+  gains the bump as a step of its own, after the tag and the release
+  rather than before, since every step up to and including reading back
+  what landed reads `$(cat VERSION)` literally.
 
 ## [2026.9.7] - First Tagged Release
 
