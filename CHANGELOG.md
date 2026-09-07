@@ -3945,6 +3945,19 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   both. No literal version lands in the file: that would be a line nothing
   here reads and no gate re-derives, the same trade `.python-version` already
   declines for the interpreter.
+- **`.github/dependabot.yml`'s cooldown paragraph names what
+  `default-days` is documented to do rather than a week this repository
+  has seen it guarantee** (closes #506). GitHub's own reference lists
+  `default-days` as the cooldown parameter the `github-actions`
+  ecosystem supports; PR 331 nonetheless offered v1.0.208 five days
+  twelve hours after that release published, with `default-days: 7`
+  already in force. Whether the cooldown was applied and lost, or
+  never reached this pin's shape, is not settled:
+  `dependabot/dependabot-core#15505` reports the same ecosystem, the
+  same commit-pinned shape and the same symptom, and is open. This
+  pin's own `v1` alias is a persistent GitHub Release the issue names
+  as reused -- its `published_at` is over a year older than its own
+  `created_at`, which tracks the alias's last move.
 
 ## [2026.01.27] - Initial Release
 

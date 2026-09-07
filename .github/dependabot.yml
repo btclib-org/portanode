@@ -20,11 +20,16 @@
 # target-branch naming a branch that is not there is not an error
 # anywhere, it is a repository where nothing is ever proposed.
 #
-# The seven-day cooldown is what the weekly interval is really trading
-# against: a compromised release is usually yanked within days, and
-# nothing is offered here before it has been public a week. The interval
-# decides how long after that week the offer arrives, not whether it
-# waits at all
+# The seven-day cooldown is what the weekly interval is meant to
+# trade against: a compromised release is usually yanked within days,
+# and `default-days` is the cooldown parameter GitHub's own reference
+# lists as supported for the github-actions ecosystem. This repository
+# has seen it miss: PR 331 offered v1.0.208 five days twelve hours
+# after that release published, with default-days: 7 already in
+# force. Whether the cooldown was applied and lost, or never reached
+# this pin's shape, is not settled here; dependabot/dependabot-core
+# #15505 reports the same ecosystem, the same commit-pinned shape
+# and the same symptom, and is open
 version: 2
 updates:
   # every action in .github/workflows is pinned to a commit SHA, and
