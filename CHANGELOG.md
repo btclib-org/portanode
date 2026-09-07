@@ -3839,6 +3839,39 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   exact path, which is what keeps a forwarder at its own path rather than
   in every caller.
 
+### The exFAT mask remedy is unmounting the volume and mounting it again
+
+- **`README.md`'s *Permissions* bullet names unmounting the volume and
+  mounting it again with another mask as what changes the mode such a
+  volume reports** (closes #491). It named remounting, which reads as
+  `mount -o remount`: run
+  [34096297167](https://github.com/btclib-org/portanode/actions/runs/34096297167)
+  gives a mount at `fmask=133` the command `mount -o remount,fmask=022`,
+  which exits 0 while `findmnt` goes on reporting `fmask=0133`, the file
+  goes on reading `-rw-r--r--` and running it goes on failing, exit 126.
+  *Troubleshooting* on the same page already named the operation that
+  works, so one page carried both answers.
+- **`linux/scripts/utilities/set-permissions.sh`'s status-2 message says
+  how the mount options it names are put in force**, in the same words,
+  and its own measurement comment records the remount result beside the
+  masks it already carries. The message named `fmask=077,dmask=077` and
+  left the reader to reach for the command that does not apply it.
+- **The script was run on `ubuntu-latest` from a loopback exFAT image**,
+  which is as close as a runner gets to a drive plugged into a running
+  machine: run
+  [34107655726](https://github.com/btclib-org/portanode/actions/runs/34107655726)
+  mounts an image made with `exfatprogs` at `fmask=133`, copies the
+  folder onto it, and the script there exits 2 and prints the message,
+  where the runner's own ext4 exits 0 and reports both data directories
+  restricted. `mount -o remount,fmask=077,dmask=077` against that mount
+  exits 0 and leaves `findmnt` reporting `fmask=0133,dmask=0000` and the
+  data directories reading `drwxrwxrwx`; unmounted and mounted again with
+  those same options they read `drwx------`, the script's own file reads
+  `-rwx------` and runs from the volume, and the script still exits 2,
+  exFAT storing no mode for it to restrict.
+- **`linux/scripts/utilities/README.md`'s description of the script names
+  that sentence beside what it already lists.**
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
