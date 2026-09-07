@@ -22,11 +22,16 @@ case "$UNAME" in
     fi
     ;;
   Linux)
-    # No linux/Utilities-Launcher of its own yet: refuse rather than
-    # fall through to the .command below, which runs macOS's own menu
-    # against tooling that does not exist on this platform.
-    echo "Linux is not supported yet by Utilities-Launcher.sh."
-    exit 1
+    # The .command below runs macOS's own menu, whose entries reach
+    # tooling that does not exist on this platform, so Linux is served
+    # by a menu of its own rather than by that one.
+    if [ -f "$ROOTDIR/linux/Utilities-Launcher.sh" ]; then
+      bash "$ROOTDIR/linux/Utilities-Launcher.sh"
+    else
+      echo "Script not found: linux/Utilities-Launcher.sh"
+      exit 1
+    fi
+    exit 0
     ;;
 esac
 

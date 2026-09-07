@@ -22,11 +22,16 @@ case "$UNAME" in
     fi
     ;;
   Linux)
-    # No linux/Electrum-Launcher of its own yet: refuse rather than fall
-    # through to the .command below, which runs macOS's own menu against
-    # Mach-O binaries that do not exist on this platform.
-    echo "Linux is not supported yet by Electrum-Launcher.sh."
-    exit 1
+    # The .command below runs macOS's own menu, whose entries reach
+    # Mach-O binaries that do not exist on this platform, so Linux is
+    # served by a menu of its own rather than by that one.
+    if [ -f "$ROOTDIR/linux/Electrum-Launcher.sh" ]; then
+      bash "$ROOTDIR/linux/Electrum-Launcher.sh"
+    else
+      echo "Script not found: linux/Electrum-Launcher.sh"
+      exit 1
+    fi
+    exit 0
     ;;
 esac
 

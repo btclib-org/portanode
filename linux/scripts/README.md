@@ -29,9 +29,10 @@ Scripts include error checks and will prompt for confirmations on data
 deletion.
 
 The root `Bitcoin-Launcher.sh`, `Electrum-Launcher.sh` and
-`Utilities-Launcher.sh` each refuse Linux rather than reaching this
-directory, so a script under `bitcoin/`, `electrum/` or `utilities/` is
-run by its own path.
+`Utilities-Launcher.sh` dispatch on Linux into `linux/Bitcoin-Launcher.sh`,
+`linux/Electrum-Launcher.sh` and `linux/Utilities-Launcher.sh`, whose menus
+run the scripts in this directory. A script under `bitcoin/`, `electrum/`
+or `utilities/` still runs by its own path.
 
 ## Customization
 

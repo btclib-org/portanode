@@ -101,10 +101,9 @@ Can be used if an update fails.
 - Health checks rely on process listing; a restricted `/proc` reduces
   detection accuracy, and the Bitcoin check falls back to `bitcoin-cli`
   and to the datadir's own artifacts.
-- These scripts are run by their own path. The root `Bitcoin-Launcher.sh`,
-  `Electrum-Launcher.sh` and `Utilities-Launcher.sh` each refuse Linux
-  with "Linux is not supported yet", so none of them reaches this
-  directory.
+- These scripts are run by their own path, or from the menu the root
+  `Utilities-Launcher.sh` reaches on Linux through
+  `linux/Utilities-Launcher.sh`.
 - Check script output for errors; refer to main README.md for
   troubleshooting.
 

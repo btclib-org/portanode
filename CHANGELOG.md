@@ -3783,6 +3783,62 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `fmask` half of the same sentence is still untested on that mount, and
   the paragraph says so.
 
+### Linux reaches a launcher menu
+
+- **`linux/Bitcoin-Launcher.sh`, `linux/Electrum-Launcher.sh` and
+  `linux/Utilities-Launcher.sh` are Linux's numbered menus, and the root
+  `.sh` launcher of each name runs the matching one where `uname -s`
+  answers `Linux`** (closes #485, closes #493). Each root launcher named
+  itself in a `Linux is not supported yet` refusal there rather than
+  reaching `linux/scripts/`. Each menu sources `linux/scripts/lib.sh` and
+  dispatches to paths under `linux/scripts/`, and the Utilities menu
+  names Linux as the platform whose artifacts its cleanup entry removes,
+  as the `.bat` and the `.ps1` name Windows.
+- **The menus sit under `linux/` rather than in a body shared with the
+  `.command` launchers.** Sharing one edits those, which is macOS's
+  double-click path, so a change scoped to Linux would owe the run on
+  macOS that `CLAUDE.md` requires of any launcher change. A menu that
+  repeats its `.command` is what that costs.
+- **The menus were run on `ubuntu-latest` from a loopback exFAT image**,
+  which is what a runner can offer where nothing on one is a drive
+  plugged into a machine. Run
+  [34097124384](https://github.com/btclib-org/portanode/actions/runs/34097124384),
+  against an image made with `exfatprogs` and mounted `-t exfat` under
+  the in-kernel `exfat` module from `linux-modules-extra-$(uname -r)`,
+  which `findmnt` reports as `exfat` rather than `fuseblk`: each root
+  `.sh` prints its menu with `ROOTDIR` at the image's mount point and
+  exits 0 on an empty selection, on `0` and after an unknown one; every
+  numbered Bitcoin and Electrum entry reaches a script under
+  `linux/scripts/` that stops at that script's own
+  `Error: Binary not found at linux/bin/...` where a clean checkout has
+  no binary; the menu's own
+  `Script not found: linux/scripts/bitcoin/mainnet-8333-qt.sh` names the
+  path its first entry dispatches to once that file is taken away;
+  `PORTANODE_ROOT` overrides the walk; and a launcher reached through a
+  symlink, or from an unrelated working directory, resolves the root the
+  launcher itself sits under. The same commands against `origin/main`
+  print `Linux is not supported yet` and exit 1.
+- **`linux/scripts/README.md` and `linux/scripts/utilities/README.md`
+  name the menu as a way of reaching the scripts under `linux/scripts/`,
+  beside running one by its own path.**
+- **`README.md` describes the Linux menu.** *Quick Start* runs the root
+  `.sh` launchers on Linux as it double-clicks the `.command` on macOS
+  and the `.bat` on Windows, and its next step names no platform at all;
+  *Launcher Notes* gives the root `.sh` dispatch its third target;
+  *Folder Structure* lists the menus under `linux/`; and the Bitcoin and
+  Electrum sections say a script under `linux/scripts/` also runs by its
+  own path, where they said it runs only that way.
+- **`CLAUDE.md`'s executable-bit bullet, and the
+  `check-shebang-scripts-are-executable` comment that cites it as its
+  authority, name `linux/` beside the root and the two `scripts/`
+  directories.** Each enumerates where the bit is set, and the menus sit
+  at a location neither named; they earn it for the reason
+  `linux/scripts/`'s `.sh` files do, a shell reading the file directly.
+- **`CLAUDE.md`'s forwarder paragraph gives `linux/scripts/lib.sh` the
+  reason it gives `macos/scripts/lib.sh`**: a launcher sources it by that
+  exact path, which is what keeps a forwarder at its own path rather than
+  in every caller.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
