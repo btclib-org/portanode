@@ -130,8 +130,9 @@ and Ubuntu it has to run under, not on a single default:
   so unmounting the volume and mounting it again with another mask is
   what changes it. A Linux exFAT mount carrying `noexec` is outside that
   too, and shows in no mode at all: the file goes on reading executable
-  and still will not run. Measured on Ubuntu's own kernel driver. A
-  folder that reached the disk some other way is under *Troubleshooting*.
+  and still will not run. Measured on Ubuntu's own kernel driver.
+  *Troubleshooting* below has the remedy for that case, and for a folder
+  that reached the disk some other way.
 - **Dependencies**: None required beyond standard OS tools. For advanced use,
   ensure Python (for Electrum) and command-line tools are available.
 
@@ -366,6 +367,16 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   mask, and unmounting the volume and mounting it again with one that
   leaves the owner's execute bit — `fmask=022`, or `fmask=077,dmask=077`
   to keep the volume owner-only — is what makes the launchers runnable.
+- **Permission denied, though the mode already reads executable**: a
+  mount carrying `noexec` refuses the exec whatever the file's own mode
+  is, on any filesystem that offers the option, and running the
+  launcher fails with `Permission denied`, exit 126. Neither entry
+  above reaches it: there is no bit for `chmod +x` to set and no mask
+  for a remount to clear, so both exit 0 and change nothing. `ls -l`
+  still reads the launcher as executable and `test -x` answers false;
+  `findmnt -no OPTIONS <mount point>` is where `noexec` itself shows.
+  Unmounting the volume and mounting it again without `noexec` is what
+  makes the launchers runnable.
 - **"The ... path uses exFAT" warning on macOS**: expected, from
   Bitcoin Core itself, not from a launcher here — see *Limitations, not
   vulnerabilities* below.

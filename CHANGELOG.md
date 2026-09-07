@@ -3909,6 +3909,34 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   file's own comment block above reserves that stem for the inert
   `mount -o remount`.
 
+### *Troubleshooting* gains an entry for a mode that already reads executable
+
+- **`README.md`'s *Troubleshooting* section gains an entry for a
+  launcher refused though its own mode already reads executable, keyed
+  on that symptom rather than on a filesystem** (closes #492). Its two
+  existing entries are keyed on a volume that stores a Unix mode and on
+  a Linux exFAT mount's own `fmask`; a mount carrying `noexec` matches
+  the second entry's title word for word where the reader is also on
+  exFAT, and that entry's remedy, another `fmask`, exits 0 and changes
+  nothing, `noexec` staying in force. The new entry names no
+  filesystem: `noexec` refuses the exec on any that offers the option.
+  Measured on `ubuntu-latest` in run
+  [34095933341](https://github.com/btclib-org/portanode/actions/runs/34095933341),
+  kernel `6.17.0-1022-azure`, against a loopback exFAT image made with
+  `exfatprogs` 1.2.2 and mounted under the in-kernel `exfat` module with
+  `noexec` and no mask named, which `/proc/mounts` reports as
+  `fmask=0022`: the file reads `-rwxr-xr-x`, `test -x` answers false,
+  and running it fails with `Permission denied` and exit code 126,
+  where the same image mounted without `noexec` runs it at exit 0.
+  `noexec` on a filesystem other than exFAT, on a driver other than the
+  in-kernel `exfat` module, and what a desktop's own automounter passes
+  for it on a removable volume are not measured here.
+- **The *Permissions* bullet's own closing pointer now routes the
+  `noexec` case it already names to *Troubleshooting* for the remedy**,
+  rather than only a folder that reached the disk some other way: the
+  bullet named the symptom without a remedy, and the pointer that
+  followed it did not invite that reader across.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
