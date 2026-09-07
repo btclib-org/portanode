@@ -348,11 +348,23 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 
 - **Script fails with "Binary not found"**: Ensure binaries are in
   `macos/bin/`, `win/bin/` or `linux/bin/`. Check permissions.
-- **Permission denied on macOS**: The folder reached this disk through
-  something that dropped the executable bit — a copy, or an archive
-  unpacked by a tool that does not restore it. `chmod +x` the launcher you
-  ran, or take the folder again by either route in *Getting the folder*,
-  both of which keep it.
+- **Permission denied, on a volume that stores a Unix mode** (APFS or
+  ext4): the folder reached this disk through something that dropped the
+  executable bit — a copy, or an archive unpacked by a tool that does
+  not restore it. `chmod +x` the launcher you ran, or take the folder
+  again by either route in *Getting the folder*, both of which keep it.
+- **Permission denied on Linux, with the folder on exFAT**: the mode a
+  file reads there is computed from the mount's `fmask` rather than
+  stored, so a mask carrying `1` in its owner digit clears the
+  launcher's execute bit and running it fails with `Permission denied`,
+  exit 126; under `fmask=133` the launcher reads `-rw-r--r--` however it
+  reached the volume. The entry above does not reach this case:
+  `chmod +x` exits 0 and the launcher goes on reading `-rw-r--r--`, and
+  a `mount -o remount` naming another mask exits 0 and leaves the mask
+  in force as it was. `findmnt -no OPTIONS <mount point>` prints that
+  mask, and unmounting the volume and mounting it again with one that
+  leaves the owner's execute bit — `fmask=022`, or `fmask=077,dmask=077`
+  to keep the volume owner-only — is what makes the launchers runnable.
 - **"The ... path uses exFAT" warning on macOS**: expected, from
   Bitcoin Core itself, not from a launcher here — see *Limitations, not
   vulnerabilities* below.
