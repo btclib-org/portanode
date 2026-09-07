@@ -25,12 +25,15 @@ body:
     attributes:
       label: Platform
       description: >
-        Every script exists once per platform, and the two halves fail
-        differently.
+        A platform's own script fails only on that platform; the
+        `shared/` code macOS and Linux both source fails identically on
+        either. Select every platform you reproduced it on, to narrow
+        which it is.
+      multiple: true
       options:
         - macOS
         - Windows
-        - both
+        - Linux
     validations:
       required: true
 
@@ -90,7 +93,7 @@ body:
     attributes:
       label: Operating system
       description: Version and architecture.
-      placeholder: "macOS 15.6 arm64, Windows 11 24H2 x86_64"
+      placeholder: "macOS 15.6 arm64, Windows 11 24H2 x86_64, Ubuntu 24.04 x86_64"
     validations:
       required: true
 
@@ -112,7 +115,7 @@ body:
         attached. A portable node is the case this project is built for, and
         exFAT on a removable disk behaves differently from APFS or NTFS on an
         internal one — permissions, symlinks, and app bundles most of all.
-      placeholder: "exFAT NVMe, USB 3 enclosure, shared macOS/Windows"
+      placeholder: "exFAT NVMe, USB 3 enclosure, shared macOS/Windows/Linux"
     validations:
       required: true
 

@@ -4009,6 +4009,14 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   and never lined up with the analogous path on another platform. The
   prose's "two halves" and "the other side" assumed exactly one
   counterpart; it now reads "the platforms" and "the other platforms".
+- **`.github/ISSUE_TEMPLATE/bug_report.yml`'s Platform dropdown lists
+  Linux beside macOS and Windows, accepts more than one selection, and
+  its description no longer reads as though only two platforms
+  existed** (closes #515). A single-select `both` could not name which
+  platforms a report actually spanned; `multiple: true` lets a reporter
+  mark exactly the ones they reproduced it on. The Operating system and
+  Volume and filesystem fields' own examples gain a Linux entry to
+  match.
 
 ## [2026.01.27] - Initial Release
 
