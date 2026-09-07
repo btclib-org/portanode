@@ -3971,6 +3971,26 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   none locally -- so the second file's freeze argument now rests on
   the ecosystem not being configured here rather than on it not
   existing.
+- **`.github/dependabot.yml`'s cooldown paragraph is corrected again: the
+  elapsed time it named for PR 331 was a day short of the true figure, and
+  the reused-Release path it left undistinguished is ruled out** (closes
+  #512). `2026-09-03T10:15:08Z` minus `2026-08-27T22:13:41Z` is six days
+  twelve hours, not five; the entry closing #506 carries the wrong figure,
+  and this one supersedes it. PR 331 offered v1.0.208 while holding v1.0.209
+  through v1.0.214, the newest of them then available, and PR 510 offered
+  v1.0.211 while holding v1.0.212 through v1.0.217, again the newest then
+  available -- both instances the cooldown applied and filtered, not the
+  wholesale bypass `dependabot/dependabot-core#15505` describes. Its own
+  symptom is the newest release taken outright, which neither instance did,
+  and no release either touched carries its reuse signature: v1.0.207, 208,
+  211, 214 and 217 were each created within four seconds of their own
+  publish, where the reused `v1` alias's own `created_at` trails its
+  `published_at` by 375 days. What remains undistinguished is narrower and
+  needs no assumption about when the check ran: PR 331's offer sat two hours
+  thirty-seven minutes short of its first held release, PR 510's twenty-two
+  hours six minutes short of its own, and neither gap says whether the
+  boundary is a date rather than a time-of-day comparison, or a scheduler
+  that rounds.
 
 ## [2026.01.27] - Initial Release
 

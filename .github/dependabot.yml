@@ -20,16 +20,27 @@
 # target-branch naming a branch that is not there is not an error
 # anywhere, it is a repository where nothing is ever proposed.
 #
-# The seven-day cooldown is what the weekly interval is meant to
-# trade against: a compromised release is usually yanked within days,
-# and `default-days` is the cooldown parameter GitHub's own reference
-# lists as supported for the github-actions ecosystem. This repository
-# has seen it miss: PR 331 offered v1.0.208 five days twelve hours
-# after that release published, with default-days: 7 already in
-# force. Whether the cooldown was applied and lost, or never reached
-# this pin's shape, is not settled here; dependabot/dependabot-core
-# #15505 reports the same ecosystem, the same commit-pinned shape
-# and the same symptom, and is open
+# The seven-day cooldown is what the weekly interval is meant to trade
+# against: a compromised release is usually yanked within days, and
+# `default-days` is the cooldown parameter GitHub's own reference
+# lists as supported for the github-actions ecosystem. It is applied
+# and it filters: PR 331 offered v1.0.208 while holding v1.0.209
+# through v1.0.214, the newest of them then available, and PR 510
+# offered v1.0.211 while holding v1.0.212 through v1.0.217, again the
+# newest then available. The boundary needs no assumption about when
+# the check ran: PR 331's offer sat two hours thirty-seven minutes
+# short of its first held release, PR 510's twenty-two hours six
+# minutes short of its own -- both short of a full day. Two points do
+# not distinguish a date rather than a time-of-day comparison from a
+# scheduler that rounds. They do rule out the reused-Release path
+# `dependabot/dependabot-core#15505` names: its own symptom is the
+# newest release taken outright, which neither instance did, and no
+# release either touched carries its reuse signature -- v1.0.207, 208,
+# 211, 214 and 217 were each created within four seconds of their own
+# publish, where the reused `v1` alias's own `created_at` trails its
+# `published_at` by 375 days. A third instance, or reading the
+# grouped-update path both pull requests took, is what would settle
+# the pair that remains
 version: 2
 updates:
   # every action in .github/workflows is pinned to a commit SHA, and
