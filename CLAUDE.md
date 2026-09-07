@@ -488,9 +488,10 @@ Do not use Fable unless explicitly instructed.
   outside the rule rather than an exception to it.
 - **Never state how many of anything a file holds.** A stated count is a
   line every open branch has to edit, and nothing here checks one.
-- **The version is a date**: `VERSION` holds `YYYY.M.D` and a release
-  tag is that string with a `v` in front. `RELEASING.md` is the
-  procedure.
+- **The version is a date, except between releases.** `VERSION` holds
+  `YYYY.M.D` at a release and `YYYY.M`, month only, between them, and a
+  release tag is the released string with a `v` in front. `RELEASING.md`
+  is the procedure and the reason for the month-only value.
 - **A pull request that closes an issue names it in its title, in
   parentheses**; one that closes nothing carries no parentheses. The
   title becomes the landing commit's subject, `squash_merge_commit_title`
