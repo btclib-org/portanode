@@ -4002,6 +4002,13 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   there is the rejected alternative: it keeps the example a reporter can
   match character for character, at the cost of a fourth file to edit by
   hand in a procedure nothing gates.
+- **`REVIEWING.md`'s platform-reach bullet's `sed` now strips a `linux/`
+  prefix as well as `macos/` and `win/`, and its prose no longer casts
+  the platforms as two halves** (closes #518). The pattern matched only
+  `macos/` or `win/`, so a diff touching a `linux/` path kept its prefix
+  and never lined up with the analogous path on another platform. The
+  prose's "two halves" and "the other side" assumed exactly one
+  counterpart; it now reads "the platforms" and "the other platforms".
 
 ## [2026.01.27] - Initial Release
 

@@ -590,16 +590,16 @@ because that document, and not this one, is where the rule lives.
     which reports that last line.
 - **Does the change reach the other platforms?** The same launcher is
   written four ways — `.sh`, `.command`, `.bat`, `.ps1` — and nothing
-  keeps them in step. The two halves are not a mirror to begin with,
+  keeps them in step. The platforms are not a mirror to begin with,
   which is why the question is asked of the file that changed rather than
   of the tree:
 
     ```shell
-    git diff --name-only origin/main... | sed -E 's,^(macos|win)/,,'
+    git diff --name-only origin/main... | sed -E 's,^(macos|win|linux)/,,'
     ```
 
-    names the subject on one side; whether the other side has it, and
-    whether it needed the same change, is the reading.
+    names the subject on one platform; whether the other platforms have
+    it, and whether they needed the same change, is the reading.
 - **Does verification still fail closed?** An update script installs
   nothing whose PGP signature did not verify, `PORTANODE_ALLOW_UNVERIFIED`
   being the one documented way past it. A diff that turns a verification
