@@ -3740,6 +3740,29 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   execute bit away and stops the launchers starting. That is the mount
   the *Permissions* bullet excludes rather than covers.
 
+### *Troubleshooting* names the exFAT case a Linux launcher is refused in
+
+- **`README.md`'s *Troubleshooting* section scopes its refused-launcher
+  entry to a volume that stores a Unix mode, and gives a launcher
+  refused on exFAT under Linux an entry of its own** (closes #488). The
+  entry it had named macOS in its own title and offered `chmod +x`,
+  which on exFAT answers nothing: run
+  [34095933341](https://github.com/btclib-org/portanode/actions/runs/34095933341)
+  on `ubuntu-latest` mounts a loopback exFAT image with `fmask=133`, the
+  script on it reads `-rw-r--r--`, `chmod +x` exits 0 and leaves it
+  reading `-rw-r--r--`, `test -x` answers false and running it fails
+  with `Permission denied`, exit 126 — where the same image on a plain
+  mount reads `-rwxr-xr-x` and runs it, exit 0.
+- **The entry names unmounting the volume and mounting it again rather
+  than a remount in place**: run
+  [34096297167](https://github.com/btclib-org/portanode/actions/runs/34096297167)
+  gives its own mount at `fmask=133` the command
+  `mount -o remount,fmask=022`, which exits 0 while `findmnt` goes on
+  reporting `fmask=0133`, the script goes on reading `-rw-r--r--` and
+  running it goes on failing, exit 126. That run's image unmounted and
+  mounted again with `fmask=022` reads `-rwxr-xr-x` and runs it, exit 0,
+  and with `fmask=077,dmask=077` reads `-rwx------` and runs it too.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
