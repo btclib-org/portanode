@@ -68,11 +68,12 @@ Can be used if an update fails.
   directory reads is computed from the mount's `fmask` and `dmask`, so
   the `chmod` calls change nothing there. The script reads the mode back
   and reports which case it found, names `uid=<your uid>,fmask=077,
-  dmask=077` as the mount options that restrict such a volume, and names
+  dmask=077` as the mount options that restrict such a volume, names
   `fmask=133` as the setting that removes the execute bit the launchers
-  and the `linux/bin` binaries need. Its own comment carries the
-  measurement, and `README.md`'s *Permissions* bullet under *Security
-  Notes* has the exit statuses.
+  and the `linux/bin` binaries need, and names unmounting the volume and
+  mounting it again as what puts such an option in force. Its own comment
+  carries the measurement, and `README.md`'s *Permissions* bullet under
+  *Security Notes* has the exit statuses.
 
 ## Notes
 

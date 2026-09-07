@@ -176,6 +176,12 @@ report_default_acl() {
 #     rw-r--r--, running it directly fails with "Permission denied" and
 #     exit 126, and only an explicit interpreter ("bash <file>") still
 #     works.
+#   * A mask takes effect when the volume is unmounted and mounted again
+#     with it, not on a remount in place: against a mount at fmask=133,
+#     "mount -o remount,fmask=022" exited 0 while findmnt went on
+#     reporting fmask=0133, the file went on reading rw-r--r-- and
+#     running it went on failing with exit 126, where the same image
+#     unmounted and mounted again with fmask=022 read rwxr-xr-x and ran.
 #
 # So on exFAT the execute bit survives the masks measured above and a
 # mount option defeats it, where macOS synthesises rwx------ whatever
@@ -323,7 +329,10 @@ if [ "$BITCOIN_STATUS" -eq 2 ] || [ "$ELECTRUM_STATUS" -eq 2 ]; then
          "uid=<your uid>,fmask=077,dmask=077 makes every file and directory" \
          "on it owner-only and keeps the execute bit the launchers and the" \
          "linux/bin binaries need. fmask=133 is the setting that takes that" \
-         "bit away and stops them starting."
+         "bit away and stops them starting. Unmounting the volume and" \
+         "mounting it again with those options is what applies them: a" \
+         "mount -o remount naming another mask exits 0 and leaves the mask" \
+         "in force as it was."
     echo "A mount option restricts this machine only: the next one mounts" \
          "the volume with its own. Encryption or physical control of the" \
          "device is what restricts it everywhere."

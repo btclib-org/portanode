@@ -127,11 +127,11 @@ and Ubuntu it has to run under, not on a single default:
   that, and `linux/scripts/utilities/set-permissions.sh` names one,
   `fmask=133`, as the setting that stops the launchers starting: what
   such a volume reports comes from the mount rather than from the file,
-  so remounting is what changes it. A Linux exFAT mount carrying
-  `noexec` is outside that too, and shows in no mode at all: the file
-  goes on reading executable and still will not run. Measured on
-  Ubuntu's own kernel driver. A folder that reached the disk some other
-  way is under *Troubleshooting*.
+  so unmounting the volume and mounting it again with another mask is
+  what changes it. A Linux exFAT mount carrying `noexec` is outside that
+  too, and shows in no mode at all: the file goes on reading executable
+  and still will not run. Measured on Ubuntu's own kernel driver. A
+  folder that reached the disk some other way is under *Troubleshooting*.
 - **Dependencies**: None required beyond standard OS tools. For advanced use,
   ensure Python (for Electrum) and command-line tools are available.
 
