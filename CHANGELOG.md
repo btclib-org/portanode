@@ -3697,6 +3697,29 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the buffer is still answered by its drive letter, and the file's comment
   says so rather than claiming a mount point is never answered that way.
 
+### The exFAT mount's `fmask` is the mounting process's umask
+
+- **`CLAUDE.md`'s Linux exFAT bullet reads the mask off the mounting
+  process's umask, and states the guarantee over the umasks it was
+  measured under rather than treating `022` as a floor an operator has
+  to act to leave** (closes #484). Measured on `ubuntu-latest` in run
+  [34089659242](https://github.com/btclib-org/portanode/actions/runs/34089659242),
+  varying only the mounting process's umask, with `uid=` and `gid=`
+  named so that the mask is the only thing left to decide the mode:
+  `fmask` and `dmask` come back as `0022`, `0077` and `0000` under
+  umasks `022`, `077` and `000`, and the script runs under each. The
+  block it replaces mounted under `sudo` without setting a umask, so its
+  `fmask=0022` measured that shell's umask rather than a driver default.
+  The block now varies the umask and ends with the control that does
+  refuse the script, an explicit `fmask=133` under a umask of `000`.
+- **`README.md`'s exFAT paragraph, which sources itself to that bullet,
+  reads the mask the same way**: an `fmask` nobody names is the mounting
+  process's umask, and what refuses the script is a mask carrying `1` in
+  its owner digit rather than any mask above `0022`. The same run answers
+  both halves — umasks `077` and `000` name no mask and report `0077` and
+  `0000`, and the mount at `0077` runs the script, exit 0 — and the
+  paragraph is a user's summary of a bullet this change rewrites.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
