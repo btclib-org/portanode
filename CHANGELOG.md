@@ -10,6 +10,16 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 
 ## [Unreleased]
 
+- **`RELEASING.md`'s opening command names which workflows the tree
+  holds rather than which ones GitHub's Actions API still lists**
+  (closes #522). The API keeps a workflow's entry after the branch
+  carrying its file is deleted, so it answers a different question —
+  what GitHub will run — than the one the surrounding sentence is
+  about, and the two diverge once such a branch exists; `git ls-tree
+  --name-only -r origin/main -- .github/workflows` reads that ref's own
+  tree object, so neither an uncommitted local file nor a stale API
+  entry can appear in its answer.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
