@@ -108,8 +108,9 @@ both cases, so the launchers' one test covers both. On the default
 `-rwxrwxrwx` whatever it carried before the copy, and `chmod` returns 0
 without changing the mode, exFAT storing no POSIX mode to change. That
 says nothing about an exFAT volume mounted with a `umask` or `fmask` that
-clears the bit, which the driver accepts; the remount that would have
-measured one failed with the volume busy, so it is untested rather than
+clears the bit, which the driver accepts; unmounting the volume and
+mounting it again with such a mask is what would measure that case, and
+it has not been done on this mount, so the case is untested rather than
 ruled out. `noexec` over exFAT is measured, on Ubuntu's own kernel
 driver rather than on this mount: a file whose mode reads `-rwxr-xr-x`
 under a mount carrying `noexec` fails `test -x` there all the same.

@@ -3885,6 +3885,19 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   exFAT storing no mode for it to restrict.
 - **`linux/scripts/utilities/README.md`'s description of the script names
   that sentence beside what it already lists.**
+- **`linux/scripts/electrum/README.md`'s executable-bit paragraph names
+  unmounting the volume and mounting it again as what would measure an
+  exFAT mask that clears the bit, instead of resting the case's untested
+  status on a failed remount** (closes #499). A `mount -o remount` naming
+  another mask exits 0 and leaves the mask in force as it was, measured
+  on the in-kernel `exfat` module in runs
+  [34096297167](https://github.com/btclib-org/portanode/actions/runs/34096297167)
+  and
+  [34107655726](https://github.com/btclib-org/portanode/actions/runs/34107655726).
+  The mount this paragraph is about is `exfat-fuse`, on which no remount
+  has been measured, so the sentence claims neither result for it: it
+  says only that unmounting and mounting again has not been tried on
+  this mount, leaving the case untested rather than ruled out.
 
 ## [2026.01.27] - Initial Release
 
