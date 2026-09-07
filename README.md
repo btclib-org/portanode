@@ -161,29 +161,24 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
 1. For Windows: Double-click `Bitcoin-Launcher.bat`,
    `Electrum-Launcher.bat`, or `Utilities-Launcher.bat` (or the matching
    `.ps1` from PowerShell).
-1. For Linux: run the script for the network and mode you want directly
-   from a shell, e.g. `bash linux/scripts/bitcoin/mainnet-8333-qt.sh` —
-   the root `Bitcoin-Launcher.sh`, `Electrum-Launcher.sh` and
-   `Utilities-Launcher.sh` do not yet reach `linux/scripts/`, so there is
-   no numbered menu on this platform yet.
-1. On macOS or Windows, pick the numbered menu entry for the network
-   and mode you want.
+1. For Linux: run `./Bitcoin-Launcher.sh`, `./Electrum-Launcher.sh` or
+   `./Utilities-Launcher.sh` from a shell.
+1. Pick the numbered menu entry for the network and mode you want.
 1. Follow on-screen prompts (e.g., confirm data deletion for clean scripts).
 
 ## Launcher Notes
 
 - `Bitcoin-Launcher.*`, `Electrum-Launcher.*` and `Utilities-Launcher.*`
-  are the entry points on macOS and Windows: one file per task, with a
-  numbered menu reaching every per-network script under `macos/scripts/`
-  and `win/scripts/`. The same names exist as `.sh` files at the root
-  for Linux too, but each currently refuses to run rather than
-  reaching `linux/scripts/`, which is run by its own path instead — see
-  *Quick Start* above.
+  are the entry points: one file per task, with a numbered menu reaching
+  every per-network script under `macos/scripts/`, `win/scripts/` and
+  `linux/scripts/`.
 - `.command` files are intended for double‑clicking in Finder on macOS.
-- The root `.sh` files dispatch to the `.command` or `.bat` menu of
-  whichever platform they detect, run from a shell (macOS directly, or
-  Windows through MSYS/Cygwin); `linux/scripts/`'s own `.sh` files are
-  outside that dispatch and are each run directly.
+- The root `.sh` files dispatch to the menu of whichever platform they
+  detect, run from a shell: macOS's `.command` directly, Windows' `.bat`
+  through MSYS/Cygwin, and on Linux `linux/Bitcoin-Launcher.sh`,
+  `linux/Electrum-Launcher.sh` or `linux/Utilities-Launcher.sh`. A script
+  under `linux/scripts/` also runs by its own path, which
+  `linux/scripts/README.md` covers.
 - `.bat` files are intended for Command Prompt/PowerShell on Windows.
 - `.ps1` files are intended for PowerShell on Windows (menu-based, same options
   as `.bat`).
@@ -216,6 +211,9 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
           logs).
 
 - `linux/`
+    - `Bitcoin-Launcher.sh`, `Electrum-Launcher.sh`,
+      `Utilities-Launcher.sh`: the numbered menus the root launchers of
+      those names reach on Linux.
     - `bin/`: Linux binaries for Bitcoin Core and Electrum (e.g.,
       `electrum.AppImage`).
     - `bin/backup/`: Linux backups created by update scripts.
@@ -244,7 +242,7 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
   starting.
 - Data is stored in `bitcoin-datadir/`. Configure via `bitcoin.conf`.
 - On Linux, the same script names are under `linux/scripts/bitcoin/`
-  with a `.sh` extension, run directly rather than through a menu.
+  with a `.sh` extension, and each also runs by its own path.
 
 ### Electrum
 
@@ -255,7 +253,7 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
 - **Regtest**: `Electrum-Launcher.*`'s menu runs `regtest`.
 - Data in `electrum-datadir/`. Wallets are in `wallets/`.
 - On Linux, the same script names are under `linux/scripts/electrum/`
-  with a `.sh` extension, run directly rather than through a menu.
+  with a `.sh` extension, and each also runs by its own path.
 
 ### Environment Overrides
 

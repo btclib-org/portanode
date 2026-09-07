@@ -1,0 +1,66 @@
+#!/bin/bash
+set -u
+set -o pipefail
+
+# readlink -f: $0 is the symlink's own path where a launcher is
+# started through one, which would send both the source below and
+# the root walk into the wrong directory.
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+# shellcheck source=linux/scripts/lib.sh
+. "$SCRIPT_DIR/scripts/lib.sh"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+
+run_script() {
+  local rel="$1"
+  local script="$ROOTDIR/$rel"
+  if [ ! -f "$script" ]; then
+    echo "Script not found: $rel"
+    return 0
+  fi
+  bash "$script"
+  local status=$?
+  if [ $status -ne 0 ]; then
+    echo "Command failed (exit $status)."
+  fi
+  return 0
+}
+
+while true; do
+  echo "Utilities Launcher ($ROOTDIR)"
+  echo "1) Update Bitcoin Version"
+  echo "2) Update Electrum Version"
+  echo "3) Rollback Last Bitcoin Update"
+  echo "4) Rollback Last Electrum Update"
+  echo "5) Verify binaries"
+  echo "6) Validate setup"
+  echo "7) Set permissions"
+  echo "8) Health check"
+  echo "9) Monitor Bitcoin log"
+  echo "10) Rotate Bitcoin log"
+  echo "11) Clean Linux artifacts"
+  echo "0) Exit"
+  printf "Select: "
+  read -r choice
+
+  if [ -z "$choice" ]; then
+    choice=0
+  fi
+
+  case "$choice" in
+    1) run_script "linux/scripts/utilities/update-bitcoin.sh" ;;
+    2) run_script "linux/scripts/utilities/update-electrum.sh" ;;
+    3) run_script "linux/scripts/utilities/rollback-bitcoin.sh" ;;
+    4) run_script "linux/scripts/utilities/rollback-electrum.sh" ;;
+    5) run_script "linux/scripts/utilities/verify-binaries.sh" ;;
+    6) run_script "linux/scripts/utilities/validate-setup.sh" ;;
+    7) run_script "linux/scripts/utilities/set-permissions.sh" ;;
+    8) run_script "linux/scripts/utilities/health-check.sh" ;;
+    9) run_script "linux/scripts/utilities/monitor-bitcoin-log.sh" ;;
+    10) run_script "linux/scripts/utilities/rotate-bitcoin-log.sh" ;;
+    11) run_script "linux/scripts/utilities/clean-artifacts.sh" ;;
+    0) exit 0 ;;
+    *) echo "Invalid selection." ;;
+  esac
+
+  echo ""
+done
