@@ -16,7 +16,13 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
-## [2026.01.29] - git main branch, not released yet
+## [Unreleased]
+
+## [2026.09.07] - First Tagged Release
+
+This is the first release published on the forge, and every entry in
+this section states what changed relative to the folder as assembled on
+2026.01.27, which was never tagged.
 
 **A rollback now refuses to run while the node it replaces is up.** Stop
 Bitcoin Core or Electrum before running `rollback-bitcoin` or
