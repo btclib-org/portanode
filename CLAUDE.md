@@ -385,31 +385,47 @@ moves `main`.
 
 - **Linux's own exFAT driver does not synthesise a mode the way macOS's
   does: it computes one from the mount's `fmask`, and omitting `fmask`
-  does not mean no mask at all.** Measured on GitHub Actions
-  `ubuntu-latest` (kernel `6.17.0-1022-azure`, the in-kernel `exfat`
-  module installed from `linux-modules-extra-$(uname -r)`, the image
-  built with `exfatprogs` 1.2.2), mounting directly with `mount -t
-  exfat` rather than through a desktop's own `udisks2` automount policy —
+  does not mean no mask at all — an unnamed `fmask` is the mounting
+  process's umask.** Measured on GitHub Actions `ubuntu-latest` (kernel
+  `6.17.0-1022-azure`, the in-kernel `exfat` module installed from
+  `linux-modules-extra-$(uname -r)`, the image built with `exfatprogs`
+  1.2.2), mounting directly with `mount -t exfat` rather than through a
+  desktop's own `udisks2` automount policy, and naming `uid=` and `gid=`
+  so that the mask is the only thing varying —
 
     ```shell
     truncate -s 32M /tmp/t.img
     mkfs.exfat /tmp/t.img
-    sudo mount -t exfat -o loop /tmp/t.img /tmp/t-default
-    printf '#!/bin/bash\necho hi\n' | sudo tee /tmp/t-default/u.sh
-    sudo chmod 644 /tmp/t-default/u.sh
-    ls -l /tmp/t-default/u.sh && /tmp/t-default/u.sh
+    for u in 022 077 000; do
+      d=/tmp/mnt-$u && sudo mkdir -p "$d"
+      sudo sh -c "umask $u; mount -t exfat \
+        -o loop,uid=$(id -u),gid=$(id -g) /tmp/t.img $d"
+      grep " $d " /proc/mounts
+      printf '#!/bin/bash\necho hi\n' > "$d/u.sh"
+      chmod 644 "$d/u.sh" && ls -l "$d/u.sh" && "$d/u.sh"
+      sudo umount "$d"
+    done
+    sudo mkdir -p /tmp/mnt-ctl
+    sudo sh -c "umask 000; mount -t exfat \
+      -o loop,uid=$(id -u),gid=$(id -g),fmask=133 /tmp/t.img /tmp/mnt-ctl"
+    ls -l /tmp/mnt-ctl/u.sh && /tmp/mnt-ctl/u.sh
+    sudo umount /tmp/mnt-ctl
     ```
 
-    — mounts with `fmask=0022,dmask=0022` though neither was named on
-    the command line, which is the driver's own default rather than an
-    absence of one; `chmod 644` changes nothing, and the mode reads
-    `-rwxr-xr-x` (`0777 & ~0022`), and the script runs, exit 0. The same
-    image mounted `-o fmask=133` instead reads `-rw-r--r--`
-    (`0777 & ~0133`), and the script fails with `Permission denied`,
-    exit 126. So a script on a plain, unconfigured mount runs the way
-    macOS's synthesis makes it run, but by a mount option rather than
-    unconditionally — raising `fmask` past `022` is an escape hatch out
-    of that guarantee that macOS has none of. What a desktop's own
+    — where `fmask` and `dmask` come back as that umask each time, with
+    neither named on the command line: `022` reads `-rwxr-xr-x`, `077`
+    reads `-rwx------`, `000` reads `-rwxrwxrwx`, `chmod 644` changes
+    none of them, and the script runs under each, exit 0. The owner's
+    execute bit survives every umask that does not carry `1` in its own
+    owner digit, a mask being subtracted from `0777`. What does take it
+    away is the last mount, the control: an explicit `fmask=133` under a
+    umask of `000` reads `-rw-r--r--` (`0777 & ~0133`) and refuses the
+    script, `Permission denied`, exit 126. So a script on a plain,
+    unconfigured mount runs the way macOS's synthesis makes it run, and
+    the escape hatch macOS has none of is any mask clearing that bit:
+    the explicit `fmask` above, or — by the same two readings, no arm of
+    this run having taken it — a mounting process at a umask such as
+    `177`, which needs no mount option at all. What a desktop's own
     `udisks2` automount passes for `fmask` was not measured here.
 
 ## Model

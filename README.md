@@ -65,10 +65,11 @@ and Ubuntu it has to run under, not on a single default:
   denies it (`CLAUDE.md`'s *What will otherwise waste a session* has
   the commands), while Ubuntu's own exFAT driver instead computes a mode
   from the mount's own `fmask` — measured the same way, beside the
-  macOS bullet in `CLAUDE.md`: a plain mount defaults to `fmask=0022`
-  and the script still runs, but a mount raising `fmask` past that
-  clears the execute bit and the script fails, a mount option away from
-  the guarantee macOS's synthesis gives unconditionally.
+  macOS bullet in `CLAUDE.md`: an `fmask` nobody names is the mounting
+  process's umask, and the script runs under every umask measured,
+  where a mask carrying `1` in its owner digit clears the execute bit
+  and the script fails. That is one mask away from the guarantee
+  macOS's synthesis gives unconditionally.
 - **exFAT on Linux carries a further cost specific to Electrum**: its
   daemon binds a unix domain socket inside `electrum-datadir` for its own
   RPC channel, and every wallet command — `getinfo` included — goes
