@@ -1,15 +1,15 @@
 ---
-# one ecosystem, because one is what this tree has. There is no manifest
-# and no lock file -- `git ls-files 'pyproject.toml' 'uv.lock' 'Gemfile'`
-# is empty -- so the actions the workflows pin are the whole of what
-# dependabot can see here, and the binaries the update scripts install
-# are pinned by `keys/*.fingerprints` and verified by PGP rather than
-# resolved by anybody's resolver.
+# one ecosystem, because one is what this tree configures. There is no
+# manifest and no lock file -- `git ls-files 'pyproject.toml' 'uv.lock'
+# 'Gemfile'` is empty -- so the actions the workflows pin are the whole
+# of what this file points dependabot at, and the binaries the update
+# scripts install are pinned by `keys/*.fingerprints` and verified by
+# PGP rather than resolved by anybody's resolver.
 #
 # The pre-commit hook revisions are the other thing this repository pins
-# and are not below: dependabot has no pre-commit ecosystem, and the
-# `ci:` block of .pre-commit-config.yaml has pre-commit.ci bumping them
-# weekly instead.
+# and are not below: dependabot's `pre-commit` ecosystem exists but is
+# not configured here, and the `ci:` block of .pre-commit-config.yaml
+# has pre-commit.ci bumping `rev:` lines weekly instead.
 #
 # Grouped, so an update week is one pull request rather than one per
 # action: every one of them runs the lint gate, and reading a group is
