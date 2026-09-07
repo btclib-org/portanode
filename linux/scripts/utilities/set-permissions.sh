@@ -240,9 +240,10 @@ report_default_acl() {
 # fstype is passed in rather than resolved again here: restrict() above
 # already needed filesystem_type()'s own answer before this ran, and
 # calling it a second time on the same directory would only risk
-# reading a different answer if the volume were remounted in between --
-# unlike mount_options() below, whose own findmnt call reads a
-# different field (OPTIONS, not FSTYPE) and is not this repetition.
+# reading a different answer if the volume were unmounted and mounted
+# again in between -- unlike mount_options() below, whose own findmnt
+# call reads a different field (OPTIONS, not FSTYPE) and is not this
+# repetition.
 #
 # What this returns is the status the script exits with, and README.md's
 # Permissions bullet states them for every platform: 0 where the
@@ -330,9 +331,9 @@ if [ "$BITCOIN_STATUS" -eq 2 ] || [ "$ELECTRUM_STATUS" -eq 2 ]; then
          "on it owner-only and keeps the execute bit the launchers and the" \
          "linux/bin binaries need. fmask=133 is the setting that takes that" \
          "bit away and stops them starting. Unmounting the volume and" \
-         "mounting it again with those options is what applies them: a" \
-         "mount -o remount naming another mask exits 0 and leaves the mask" \
-         "in force as it was."
+         "mounting it again with uid=<your uid>,fmask=077,dmask=077 is what" \
+         "applies them: a mount -o remount naming another mask exits 0 and" \
+         "leaves the mask in force as it was."
     echo "A mount option restricts this machine only: the next one mounts" \
          "the volume with its own. Encryption or physical control of the" \
          "device is what restricts it everywhere."

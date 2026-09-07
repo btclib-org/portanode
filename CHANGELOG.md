@@ -3898,6 +3898,16 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   has been measured, so the sentence claims neither result for it: it
   says only that unmounting and mounting again has not been tried on
   this mount, leaving the case untested rather than ruled out.
+- **`linux/scripts/utilities/set-permissions.sh`'s status-2 message names
+  the mask it means where it means it, and a comment above it drops the
+  stem this file reserves for the operation that changed nothing** (closes
+  #501). The message's *those options* read as `fmask=133`, the mask the
+  previous sentence names as the one that stops the launchers starting,
+  rather than `uid=<your uid>,fmask=077,dmask=077` two sentences back; the
+  comment guarding `fstype`'s single read said *remounted* for what
+  `filesystem_type()` risks seeing a different answer from, where this
+  file's own comment block above reserves that stem for the inert
+  `mount -o remount`.
 
 ## [2026.01.27] - Initial Release
 
