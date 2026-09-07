@@ -3763,6 +3763,26 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   mounted again with `fmask=022` reads `-rwxr-xr-x` and runs it, exit 0,
   and with `fmask=077,dmask=077` reads `-rwx------` and runs it too.
 
+### A Linux exFAT mount carrying `noexec` refuses the launchers with the bit set
+
+- **`README.md`'s *Permissions* bullet names a Linux exFAT mount
+  carrying `noexec` beside the `fmask` it already excludes**
+  (closes #489). The exclusion it drew was the mount's mask, which shows
+  in the mode a file reports; `noexec` shows in no mode, so a folder on
+  such a mount meets the refusal with the executable bit intact.
+  Measured on `ubuntu-latest` in run
+  [34095933341](https://github.com/btclib-org/portanode/actions/runs/34095933341),
+  kernel `6.17.0-1022-azure`, against a loopback exFAT image made with
+  `exfatprogs` 1.2.2 and mounted under the in-kernel `exfat` module with
+  `noexec` and no mask named, which `/proc/mounts` reports as
+  `fmask=0022`: the file reads `-rwxr-xr-x`, `test -x` answers false, and
+  running it fails with `Permission denied` and exit code 126, where the
+  same image mounted without `noexec` runs it at exit 0.
+- **`linux/scripts/electrum/README.md` carries that measurement where it
+  called the exFAT case untested**, for `noexec` alone: the `umask` and
+  `fmask` half of the same sentence is still untested on that mount, and
+  the paragraph says so.
+
 ## [2026.01.27] - Initial Release
 
 - Portable Bitcoin Core and Electrum setup for macOS and Windows.
