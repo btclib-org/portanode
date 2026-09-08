@@ -526,8 +526,9 @@ sit on the default branch first — that requirement is
 workflow file produces a real run on `ubuntu-latest`, `windows-latest`,
 or any other label it offers, without that workflow ever landing on
 `main`. `gh run list` and `gh run view --log` retrieve the output, and
-deleting the branch afterwards (`git push origin --delete <branch>`) is
-a remote ref, not a file, so it leaves nothing behind to clean up.
+deleting the branch afterwards (`git push origin --delete <branch>`)
+removes a remote ref rather than a file, so there is no local file left
+to clean up.
 
 What such a run cannot establish is a property of the runner it lands
 on, not of GitHub Actions itself. Neither `ubuntu-latest` nor
