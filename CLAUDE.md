@@ -207,6 +207,21 @@ moves `main`.
   the same interpreter on every machine; what it costs is a line that
   ages on its own. Add it the day a hook is sensitive to which
   interpreter ran it.
+- **`git ls-files` reads the index merged with the working directory,
+  never a ref.** Its own manual's first sentence: "This command merges
+  the file listing in the index with the actual working directory
+  list." `--with-tree=<tree-ish>` does not change that — it is
+  documented only for use with `--error-unmatch`, to "pretend that paths
+  which were removed in the index since the named `<tree-ish>` are still
+  present." So it answers for whatever is staged, whether or not a
+  commit holds it. The executable-bit bullet below is the sharp case:
+  measured in a scratch repository, a file committed at `100644`, then
+  `chmod 755`'d and `git add`ed but never committed, reads as `100755`
+  under `git ls-files -s | awk '$1 == "100755"'`, while `git ls-tree -r
+  HEAD | awk '$1 == "100755"'` — the read that answers for the commit
+  rather than the index — answers empty for the same tree. A rule about
+  what the tree carries is answered by the commit, so that bullet's own
+  command reads `git ls-tree`.
 - **`.bat` files are CRLF in the working tree and LF in the index**,
   `.gitattributes` declaring `text eol=crlf`. A tool that normalizes one
   leaves `git diff` empty and the checkout wrong, which is why the
@@ -371,7 +386,7 @@ moves `main`.
   tree:
 
     ```shell
-    git ls-files -s | awk '$1 == "100755" { print $4 }'
+    git ls-tree -r HEAD | awk '$1 == "100755" { print $4 }'
     ```
 
     answers with the `.command` and `.sh` launchers, at the root, under

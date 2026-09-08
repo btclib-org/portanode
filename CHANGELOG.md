@@ -38,6 +38,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   not that nothing is left anywhere. The Actions workflows API keeps a
   deleted branch's workflow entries, a divergence `RELEASING.md`'s
   opening command already names.
+- **`CLAUDE.md` states that `git ls-files` reads the index merged with
+  the working directory, never a commit, and that `--with-tree` does
+  not change that.** The executable-bit bullet's own check moves from
+  `git ls-files -s` to `git ls-tree -r HEAD`: measured in a scratch
+  repository, a mode change staged but never committed answered as
+  compliant under the former and does not under the latter.
 
 ## [2026.9.7] - First Tagged Release
 
