@@ -33,6 +33,11 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   gains the bump as a step of its own, after the tag and the release
   rather than before, since every step up to and including reading back
   what landed reads `$(cat VERSION)` literally.
+- **`CLAUDE.md`'s scratch-workflow paragraph says only what deleting the
+  branch is true of** (closes #524): a remote ref rather than a file,
+  not that nothing is left anywhere. The Actions workflows API keeps a
+  deleted branch's workflow entries, a divergence `RELEASING.md`'s
+  opening command already names.
 
 ## [2026.9.7] - First Tagged Release
 
