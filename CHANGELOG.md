@@ -44,6 +44,20 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `git ls-files -s` to `git ls-tree -r HEAD`: measured in a scratch
   repository, a mode change staged but never committed answered as
   compliant under the former and does not under the latter.
+- **`CLAUDE.md`'s worktree paragraph says why
+  `wt-<tracker>-<issue>-<repo>-<role>` is in that order, and its
+  `refs/heads/main` clause says which ref that name may be moved onto**
+  (issue btclib-org/.github#854) (issue btclib-org/.github#919). An
+  issue filed in `btclib-org/.github`'s tracker is the key and the
+  repository is a detail of it, which is why `repo` sits after `issue`,
+  and the sorting the order buys is stated with that argument rather
+  than beside the `repo` collision. `refs/heads/main` moves only onto
+  `origin/main`, which puts the fast-forward the same section
+  prescribes inside the clause instead of against it, no ruleset
+  reaching a ref in a clone. Both paragraphs are the ones
+  `btclib-org/.github`'s `CLAUDE.md` carries at `1d81bf7`, with the
+  issue numbers they cite qualified, a bare `#N` here resolving in this
+  repository's own tracker.
 
 ## [2026.9.7] - First Tagged Release
 
