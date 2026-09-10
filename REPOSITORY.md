@@ -11,8 +11,7 @@ asks about — the ones section 16's checklist sets on a new repository,
 the ones a section of the standard states a rule for, and the ones a
 behaviour it describes rests on — together with whatever a call quoted
 for one of those answers alongside it. That is this file's scope, and
-*What this file passes over* at the foot says what falls outside it and
-what falls inside it without being here yet.
+*What this file passes over* at the foot says what falls outside it.
 
 Every claim below is read back from an endpoint, and the command that
 reads it is beside it — a setting somebody changed in the browser is a
@@ -24,10 +23,26 @@ free plan, and everything below depends on them; the workflows depend on
 it too, Actions being unmetered only here.
 
 ```shell
-gh api repos/btclib-org/portanode --jq '{visibility, has_issues}'
+gh api repos/btclib-org/portanode \
+  --jq '{visibility, has_issues, wiki: .has_wiki, projects: .has_projects}'
+# {"has_issues":true,"projects":true,"visibility":"public","wiki":true}
 ```
 
+Section 11 of the organization standard turns the wiki and the projects
+board off on every tree, an unused wiki being a second place a reader
+can land looking for what the tracker already records, and the projects
+board a per-user view of the same issues the tracker holds. The call
+above still answers `true` for both: neither has been turned off here
+yet.
+
 ## What gates a merge
+
+`main` is the default branch:
+
+```shell
+gh api repos/btclib-org/portanode --jq '.default_branch'
+# main
+```
 
 **`lint.yml` runs on every pull request, and a red run of it stops the
 merge:**
@@ -375,6 +390,23 @@ shared across every repository of the organization. `lint.yml` and
 added where the path its trigger names is touched. `CONTRIBUTING.md`'s
 *The landing queue* is what points here for the figure.
 
+## Pages, which this repository does not use
+
+**There is no site here, and the endpoint that would describe one
+answers with its absence**, so what is read is the status line alone:
+
+```shell
+gh api -i repos/btclib-org/portanode/pages 2>/dev/null | head -1
+# HTTP/2.0 404 Not Found
+```
+
+The same call against `btclib-org/btclib-org.github.io`, the tree that
+serves `btclib.org`, answers `HTTP/2.0 200 OK`, which is what makes the
+`404` an absence rather than a permission. A tree that never turned
+Pages on answers the same `404` as one whose site was taken down, so the
+answer is recorded rather than inferred from there being nothing here to
+serve.
+
 ## Topics
 
 ```shell
@@ -426,18 +458,9 @@ needs one day arrives with the section that uses it. *Secrets* above
 records the repository's Actions secrets rather than passing them over,
 that zero having the organization's own stores as its control.
 
-**The default branch and the absence of a Pages site fall inside this
-scope and are not here**, which is issue btclib-org/.github#549. Section
-16's checklist sets the default branch and the step after it asks for
-every setting read back; no command here reads `.default_branch`, and
-`main` is stated in prose instead. `gh api
-repos/btclib-org/portanode/pages` answers `404`, and no section here
-records that either. Those are gaps in the coverage this file claims
-rather than exclusions from it.
-
-**Where a checklist step has no subject here.** Section 16 also asks for
-the publishing environments and, where a tree releases, a `homepage`
-holding the URL `pyproject.toml`'s field of that name carries.
+**Where a checklist step has no subject here.** Section 16's checklist
+asks for the publishing environments and, where a tree releases, a
+`homepage` holding the URL `pyproject.toml`'s field of that name carries.
 `gh api repos/btclib-org/portanode/environments --jq '.total_count'`
 answers `0`, `RELEASING.md` saying a release here is a signed tag and a
 GitHub release cut by hand with nothing to publish to an index; and this
