@@ -70,6 +70,20 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   opening paragraph — and the note that the create/push/removal fence
   converged in `btclib-org/.github`'s `CLAUDE.md` at `20ad654` drops
   with them, matching the decision already landed in `bitcoin-core-rpc`.
+- **`REPOSITORY.md` reads the default branch, Pages, the wiki and the
+  projects board back** (issue btclib-org/.github#550, issue
+  btclib-org/.github#549). The features call reads `has_wiki` and
+  `has_projects` beside `has_issues`, and the paragraph after it says
+  that section 11 of the organization standard turns both off and that
+  the call still answers `true` for both here; the setting is a `PATCH`
+  the maintainer runs, not a commit, which is why the first issue stays
+  open. *What gates a merge* opens by reading `.default_branch` back, and
+  a section of its own records `gh api repos/btclib-org/portanode/pages`
+  answering `404`, with `btclib-org/btclib-org.github.io`'s `200` as the
+  control that makes the `404` an absence rather than a permission. The
+  paragraph under *What this file passes over* that named those two as
+  gaps goes with them, and the opening paragraph says only that the foot
+  names what falls outside the scope.
 
 ## [2026.9.7] - First Tagged Release
 
