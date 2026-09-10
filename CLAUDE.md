@@ -88,17 +88,15 @@ folder that is not the boot disk. `README.md` is what a user reads,
 
 ## The primary checkout is the maintainer's
 
-**Never work in it.** No edit, no `git add`, no commit, no branch switch,
-no rebase, no `git stash` — the hooks fix files in place. It is a local
-reference only, and it stays on `main`.
+**Never work in it.** No edit, no `git add`, no commit, no branch
+switch, no rebase, no `git stash` — the hooks fix files in place. It is a
+local reference only, and it stays on `main`.
 
 Reading it is fine, but `git fetch` moves `refs/remotes/origin/main` and
 leaves the work tree where it was, so a `grep` or a `Read` against the
 checkout answers for whenever it was last brought forward, not for now.
 The read that cannot go stale is `git show origin/main:<path>`: it
-answers from the ref `git fetch` just moved, never from the tree. For a
-path git filters on checkout — `.bat` here — it is current without being
-faithful, and the bullet on those below names the read that is both.
+answers from the ref `git fetch` just moved, never from the tree.
 
 Where the checkout has to be current rather than merely readable, a
 fast-forward of a clean `main` brings it up:
@@ -112,17 +110,19 @@ the permitted side of *never work in it*, not an exception to it. Stop
 if the checkout is not on `main` or is not clean: that is no longer
 bringing it forward.
 
-**Every session works in a worktree**, its own, from the first edit,
-named `wt-<tracker>-<issue>-<repo>-<role>` rather than after the issue
-alone, most general part first: an issue filed in `btclib-org/.github`'s
-tracker is the key and the repository is a detail of it —
-`btclib-org/.github#255` is one issue owed by seven repositories,
-`btclib-org/.github#177` by two — so the repository is what varies
-underneath an issue rather than the other way round, which is why `repo`
-comes after `issue`. Naming it that way also sorts every worktree of one
-issue together, which is what a port leaves behind. `tracker` is the
-repository whose issue tracker holds the issue: an issue number is
-unique only within one tracker, so `btclib-org/.github#45` and
+**Every session works in a worktree**, its own, from the first edit, named
+`wt-<tracker>-<issue>-<repo>-<role>` rather than after the issue alone, most
+general part first: an issue filed in `btclib-org/.github`'s tracker is the key
+and the repository is a detail of it — `btclib-org/.github#255` is one issue
+owed by seven repositories, `btclib-org/.github#177` by two — so the repository
+is what varies underneath an issue rather than the other way round, which is why
+`repo` comes after `issue`. Naming it that way also sorts every worktree of one
+issue together, which is what a port leaves behind.
+
+Each of the four parts earns its place against a different collision,
+and none of them is the same collision. `tracker` is the repository
+whose issue tracker holds the issue: an issue number is unique only
+within one tracker, so `btclib-org/.github#45` and
 `btclib-org/btclib#45` are different issues that would otherwise name
 the same worktree. `issue` is what prevents the collision that has
 actually happened — two worktrees of different work sharing a generic
@@ -137,10 +137,12 @@ second worker reads the first one's tree. `role` covers the narrower
 case of a coder and its reviewer holding a worktree at once, which the
 ordinary sequence avoids by each removing its own.
 
-An issue of `btclib-org/.github`'s tracker worked in `btclib` by a coder
-names its worktree `wt-github-255-btclib-coder`. Nothing syncs a
-project afterwards — there is no project here — and the editing, the
-gates and the commits all happen in the worktree before the push.
+An issue of `btclib-org/.github`'s tracker, worked in `btclib` by a coder, names
+its worktree `wt-github-255-btclib-coder`. The environment is created in the
+worktree, not the checkout, by whatever that tree's own `CONTRIBUTING.md` names
+under *The environment and the gates*, and a session reads that section, not
+this one, for the command. The editing, the gates and the commits all happen in
+the worktree before the push.
 
 ```shell
 WT=<scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
@@ -148,16 +150,14 @@ git worktree add "$WT" origin/main -b <branch>
 git -C "$WT" push origin HEAD:refs/heads/<branch>
 ```
 
-`-b <branch>` sits after the path and the commit-ish so that the
-placeholder ends the command, which is section 9 of the organization
-standard's rule. With the placeholder ahead of `"$WT"`, its `<` and its
-`>` are redirections performed left to right, so the `>` is reached only
-where the reader's own directory already holds the name `branch`: there
-the `<` succeeds, the line runs, and the `>` takes `"$WT"` as its
-target — a path with no directory at it is the file it creates.
-Ordinarily nothing holds that name, so the `<` fails first (`no such
-file or directory: branch`) and the line ends before the `>` opens
-anything.
+`-b <branch>` sits after the path and the commit-ish so that the placeholder
+ends the command, which is section 9 of `btclib-org/.github`'s rule. With the
+placeholder ahead of `"$WT"`, its `<` and its `>` are redirections performed
+left to right, so the `>` is reached only where the reader's own directory
+already holds the name `branch`: there the `<` succeeds, the line runs, and the
+`>` takes `"$WT"` as its target — a path with no directory at it is the file it
+creates. Ordinarily nothing holds that name, so the `<` fails first (`no such
+file or directory: branch`) and the line ends before the `>` opens anything.
 
 The push names the worktree with `git -C "$WT"` because a `cd` binds the
 shell that runs it: a session that runs each line as its own command
@@ -167,8 +167,12 @@ worktree's. `env -C <dir>` is the same binding for a command that takes
 no `-C` of its own. Neither binding rescues the assignment above it: a
 session that loses the `cd` loses `WT` with it, and `git -C ""` is
 documented to leave the working directory unchanged, so that push lands
-the same way, exit 0 and no diagnostic. What the `-C` buys is a path
-that can be written out in full; write it out.
+the same way, exit 0 and no diagnostic. That silence is `git`'s rather
+than the binding's: the BSD `env` macOS ships documents no case for an
+empty `-C` and refuses one — `cannot change directory to ''`, exit 125 —
+so a line bound with `env -C` stops there instead of running against the
+wrong tree. What the `-C` buys is a path that can be written out in
+full; write it out.
 
 Removing the worktree is part of finishing, and it stands in a block of
 its own: the block above ends in a placeholder, and a shell that
@@ -183,10 +187,6 @@ whatever worktree that path names.
 ```shell
 git worktree remove --force "${WT:?}"
 ```
-
-What the fence says about the create, the push and the removal converged
-in `btclib-org/.github`'s `CLAUDE.md` at `20ad654`, which is what a
-later reader compares it against rather than an issue's quotation of it.
 
 **Never `git stash` in a worktree either: `refs/stash` is shared.** A
 worktree isolates files, not refs, so `git stash push` pushes onto the
