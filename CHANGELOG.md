@@ -84,6 +84,34 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   paragraph under *What this file passes over* that named those two as
   gaps goes with them, and the opening paragraph says only that the foot
   names what falls outside the scope.
+- **`.github/scripts/check_changelog.py` is `btclib-org/.github`'s at
+  `938c26c` byte for byte, and `.pre-commit-config.yaml` carries that
+  repository's `check-changelog` hook to run it** (issue
+  btclib-org/.github#21). Section 14 of the organization standard owes
+  the script to every tree carrying a `CHANGELOG.md` under
+  `merge=union`, which `.gitattributes` here gives it, and section 4
+  names the hook. The hook sits ahead of `markdownlint-cli2` for the
+  reason its comment gives: that hook's `--fix` repairs the seam the
+  script's third check exists to name. The open section here carries no
+  `###` heading, the shape the script's own docstring names as leaving
+  its three checks nothing to read, so what the hook refuses in this
+  tree is a `###` heading added with no blank line above it, one added
+  closing an issue a bullet here already closes, or two added under one
+  wording — not a second bullet closing that issue. The issue is
+  advanced and not closed: its second box, the news fragments, is not
+  this change's.
+- **`.pre-commit-config.yaml`'s header says why ruff and mypy stay
+  absent with a Python file in the tree** (issue btclib-org/.github#21):
+  the file is `btclib-org/.github`'s, linted by that tree's own copies
+  of both, so no hook here reads a copy. It had rested their absence on
+  `git ls-files '*.py'` being empty, which this change ends.
+- **`CONTRIBUTING.md`'s *The environment and the gates* and `CLAUDE.md`'s
+  `.python-version` bullet stop saying the tree holds no Python**
+  (issue btclib-org/.github#21). The first says what `check-changelog`,
+  a `language: system` hook running `python3`, asks of a machine:
+  nothing beyond uv, `uvx` putting the interpreter it fetched ahead of
+  `PATH` for the hook to find. The second names the script as the one
+  `.py` file and sends the reader there for the interpreter.
 
 ## [2026.9.7] - First Tagged Release
 

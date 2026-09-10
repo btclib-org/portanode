@@ -210,8 +210,11 @@ request is what moves `origin/main`.
   typos takes none, and `.pre-commit-config.yaml` says so beside them.
 - **There is no `.python-version` either**, and that is a decision rather
   than an omission — the organization's standard leaves the file to each
-  repository. `git ls-files '*.py'` is empty here, so the only Python is
-  the interpreter `uvx pre-commit` builds a hook environment with, and
+  repository. `git ls-files '*.py'` names only
+  `.github/scripts/check_changelog.py`, `btclib-org/.github`'s file byte
+  for byte, which the `check-changelog` hook runs under the `python3`
+  `CONTRIBUTING.md`'s last section names; the other Python here is the
+  interpreter `uvx pre-commit` builds a hook environment with, and
   pinning one would be a version number nothing in this tree reads and
   no gate re-derives. What it would buy is the hook environments being
   the same interpreter on every machine; what it costs is a line that

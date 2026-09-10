@@ -235,8 +235,8 @@ this heading.
 
 uv is the only thing that has to be installed; it fetches interpreters
 and tools itself. There is no project here — no `pyproject.toml`, no lock
-file, no Python at all — so nothing is synced and every command is a
-`uvx`:
+file, and no Python beyond the script the `check-changelog` hook runs —
+so nothing is synced and every command is a `uvx`:
 
 ```shell
 uvx pre-commit run --all-files
@@ -253,6 +253,13 @@ the first.
 That last one is worth running before pushing a change to the hook
 config: it catches what a wrong `types_or` tag or a malformed entry would
 otherwise turn into a red lint job.
+
+`check-changelog` is a `language: system` hook running `python3`, and it
+asks for nothing beyond uv: `uvx` puts the environment it built for
+pre-commit ahead of `PATH` for that process, a system hook inherits it,
+and its `bin/` holds the `python3` uv fetched. With a `PATH` resolving no
+`python3` at all, a system hook printing `command -v python3` answers
+with that `bin/`'s.
 
 **Check exit codes, not filtered output.** `pre-commit run ... | grep -v
 Passed` hides a failure, and `grep` finding nothing exits 1, which is not
