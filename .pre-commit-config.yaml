@@ -6,10 +6,12 @@
 # the text every file is made of.
 #
 # What is absent is absent for a measured reason rather than an
-# oversight. `git ls-files '*.py'` is empty, so ruff and mypy have no
-# file to read and `check-hooks-apply` below would fail on each; there is
-# no project and no `uv.lock`, so `uv-lock` has nothing to keep in step.
-# A hook is added here the day the tree grows the file it reads.
+# oversight. `git ls-files '*.py'` names only the script check-changelog
+# below runs, which is btclib-org/.github's file byte for byte and is
+# linted by that tree's ruff and mypy, so neither is here to read a copy;
+# there is no project and no `uv.lock`, so `uv-lock` has nothing to keep
+# in step. A hook is added here the day the tree grows a file of its own
+# that the hook reads.
 #
 # The Windows launchers are the case that rule does not settle, the tree
 # holding those files already. What that half is short of is a parser
@@ -221,6 +223,22 @@ repos:
         # constants needed that plugin off, nothing here is close enough
         # to that threshold to need the same exception
         args: [--baseline, .secrets.baseline]
+  # `merge=union` stays on `CHANGELOG.md` (btclib-org/.github#21), and
+  # this is the gate its price bought back -- `.github/scripts/
+  # check_changelog.py`'s own docstring carries what the three checks
+  # catch, what they still cannot, and the alternatives declined
+  # (btclib-org/.github#305, btclib-org/.github#516). It runs ahead of
+  # markdownlint-cli2 below on purpose: that hook's `--fix` repairs the
+  # very seam the third check exists to name, so a hook reading the
+  # file after it would find nothing left to report.
+  - repo: local
+    hooks:
+      - id: check-changelog
+        name: the open CHANGELOG.md repeats no heading, closes no issue twice
+        entry: python3 .github/scripts/check_changelog.py
+        language: system
+        pass_filenames: false
+        files: ^(CHANGELOG\.md|\.github/scripts/check_changelog\.py)$
   # MD013 at 80 columns, tables included, and the shared configuration is
   # the one every repository of the organization carries: prose moves
   # between them, and a paragraph that lints in one has to lint here
