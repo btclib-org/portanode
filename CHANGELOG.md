@@ -58,6 +58,18 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `btclib-org/.github`'s `CLAUDE.md` carries at `1d81bf7`, with the
   issue numbers they cite qualified, a bare `#N` here resolving in this
   repository's own tracker.
+- **`CLAUDE.md`'s `## The primary checkout is the maintainer's` section
+  now carries `btclib-org/.github`'s own copy of it, byte for byte**
+  (issue btclib-org/.github#739), taken from that repository's
+  `CLAUDE.md` at `51f717eaf609688aecad4fe7c328a05159b0fd9b`. The wording
+  this tree had written for the same section is replaced rather than
+  kept beside it: the `.bat`-read caveat and the no-project sentence it
+  carried are dropped rather than moved, both facts standing elsewhere
+  in this file already — the first in the `.bat` CRLF bullet under
+  *What will otherwise waste a session*, the second in the file's own
+  opening paragraph — and the note that the create/push/removal fence
+  converged in `btclib-org/.github`'s `CLAUDE.md` at `20ad654` drops
+  with them, matching the decision already landed in `bitcoin-core-rpc`.
 
 ## [2026.9.7] - First Tagged Release
 
