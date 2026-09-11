@@ -112,6 +112,34 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   nothing beyond uv, `uvx` putting the interpreter it fetched ahead of
   `PATH` for the hook to find. The second names the script as the one
   `.py` file and sends the reader there for the interpreter.
+- **`no-hyphen-at-end-of-line` carries `types_or: [markdown, python,
+  rst]`, the type list section 4 of the organization standard gives it**
+  (issue btclib-org/.github#921). Those are the file types whose prose a
+  build renders: docutils leaves a docstring's source line break inside
+  the paragraph it builds and html collapses it to a space, so a word
+  wrapped at its own hyphen reads on the built page with the hyphen and
+  a space inside it, as a markdown one does. The expression answers on
+  no line of this tree's Python, so the widened gate is green with
+  nothing reflowed: `git grep -nE '[A-Za-z0-9]-$' -- '*.py' '*.rst'`
+  prints nothing, and `git grep -cE '[A-Za-z0-9]$' -- '*.py'` is the
+  control saying the pattern can match. The comment above the hook is
+  `btclib-org/.github`'s own at `8ceb60e`, its `README.md` read as the
+  organization's standard, the phrase the hook comments beside it use
+  for the same document.
+- **`.pre-commit-config.yaml` carries `unquoted-placeholder`, refusing a
+  placeholder that stands as a whole argument in quotes, in every
+  markdown file but `CHANGELOG.md` and `RELEASE_NOTES.md`** (issue
+  btclib-org/.github#706). Section 9 of the organization standard keeps
+  the rule — quotes make `<` and `>` ordinary text, so a paste made
+  before the placeholder is filled in reaches the tool with the
+  placeholder as its value rather than failing at the shell — and
+  section 4 owes the hook to every repository, names the quotes the
+  pattern exempts and the three shapes it cannot see; the exclusion is
+  the standard's own, both files being append-only. The hook's `entry:`,
+  `types:` and `exclude:` are `btclib-org/.github`'s at `8ceb60e`, and
+  its comment is that tree's under the same reading of `README.md`. Run
+  over this tree's markdown the hook refuses nothing, so it arrives
+  green with no line rewritten.
 
 ## [2026.9.7] - First Tagged Release
 
