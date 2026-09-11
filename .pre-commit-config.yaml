@@ -268,14 +268,43 @@ repos:
           (?<![`!\[])(?:!?\[(?:[^]]|\]\([^)]*\))*\]\(|^\x20{0,3}\[[^]]+\]:\s*)(?!\./|#|[A-Za-z][A-Za-z0-9+.-]*:)[^)\s]
         types: [markdown]
       # a line that ends inside a word, at that word's own hyphen.
-      # Section 4 of the organization's standard is the rule: what such a
-      # line renders as, why nothing else here catches it, and what this
-      # pattern cannot see
+      # Section 4 of the organization's standard is the rule: what such a line
+      # renders as, why nothing else here catches it, what this pattern cannot
+      # see, and what the measurement was before it was proposed. The types are
+      # where a build renders prose from -- markdown, and what docutils reads,
+      # an rst page and a Python docstring -- so a comment sharing a Python file
+      # with a docstring is refused alongside it, one line at a time being all
+      # pygrep reads
       - id: no-hyphen-at-end-of-line
         name: a word is not wrapped at its own hyphen
         language: pygrep
         entry: "[A-Za-z0-9]-$"
+        types_or: [markdown, python, rst]
+      # a placeholder that is a whole argument, in quotes. Section 9 of the
+      # organization's standard is the rule and what the quoting costs a paste;
+      # section 4 is where this hook is, which quotes it exempts, and the three
+      # things this pattern cannot see. The discrimination is read off the line
+      # and not off the fence around it, because a fence-aware pattern has to
+      # consume everything before the match and pygrep then reports the file's
+      # first line and prints the whole prefix. A shell assignment takes no
+      # space around its `=`, so a line carrying one is another language's
+      # value; and a quote inside a quote of the other kind is a nested
+      # program's -- both read off one line, which is also where the three blind
+      # spots come from. Same `\x20` as above, and the same reason.
+      # `CHANGELOG.md` and `RELEASE_NOTES.md` are out of reach because section 9
+      # makes them append-only: a refused shape in an entry that has landed has
+      # no repair, and there would be no green state to reach. `exclude:`
+      # selects files and pygrep reads whole ones, so an exclusion keyed on the
+      # older entries alone cannot be written; and check-useless-excludes asks
+      # the pattern to match some file the hook selects rather than each name in
+      # it, which is what lets a tree with no release notes carry the same line
+      - id: unquoted-placeholder
+        name: a placeholder standing as a whole argument is unquoted
+        language: pygrep
+        entry: |-
+          ^(?![\x20\t]*[A-Za-z_][A-Za-z0-9_.-]*[\x20\t]+=[\x20\t])(?:(?:[^"'\n]|'[^'\n]*')*"<[^<>"'`\n]*>"|(?:[^"'\n]|"[^"\n]*")*'<[^<>"'`\n]*>')
         types: [markdown]
+        exclude: ^(CHANGELOG|RELEASE_NOTES)\.md$
       # how the operating system is spelled, which neither spell-checker
       # reads as a misspelling: to `typos` and to `codespell` a known word
       # in another case is a known word, so a capital M and a small final
