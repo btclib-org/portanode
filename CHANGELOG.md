@@ -140,6 +140,18 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   its comment is that tree's under the same reading of `README.md`. Run
   over this tree's markdown the hook refuses nothing, so it arrives
   green with no line rewritten.
+- **`claude-review.yml`'s `mention` job says at its `pull-requests: write`
+  line what the grant is for** (issue btclib-org/.github#915): the comment
+  is `# what posting the reply takes`, the line `btclib-node` and
+  `btclib-benchmarks` carry above theirs, taken byte for byte so that one
+  reason is not worded twice across the copies. The `review` job's grant
+  and the `id-token: write` beside this one each carry a reason at their
+  line, and this grant carried none. Section 14 of `btclib-org/.github`'s
+  `README.md` keeps `claude-review.yml` out of the list its
+  `tests/verbatim_test.py` compares — the file "is owed by every
+  repository section 11 governs, and section 15's existence loop is what
+  checks that — not this list" — so nothing red follows from the copies
+  disagreeing at this line.
 
 ## [2026.9.7] - First Tagged Release
 
