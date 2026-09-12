@@ -152,6 +152,17 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   repository section 11 governs, and section 15's existence loop is what
   checks that — not this list" — so nothing red follows from the copies
   disagreeing at this line.
+- **`check-github-issue-config` and `check-github-issue-forms` sit beside
+  `check-dependabot` in the `check-jsonschema` block, at its
+  `rev: 0.38.0`** (issue btclib-org/.github#767). Section 4's *schemas*
+  bullet of the organization standard names the pair. Both carry
+  `types: [yaml]`, and each selects one file of this tree's
+  `.github/ISSUE_TEMPLATE/`: `config.yml` for the first, and for the
+  second `bug_report.yml`, the directory's yaml that is neither
+  `config.yml` nor `config.yaml`, so `check-hooks-apply` finds a file for
+  each. The comment above the pair is `btclib-org/.github`'s own at
+  `ed362d2a`, byte for byte. Both files validate as they stand, so
+  nothing in `ISSUE_TEMPLATE/` moves.
 
 ## [2026.9.7] - First Tagged Release
 
