@@ -163,6 +163,43 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   each. The comment above the pair is `btclib-org/.github`'s own at
   `ed362d2a`, byte for byte. Both files validate as they stand, so
   nothing in `ISSUE_TEMPLATE/` moves.
+- **`REVIEWING.md`'s half above `## This repository in particular` is
+  `btclib-org/.github`'s at
+  `1058ef361ca74937af4b6a88601d0a401e62f932`, byte for byte** (issue
+  btclib-org/.github#353). Section 14 of the organization standard
+  compares that half and stops at the marker, so this tree's own half
+  below it is untouched. `NACK` joins `ACK` and `CHANGES REQUESTED` as a
+  verdict a review can end on; the ack of record is posted as a review
+  of type COMMENT rather than as a forge approval; a finding about the
+  wording of prose no user reads is named at the foot of a review
+  instead of filed as an issue; and a re-review reads its old sha off
+  the previous round's verdict, an amend and a rebase each leaving it
+  off the branch.
+- **`.yamllint.yaml` is that repository's copy at that sha, byte for
+  byte** (issue btclib-org/.github#976). It carries no marker heading,
+  so section 14 compares it whole. Its `allow-non-breakable-words`
+  comment states that setting's own predicate rather than calling it
+  MD013's bare-URL exemption: MD013 passes over a line with no break
+  opportunity past the limit whatever earlier space it holds, where the
+  setting exempts only a line that is one word end to end, which is what
+  btclib-org/.github#883 flagged.
+- **`.gitattributes`'s half above the marker is that repository's copy
+  at that sha, byte for byte** (issue btclib-org/.github#1026). The
+  comment beside `CHANGELOG.md merge=union` says what the driver costs
+  where two sides' added lines abut — the blank line between the blocks
+  goes and a block opening with a heading is left against the line above
+  it, while `git rebase` exits 0 with a clean tree — names section 4's
+  `check-changelog` hook as what reports that ahead of the markdownlint
+  autofix, and records not setting the driver at all as the rejected
+  alternative.
+- **`.gitattributes`'s own half below the marker says only what the
+  shared half above it does not.** That paragraph was written below the
+  marker while whether the shared half would carry the seam was
+  btclib-org/.github#760's to decide; it does now, so what stays below
+  is `git merge-tree --write-tree` exiting 0 over a tree that carries
+  the damage, markdownlint's MD032 on the bullet and MD022 on the
+  heading, and the splice-and-`cmp` reconstruction that says where an
+  entry landed — the measurements btclib-org/portanode#453 holds.
 
 ## [2026.9.7] - First Tagged Release
 
