@@ -218,6 +218,10 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `btclib-org/.github`** (issue btclib-org/.github#1075): what is filed
   is one test, and an entry's body past three lines is refused.
 
+- **The lychee job lives in `btclib-org/.github`** (issue
+  btclib-org/.github#35): this file keeps the trigger, the schedule and
+  the files it checks.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
