@@ -222,6 +222,10 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   btclib-org/.github#35): this file keeps the trigger, the schedule and
   the files it checks.
 
+- **`REPOSITORY.md` records the wiki and the projects board as `false`**
+  (issue btclib-org/.github#550): both are now off, so the earlier
+  entry's `true` for both no longer holds.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
