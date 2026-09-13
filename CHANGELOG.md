@@ -214,6 +214,10 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `pre-commit`'s documentation is where an interface this tree does not
   use belongs.
 
+- **`REVIEWING.md`, `CONTRIBUTING.md` and `check_changelog.py` follow
+  `btclib-org/.github`** (issue btclib-org/.github#1075): what is filed
+  is one test, and an entry's body past three lines is refused.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
