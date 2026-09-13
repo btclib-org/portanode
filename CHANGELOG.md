@@ -200,6 +200,19 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the damage, markdownlint's MD032 on the bullet and MD022 on the
   heading, and the splice-and-`cmp` reconstruction that says where an
   entry landed — the measurements btclib-org/portanode#453 holds.
+- **`.pre-commit-config.yaml`'s skip line names only the interface a
+  gate run here has** (issue btclib-org/.github#966). `git commit -n`
+  bypasses git's commit hooks, and `CONTRIBUTING.md`'s *The environment
+  and the gates* says the gate is not installed as one and to run it by
+  hand, so that half of the line asked for the bypass of a hook the same
+  tree tells you not to install, in the file a session reads while it is
+  committing. What stays is `SKIP=<id>`, which `pre-commit` reads on the
+  `uvx pre-commit run --all-files` that section gives. The rejected
+  alternative keeps the `git commit -n` half for a reader who has
+  installed the hook anyway, it being `pre-commit`'s own documented
+  interface; against it is that this tree instructs the opposite, and
+  `pre-commit`'s documentation is where an interface this tree does not
+  use belongs.
 
 ## [2026.9.7] - First Tagged Release
 
