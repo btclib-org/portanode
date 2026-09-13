@@ -152,6 +152,67 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   repository section 11 governs, and section 15's existence loop is what
   checks that — not this list" — so nothing red follows from the copies
   disagreeing at this line.
+- **`check-github-issue-config` and `check-github-issue-forms` sit beside
+  `check-dependabot` in the `check-jsonschema` block, at its
+  `rev: 0.38.0`** (issue btclib-org/.github#767). Section 4's *schemas*
+  bullet of the organization standard names the pair. Both carry
+  `types: [yaml]`, and each selects one file of this tree's
+  `.github/ISSUE_TEMPLATE/`: `config.yml` for the first, and for the
+  second `bug_report.yml`, the directory's yaml that is neither
+  `config.yml` nor `config.yaml`, so `check-hooks-apply` finds a file for
+  each. The comment above the pair is `btclib-org/.github`'s own at
+  `ed362d2a`, byte for byte. Both files validate as they stand, so
+  nothing in `ISSUE_TEMPLATE/` moves.
+- **`REVIEWING.md`'s half above `## This repository in particular` is
+  `btclib-org/.github`'s at
+  `1058ef361ca74937af4b6a88601d0a401e62f932`, byte for byte** (issue
+  btclib-org/.github#353). Section 14 of the organization standard
+  compares that half and stops at the marker, so this tree's own half
+  below it is untouched. `NACK` joins `ACK` and `CHANGES REQUESTED` as a
+  verdict a review can end on; the ack of record is posted as a review
+  of type COMMENT rather than as a forge approval; a finding about the
+  wording of prose no user reads is named at the foot of a review
+  instead of filed as an issue; and a re-review reads its old sha off
+  the previous round's verdict, an amend and a rebase each leaving it
+  off the branch.
+- **`.yamllint.yaml` is that repository's copy at that sha, byte for
+  byte** (issue btclib-org/.github#976). It carries no marker heading,
+  so section 14 compares it whole. Its `allow-non-breakable-words`
+  comment states that setting's own predicate rather than calling it
+  MD013's bare-URL exemption: MD013 passes over a line with no break
+  opportunity past the limit whatever earlier space it holds, where the
+  setting exempts only a line that is one word end to end, which is what
+  btclib-org/.github#883 flagged.
+- **`.gitattributes`'s half above the marker is that repository's copy
+  at that sha, byte for byte** (issue btclib-org/.github#1026). The
+  comment beside `CHANGELOG.md merge=union` says what the driver costs
+  where two sides' added lines abut — the blank line between the blocks
+  goes and a block opening with a heading is left against the line above
+  it, while `git rebase` exits 0 with a clean tree — names section 4's
+  `check-changelog` hook as what reports that ahead of the markdownlint
+  autofix, and records not setting the driver at all as the rejected
+  alternative.
+- **`.gitattributes`'s own half below the marker says only what the
+  shared half above it does not.** That paragraph was written below the
+  marker while whether the shared half would carry the seam was
+  btclib-org/.github#760's to decide; it does now, so what stays below
+  is `git merge-tree --write-tree` exiting 0 over a tree that carries
+  the damage, markdownlint's MD032 on the bullet and MD022 on the
+  heading, and the splice-and-`cmp` reconstruction that says where an
+  entry landed — the measurements btclib-org/portanode#453 holds.
+- **`.pre-commit-config.yaml`'s skip line names only the interface a
+  gate run here has** (issue btclib-org/.github#966). `git commit -n`
+  bypasses git's commit hooks, and `CONTRIBUTING.md`'s *The environment
+  and the gates* says the gate is not installed as one and to run it by
+  hand, so that half of the line asked for the bypass of a hook the same
+  tree tells you not to install, in the file a session reads while it is
+  committing. What stays is `SKIP=<id>`, which `pre-commit` reads on the
+  `uvx pre-commit run --all-files` that section gives. The rejected
+  alternative keeps the `git commit -n` half for a reader who has
+  installed the hook anyway, it being `pre-commit`'s own documented
+  interface; against it is that this tree instructs the opposite, and
+  `pre-commit`'s documentation is where an interface this tree does not
+  use belongs.
 
 ## [2026.9.7] - First Tagged Release
 
