@@ -25,15 +25,13 @@ it too, Actions being unmetered only here.
 ```shell
 gh api repos/btclib-org/portanode \
   --jq '{visibility, has_issues, wiki: .has_wiki, projects: .has_projects}'
-# {"has_issues":true,"projects":true,"visibility":"public","wiki":true}
+# {"has_issues":true,"projects":false,"visibility":"public","wiki":false}
 ```
 
 Section 11 of the organization standard turns the wiki and the projects
 board off on every tree, an unused wiki being a second place a reader
 can land looking for what the tracker already records, and the projects
-board a per-user view of the same issues the tracker holds. The call
-above still answers `true` for both: neither has been turned off here
-yet.
+board a per-user view of the same issues the tracker holds.
 
 ## What gates a merge
 
