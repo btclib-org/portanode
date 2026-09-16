@@ -226,6 +226,10 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (issue btclib-org/.github#550): both are now off, so the earlier
   entry's `true` for both no longer holds.
 
+- **`targets:` left `.github/` outside lychee's reach** (issue
+  btclib-org/.github#1104): it becomes `"**/*.md"
+  ".github/**/*.md" ".claude/**/*.md"`.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
