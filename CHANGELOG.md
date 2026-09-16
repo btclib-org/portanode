@@ -234,6 +234,10 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   question that check a branch's own entry sits last** (issue
   btclib-org/.github#1097): `check-changelog` reads no position.
 
+- **`check-changelog` drops `files:` for `always_run: true`** (issue
+  btclib-org/.github#1138): the script reads the open section off disk,
+  and the rebase that eats the seam stages nothing.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
