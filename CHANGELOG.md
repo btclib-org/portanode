@@ -238,6 +238,10 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   btclib-org/.github#1138): the script reads the open section off disk,
   and the rebase that eats the seam stages nothing.
 
+- **`check_changelog.py`'s docstring states its rebase discipline in its
+  own words rather than citing a `CONTRIBUTING.md` section no tree
+  holds** (issue btclib-org/.github#1137).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
