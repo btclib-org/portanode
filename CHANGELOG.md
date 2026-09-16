@@ -230,6 +230,10 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   btclib-org/.github#1104): it becomes `"**/*.md"
   ".github/**/*.md" ".claude/**/*.md"`.
 
+- **`CONTRIBUTING.md` and `REVIEWING.md` gain the command and the
+  question that check a branch's own entry sits last** (issue
+  btclib-org/.github#1097): `check-changelog` reads no position.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
