@@ -43,7 +43,7 @@ on:
     paths:
       - .github/workflows/links.yml
 
-# least privilege for the GITHUB_TOKEN. lychee is handed it below for
+# least privilege for the GITHUB_TOKEN. lychee is handed it for
 # github.com links only, where an unauthenticated runner is rate limited
 # hard enough to look like rot, and reading is all that takes.
 # Deliberately not issues: write. An automatic "link rot" issue is the
