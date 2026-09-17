@@ -242,6 +242,15 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   own words rather than citing a `CONTRIBUTING.md` section no tree
   holds** (issue btclib-org/.github#1137).
 
+- **`claude-review.yml`'s `review` and `mention` jobs become one call to
+  `btclib-org/.github`'s `reusable-claude-review.yml`, which carries the
+  action pin** (issue btclib-org/.github#35): the trigger, the
+  workflow-level permissions and this tree's own prompt paragraph stay
+  here, the concurrency group moves to the workflow level, and the
+  callee's verdict check reports no stale verdict. The `mention` job
+  btclib-org/.github#915 commented is the callee's now, and the calling
+  job carries the reason for each grant it declares in its own header.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
