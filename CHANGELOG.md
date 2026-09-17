@@ -251,6 +251,11 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   btclib-org/.github#915 commented is the callee's now, and the calling
   job carries the reason for each grant it declares in its own header.
 
+- **`links.yml`'s `ready_for_review` comment names the callee that holds
+  the draft condition rather than pointing below it** (issue
+  btclib-org/.github#1177): the condition is `reusable-links.yml`'s, and
+  this file's own job carries none.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
