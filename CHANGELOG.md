@@ -261,6 +261,13 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   hand-off is `reusable-links.yml`'s, under that file's own copy of the
   paragraph, and this caller's job is a bare `uses:`.
 
+- **`claude-review.yml` takes the `closed` pull request type, with the
+  reason at the key** (issue btclib-org/.github#1182): the concurrency
+  group is at the workflow level, so a closed run enters it before any
+  job's own `if:` is read and can cancel a review still holding it —
+  what declines the review itself on a closed pull request is the
+  callee's own job-level `if:`.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
