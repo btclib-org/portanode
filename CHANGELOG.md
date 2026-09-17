@@ -256,6 +256,11 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   btclib-org/.github#1177): the condition is `reusable-links.yml`'s, and
   this file's own job carries none.
 
+- **`links.yml`'s `permissions:` comment drops the direction it gave for
+  where lychee is handed the token** (issue btclib-org/.github#1177): the
+  hand-off is `reusable-links.yml`'s, under that file's own copy of the
+  paragraph, and this caller's job is a bare `uses:`.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
