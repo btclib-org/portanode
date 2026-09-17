@@ -47,8 +47,7 @@ on:
 # github.com links only, where an unauthenticated runner is rate limited
 # hard enough to look like rot, and reading is all that takes.
 # Deliberately not issues: write. An automatic "link rot" issue is the
-# usual next step, and it would make this the only workflow here that can
-# write anything, to save a maintainer from reading a failure
+# usual next step, to save a maintainer from reading a failure
 # notification they already get
 permissions:
   contents: read
