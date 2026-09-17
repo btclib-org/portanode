@@ -35,9 +35,10 @@ on:
   # touches this file every later push to that branch runs it too
   pull_request:
     # ready_for_review so a pull request marked ready gets the run the
-    # draft condition below withheld while it was a draft: the default
-    # types do not include it. closed too, though the job declines the
-    # real work on it -- the same superseding lint.yml takes it for
+    # draft condition in reusable-links.yml withheld while it was a
+    # draft: the default types do not include it. closed too, though the
+    # job declines the real work on it -- the same superseding lint.yml
+    # takes it for
     types: [opened, reopened, synchronize, ready_for_review, closed]
     paths:
       - .github/workflows/links.yml
