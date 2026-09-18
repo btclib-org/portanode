@@ -272,6 +272,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   claim about `issues: write`** (issue btclib-org/.github#1180): the same
   commit gave `claude-review.yml` `pull-requests: write`.
 
+- **`claude-review.yml`'s two elevated grants and the zizmor hook now
+  carry `--persona=auditor`** (issue btclib-org/.github#1164). The
+  `pull-requests: write` and `id-token: write` scopes the calling job
+  declares each take a trailing comment, which is what let the auditor
+  persona join the gate at zero findings instead of leaving it advisory.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

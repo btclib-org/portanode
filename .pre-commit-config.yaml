@@ -533,9 +533,11 @@ repos:
   # with write access. The last of those is what this repository has to
   # get right -- claude-review.yml holds a credential -- and it is the
   # one an author is least able to see by reading.
-  # The default persona is the gate; --persona=auditor adds advice, none
-  # of it a defect, and is worth running by hand rather than on every
-  # commit
+  # The auditor persona runs on every commit, this tree being at zero
+  # under it: the two grants claude-review.yml's calling job declares
+  # were the findings it had, and both now carry the comment it asked
+  # for. A new one here is a comment this tree owes, not advice to weigh
+  # separately from the gate.
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.30.1
     hooks:
@@ -550,4 +552,4 @@ repos:
         # --no-progress is repeated rather than added: args replaces what
         # the hook declares, and that flag is the whole of what it
         # declares, so passing --offline alone would drop it
-        args: [--offline, --no-progress]
+        args: [--offline, --no-progress, --persona=auditor]
