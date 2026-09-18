@@ -240,15 +240,15 @@ commands are not one asked twice.** A `pull_request` run whose actor is
 `dependabot[bot]` is handed the Dependabot secrets rather than the
 Actions secrets, so a token registered only in the second resolves to the
 empty string on exactly the pull requests `.github/dependabot.yml` opens
-— and `claude-review.yml`'s credential step turns that into a red job
-saying which secret is missing, rather than a review that silently
-reviewed nothing.
+— and the credential guard inside the jobs `claude-review.yml` calls
+turns that into a red job saying which secret is missing, rather than a
+review that silently reviewed nothing.
 
 ## Variables
 
-**A switch this repository does not set.** `claude-review.yml` guards
-its jobs with `vars.CLAUDE_REVIEW_ENABLED`, and neither variable store
-holds it:
+**A switch this repository does not set.** The jobs `claude-review.yml`
+calls are guarded by `vars.CLAUDE_REVIEW_ENABLED`, and neither variable
+store holds it:
 
 ```shell
 gh api repos/btclib-org/portanode/actions/variables --jq '.total_count'
@@ -277,13 +277,14 @@ gh api repos/btclib-org/portanode/actions/permissions/workflow \
 ```
 
 answers `read` and `false`, and that is the floor every workflow here
-starts from. `claude-review.yml` is the only one whose jobs elevate it —
+starts from. `claude-review.yml` is the only one that elevates it —
 `pull-requests: write` to post a comment and `id-token: write` for the
-OIDC token the action mints at startup — where the lint hooks fix a
-checkout that is thrown away and lychee only reads one. The value is a
-repository setting that stops following the organization default once it
-is set, so lowering the default here would not lower what those two jobs
-declare.
+OIDC token the action mints at startup, on the `claude-review` job that
+calls `btclib-org/.github`'s `reusable-claude-review.yml` — where the
+lint hooks fix a checkout that is thrown away and lychee only reads one.
+The value is a repository setting that stops following the organization
+default once it is set, so lowering the default here would not lower
+what that job declares.
 
 ```shell
 gh api repos/btclib-org/portanode/actions/permissions \
@@ -300,9 +301,12 @@ back:
 grep -h 'uses:' .github/workflows/*.yml | grep -v '@[0-9a-f]\{40\} #'
 ```
 
-answers with nothing — every `uses:` is forty hex digits with its tag in
-a trailing comment. Turning the setting on is one `PATCH` and would move
-that from a convention to a refusal.
+leaves the calls to `btclib-org/.github`'s reusable workflows, which
+section 10 of the organization standard has naming `@main` rather than a
+commit. Every action is forty hex digits with its tag in a trailing
+comment, so anything else the command prints is an action that lost its
+pin. Turning the setting on is one `PATCH` and would move the action
+pins from a convention to a refusal.
 
 ## Security settings
 

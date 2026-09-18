@@ -35,19 +35,19 @@ on:
   # touches this file every later push to that branch runs it too
   pull_request:
     # ready_for_review so a pull request marked ready gets the run the
-    # draft condition below withheld while it was a draft: the default
-    # types do not include it. closed too, though the job declines the
-    # real work on it -- the same superseding lint.yml takes it for
+    # draft condition in reusable-links.yml withheld while it was a
+    # draft: the default types do not include it. closed too, though the
+    # job declines the real work on it -- the same superseding lint.yml
+    # takes it for
     types: [opened, reopened, synchronize, ready_for_review, closed]
     paths:
       - .github/workflows/links.yml
 
-# least privilege for the GITHUB_TOKEN. lychee is handed it below for
+# least privilege for the GITHUB_TOKEN. lychee is handed it for
 # github.com links only, where an unauthenticated runner is rate limited
 # hard enough to look like rot, and reading is all that takes.
 # Deliberately not issues: write. An automatic "link rot" issue is the
-# usual next step, and it would make this the only workflow here that can
-# write anything, to save a maintainer from reading a failure
+# usual next step, to save a maintainer from reading a failure
 # notification they already get
 permissions:
   contents: read
@@ -71,4 +71,4 @@ jobs:
   links:
     uses: btclib-org/.github/.github/workflows/reusable-links.yml@main
     with:
-      targets: '"*.md" "**/*.md" ".claude/commands/*.md"'
+      targets: '"**/*.md" ".github/**/*.md" ".claude/**/*.md"'

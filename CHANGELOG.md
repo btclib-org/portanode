@@ -226,6 +226,52 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (issue btclib-org/.github#550): both are now off, so the earlier
   entry's `true` for both no longer holds.
 
+- **`targets:` left `.github/` outside lychee's reach** (issue
+  btclib-org/.github#1104): it becomes `"**/*.md"
+  ".github/**/*.md" ".claude/**/*.md"`.
+
+- **`CONTRIBUTING.md` and `REVIEWING.md` gain the command and the
+  question that check a branch's own entry sits last** (issue
+  btclib-org/.github#1097): `check-changelog` reads no position.
+
+- **`check-changelog` drops `files:` for `always_run: true`** (issue
+  btclib-org/.github#1138): the script reads the open section off disk,
+  and the rebase that eats the seam stages nothing.
+
+- **`check_changelog.py`'s docstring states its rebase discipline in its
+  own words rather than citing a `CONTRIBUTING.md` section no tree
+  holds** (issue btclib-org/.github#1137).
+
+- **`claude-review.yml`'s `review` and `mention` jobs become one call to
+  `btclib-org/.github`'s `reusable-claude-review.yml`, which carries the
+  action pin** (issue btclib-org/.github#35): the trigger, the
+  workflow-level permissions and this tree's own prompt paragraph stay
+  here, the concurrency group moves to the workflow level, and the
+  callee's verdict check reports no stale verdict. The `mention` job
+  btclib-org/.github#915 commented is the callee's now, and the calling
+  job carries the reason for each grant it declares in its own header.
+
+- **`links.yml`'s `ready_for_review` comment names the callee that holds
+  the draft condition rather than pointing below it** (issue
+  btclib-org/.github#1177): the condition is `reusable-links.yml`'s, and
+  this file's own job carries none.
+
+- **`links.yml`'s `permissions:` comment drops the direction it gave for
+  where lychee is handed the token** (issue btclib-org/.github#1177): the
+  hand-off is `reusable-links.yml`'s, under that file's own copy of the
+  paragraph, and this caller's job is a bare `uses:`.
+
+- **`claude-review.yml` takes the `closed` pull request type, with the
+  reason at the key** (issue btclib-org/.github#1182): the concurrency
+  group is at the workflow level, so a closed run enters it before any
+  job's own `if:` is read and can cancel a review still holding it —
+  what declines the review itself on a closed pull request is the
+  callee's own job-level `if:`.
+
+- **`links.yml`'s `permissions:` comment drops the false uniqueness
+  claim about `issues: write`** (issue btclib-org/.github#1180): the same
+  commit gave `claude-review.yml` `pull-requests: write`.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
