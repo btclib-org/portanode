@@ -284,6 +284,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   no `###` heading and no line matching `RULE_HEADING`, so the new
   check returns before either is read.
 
+### The `check-changelog` hook's comment names no count
+
+- **`.pre-commit-config.yaml`'s comment pointed at "the three checks";
+  the docstring it names enumerates every check correctly** (issue
+  btclib-org/.github#1225). The count goes, not gets corrected.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
