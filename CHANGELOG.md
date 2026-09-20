@@ -278,6 +278,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   declares each take a trailing comment, which is what let the auditor
   persona join the gate at zero findings instead of leaving it advisory.
 
+- **`.github/scripts/check_changelog.py` takes `.github`'s fifth check,
+  `misplaced_entries()`, with this tree's own `_GRANDFATHERED_ENTRIES`
+  set to `0`** (issue btclib-org/.github#1215): this open section carries
+  no `###` heading and no line matching `RULE_HEADING`, so the new
+  check returns before either is read.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
