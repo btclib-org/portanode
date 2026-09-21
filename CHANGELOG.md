@@ -290,6 +290,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the docstring it names enumerates every check correctly** (issue
   btclib-org/.github#1225). The count goes, not gets corrected.
 
+### `links.yml`'s `cancel-in-progress` takes the conditional
+
+- **`links.yml`'s `cancel-in-progress` takes section 10's conditional**
+  (issue btclib-org/.github#1226): it keeps `closed` and declares no
+  `push` trigger.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

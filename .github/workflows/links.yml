@@ -36,9 +36,11 @@ on:
   pull_request:
     # ready_for_review so a pull request marked ready gets the run the
     # draft condition in reusable-links.yml withheld while it was a
-    # draft: the default types do not include it. closed too, though the
-    # job declines the real work on it -- the same superseding lint.yml
-    # takes it for
+    # draft: the default types do not include it. closed too, so a
+    # merge or a close lands in this pull request's own concurrency
+    # group -- the job still declines the real work on it, and the
+    # conditional below decides whether that landing cancels the run
+    # in flight or queues behind it
     types: [opened, reopened, synchronize, ready_for_review, closed]
     paths:
       - .github/workflows/links.yml
@@ -61,7 +63,7 @@ concurrency:
   # a dispatch of it supersede each other -- wanted, since they ask the
   # same question of the same tree
   group: links-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !(github.event.action == 'closed' && github.event.pull_request.merged) }}
 
 jobs:
   # the job itself is btclib-org/.github's, called at @main so a fix there
