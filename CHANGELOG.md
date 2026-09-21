@@ -296,6 +296,18 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (issue btclib-org/.github#1226): it keeps `closed` and declares no
   `push` trigger.
 
+### `REPOSITORY.md` marks the plan reading a changing-world fact
+
+- **The plan-name reading now carries `a fact about a changing world`
+  and the date it was read** (issue btclib-org/.github#1017): an
+  upgrade is the organization's own choice, not a drift to catch.
+
+### `REPOSITORY.md`'s security-settings aside moves beside its fence
+
+- **The `.security_and_analysis` aside sits as prose next to the
+  fenced command, not glued to it as a comment** (issue
+  btclib-org/.github#1017): the live endpoint still matches the table.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

@@ -311,13 +311,12 @@ pins from a convention to a refusal.
 ## Security settings
 
 All of these are repository settings and none of them is in the tree, so
-this list is the whole of them:
+this list is the whole of them. The alerts themselves are not in
+`.security_and_analysis`: the endpoint that answers for them has no
+body, and says so with its status — 204 for enabled, 404 for not.
 
 ```shell
 gh api repos/btclib-org/portanode --jq '.security_and_analysis'
-# the alerts themselves are not in that object: the endpoint that
-# answers for them has no body, and says so with its status -- 204 for
-# enabled, 404 for not
 gh api -i repos/btclib-org/portanode/vulnerability-alerts | head -1
 gh api repos/btclib-org/portanode/private-vulnerability-reporting
 gh api repos/btclib-org/portanode/code-scanning/default-setup \
@@ -384,6 +383,10 @@ re-derives it:
 gh api orgs/btclib-org --jq .plan.name
 # free
 ```
+
+The plan is a fact about a changing world rather than a setting this
+repository decides, an upgrade being the organization's own choice and
+not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 
 [GitHub's own table](https://docs.github.com/en/actions/reference/limits)
 turns that answer into a number, twenty concurrent jobs on the free plan,
