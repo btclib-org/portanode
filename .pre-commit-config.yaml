@@ -248,7 +248,7 @@ repos:
   # the one every repository of the organization carries: prose moves
   # between them, and a paragraph that lints in one has to lint here
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.23.2
+    rev: v0.23.3
     hooks:
       - id: markdownlint-cli2
         name: markdownlint-cli2 (in place fixes)
@@ -446,7 +446,7 @@ repos:
         entry: |-
           \A@echo[\x20\t]+off\r?\n[\x20\t]*@?setlocal[\x20\t]+disabledelayedexpansion[\x20\t]*\r?$
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.9.6
+    rev: v3.9.8
     hooks:
       - id: prettier
         name: prettier (yaml and jsonc, in place fixes)
