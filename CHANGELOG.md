@@ -314,6 +314,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   btclib-org/.github#1293): `check-changelog` now runs pinned from
   `btclib-org/.github`, `args: [--grandfathered, "0"]`.
 
+### CONTRIBUTING.md's `awk` paragraph says what the command prints now
+
+- **CONTRIBUTING.md's `awk` paragraph named a docstring shape this open
+  section no longer has** (closes #557): it now says what the command prints,
+  and points to `check-changelog`'s own docstring for what each check reads.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

@@ -278,13 +278,13 @@ hook inherits it, and its `bin/` holds the `python3` uv fetched. With a
 `PATH` resolving no `python3` at all, `command -v python3` run from that
 same process answers with that `bin/`'s.
 
-**The `awk` command above prints nothing in this tree.** `check-changelog`'s
-own module docstring names the reason by name: this repository's open
-section is "prose bullets straight under the release heading with
-nothing this file's `_ENTRY_HEADING` matches", which "leaves every check
-here vacuous rather than failing" — the same shape that empties the
-`awk`. What answers whether a branch's own entry sits last here is its
-last `- **` bullet before the next `##` heading.
+**The `awk` command above prints the open section's `###` headings, in
+the order they hold, where the section carries any.** This tree's open
+section holds both heading-less bullets and `###`-headed entries, so
+the command's output is the headed subset rather than the whole
+section. `check-changelog`'s own docstring states what each of its
+checks reads. What answers whether a branch's own entry sits last here
+is its last `- **` bullet before the next `##` heading.
 
 **Check exit codes, not filtered output.** `pre-commit run ... | grep -v
 Passed` hides a failure, and `grep` finding nothing exits 1, which is not
