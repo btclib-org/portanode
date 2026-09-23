@@ -6,9 +6,9 @@
 # the text every file is made of.
 #
 # What is absent is absent for a measured reason rather than an
-# oversight. `git ls-files '*.py'` names only the script check-changelog
-# below runs, which is btclib-org/.github's file byte for byte and is
-# linted by that tree's ruff and mypy, so neither is here to read a copy;
+# oversight. `git ls-files '*.py'` names nothing -- check-changelog
+# below is fetched from btclib-org/.github, which lints it -- so no ruff
+# and no mypy are here to read a file that does not exist;
 # there is no project and no `uv.lock`, so `uv-lock` has nothing to keep
 # in step. A hook is added here the day the tree grows a file of its own
 # that the hook reads.
@@ -223,27 +223,13 @@ repos:
         # constants needed that plugin off, nothing here is close enough
         # to that threshold to need the same exception
         args: [--baseline, .secrets.baseline]
-  # `merge=union` stays on `CHANGELOG.md` (btclib-org/.github#21), and
-  # this is the gate its price bought back -- `.github/scripts/
-  # check_changelog.py`'s own docstring carries what its checks catch,
-  # what they still cannot, and the alternatives declined
-  # (btclib-org/.github#305, btclib-org/.github#516). It runs ahead of
-  # markdownlint-cli2 below on purpose: that hook's `--fix` repairs the
-  # very seam the third check exists to name, so a hook reading the
-  # file after it would find nothing left to report.
-  #
-  # `always_run: true`, and no `files:`: the rebase that eats the seam
-  # stages nothing, so a hook keyed on the diff is unreachable after the
-  # event the blank-line check exists to name. Section 4 carries the
-  # rest.
-  - repo: local
+  # check-changelog runs ahead of markdownlint-cli2 below: that hook's
+  # `--fix` repairs the very seam the third check exists to name.
+  - repo: https://github.com/btclib-org/.github
+    rev: 93615580cdf8afb1b0a89bf38b707232d39a502a
     hooks:
       - id: check-changelog
-        name: the open CHANGELOG.md repeats no heading, closes no issue twice
-        entry: python3 .github/scripts/check_changelog.py
-        language: system
-        pass_filenames: false
-        always_run: true
+        args: [--grandfathered, "0"]
   # MD013 at 80 columns, tables included, and the shared configuration is
   # the one every repository of the organization carries: prose moves
   # between them, and a paragraph that lints in one has to lint here

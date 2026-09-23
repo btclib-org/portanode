@@ -308,6 +308,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   fenced command, not glued to it as a comment** (issue
   btclib-org/.github#1017): the live endpoint still matches the table.
 
+### The shared scripts are read from `btclib-org/.github`, not carried here
+
+- **`.github/scripts/check_changelog.py` leaves this tree** (issue
+  btclib-org/.github#1293): `check-changelog` now runs pinned from
+  `btclib-org/.github`, `args: [--grandfathered, "0"]`.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
