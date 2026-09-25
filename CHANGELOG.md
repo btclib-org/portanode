@@ -320,6 +320,11 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   section no longer has** (closes #557): it now says what the command prints,
   and points to `check-changelog`'s own docstring for what each check reads.
 
+### README.md and CONTRIBUTING.md link GOVERNANCE.md and ROADMAP.md
+
+- **Both point a contributor at `btclib-org/.github`'s `GOVERNANCE.md`
+  and `ROADMAP.md`** (issue btclib-org/.github#1359).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
