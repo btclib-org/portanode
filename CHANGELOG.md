@@ -320,6 +320,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   section no longer has** (closes #557): it now says what the command prints,
   and points to `check-changelog`'s own docstring for what each check reads.
 
+### `REVIEWING.md` links Conventional Comments at its GitLab Pages address
+
+- **`REVIEWING.md` links `https://conventionalcomments.gitlab.io/`**, a name the
+  `*.gitlab.io` certificate covers, which `conventionalcomments.org` can present
+  and fail the TLS check (issue btclib-org/.github#1341).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
