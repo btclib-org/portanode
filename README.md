@@ -436,6 +436,11 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 This is an open-source project. `CONTRIBUTING.md` describes how a change
 gets in and what `main` requires of it.
 
+How the organization decides, and who holds which role, is its
+[GOVERNANCE.md](https://github.com/btclib-org/.github/blob/main/GOVERNANCE.md);
+what it intends to do, and what it deliberately does not, is its
+[ROADMAP.md](https://github.com/btclib-org/.github/blob/main/ROADMAP.md).
+
 Everything known to be wrong or missing is an open issue:
 [the issue tracker](https://github.com/btclib-org/portanode/issues) is the
 list, and it is the only list.
