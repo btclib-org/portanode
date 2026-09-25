@@ -325,6 +325,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 - **Both point a contributor at `btclib-org/.github`'s `GOVERNANCE.md`
   and `ROADMAP.md`** (issue btclib-org/.github#1359).
 
+### `REVIEWING.md` lets a filed issue carry its fix
+
+- **An issue filed from a review may say the fix where one is known**
+  (issue btclib-org/.github#1378): *What is filed, and what is not*
+  dropped its "no fix", the filing bar standing as it was.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
