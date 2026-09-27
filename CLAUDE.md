@@ -11,12 +11,12 @@ folder that is not the boot disk. `README.md` is what a user reads,
 
 ## What is in the tree, and what is not
 
-- **The binaries are not.** `macos/bin/.gitignore` and
-  `win/bin/.gitignore` name Bitcoin Core's and Electrum's executables one
-  by one, and the update scripts are what put them there. So a fresh
-  clone launches nothing until `update-bitcoin` and `update-electrum`
-  have run, and a launcher failing with "binary not found" on a clean
-  checkout is the tree working as designed.
+- **The binaries are not.** `macos/bin/.gitignore`, `win/bin/.gitignore`
+  and `linux/bin/.gitignore` name Bitcoin Core's and Electrum's
+  executables one by one, and the update scripts are what put them
+  there. So a fresh clone launches nothing until `update-bitcoin` and
+  `update-electrum` have run, and a launcher failing with "binary not
+  found" on a clean checkout is the tree working as designed.
 - **Neither is the chain data.** `bitcoin-datadir/` and
   `electrum-datadir/` are tracked for their configuration and their
   `README.md`; blocks, chainstate, wallets and logs are ignored.
