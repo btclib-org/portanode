@@ -134,7 +134,8 @@ and Ubuntu it has to run under, not on a single default:
   *Troubleshooting* below has the remedy for that case, and for a folder
   that reached the disk some other way.
 - **Dependencies**: None required beyond standard OS tools. For advanced use,
-  ensure Python (for Electrum) and command-line tools are available.
+  ensure `gpg` (for the updaters' PGP verification, see *PGP verification
+  fails closed* below) and command-line tools are available.
 
 ## Getting the folder
 

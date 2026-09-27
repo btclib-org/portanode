@@ -397,6 +397,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (closes #571): electrum.org ships one Linux artifact, and the updater
   installed it on any architecture.
 
+### CLAUDE.md, .gitignore and README's Prerequisites drop stale nits
+
+- **`linux/bin/.gitignore` is named beside the other platforms',
+  `.gitignore` drops a repeated `.vscode/`, and README's *Prerequisites*
+  asks for `gpg` rather than Python** (closes #572, closes #573, closes #574).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

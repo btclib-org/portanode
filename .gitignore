@@ -2,8 +2,6 @@
 
 # IDE/Editor files
 .vscode/
-#launch.json folder
-.vscode/
 
 # macOS artifacts
 .DS_Store
