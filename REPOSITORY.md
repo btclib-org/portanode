@@ -109,6 +109,15 @@ gives: the only thing writing to `main` is a merge GitHub performs
 itself, and GitHub signs those with its web-flow key. A valid signature
 is what the rule asks for, not a particular signer's.
 
+```shell
+gh api repos/btclib-org/portanode/branches/main/protection \
+  --jq '.required_signatures.enabled'
+# false
+```
+
+Classic protection's own copy of the rule is off: [the standard states
+that value for every repository][s11-branch].
+
 **`main-self-merge` is in `pull_request` mode, which is a review
 exception and not a signature one.** GitHub does not allow an author to
 approve their own pull request, so on a solo-maintainer repository the
@@ -291,22 +300,9 @@ gh api repos/btclib-org/portanode/actions/permissions \
   --jq '{enabled, allowed_actions, sha_pinning_required}'
 ```
 
-answers `true`, `all` and `false`. `sha_pinning_required` being off means
-the forge does not enforce what the standard asks for, so an action
-pinned to a tag rather than to forty hex digits would be accepted here.
-The pins are kept by the convention instead, and this is what reads them
-back:
-
-```shell
-grep -h 'uses:' .github/workflows/*.yml | grep -v '@[0-9a-f]\{40\} #'
-```
-
-leaves the calls to `btclib-org/.github`'s reusable workflows, which
-section 10 of the organization standard has naming `@main` rather than a
-commit. Every action is forty hex digits with its tag in a trailing
-comment, so anything else the command prints is an action that lost its
-pin. Turning the setting on is one `PATCH` and would move the action
-pins from a convention to a refusal.
+answers `true`, `all` and `true`. `sha_pinning_required` is set at the
+organization level: [section 11 of the standard has the reasons for both
+fields][s11-tokens].
 
 ## Security settings
 
@@ -470,3 +466,6 @@ asks for the publishing environments and, where a tree releases, a
 answers `0`, `RELEASING.md` saying a release here is a signed tag and a
 GitHub release cut by hand with nothing to publish to an index; and this
 tree has no `pyproject.toml` for a `homepage` to agree with.
+
+[s11-branch]: https://github.com/btclib-org/.github/blob/main/README.md#branch-protection-and-rulesets
+[s11-tokens]: https://github.com/btclib-org/.github/blob/main/README.md#tokens-publishing-scanning
