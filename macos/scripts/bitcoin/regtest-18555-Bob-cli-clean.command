@@ -55,11 +55,20 @@ DATADIR="${ROOTDIR}/bitcoin-datadir/regtest_bob"
 
 # Refuse to wipe a datadir a node is using: on Unix "rm -rf" deletes files held
 # open by the running process, which would corrupt a live node.
-if pgrep -f -i -- "-datadir=${DATADIR}" >/dev/null 2>&1; then
-    echo "Error: a Bitcoin process is using ${DATADIR#"$ROOTDIR"/}."
-    echo "Stop it before a clean start."
-    exit 1
-fi
+process_running_with "-datadir=${DATADIR}"
+case $? in
+    0)
+        echo "Error: a Bitcoin process is using ${DATADIR#"$ROOTDIR"/}."
+        echo "Stop it before a clean start."
+        exit 1
+        ;;
+    1) ;;
+    *)
+        echo "Error: could not tell whether a Bitcoin process is using"
+        echo "${DATADIR#"$ROOTDIR"/}. Nothing has been deleted."
+        exit 1
+        ;;
+esac
 
 echo "WARNING: This will delete regtest data."
 echo "Press Enter to continue or Ctrl+C to cancel."

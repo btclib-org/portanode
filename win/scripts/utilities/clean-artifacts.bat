@@ -24,11 +24,20 @@ REM which hold a synced chain's blocks, chainstate and indexes: hundreds of
 REM thousands of files on a USB volume. $skip keeps Get-ChildItem from ever
 REM enumerating into either, rather than filtering their contents out after
 REM walking them. $root is not walked a second time as "win": it is
-REM already one of $root's own children.
+REM already one of $root's own children. -Path would read each child's
+REM full path as a wildcard pattern, so under a root holding "[" it would
+REM name another folder's files, or none; -LiteralPath reads it as a path.
+REM The names are matched by Where-Object rather than by -Include, and each
+REM match removed by its own -LiteralPath: measured on windows-latest, the
+REM powershell.exe this line runs, version 5.1, throws a
+REM NullReferenceException in Remove-Item for what Get-ChildItem
+REM -LiteralPath -Include pipes to it, and removes nothing.
+REM $root is read from the environment rather than spliced into the
+REM command, where a "'" in it would end the string early.
 REM Built as one physical line -- see :update_checksum in
 REM win/scripts/utilities/lib.bat (#144) on why a caret split across a
 REM powershell -Command block's open quote is not a continuation.
-powershell -NoProfile -Command "& { $root = '%ROOTDIR%'; $skip = @('bitcoin-datadir','electrum-datadir'); $paths = (Get-ChildItem -LiteralPath $root -Force -ErrorAction SilentlyContinue | Where-Object { $skip -notcontains $_.Name }).FullName; if ($paths) { Get-ChildItem -Path $paths -Recurse -Force -ErrorAction SilentlyContinue -Include 'ehthumbs.db','Thumbs.db','*.stackdump' | Remove-Item -Force -ErrorAction SilentlyContinue } }"
+powershell -NoProfile -Command "& { $root = $env:ROOTDIR; $skip = @('bitcoin-datadir','electrum-datadir'); $paths = (Get-ChildItem -LiteralPath $root -Force -ErrorAction SilentlyContinue | Where-Object { $skip -notcontains $_.Name }).FullName; if ($paths) { Get-ChildItem -LiteralPath $paths -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq 'ehthumbs.db' -or $_.Name -eq 'Thumbs.db' -or $_.Name -like '*.stackdump' } | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue } } }"
 
 echo Cleanup complete.
 popd >nul 2>&1

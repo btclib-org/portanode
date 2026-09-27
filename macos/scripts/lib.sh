@@ -1,7 +1,7 @@
 #!/bin/bash
-# macOS's own entry point for the platform-nameless root-resolution
-# helper. The implementation lives in shared/lib.sh; this file stays at
-# this path, as a forwarder rather than being deleted, because
+# macOS's own entry point for the platform-nameless root-resolution and
+# process-lookup helpers. The implementation lives in shared/lib.sh; this
+# file stays at this path, as a forwarder rather than being deleted, because
 # Bitcoin-Launcher.command, Electrum-Launcher.command and
 # Utilities-Launcher.command source it by this exact path, and because a
 # forwarder keeps the relative-path arithmetic into shared/ in one file

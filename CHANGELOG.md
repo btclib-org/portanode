@@ -349,6 +349,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `.exe` with its source, retrying on a mismatch, and hash the checksum
   entry from that source rather than from the copy it checks** (closes #568).
 
+### A path the clean scripts guard is matched as a string, not as a pattern
+
+- **The clean scripts match a mount path as a string** (closes #569)
+  (closes #576): `pgrep -f` misses a node under a `(` or `+` in it, and
+  `find -path` and `Get-ChildItem -Path` a datadir or the root under `[x]`.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
