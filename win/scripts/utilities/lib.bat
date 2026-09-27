@@ -219,11 +219,20 @@ del "%STATUS_FILE%" >nul 2>&1
 if not "%OUTVAR%"=="" set "%OUTVAR%=1"
 exit /b 0
 
+REM :update_checksum FILE ENTRY_PATH VERSION
+REM Appends FILE's hash to CHECKSUM_FILE under ENTRY_PATH. The updaters
+REM pass the verified file they install from, not the copy under
+REM win\bin, and then check that copy against the entry: an entry hashed
+REM from the copy records whatever the write left there, and the check
+REM then compares the copy with itself (#568). FILE reaches PowerShell
+REM through the environment, for the reason :install_verified's comment
+REM gives.
 :update_checksum
 set "FILEPATH_RAW=%~1"
-set "VERSION_LABEL=%~2"
+set "ENTRY_RAW=%~2"
+set "VERSION_LABEL=%~3"
 call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
-call :normalize_entry_path "%FILEPATH_RAW%" FILEPATH_ENTRY
+call :normalize_entry_path "%ENTRY_RAW%" FILEPATH_ENTRY
 if not exist "%FILEPATH_FS%" exit /b 0
 if "%CHECKSUM_FILE%"=="" exit /b 0
 REM Appends the one new entry with Add-Content rather than rewriting the file
@@ -266,7 +275,7 @@ REM read, so either failure leaves it unset and exits 1 with nothing
 REM appended. :verify_checksum below already fails closed on the same
 REM $null unguarded, because PowerShell binds a $null argument into
 REM String.StartsWith as a false match rather than raising.
-powershell -NoProfile -Command "& { $file = '%FILEPATH_FS%'; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 $file; if (-not $fh) { Write-Host 'Error: could not hash %FILEPATH_ENTRY%; not appending to win/checksums.sha256.'; exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  %FILEPATH_ENTRY%  version=' + $version; $existing = Get-Content $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
+powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $file; if (-not $fh) { Write-Host 'Error: could not hash the source of %FILEPATH_ENTRY%; not appending to win/checksums.sha256.'; exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  %FILEPATH_ENTRY%  version=' + $version; $existing = Get-Content $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
 if errorlevel 1 exit /b 1
 exit /b 0
 
@@ -289,6 +298,24 @@ REM why a "^" split across this block's open quote is not a continuation.
 REM "-not" rather than "!" for the reason :update_checksum's comment
 REM above gives.
 powershell -NoProfile -Command "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
+if errorlevel 1 exit /b 1
+exit /b 0
+
+REM :install_verified SRC DEST
+REM Copies SRC over DEST, reads DEST back and compares its SHA-256 with
+REM SRC's, copying again on a mismatch and failing once every attempt
+REM has mismatched: shared/utilities/lib.sh's install_verified, for the
+REM same removable volume. A DEST that cannot be hashed counts as a
+REM mismatch. A copy that fails outright is reported and not retried,
+REM being an error the copy itself raises rather than a silent one.
+REM The paths reach PowerShell through the environment, as
+REM :warn_if_no_pubkeys's WNP_ANSWER_FILE does, so an apostrophe in
+REM either stays data rather than closing a quoted string. One physical
+REM line, for the reason :update_checksum's comment gives.
+:install_verified
+set "INS_SRC=%~1"
+set "INS_DEST=%~2"
+powershell -NoProfile -Command "& { $src = $env:INS_SRC; $dest = $env:INS_DEST; $name = Split-Path -Leaf $dest; $want = Get-FileHash -Algorithm SHA256 -LiteralPath $src; if (-not $want) { Write-Host ('Error: cannot hash the source of ' + $name + '.'); exit 1 } foreach ($i in 1..5) { try { Copy-Item -LiteralPath $src -Destination $dest -Force -ErrorAction Stop } catch { Write-Host ('Error: copying ' + $name + ' failed: ' + $_.Exception.Message); exit 1 } $got = Get-FileHash -Algorithm SHA256 -LiteralPath $dest -ErrorAction SilentlyContinue; if ($got -and $got.Hash -eq $want.Hash) { exit 0 } Write-Host ('Warning: ' + $name + ' corrupted on write (attempt ' + $i + '/5); retrying...') } Write-Host ('Error: ' + $name + ' still corrupt after 5 attempts.'); Write-Host 'The destination filesystem may be unreliable.'; exit 1 }"
 if errorlevel 1 exit /b 1
 exit /b 0
 

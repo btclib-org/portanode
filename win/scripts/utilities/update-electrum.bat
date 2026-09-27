@@ -211,14 +211,17 @@ if not exist "%TMPDIR%\%FILE%" (
     echo Error: downloaded file not found.
     goto :error
 )
-copy /y "%TMPDIR%\%FILE%" "%BIN_DIR%\electrum.exe" >nul
+REM lib.bat's :install_verified compares the copy with its source, and
+REM the entry below is hashed from that source, the download the
+REM signature was checked on, rather than from the copy it then checks.
+call "%SCRIPT_DIR%lib.bat" :install_verified "%TMPDIR%\%FILE%" "%BIN_DIR%\electrum.exe"
 if errorlevel 1 (
     echo Error: failed to install Electrum.
     goto :error
 )
 
 if "%PGP_OK%"=="1" (
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/electrum.exe" "%VERSION%"
+  call "%SCRIPT_DIR%lib.bat" :update_checksum "%TMPDIR%\%FILE%" "win/bin/electrum.exe" "%VERSION%"
   echo Verifying installed Electrum against checksums.sha256...
   call "%SCRIPT_DIR%lib.bat" :verify_checksum "win/bin/electrum.exe" "win/bin/electrum.exe"
   if errorlevel 1 (
