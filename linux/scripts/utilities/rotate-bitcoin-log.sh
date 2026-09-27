@@ -13,16 +13,34 @@ if [ ! -f "$LOG_FILE" ]; then
     exit 0
 fi
 
+# Each step stops the run where it fails, before a later one overwrites
+# or empties what it would have kept: a failed mv leaves debug.log.N for
+# the cp below to overwrite, and a failed cp leaves the truncation
+# discarding the only copy of the log. The offset file below goes only
+# once the log has been emptied, and the exit status is the rotation's.
+
 # Rotate existing logs
 for ((i=MAX_ROTATIONS-1; i>=1; i--)); do
     if [ -f "${LOG_FILE}.$i" ]; then
-        mv "${LOG_FILE}.$i" "${LOG_FILE}.$((i+1))"
+        if ! mv "${LOG_FILE}.$i" "${LOG_FILE}.$((i+1))"; then
+            echo "Error: renaming bitcoin-datadir/debug.log.$i failed;" \
+                 "debug.log was not rotated."
+            exit 1
+        fi
     fi
 done
 
 # Copy and truncate current log to avoid losing the file handle
-cp "$LOG_FILE" "${LOG_FILE}.1"
-: > "$LOG_FILE"
+if ! cp "$LOG_FILE" "${LOG_FILE}.1"; then
+    echo "Error: copying bitcoin-datadir/debug.log to debug.log.1 failed;" \
+         "debug.log was not rotated."
+    exit 1
+fi
+if ! : > "$LOG_FILE"; then
+    echo "Error: emptying bitcoin-datadir/debug.log failed; its content is" \
+         "also in debug.log.1."
+    exit 1
+fi
 
 # The monitor's stored offset is now past the end of the truncated file; clear
 # it here rather than leaving the monitor to catch the mismatch on its next

@@ -367,6 +367,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   a root holding `[x]`, the checksum check hashed another folder's binary, or
   none and passed a tampered one; the log monitor wrote another folder's offset.
 
+### `rotate-bitcoin-log` stops at the step that fails
+
+- **A failed rename or copy leaves `debug.log` untouched, and a failed
+  rotation step exits 1 without the `Log rotated` line or clearing the
+  monitor's offset** (closes #584), on macOS, Linux and Windows alike.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
