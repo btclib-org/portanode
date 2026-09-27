@@ -361,6 +361,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   string it was spliced into** (closes #578): the updaters, the checksum
   helpers, `health-check` and `rotate-bitcoin-log` read `$env:` instead.
 
+### Two `.ps1` utilities read a path built from the root literally
+
+- **Both pass `-LiteralPath` where they passed `-Path`** (closes #583): under
+  a root holding `[x]`, the checksum check hashed another folder's binary, or
+  none and passed a tampered one; the log monitor wrote another folder's offset.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

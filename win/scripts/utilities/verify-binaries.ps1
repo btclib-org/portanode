@@ -4,6 +4,9 @@ param(
 )
 
 $checksum = Join-Path $RootDir 'win/checksums.sha256'
+# -LiteralPath on every path built from $RootDir: -Path reads a wildcard
+# pattern, so under a root holding "[x]" it names another folder's file,
+# or none.
 if (-not (Test-Path -LiteralPath $checksum)) {
   Write-Host 'Error: win/checksums.sha256 not found.'
   exit 1
@@ -12,7 +15,7 @@ if (-not (Test-Path -LiteralPath $checksum)) {
 $pattern = '^(?<hash>[0-9a-fA-F]{64})' +
   '\s+(?<path>.+?)(?:\s+version=(?<ver>.+))?$'
 
-$lines = Get-Content $checksum
+$lines = Get-Content -LiteralPath $checksum
 $map = @{}
 foreach ($line in $lines) {
   if ([string]::IsNullOrWhiteSpace($line) -or $line -match '^\s*#') {
@@ -76,7 +79,7 @@ foreach ($path in $map.Keys) {
     $fail++
     continue
   }
-  $computed = (Get-FileHash -Algorithm SHA256 $filePath).Hash
+  $computed = (Get-FileHash -Algorithm SHA256 -LiteralPath $filePath).Hash
   $computed = $computed.ToLower()
   # @(...): see the comment on $expectedVersions above -- the same
   # single-result collapse applies to a Where-Object result.
