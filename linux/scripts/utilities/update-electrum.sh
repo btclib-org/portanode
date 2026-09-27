@@ -32,13 +32,20 @@ if [[ "$OSTYPE" != "linux-gnu"* ]]; then
     exit 1
 fi
 
+# electrum.org publishes one Linux artifact, electrum-<version>-x86_64.AppImage
+# -- refused rather than guessed at on any other `uname -m`, the way
+# update-bitcoin.sh (Linux) refuses an architecture it does not recognize,
+# rather than installing a binary that cannot run.
+ARCH="$(uname -m)"
+if [ "$ARCH" != "x86_64" ]; then
+    echo "Unsupported architecture: $ARCH" \
+         "(electrum.org ships x86_64 only for Linux)."
+    exit 1
+fi
+
 BIN_DIR="$ROOTDIR/linux/bin"
 BACKUP_DIR="$BIN_DIR/backup/electrum"
 CHECKSUM_FILE="$ROOTDIR/linux/checksums.sha256"
-
-# electrum.org publishes one Linux artifact, electrum-<version>-x86_64.AppImage
-# -- no architecture branch the way update-bitcoin.sh (Linux) has one for
-# uname -m, electrum.org shipping x86_64 only.
 
 # THE FUSE2 QUESTION (ISS 118 / ISS 110's umbrella deferred it here):
 #
