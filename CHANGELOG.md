@@ -391,6 +391,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `verify-binaries.ps1` said "Nothing to verify" and exited 0, and every
   `monitor-bitcoin-log` moved its offset past log it had not read.
 
+### `update-electrum.sh` (Linux) refuses an architecture it does not ship for
+
+- **A `uname -m` other than `x86_64` is refused before any download**
+  (closes #571): electrum.org ships one Linux artifact, and the updater
+  installed it on any architecture.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
