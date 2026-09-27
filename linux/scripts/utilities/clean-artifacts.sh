@@ -32,17 +32,19 @@ echo "Cleaning artifacts..."
 # bitcoin-datadir/ and electrum-datadir/ are pruned for the reason the
 # macOS half gives -- they hold a synced chain's blocks, chainstate and
 # indexes, so descending into them turns a cleanup of a handful of files
-# into minutes of I/O -- and -delete is avoided there for the reason that
-# holds here too: it implies -depth, which turns -prune off.
-PRUNE_DATADIRS=( \( -path "$ROOTDIR/bitcoin-datadir" -o \
-                     -path "$ROOTDIR/electrum-datadir" \) -prune -o )
+# into minutes of I/O -- and are named from "." for the reason given there
+# too. -delete is avoided for the reason that holds here as well: it
+# implies -depth, which turns -prune off.
+cd "$ROOTDIR" || exit 1
+PRUNE_DATADIRS=( \( -path ./bitcoin-datadir -o -path ./electrum-datadir \) \
+                 -prune -o )
 
-find "$ROOTDIR" "${PRUNE_DATADIRS[@]}" -name ".goutputstream-*" -type f \
+find . "${PRUNE_DATADIRS[@]}" -name ".goutputstream-*" -type f \
   -exec rm -f {} +
-find "$ROOTDIR" "${PRUNE_DATADIRS[@]}" -name ".Trash" -type d \
+find . "${PRUNE_DATADIRS[@]}" -name ".Trash" -type d \
   -exec rm -rf {} + \
   2>/dev/null || true
-find "$ROOTDIR" "${PRUNE_DATADIRS[@]}" -name ".Trash-*" -type d \
+find . "${PRUNE_DATADIRS[@]}" -name ".Trash-*" -type d \
   -exec rm -rf {} + \
   2>/dev/null || true
 

@@ -21,17 +21,23 @@ echo "Cleaning artifacts..."
 # and deletes inside the pruned directories anyway -- confirmed against a
 # scratch tree with both bitcoin-datadir/ and electrum-datadir/ populated.
 # -exec rm -f/-rf {} + keeps the pre-order traversal -prune relies on.
-PRUNE_DATADIRS=( \( -path "$ROOTDIR/bitcoin-datadir" -o \
-                     -path "$ROOTDIR/electrum-datadir" \) -prune -o )
+#
+# -path reads its operand as a glob, so the two are named from "." with the
+# walk started inside ROOTDIR: named under "$ROOTDIR", a mount path holding
+# a bracket pair such as "[x]" or a backslash does not match itself, and
+# the walk descends into both.
+cd "$ROOTDIR" || exit 1
+PRUNE_DATADIRS=( \( -path ./bitcoin-datadir -o -path ./electrum-datadir \) \
+                 -prune -o )
 
-find "$ROOTDIR" "${PRUNE_DATADIRS[@]}" -name ".DS_Store" -type f \
+find . "${PRUNE_DATADIRS[@]}" -name ".DS_Store" -type f \
   -exec rm -f {} +
-find "$ROOTDIR" "${PRUNE_DATADIRS[@]}" -name "._*" -type f \
+find . "${PRUNE_DATADIRS[@]}" -name "._*" -type f \
   -exec rm -f {} +
-find "$ROOTDIR" "${PRUNE_DATADIRS[@]}" -name ".Spotlight-V100" -type d \
+find . "${PRUNE_DATADIRS[@]}" -name ".Spotlight-V100" -type d \
   -exec rm -rf {} + \
   2>/dev/null || true
-find "$ROOTDIR" "${PRUNE_DATADIRS[@]}" -name ".Trashes" -type d \
+find . "${PRUNE_DATADIRS[@]}" -name ".Trashes" -type d \
   -exec rm -rf {} + \
   2>/dev/null || true
 

@@ -17,9 +17,10 @@ Entry point for Linux launch scripts.
     - `testnet3.sh`, `testnet4.sh`, `regtest.sh`: For test and regtest
       networks.
 - `utilities/`: Maintenance scripts (updates, verification, cleanup, logs).
-- `lib.sh` and `utilities/lib.sh`: forward to the root-resolution and the
-  download/PGP/checksum helpers under `shared/`, the paths the scripts
-  under `electrum/` and `utilities/` source them by.
+- `lib.sh` and `utilities/lib.sh`: forward to the root-resolution and
+  process-lookup helpers and to the download/PGP/checksum helpers under
+  `shared/`, the paths the scripts under `bitcoin/`, `electrum/` and
+  `utilities/` source them by.
 
 ## Usage
 

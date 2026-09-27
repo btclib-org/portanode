@@ -1,9 +1,9 @@
 #!/bin/bash
-# Linux's own entry point for the platform-nameless root-resolution
-# helper. The implementation lives in shared/lib.sh; this file exists as
-# a forwarder rather than sourcing shared/lib.sh directly from every
-# caller, matching macos/scripts/lib.sh beside it -- a forwarder keeps
-# the relative-path arithmetic into shared/ in one file per platform
+# Linux's own entry point for the platform-nameless root-resolution and
+# process-lookup helpers. The implementation lives in shared/lib.sh; this
+# file exists as a forwarder rather than sourcing shared/lib.sh directly
+# from every caller, matching macos/scripts/lib.sh beside it -- a forwarder
+# keeps the relative-path arithmetic into shared/ in one file per platform
 # instead of in every script that reaches it through this one.
 
 _LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

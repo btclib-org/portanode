@@ -62,3 +62,24 @@ resolve_root() {
 
     (cd "$start_dir" && pwd -P)
 }
+
+# process_running_with <string>: 0 where the command line of a running
+# process holds <string>, ignoring case; 1 where none does; 2 where the
+# process list could not be read or searched, which a caller about to
+# delete something treats as 0.
+#
+# The string is compared as a string. pgrep -f reads its pattern as an
+# extended regular expression, so a path holding "(", "+" or "[" does not
+# match itself there, and a guard built on it reports no process. The
+# list is read in full before grep starts, so grep's own command line,
+# which carries the string, is not in it.
+process_running_with() {
+    local procs
+    procs="$(ps -A -ww -o args=)" || return 2
+    grep -q -i -F -e "$1" <<<"$procs"
+    case $? in
+        0) return 0 ;;
+        1) return 1 ;;
+        *) return 2 ;;
+    esac
+}
