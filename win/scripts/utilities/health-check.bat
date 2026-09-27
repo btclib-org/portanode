@@ -15,7 +15,6 @@ REM and its arguments under that same pass and strips a second time,
 REM from a bang-delimited read as readily as from a percent one (#411).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
-call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 
 pushd "%ROOTDIR%" >nul 2>&1
 
@@ -28,8 +27,10 @@ if not "%errorlevel%"=="0" (
 
 set "MOUNT_PATH=%ROOTDIR%"
 set FREE_GB=
+REM Run from its own directory by a relative name: win/scripts/root.ps1
+REM says why, and the values arrive as $env: reads.
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-  -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR_ARG%"`) do set FREE_GB=%%F
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\free-space-gb.ps1 -Path $env:ROOTDIR; exit $LASTEXITCODE"`) do set FREE_GB=%%F
 
 REM The client is resolved once here, and every site below reads it out
 REM of BTC_CLI rather than naming a path of its own. The folder's own

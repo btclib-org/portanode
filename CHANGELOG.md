@@ -379,6 +379,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   and refuses otherwise, `--dry-run` previews the same pins, and Windows
   enforces the shipped Electrum pin** (closes #567, closes #577, closes #581).
 
+### A Windows script is run from its own directory by a relative name
+
+- **Under a root holding `[x]`, Windows PowerShell 5.1 ran a sibling `x`'s
+  copy** of each `.ps1` and menu `.bat` (closes #587): the launchers and the
+  `.bat` callers now `Set-Location -LiteralPath` and run `.\<name>`.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

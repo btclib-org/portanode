@@ -408,23 +408,6 @@ if defined ROOTDIR call set "RR_PATH=%%RR_PATH:%ROOTDIR%\=%%"
 set "%RR_OUTVAR%=%RR_PATH%"
 exit /b 0
 
-REM :rootdir_arg ROOTDIR OUTVAR
-REM ROOTDIR carries no trailing separator except at a drive root
-REM (win/scripts/root.bat), and that one case is what this guards: handed
-REM straight to a quoted "%ROOTDIR%" argument for a spawned process --
-REM powershell.exe reads its argv by the Windows rules, where a backslash
-REM immediately before a closing quote escapes the quote instead of ending
-REM it -- a trailing "E:\" would run the argument on past the intended end
-REM of the line. Doubling that one backslash keeps it: an even count before
-REM the quote parses back to one literal backslash and a real close, where
-REM ROOTDIR's ordinary no-trailing-separator case has nothing to double.
-:rootdir_arg
-set "RA_ROOTDIR=%~1"
-set "RA_OUTVAR=%~2"
-if "%RA_ROOTDIR:~-1%"=="\" set "RA_ROOTDIR=%RA_ROOTDIR%\"
-set "%RA_OUTVAR%=%RA_ROOTDIR%"
-exit /b 0
-
 :normalize_fs_path
 set "RAW=%~1"
 set "OUTVAR=%~2"

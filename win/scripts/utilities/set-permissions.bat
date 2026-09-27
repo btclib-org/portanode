@@ -96,10 +96,14 @@ REM The write carries no ">nul": it prints nothing on success, and on
 REM failure its stderr names the account and the path, which is what a
 REM reader has to go on where the report below finds the directory
 REM unrestricted.
-powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%set-datadir-acl.ps1" -Path "%BDD%" -Account "%USERDOMAIN%\%USERNAME%"
+REM Run from its own directory by a relative name: win/scripts/root.ps1
+REM says why, and the values arrive as $env: reads.
+powershell -NoProfile -ExecutionPolicy Bypass ^
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\set-datadir-acl.ps1 -Path $env:BDD -Account ($env:USERDOMAIN + '\' + $env:USERNAME); exit $LASTEXITCODE"
 icacls "%BDD%\*" /reset /t >nul
 set "BDD_INHERIT_RC=%ERRORLEVEL%"
-powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%set-datadir-acl.ps1" -Path "%EDD%" -Account "%USERDOMAIN%\%USERNAME%"
+powershell -NoProfile -ExecutionPolicy Bypass ^
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\set-datadir-acl.ps1 -Path $env:EDD -Account ($env:USERDOMAIN + '\' + $env:USERNAME); exit $LASTEXITCODE"
 icacls "%EDD%\*" /reset /t >nul
 set "EDD_INHERIT_RC=%ERRORLEVEL%"
 
@@ -246,8 +250,10 @@ set "TARGET=%~1"
 set "REL=%~2"
 set "INHERIT_RC=%~3"
 set "FS_NAME="
+REM Run from its own directory by a relative name: win/scripts/root.ps1
+REM says why, and the values arrive as $env: reads.
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-  -File "%SCRIPT_DIR%filesystem-type.ps1" -Path "%TARGET%"`) do set "FS_NAME=%%F"
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\filesystem-type.ps1 -Path $env:TARGET; exit $LASTEXITCODE"`) do set "FS_NAME=%%F"
 if not defined FS_NAME (
     echo Warning: could not determine the filesystem of %REL%, so
     echo whether the write above restricted it is not established.

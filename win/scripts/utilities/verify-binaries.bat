@@ -21,7 +21,6 @@ REM reads a bang-delimited variable, so disabling it outright costs
 REM nothing.
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
-call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 set CHECKSUM_FILE=win/checksums.sha256
 
 pushd "%ROOTDIR%" >nul 2>&1
@@ -35,9 +34,10 @@ if not exist "%ROOTDIR%\%CHECKSUM_FILE%" (
     exit /b 1
 )
 
+REM Run from its own directory by a relative name: win/scripts/root.ps1
+REM says why, and the values arrive as $env: reads.
 powershell -NoProfile -ExecutionPolicy Bypass ^
-  -File "%SCRIPT_DIR%verify-binaries.ps1" ^
-  -RootDir "%ROOTDIR_ARG%"
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\verify-binaries.ps1 -RootDir $env:ROOTDIR; exit $LASTEXITCODE"
 
 set ERR=%ERRORLEVEL%
 popd >nul 2>&1

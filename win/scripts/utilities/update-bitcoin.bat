@@ -29,7 +29,6 @@ REM such scope holds echoes and no call: a call inside one would be
 REM back at the paragraph above.
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
-call "%SCRIPT_DIR%lib.bat" :rootdir_arg "%ROOTDIR%" ROOTDIR_ARG
 
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"
@@ -69,8 +68,10 @@ goto :version_ready
 :scrape_version
 echo Determining latest Bitcoin Core version...
 set VERSION=
+REM Run from its own directory by a relative name: win/scripts/root.ps1
+REM says why.
 for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-  -File "%SCRIPT_DIR%latest-bitcoin-version.ps1"`) do set VERSION=%%V
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\latest-bitcoin-version.ps1; exit $LASTEXITCODE"`) do set VERSION=%%V
 REM latest-bitcoin-version.ps1 prints INDEX_UNREACHABLE when it could
 REM not read the release index, an expired -TimeoutSec included;
 REM PROBE_TIMEOUT when the -TimeoutSec 30 archive HEAD probe expired
@@ -191,8 +192,10 @@ echo Archive size: unknown ^(the HEAD request returned no
 echo Content-Length^).
 :archive_size_done
 set FREE_GB=
+REM Run from its own directory by a relative name: win/scripts/root.ps1
+REM says why, and the values arrive as $env: reads.
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-  -File "%SCRIPT_DIR%free-space-gb.ps1" -Path "%ROOTDIR_ARG%"`) do set FREE_GB=%%F
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\free-space-gb.ps1 -Path $env:ROOTDIR; exit $LASTEXITCODE"`) do set FREE_GB=%%F
 if not defined FREE_GB goto :free_space_done
 setlocal enabledelayedexpansion
 echo Free space at !ROOTDIR!: !FREE_GB! GB
