@@ -355,6 +355,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (closes #576): `pgrep -f` misses a node under a `(` or `+` in it, and
   `find -path` and `Get-ChildItem -Path` a datadir or the root under `[x]`.
 
+### The Windows scripts hand PowerShell their paths through the environment
+
+- **A folder or a `%TEMP%` holding an apostrophe no longer ends the quoted
+  string it was spliced into** (closes #578): the updaters, the checksum
+  helpers, `health-check` and `rotate-bitcoin-log` read `$env:` instead.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

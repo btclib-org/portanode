@@ -224,9 +224,9 @@ REM Appends FILE's hash to CHECKSUM_FILE under ENTRY_PATH. The updaters
 REM pass the verified file they install from, not the copy under
 REM win\bin, and then check that copy against the entry: an entry hashed
 REM from the copy records whatever the write left there, and the check
-REM then compares the copy with itself (#568). FILE reaches PowerShell
-REM through the environment, for the reason :install_verified's comment
-REM gives.
+REM then compares the copy with itself (#568). Every value reaches
+REM PowerShell through the environment, for the reason
+REM :install_verified's comment gives.
 :update_checksum
 set "FILEPATH_RAW=%~1"
 set "ENTRY_RAW=%~2"
@@ -275,7 +275,7 @@ REM read, so either failure leaves it unset and exits 1 with nothing
 REM appended. :verify_checksum below already fails closed on the same
 REM $null unguarded, because PowerShell binds a $null argument into
 REM String.StartsWith as a false match rather than raising.
-powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $version = '%VERSION_LABEL%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $file; if (-not $fh) { Write-Host 'Error: could not hash the source of %FILEPATH_ENTRY%; not appending to win/checksums.sha256.'; exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  %FILEPATH_ENTRY%  version=' + $version; $existing = Get-Content $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -Path $checksum -Value $entry } }"
+powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $version = $env:VERSION_LABEL; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $file; if (-not $fh) { Write-Host ('Error: could not hash the source of ' + $env:FILEPATH_ENTRY + '; not appending to win/checksums.sha256.'); exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  ' + $env:FILEPATH_ENTRY + '  version=' + $version; $existing = Get-Content -LiteralPath $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -LiteralPath $checksum -Value $entry } }"
 if errorlevel 1 exit /b 1
 exit /b 0
 
@@ -296,8 +296,9 @@ if "%CHECKSUM_FILE%"=="" exit /b 1
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 REM "-not" rather than "!" for the reason :update_checksum's comment
-REM above gives.
-powershell -NoProfile -Command "& { $file = '%FILEPATH_FS%'; $path = '%CHECKPATH_ENTRY%'; $checksum = '%CHECKSUM_FILE%'; if (-not (Test-Path $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
+REM above gives. Values reach PowerShell as $env: reads, for the reason
+REM :install_verified's comment below gives.
+powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $path = $env:CHECKPATH_ENTRY; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content -LiteralPath $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0
 
@@ -308,10 +309,15 @@ REM has mismatched: shared/utilities/lib.sh's install_verified, for the
 REM same removable volume. A DEST that cannot be hashed counts as a
 REM mismatch. A copy that fails outright is reported and not retried,
 REM being an error the copy itself raises rather than a silent one.
+REM One physical line, for the reason :update_checksum's comment gives.
 REM The paths reach PowerShell through the environment, as
-REM :warn_if_no_pubkeys's WNP_ANSWER_FILE does, so an apostrophe in
-REM either stays data rather than closing a quoted string. One physical
-REM line, for the reason :update_checksum's comment gives.
+REM :warn_if_no_pubkeys's WNP_ANSWER_FILE does, rather than spliced
+REM between single quotes in the command text: a path holding an
+REM apostrophe ends such a string early, and PowerShell then refuses the
+REM whole command as a parse error (#578). Where a cmdlet takes
+REM -LiteralPath the path goes there, so a "[" in it is not read as a
+REM wildcard. The other calls that hand PowerShell a value this way
+REM point here.
 :install_verified
 set "INS_SRC=%~1"
 set "INS_DEST=%~2"
@@ -335,7 +341,9 @@ if not exist "%IV_FILE_FS%" exit /b 0
 if not exist "%IV_CHECKSUM%" exit /b 0
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
-for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $hash = (Get-FileHash -Algorithm SHA256 '%IV_FILE_FS%').Hash.ToLower(); $path = '%IV_ENTRY_ENTRY%'.ToLower(); $lines = Get-Content '%IV_CHECKSUM%'; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($path)) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
+REM Values reach PowerShell as $env: reads, for the reason
+REM :install_verified's comment above gives.
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $env:IV_FILE_FS).Hash.ToLower(); $path = $env:IV_ENTRY_ENTRY.ToLower(); $lines = Get-Content -LiteralPath $env:IV_CHECKSUM; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($path)) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
 exit /b 0
 
 REM :rootdir_relative PATH OUTVAR
