@@ -10,6 +10,9 @@ if (-not $NoNotify -and $env:PORTANODE_NO_NOTIFY -eq '1') {
 
 $logFile = Join-Path $RootDir 'bitcoin-datadir\debug.log'
 $lastCheckFile = Join-Path $RootDir '.last_log_offset'
+# -LiteralPath on every path built from $RootDir: -Path reads a wildcard
+# pattern, so under a root holding "[x]" it names another folder's file,
+# or none.
 
 if (-not (Test-Path -LiteralPath $logFile)) {
   Write-Host 'Log file not found: bitcoin-datadir\debug.log'
@@ -18,7 +21,7 @@ if (-not (Test-Path -LiteralPath $logFile)) {
 
 $lastOffset = 0
 if (Test-Path -LiteralPath $lastCheckFile) {
-  $value = Get-Content -Path $lastCheckFile -TotalCount 1
+  $value = Get-Content -LiteralPath $lastCheckFile -TotalCount 1
   if ($value -match '^\d+$') {
     $lastOffset = [int64]$value
   }
@@ -27,10 +30,10 @@ if (Test-Path -LiteralPath $lastCheckFile) {
 # Current size from the filesystem's own metadata rather than by reading the
 # file -- debug.log reaches hundreds of megabytes during initial block
 # download, and this runs every few minutes.
-$currentSize = (Get-Item -Path $logFile).Length
+$currentSize = (Get-Item -LiteralPath $logFile).Length
 if ($currentSize -lt $lastOffset) {
   $lastOffset = 0
-  Set-Content -Path $lastCheckFile -Value 0
+  Set-Content -LiteralPath $lastCheckFile -Value 0
 }
 
 if ($currentSize -gt $lastOffset) {
@@ -90,5 +93,5 @@ if ($currentSize -gt $lastOffset) {
     }
   }
 
-  Set-Content -Path $lastCheckFile -Value $currentSize
+  Set-Content -LiteralPath $lastCheckFile -Value $currentSize
 }
