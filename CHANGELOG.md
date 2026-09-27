@@ -331,6 +331,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (issue btclib-org/.github#1378): *What is filed, and what is not*
   dropped its "no fix", the filing bar standing as it was.
 
+### Every launcher resolves its own directory without `readlink -f`
+
+- **`$0` is resolved a symlink at a time instead of with `readlink -f`,
+  which macOS's own `readlink` gained only in 12.3** (closes #570): every
+  `.command` and root `.sh` launcher now carries the portable loop.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
