@@ -96,7 +96,9 @@ if defined BTC_CLI (
     REM bitcoin-cli, and its sync as that banner; with it, not running.
     REM Where nothing reads a child's stdout the flag saves the
     REM profile's load and decides nothing else.
-    for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { & '!BTC_CLI!' -datadir='!ROOTDIR!\bitcoin-datadir' getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
+    REM Values reach PowerShell as $env: reads: see :install_verified in
+    REM lib.bat (#578).
+    for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\bitcoin-datadir') getblockchaininfo 2>$null } catch { '' } }"`) do set BTC_INFO=%%J
     if defined BTC_INFO (
         set BTC_RUNNING=1
         set BTC_METHOD=bitcoin-cli
@@ -170,8 +172,8 @@ if "%BTC_RUNNING%"=="1" (
     if defined BTC_CLI (
         REM Built as one physical line -- see :update_checksum in
         REM lib.bat (#144).
-        REM -NoProfile for the reason at the first capture above.
-        for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { $info = & '!BTC_CLI!' -datadir='!ROOTDIR!\bitcoin-datadir' getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
+        REM -NoProfile and $env: for the reasons at the first capture above.
+        for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { $info = & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\bitcoin-datadir') getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
         if defined SYNC (
             echo Bitcoin sync: !SYNC!%%
         ) else (

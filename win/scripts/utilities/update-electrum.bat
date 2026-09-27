@@ -142,7 +142,9 @@ REM -TimeoutSec 30, the value latest-bitcoin-version.ps1 passes on
 REM its own archive HEAD probe: a HEAD the server accepts and then
 REM answers at its leisure holds --dry-run open for as long as the
 REM host chooses, and --dry-run is the side-effect-free preview.
-for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri '%URL%' -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
+REM Values reach PowerShell as $env: reads: see :install_verified in
+REM lib.bat (#578).
+for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri $env:URL -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
 if not defined ARCHIVE_LEN goto :archive_size_unknown
 REM ARCHIVE_MB is set /a's own output, so it carries no character the
 REM echo below has to be protected from.
@@ -197,8 +199,10 @@ REM nothing about itself, where every other failure below reaches
 REM :error with a message already printed, whether by this file or by
 REM the helper it calls. Write-Host sends it to stdout, so a run that
 REM fails this way still writes nothing to stderr.
-powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%' -OutFile '%TMPDIR%\%FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
-powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri '%URL%.asc' -OutFile '%TMPDIR%\%SIG_FILE%' -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+REM Values reach PowerShell as $env: reads: see :install_verified in
+REM lib.bat (#578).
+powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri ($env:URL + '.asc') -OutFile ($env:TMPDIR + '\' + $env:SIG_FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" PGP_OK "%ROOTDIR%\keys\electrum.fingerprints"
 if errorlevel 1 goto :error
