@@ -14,7 +14,7 @@ $lastCheckFile = Join-Path $RootDir '.last_log_offset'
 # pattern, so under a root holding "[x]" it names another folder's file,
 # or none.
 
-if (-not (Test-Path -LiteralPath $logFile)) {
+if (-not (Test-Path -LiteralPath $logFile -PathType Leaf)) {
   Write-Host 'Log file not found: bitcoin-datadir\debug.log'
   exit 0
 }
@@ -30,7 +30,15 @@ if (Test-Path -LiteralPath $lastCheckFile) {
 # Current size from the filesystem's own metadata rather than by reading the
 # file -- debug.log reaches hundreds of megabytes during initial block
 # download, and this runs every few minutes.
-$currentSize = (Get-Item -LiteralPath $logFile).Length
+# A read that fails exits before the offset is written, so the part of the
+# log it could not read is read again on the next run rather than counted
+# as checked.
+try {
+  $currentSize = (Get-Item -LiteralPath $logFile -ErrorAction Stop).Length
+} catch {
+  Write-Host 'Error: bitcoin-datadir\debug.log could not be read.'
+  exit 1
+}
 if ($currentSize -lt $lastOffset) {
   $lastOffset = 0
   Set-Content -LiteralPath $lastCheckFile -Value 0
@@ -38,14 +46,19 @@ if ($currentSize -lt $lastOffset) {
 
 if ($currentSize -gt $lastOffset) {
   # Seek to the stored offset instead of reading the file from byte zero.
-  $stream = [System.IO.File]::Open($logFile, [System.IO.FileMode]::Open,
-    [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
   try {
-    $stream.Seek($lastOffset, [System.IO.SeekOrigin]::Begin) | Out-Null
-    $reader = New-Object System.IO.StreamReader($stream)
-    $newText = $reader.ReadToEnd()
-  } finally {
-    $stream.Dispose()
+    $stream = [System.IO.File]::Open($logFile, [System.IO.FileMode]::Open,
+      [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+    try {
+      $stream.Seek($lastOffset, [System.IO.SeekOrigin]::Begin) | Out-Null
+      $reader = New-Object System.IO.StreamReader($stream)
+      $newText = $reader.ReadToEnd()
+    } finally {
+      $stream.Dispose()
+    }
+  } catch {
+    Write-Host 'Error: bitcoin-datadir\debug.log could not be read.'
+    exit 1
   }
   $lines = $newText -split "`r?`n"
   $errors = $lines |

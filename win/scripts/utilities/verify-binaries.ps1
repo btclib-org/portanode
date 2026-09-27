@@ -7,15 +7,23 @@ $checksum = Join-Path $RootDir 'win/checksums.sha256'
 # -LiteralPath on every path built from $RootDir: -Path reads a wildcard
 # pattern, so under a root holding "[x]" it names another folder's file,
 # or none.
-if (-not (Test-Path -LiteralPath $checksum)) {
-  Write-Host 'Error: win/checksums.sha256 not found.'
+if (-not (Test-Path -LiteralPath $checksum -PathType Leaf)) {
+  Write-Host 'Error: win/checksums.sha256 not found, or not a file.'
   exit 1
 }
 
 $pattern = '^(?<hash>[0-9a-fA-F]{64})' +
   '\s+(?<path>.+?)(?:\s+version=(?<ver>.+))?$'
 
-$lines = Get-Content -LiteralPath $checksum
+# -ErrorAction Stop: Get-Content's failure is otherwise non-terminating, and
+# an unreadable file would leave $lines empty and end in "Nothing to verify"
+# and exit 0, the answer a verified folder gives.
+try {
+  $lines = Get-Content -LiteralPath $checksum -ErrorAction Stop
+} catch {
+  Write-Host 'Error: win/checksums.sha256 could not be read.'
+  exit 1
+}
 $map = @{}
 foreach ($line in $lines) {
   if ([string]::IsNullOrWhiteSpace($line) -or $line -match '^\s*#') {

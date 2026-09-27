@@ -71,7 +71,13 @@ esac
 # reading the file -- debug.log reaches hundreds of megabytes during initial
 # block download, and this runs every few minutes. "stat -c%s" is GNU stat's
 # spelling of macOS's "stat -f%z".
-CURRENT_SIZE=$(stat -c%s "$LOG_FILE" 2>/dev/null || echo 0)
+# A read that fails exits before the offset is written, so the part of the
+# log it could not read is read again on the next run rather than counted as
+# checked.
+CURRENT_SIZE=$(stat -c%s "$LOG_FILE") || {
+    echo "Error: bitcoin-datadir/debug.log could not be read."
+    exit 1
+}
 if [ "$CURRENT_SIZE" -lt "$LAST_OFFSET" ]; then
     LAST_OFFSET=0
     echo "0" > "$LAST_CHECK_FILE"
@@ -80,11 +86,18 @@ fi
 if [ "$CURRENT_SIZE" -gt "$LAST_OFFSET" ]; then
     # Seek to the stored offset instead of reading the file from byte zero.
     # tail -c is 1-indexed, hence +1.
-    ERRORS=$(
+    # The subshell answers with tail's own status: grep exits 1 where nothing
+    # matches, and a head inside the pipe would end it early and hand tail a
+    # SIGPIPE, so the first five are taken after the matches are captured.
+    MATCHES=$(
       tail -c "+$((LAST_OFFSET+1))" "$LOG_FILE" \
-        | grep -i "error\\|warning\\|failed" \
-        | head -5
-    )
+        | grep -i "error\\|warning\\|failed"
+      exit "${PIPESTATUS[0]}"
+    ) || {
+        echo "Error: bitcoin-datadir/debug.log could not be read."
+        exit 1
+    }
+    ERRORS=$(printf '%s\n' "$MATCHES" | head -5)
 
     if [ -n "$ERRORS" ]; then
         echo "Bitcoin log errors detected:"
