@@ -38,6 +38,7 @@ REM Run from its own directory by a relative name: win/scripts/root.ps1
 REM says why, and the values arrive as $env: reads.
 powershell -NoProfile -ExecutionPolicy Bypass ^
   -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\monitor-bitcoin-log.ps1 -RootDir $env:ROOTDIR %NO_NOTIFY_ARG%; exit $LASTEXITCODE"
+set "ERR=%ERRORLEVEL%"
 
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
-exit /b 0
+exit /b %ERR%

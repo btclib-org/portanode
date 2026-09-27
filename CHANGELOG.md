@@ -385,6 +385,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   copy** of each `.ps1` and menu `.bat` (closes #587): the launchers and the
   `.bat` callers now `Set-Location -LiteralPath` and run `.\<name>`.
 
+### The log monitor and the Windows checksum check stop on a failed read
+
+- **An unreadable checksums file or log exits 1** (closes #588):
+  `verify-binaries.ps1` said "Nothing to verify" and exited 0, and every
+  `monitor-bitcoin-log` moved its offset past log it had not read.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
