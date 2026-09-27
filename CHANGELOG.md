@@ -403,6 +403,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   `.gitignore` drops a repeated `.vscode/`, and README's *Prerequisites*
   asks for `gpg` rather than Python** (closes #572, closes #573, closes #574).
 
+### REPOSITORY.md and dependabot.yml state section 11's settings
+
+- **`REPOSITORY.md` reads back SHA pinning on and classic signatures
+  off, and `dependabot.yml` says why its `pre-commit` ecosystem is
+  unused** (issue btclib-org/.github#1409) (issue btclib-org/.github#1391).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

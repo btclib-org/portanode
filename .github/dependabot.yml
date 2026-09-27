@@ -7,9 +7,12 @@
 # PGP rather than resolved by anybody's resolver.
 #
 # The pre-commit hook revisions are the other thing this repository pins
-# and are not below: dependabot's `pre-commit` ecosystem exists but is
-# not configured here, and the `ci:` block of .pre-commit-config.yaml
-# has pre-commit.ci bumping `rev:` lines weekly instead.
+# and are not below: dependabot's `pre-commit` ecosystem exists, and the
+# maintainer decided to keep pre-commit.ci for them instead
+# (btclib-org/.github#1391): the `ci:` block of .pre-commit-config.yaml
+# already has its weekly autoupdate rewriting `rev:` for every `repo:`
+# but `local` and `meta`, so a second bot on the same pin would only
+# compete with it.
 #
 # Grouped, so an update week is one pull request rather than one per
 # action: every one of them runs the lint gate, and reading a group is
