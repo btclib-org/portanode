@@ -3,10 +3,25 @@
 # Data directory: electrum-datadir
 # Network: mainnet
 # Server: localhost:50002:s (one server only)
-# readlink -f: $0 is the symlink's own path where a launcher is started
-# through one, which would send both the source below and the root walk
-# into the wrong directory.
-SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd -P)"
+# Portable readlink -f: macOS's own readlink has no -f before 12.3
+# (apple-oss-distributions/file_cmds tag file_cmds-352.40.6 vs.
+# file_cmds-353.100.22), so $0 -- the symlink's own path where a
+# launcher is started through one, which would send both the source
+# below and the root walk into the wrong directory -- is resolved a
+# link at a time instead.
+resolve_symlink() {
+  local target="$1" dir
+  while [ -L "$target" ]; do
+    dir="$(cd -P "$(dirname "$target")" && pwd)"
+    target="$(readlink "$target")"
+    case "$target" in
+      /*) ;;
+      *) target="$dir/$target" ;;
+    esac
+  done
+  printf '%s\n' "$target"
+}
+SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd -P)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
