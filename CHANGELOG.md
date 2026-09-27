@@ -343,6 +343,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   the EXIT trap detaches it** (closes #575): with an `Electrum` volume
   already mounted, the app installed and recorded came from that volume.
 
+### The Windows updaters check the installed copy against its source
+
+- **`update-bitcoin.bat` and `update-electrum.bat` compare each installed
+  `.exe` with its source, retrying on a mismatch, and hash the checksum
+  entry from that source rather than from the copy it checks** (closes #568).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

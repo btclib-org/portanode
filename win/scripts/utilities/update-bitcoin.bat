@@ -269,20 +269,24 @@ if not exist "%TMPDIR%\bitcoin-%VERSION%\bin\bitcoin-qt.exe" (
     echo Error: extracted binaries not found.
     goto :error
 )
-copy /y "%TMPDIR%\bitcoin-%VERSION%\bin\*.exe" "%BIN_DIR%\" >nul
-if errorlevel 1 (
-    echo Error: failed to install Bitcoin Core binaries.
-    goto :error
+REM Every .exe in the archive's bin directory goes through lib.bat's
+REM :install_verified, which compares the copy with its source; the
+REM first one it fails on ends the install.
+for %%F in ("%TMPDIR%\bitcoin-%VERSION%\bin\*.exe") do (
+  call "%SCRIPT_DIR%lib.bat" :install_verified "%%~fF" "%BIN_DIR%\%%~nxF"
+  if errorlevel 1 goto :install_failed
 )
+goto :install_done
+:install_failed
+echo Error: failed to install Bitcoin Core binaries.
+goto :error
+:install_done
 
+REM The entries are hashed from the files extracted from the archive
+REM checked above, and the loop below checks the installed copies
+REM against them.
 if "%PGP_OK%"=="1" (
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-qt.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoind.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-cli.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-wallet.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-tx.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin-util.exe" "%VERSION%"
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "win/bin/bitcoin.exe" "%VERSION%"
+  for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call "%SCRIPT_DIR%lib.bat" :update_checksum "%TMPDIR%\bitcoin-%VERSION%\bin\%%E.exe" "win/bin/%%E.exe" "%VERSION%"
 ) else (
   echo Warning: PGP signature^(s^) not verified; skipping checksum update.
 )
