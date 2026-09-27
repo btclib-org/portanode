@@ -62,7 +62,8 @@ exit /b 0
 REM :verify_pgp_signature SIG DATA LABEL OUTVAR [FPR_FILE]
 REM Fails CLOSED (exit /b 1) unless a good signature is found. If FPR_FILE has
 REM any 40-hex fingerprint line, additionally requires a VALIDSIG from a listed
-REM key (pinning). Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT recommended).
+REM key (pinning), and a line that is neither a fingerprint nor a comment
+REM refuses. Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT recommended).
 REM Written flat (no %var% set-and-read inside a ( ) block) because a
 REM read of that shape inside one answers with the value the variable
 REM held when cmd.exe parsed the block. Delayed expansion is the other
@@ -193,14 +194,55 @@ if not %errorlevel%==0 (
     exit /b 1
 )
 
-REM Optional fingerprint pinning: enforce only if FPR_FILE lists a fingerprint.
-REM Pre-filter to hex-only lines in a temp file (so the loop never echoes
-REM comment text containing ) or > etc.), then require a pinned fingerprint to
-REM appear on a VALIDSIG line (which carries both signing and primary key fprs).
+REM Optional fingerprint pinning: enforce only if FPR_FILE lists a fingerprint,
+REM then require a pinned fingerprint to appear on a VALIDSIG line (which
+REM carries both signing and primary key fprs).
+REM FPR_FILE is read by shared/utilities/lib.sh's pinned_fingerprints rule,
+REM which that function's comment states: bytes rather than text, a UTF-8
+REM byte order mark opening the file dropped, CRLF, LF and CR each ending a
+REM line, a NUL byte refusing the file, ASCII spaces, tabs, vertical tabs
+REM and form feeds removed, and a line then skipped where it is empty or
+REM starts with #, pinned where it is 40 characters from [0-9A-Fa-f], and
+REM refused otherwise, naming the line. The bytes are decoded as Latin-1,
+REM one character per byte, so no decoder turns a byte PowerShell cannot
+REM read into one the rule accepts, and -creplace and -cnotmatch name their
+REM characters rather than \s, which matches U+00A0 as well.
+REM A line is tested for emptiness by its Length and for # by an ordinal
+REM StartsWith, because -eq '' and StartsWith's default compare by culture,
+REM which ignores some characters: measured with the line
+REM U+00AD followed by #, both Windows PowerShell 5.1 on windows-latest
+REM and pwsh 7 read it as a comment and skipped it, and pwsh 7 also read
+REM U+0001 alone as empty, where shared/utilities/lib.sh refuses both.
+REM PowerShell applies the rule rather than findstr: measured on
+REM windows-latest, findstr /i /r "^[0-9A-F][0-9A-F]*$" matched a
+REM CRLF-ended fingerprint line and not the same line LF-ended, and
+REM .gitattributes checks keys\*.fingerprints out LF-only. FPR_CLEAN
+REM receives the 40-hex lines alone, so the loop below never echoes
+REM comment text holding ) or >.
+REM A PowerShell that exits non-zero for any reason, including not
+REM running at all, refuses rather than leaving PIN at 0. The catch is
+REM what makes a file it cannot read one of those reasons: measured on
+REM windows-latest with FPR_FILE naming a directory, the read threw, the
+REM error did not stop the block, and it exited 0 with nothing pinned.
+REM FPR_CLEAN goes to -LiteralPath for the reason :install_verified's
+REM comment gives.
+REM The powershell argument below is one physical line for the reason
+REM :update_checksum's comment gives.
 set "FPR_CLEAN=%TEMP%\pn_fpr_%RANDOM%%RANDOM%.txt"
 set "PIN=0"
-if not "%FPR_FILE%"=="" if exist "%FPR_FILE%" findstr /i /r "^[0-9A-F][0-9A-F]*$" "%FPR_FILE%" > "%FPR_CLEAN%" 2>nul
-if exist "%FPR_CLEAN%" for %%Z in ("%FPR_CLEAN%") do if %%~zZ GTR 0 set "PIN=1"
+if "%FPR_FILE%"=="" goto :verify_pgp_pins_read
+if not exist "%FPR_FILE%" goto :verify_pgp_pins_read
+type nul > "%FPR_CLEAN%"
+powershell -NoProfile -Command "& { try { $bytes = [IO.File]::ReadAllBytes($env:FPR_FILE); if ($bytes -contains 0) { Write-Output ('Error: ' + $env:FPR_FILE + ' holds a NUL byte, as a UTF-16 file does.'); exit 1 }; $text = [Text.Encoding]::GetEncoding(28591).GetString($bytes); if ($text.StartsWith([string][char]0xEF + [char]0xBB + [char]0xBF, [StringComparison]::Ordinal)) { $text = $text.Substring(3) }; $n = 0; $pins = @(); foreach ($l in ($text -split '\r\n|\r|\n')) { $n++; $f = $l -creplace '[ \t\v\f]', ''; if ($f.Length -eq 0 -or $f.StartsWith('#', [StringComparison]::Ordinal)) { continue }; if ($f -cnotmatch '^[0-9A-Fa-f]{40}$') { Write-Output ('Error: line ' + $n + ' of ' + $env:FPR_FILE + ' is not a 40-hex fingerprint: ' + $f); exit 1 }; $pins += $f }; if ($pins.Count -gt 0) { Set-Content -LiteralPath $env:FPR_CLEAN -Value $pins -Encoding Ascii -ErrorAction Stop } } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
+if not %errorlevel%==0 (
+    echo Error: "%FPR_FILE%" was not accepted as a list of pinned
+    echo fingerprints, so %LABEL% is refused.
+    del "%STATUS_FILE%" >nul 2>&1
+    del "%FPR_CLEAN%" >nul 2>&1
+    exit /b 1
+)
+for %%Z in ("%FPR_CLEAN%") do if %%~zZ GTR 0 set "PIN=1"
+:verify_pgp_pins_read
 if "%PIN%"=="1" (
     set "MATCHED="
     for /f "usebackq delims=" %%K in ("%FPR_CLEAN%") do (
