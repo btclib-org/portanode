@@ -34,7 +34,22 @@ done
 # it.
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-electrum.XXXXXX")"
 cd "$ROOTDIR"
-trap 'rm -rf "$TMP_DIR"' EXIT
+# The DMG is attached at a mount point this script names, inside TMP_DIR,
+# rather than under /Volumes where macOS picks one: a volume called
+# Electrum that is already mounted -- a DMG the user opened, say -- sends
+# the new one to "/Volumes/Electrum 1", and the app copied has to be the
+# one on the image just verified, whatever else holds the name. cleanup
+# detaches it before removing TMP_DIR, so an interrupted run leaves no
+# volume behind; where nothing is attached there, hdiutil detach fails
+# without touching anything else. -readonly mounts the image read-only
+# whatever format the publisher ships it in, so should that detach fail,
+# the rm -rf after it cannot modify the image through the mount.
+MOUNT_POINT="$TMP_DIR/mnt"
+cleanup() {
+    hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
+    rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
 
 echo "Updating Electrum..."
 
@@ -181,16 +196,14 @@ rm -rf "${BACKUP_DIR:?}/Electrum.app"
 if [ -d "$ROOTDIR/macos/bin/Electrum.app" ]; then
     cp -R "$ROOTDIR/macos/bin/Electrum.app" "$BACKUP_DIR/Electrum.app"
 fi
-MOUNT_INFO="$(hdiutil attach -nobrowse "$TMP_DIR/$OUT_FILE")"
-MOUNT_POINT="$(echo "$MOUNT_INFO" | tail -n 1 | awk '{print $3}')"
-if [ -z "$MOUNT_POINT" ]; then
+if ! hdiutil attach -nobrowse -readonly -mountpoint "$MOUNT_POINT" \
+  "$TMP_DIR/$OUT_FILE" >/dev/null; then
     echo "Failed to mount Electrum DMG."
     exit 1
 fi
 if [ ! -d "${MOUNT_POINT}/Electrum.app" ]; then
     echo "Electrum.app not found in mounted DMG."
     debug_list_dir "$MOUNT_POINT"
-    hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
     exit 1
 fi
 install_rc=0
@@ -218,8 +231,7 @@ else
     echo "Warning: PGP signature(s) not verified; skipping checksum update."
 fi
 
-# Cleanup
-rm -rf "$TMP_DIR"
+cleanup
 trap - EXIT
 
 echo "Electrum updated to $VERSION"

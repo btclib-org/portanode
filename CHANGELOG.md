@@ -337,6 +337,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   which macOS's own `readlink` gained only in 12.3** (closes #570): every
   `.command` and root `.sh` launcher now carries the portable loop.
 
+### macOS `update-electrum.sh` mounts the DMG at a mount point it names
+
+- **The Electrum DMG mounts inside the script's temporary directory, and
+  the EXIT trap detaches it** (closes #575): with an `Electrum` volume
+  already mounted, the app installed and recorded came from that volume.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
