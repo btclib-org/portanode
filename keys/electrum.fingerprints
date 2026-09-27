@@ -1,5 +1,6 @@
 # Pinned PGP signing-key fingerprints for Electrum (one 40-hex fingerprint per
-# line; lines starting with # are comments). Each platform's updater
+# line, spaces ignored; lines starting with # are comments; any other line,
+# a key ID included, refuses the download). Each platform's updater
 # requires its own Electrum download to carry a VALIDSIG from one of these
 # keys, checked against its detached .asc signature.
 #

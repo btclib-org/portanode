@@ -303,7 +303,11 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
       lists any fingerprint, the matching download must be signed by one of those
       keys. Electrum ships pinned to its release key; the Bitcoin Core list is a
       template you can populate with the builders you choose to trust (without it,
-      any imported builder key that signed `SHA256SUMS` is accepted).
+      any imported builder key that signed `SHA256SUMS` is accepted). A line
+      is read with its spaces removed, so a fingerprint pasted as
+      `gpg --fingerprint` prints it pins; a line that is then neither 40 hex
+      characters nor a `#` comment refuses the update and is named in the
+      error.
 - **If an updater cannot run** — no network access to bitcoincore.org or
   electrum.org, or a release the updater's scraper does not find — download
   the binary by hand from

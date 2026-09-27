@@ -132,6 +132,68 @@ verify_sha256sums() {
     fi
 }
 
+# pinned_fingerprints FPR_FILE OUT_VAR
+#
+# Sets OUT_VAR to the fingerprints FPR_FILE pins, one per line, and returns 0;
+# or prints the reason and returns 1 where the file is not one it accepts.
+# pgp_verify_or_fail and the updaters' --dry-run previews both read the file
+# through it, so a preview reports the pin the verification enforces.
+# The file is read as bytes, by a rule win/scripts/utilities/lib.bat's
+# :verify_pgp_signature applies too: a UTF-8 byte order mark opening the file
+# is dropped; CRLF, LF and CR each end a line, which is how .NET's
+# ReadAllLines splits; a file holding a NUL byte is refused, bash having no
+# way to keep one. Each line has its ASCII spaces, tabs, vertical tabs and
+# form feeds removed, so the spaced form gpg --fingerprint prints pins as the
+# unspaced one does, and is then skipped where it is empty or starts with #,
+# pinned where it is 40 characters from [0-9A-Fa-f], and refused otherwise,
+# naming the line: a key ID or a truncated paste skipped instead would, in a
+# file with no other pin, leave any GOODSIG accepted with nothing printed.
+# Every other byte stays, U+00A0 included, so a line holding one is refused
+# rather than read by whatever the locale calls a space. Nothing here asks the
+# locale: measured on macOS under it_IT.UTF-8, tr -d '[:space:]' stops at the
+# first byte that is not UTF-8 and prints nothing after it, so a pin line
+# opening with byte 0xA0 would read as empty and pin nothing.
+# The whole file is read before any fingerprint is matched, so a malformed
+# line refuses wherever it sits. A path that exists and is not a readable
+# file is refused too, and a path that does not exist pins nothing.
+pinned_fingerprints() {
+    # Locals carry a prefix: printf -v assigns the name nearest in scope, so
+    # a local sharing the caller's OUT_VAR name would receive the result.
+    local _pf_file="$1"
+    local _pf_out="$2"
+    local _pf_name _pf_text _pf_fpr _pf_pins="" _pf_line="" _pf_n=0
+    local _pf_nl=$'\n' _pf_cr=$'\r' _pf_ws=$' \t\v\f' _pf_bom=$'\xef\xbb\xbf'
+    printf -v "$_pf_out" '%s' ""
+    [ -e "$_pf_file" ] || return 0
+    _pf_name="$(basename "$_pf_file")"
+    if [ ! -f "$_pf_file" ] || [ ! -r "$_pf_file" ]; then
+        echo "Error: ${_pf_name} is not a readable file."
+        return 1
+    fi
+    if [ "$(LC_ALL=C tr -d '\000' < "$_pf_file" | wc -c)" -ne \
+         "$(wc -c < "$_pf_file")" ]; then
+        echo "Error: ${_pf_name} holds a NUL byte, as a UTF-16 file does."
+        return 1
+    fi
+    _pf_text="$(< "$_pf_file")"
+    _pf_text=${_pf_text#"$_pf_bom"}
+    _pf_text=${_pf_text//$_pf_cr$_pf_nl/$_pf_nl}
+    _pf_text=${_pf_text//$_pf_cr/$_pf_nl}
+    while IFS= read -r _pf_line; do
+        _pf_n=$((_pf_n + 1))
+        _pf_fpr=${_pf_line//[$_pf_ws]/}
+        case "$_pf_fpr" in ''|\#*) continue ;; esac
+        if ! [[ "$_pf_fpr" =~ ^[0-9ABCDEFabcdef]{40}$ ]]; then
+            echo "Error: line ${_pf_n} of ${_pf_name} is not a 40-hex" \
+                 "fingerprint: ${_pf_fpr}"
+            return 1
+        fi
+        _pf_pins="${_pf_pins:+${_pf_pins}${_pf_nl}}${_pf_fpr}"
+    done <<< "$_pf_text"
+    printf -v "$_pf_out" '%s' "$_pf_pins"
+    return 0
+}
+
 # pgp_verify_or_fail SIG_FILE DATA_FILE LABEL OUT_VAR [FPR_FILE]
 #
 # Verifies DATA_FILE against the detached SIG_FILE. FAILS CLOSED: returns
@@ -243,24 +305,29 @@ pgp_verify_or_fail() {
     # Optional fingerprint pinning: require a VALIDSIG from a listed key. The
     # VALIDSIG status line carries both the signing-key and primary-key
     # fingerprints, so match a pinned fingerprint anywhere on those lines.
-    if [ -n "$fpr_file" ] && [ -s "$fpr_file" ] && \
-       grep -qiE '^[[:space:]]*[0-9A-Fa-f]{40}[[:space:]]*$' "$fpr_file"; then
-        local validsig_lines fpr matched=0 line
-        validsig_lines="$(grep '^\[GNUPG:\] VALIDSIG' "$status_file")"
-        while IFS= read -r line; do
-            case "$line" in ''|\#*) continue ;; esac
-            fpr="$(echo "$line" | tr -d '[:space:]')"
-            [ ${#fpr} -eq 40 ] || continue
-            if echo "$validsig_lines" | grep -qi -- "$fpr"; then
-                matched=1
-                break
-            fi
-        done < "$fpr_file"
-        if [ "$matched" -ne 1 ]; then
-            echo "Error: ${label} is signed, but not by a pinned key listed" \
-                 "in $(basename "$fpr_file")."
+    # pinned_fingerprints above reads the file, and a file it does not
+    # accept refuses rather than pinning nothing.
+    if [ -n "$fpr_file" ]; then
+        local pins validsig_lines fpr matched=0
+        if ! pinned_fingerprints "$fpr_file" pins; then
+            echo "Error: $(basename "$fpr_file") was not accepted as a list" \
+                 "of pinned fingerprints, so ${label} is refused."
             rm -f "$status_file"
             return 1
+        fi
+        if [ -n "$pins" ]; then
+            validsig_lines="$(grep '^\[GNUPG:\] VALIDSIG' "$status_file")"
+            while IFS= read -r fpr; do
+                if echo "$validsig_lines" | grep -qi -- "$fpr"; then
+                    matched=1
+                fi
+            done <<< "$pins"
+            if [ "$matched" -ne 1 ]; then
+                echo "Error: ${label} is signed, but not by a pinned key" \
+                     "listed in $(basename "$fpr_file")."
+                rm -f "$status_file"
+                return 1
+            fi
         fi
     fi
 

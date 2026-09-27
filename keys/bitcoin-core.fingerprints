@@ -14,5 +14,7 @@
 #   gpg --import <key>.gpg
 #   gpg --fingerprint <name>     # confirm before adding the line below
 #
-# Example line format (40 uppercase hex chars, no spaces):
+# Example line format (40 hex chars; the spaces gpg --fingerprint prints are
+# ignored, and a line that is neither a fingerprint nor a comment refuses the
+# update):
 # 0123456789ABCDEF0123456789ABCDEF01234567

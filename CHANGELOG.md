@@ -373,6 +373,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   rotation step exits 1 without the `Log rotated` line or clearing the
   monitor's offset** (closes #584), on macOS, Linux and Windows alike.
 
+### A `keys/*.fingerprints` line is read by one rule on every platform
+
+- **A pin line pins where it is 40 hex once its ASCII whitespace is removed
+  and refuses otherwise, `--dry-run` previews the same pins, and Windows
+  enforces the shipped Electrum pin** (closes #567, closes #577, closes #581).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
