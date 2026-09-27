@@ -5,7 +5,7 @@
 # INDEX_UNREACHABLE is printed, and the index was read but lists no version,
 # where nothing is printed. Both exit 1.
 #
-# A -File script rather than a regex inlined into powershell -Command: an
+# A script of its own rather than a regex inlined into powershell -Command: an
 # inline command line is split by the Windows argument rules before
 # PowerShell parses it, and a backslash there is literal unless it
 # precedes a double quote, so a pattern written inline has to be escaped

@@ -8,10 +8,20 @@ function Resolve-PortaNodeRoot {
   # wildcard pattern, so a mount point holding "[" and "]" answers not
   # found for a directory that is on disk, and the walk below then runs
   # past the root it is meant to stop at. Quoting the argument does not
-  # reach it: the pattern is interpreted after the value is bound. The
-  # call operator and dot-sourcing take a name rather than a pattern,
-  # which is why a launcher reaches this file and its own menu scripts
-  # without one.
+  # reach it: the pattern is interpreted after the value is bound.
+  #
+  # Running a script by its path is the same trap under Windows PowerShell
+  # 5.1, with no -LiteralPath to reach for: -File, the call operator and
+  # dot-sourcing each resolve the path as a pattern there, so under a root
+  # holding "[x]" beside a folder "x" they run x's copy of the script.
+  # PowerShell 7 runs the one named. Escaping the pattern characters
+  # satisfies 5.1 and sends 7 looking for a name that holds the escapes;
+  # Set-Location -LiteralPath into the script's own directory and a run of
+  # ".\<name>" holds under both, the name carrying no pattern character of
+  # its own. The launchers reach this file and their menu scripts that
+  # way, and a .bat starts a .ps1 that way through powershell -Command:
+  # 5.1's -File resolves ".\<name>" against the current directory as a
+  # pattern as well. Measured on windows-latest under both versions.
   if ($env:PORTANODE_ROOT) {
     try {
       return (Resolve-Path -LiteralPath $env:PORTANODE_ROOT).Path

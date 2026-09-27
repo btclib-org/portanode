@@ -1,7 +1,10 @@
 Param()
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-. (Join-Path $ScriptRoot "win\scripts\root.ps1")
+# Dot-sourced by a relative name from its own directory, and the menu
+# scripts below run the same way: win/scripts/root.ps1 says why.
+Push-Location -LiteralPath (Join-Path $ScriptRoot 'win\scripts')
+try { . .\root.ps1 } finally { Pop-Location }
 $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
 
 # win\scripts\root.bat's :pause_if_own_console reads this. The menu
@@ -53,7 +56,8 @@ while ($true) {
         continue
     }
 
-    & $scriptPath
+    Push-Location -LiteralPath (Split-Path -Parent $scriptPath)
+    try { & ('.\' + (Split-Path -Leaf $scriptPath)) } finally { Pop-Location }
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Command failed (exit $LASTEXITCODE)."
     }
