@@ -226,7 +226,7 @@ repos:
   # check-changelog runs ahead of markdownlint-cli2 below: that hook's
   # `--fix` repairs the very seam the third check exists to name.
   - repo: https://github.com/btclib-org/.github
-    rev: 93615580cdf8afb1b0a89bf38b707232d39a502a
+    rev: 1c3cb979a34a31b5cfa3b7abfc924e4962a2b963
     hooks:
       - id: check-changelog
         args: [--grandfathered, "0"]
@@ -432,7 +432,7 @@ repos:
         entry: |-
           \A@echo[\x20\t]+off\r?\n[\x20\t]*@?setlocal[\x20\t]+disabledelayedexpansion[\x20\t]*\r?$
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.9.8
+    rev: v3.9.9
     hooks:
       - id: prettier
         name: prettier (yaml and jsonc, in place fixes)
@@ -468,7 +468,7 @@ repos:
   # reads every workflow and goes further than the schema does, into
   # expressions, contexts and runner labels
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.38.0
+    rev: 0.38.2
     hooks:
       - id: check-dependabot
       # .github/ISSUE_TEMPLATE/ is read the same way and by nothing else
@@ -489,7 +489,7 @@ repos:
   # whose only non-docker id is language: golang, i.e. a go toolchain on
   # every machine that commits and on pre-commit.ci
   - repo: https://github.com/Mateusz-Grzelinski/actionlint-py
-    rev: v1.7.12.24
+    rev: v1.7.12.25
     hooks:
       - id: actionlint
         name: actionlint (github workflows)
