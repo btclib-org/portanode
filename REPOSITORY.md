@@ -42,7 +42,7 @@ gh api repos/btclib-org/portanode --jq '.default_branch'
 # main
 ```
 
-**`lint.yml` runs on every pull request, and a red run of it stops the
+**`lint.yml` runs on every pull request, and a red `Lint` job stops the
 merge:**
 
 ```shell
@@ -76,9 +76,11 @@ folding into one of them.
 `main` before GitHub will merge it — a rebase before every landing, not
 only a green `Lint`.
 
-`links.yml` and `claude-review.yml` are not part of the required check:
-the first reports the internet's weather and the second an opinion, and
-neither is a thing to hold a merge on.
+`links.yml` and `claude-review.yml` are not part of the required check: the
+first reports the internet's weather and the second an opinion, and neither is a
+thing to hold a merge on. `lint.yml`'s second job, `Dependency review`, is not
+in the rule yet: requiring it is the maintainer's step once a pull request has
+produced its context (btclib-org/.github#1465).
 
 What holds a pull request is the review and `Lint`; what holds every
 commit that reaches `main` is `main-integrity`.
