@@ -409,6 +409,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   off, and `dependabot.yml` says why its `pre-commit` ecosystem is
   unused** (issue btclib-org/.github#1409) (issue btclib-org/.github#1391).
 
+### `CONTRIBUTING.md` points a newcomer at `good first issue`
+
+- **An issue carrying the label is small and self-contained** (issue
+  btclib-org/.github#1362): *The issue tracker* says so, and links the
+  organization-wide search for the open ones.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
