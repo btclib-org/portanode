@@ -385,6 +385,10 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 That answers `true`: a red `Lint` stops the merge. `REPOSITORY.md`'s
 *What gates a merge* has the setting, that it is classic branch
 protection rather than a ruleset rule, and what its `strict` flag costs.
+`lint.yml`'s second job, `Dependency review`, reports on the dependencies a
+pull request adds and is not in the rule yet: requiring it is the
+maintainer's step once a pull request has produced its context
+(btclib-org/.github#1465).
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a

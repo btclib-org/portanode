@@ -8,10 +8,10 @@ name: lint
 # It is the whole of what a merge here can be gated on. There is no suite
 # and no documentation build in this tree -- what stands in for one is
 # running a launcher on the platform it is for, which no runner does --
-# so the hooks are the only answer a workflow can produce, and
-# CONTRIBUTING.md's last section says what they leave uncovered.
+# so the hooks are the only answer a workflow can produce about the
+# checkout, and CONTRIBUTING.md's last section says what they leave uncovered.
 #
-# The name of the job below becomes the required context, and that is a
+# The `Lint` job's name becomes the required context, and that is a
 # second step rather than part of this one: a required context nothing
 # produces blocks every merge with nothing in the tree to explain why, so
 # the workflow lands first and REPOSITORY.md's "What gates a merge"
@@ -123,3 +123,42 @@ jobs:
       # than only that something is unclean
       - name: Run every hook
         run: uvx pre-commit run --all-files --show-diff-on-failure
+
+  dependency-review:
+    # btclib-org/.github's reusable-lint.yml job, written out because this
+    # file keeps its own lint job; section 11 of btclib-org/.github's
+    # README.md states the rule. A job of its own rather than a step of the
+    # one above: it reads the forge's dependency graph and not the checkout,
+    # so it takes no checkout and no hook environment. Its context is this
+    # name.
+    name: Dependency review
+    # the action compares a pull request's base and head, which only a
+    # pull_request event carries: on a push or a dispatch it has no pair
+    # and fails. A draft and a closed pull request decline as the job
+    # above does
+    if: >-
+      ${{ github.event_name == 'pull_request'
+      && !github.event.pull_request.draft
+      && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    # the action makes a few API calls and installs nothing, so a job past
+    # this is waiting on the forge
+    timeout-minutes: 10
+    # the compare endpoint needs contents: read, and the action posts
+    # nothing
+    permissions:
+      contents: read
+    steps:
+      # no checkout: the action reads the graph through the API and the
+      # config file through the input below
+      - name: Review the dependencies this pull request changes
+        # pinned to a commit SHA, the tag in the comment
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          # the organization's one file, at main, so that a change to the
+          # threshold reaches every tree in one landing
+          config-file: btclib-org/.github/.github/dependency-review.yml@main
+          # a remote config file is read without credentials unless this
+          # carries one, and GitHub limits an unauthenticated request by
+          # the address it comes from, which a runner shares
+          external-repo-token: ${{ github.token }}

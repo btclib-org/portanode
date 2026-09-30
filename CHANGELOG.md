@@ -415,6 +415,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   btclib-org/.github#1362): *The issue tracker* says so, and links the
   organization-wide search for the open ones.
 
+### `lint.yml` reviews the dependencies a pull request adds
+
+- **`lint.yml` carries `btclib-org/.github`'s `reusable-lint.yml` job**
+  (issue btclib-org/.github#1465): `Dependency review` fails on an added
+  advisory of `moderate` severity or above, or an unlisted licence.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
