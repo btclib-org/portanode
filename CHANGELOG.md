@@ -432,6 +432,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 - **`REPOSITORY.md` and `CONTRIBUTING.md` name `Dependency review` as a
   required check beside `Lint`** (issue btclib-org/.github#1465).
 
+### A `Signed-off-by:` trailer on every commit of a pull request
+
+- **`lint.yml` carries `btclib-org/.github`'s `Sign-off` job, which refuses a
+  commit not signed off by its author** (issue btclib-org/.github#1467):
+  `CONTRIBUTING.md`'s shared half says how to sign off.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
