@@ -89,118 +89,43 @@ folder that is not the boot disk. `README.md` is what a user reads,
 
 ## The primary checkout is the maintainer's
 
-**Never work in it.** No edit, no `git add`, no commit, no branch
-switch, no rebase, no `git stash` — the hooks fix files in place. It is a
-local reference only, and it stays on `main`.
-
-Reading it is fine, but `git fetch` moves `refs/remotes/origin/main` and
-leaves the work tree where it was, so a `grep` or a `Read` against the
-checkout answers for whenever it was last brought forward, not for now.
-The read that cannot go stale is `git show origin/main:<path>`: it
-answers from the ref `git fetch` just moved, never from the tree.
-
-Where the checkout has to be current rather than merely readable, a
-fast-forward of a clean `main` brings it up:
+Never work in it: no edit, no `git add`, no commit, no branch switch, no
+rebase, no `git stash` — the hooks fix files in place. The one write
+allowed there brings it forward, and only while it is on `main` and
+`git status --porcelain` prints nothing; where it is not, stop:
 
 ```shell
-git fetch origin && git merge --ff-only origin/main
+checkout=<checkout>
 ```
-
-That writes no commit, switches no branch and runs no hook, so it is on
-the permitted side of *never work in it*, not an exception to it. Stop
-if the checkout is not on `main` or is not clean: that is no longer
-bringing it forward.
-
-**Every session works in a worktree**, its own, from the first edit, named
-`wt-<tracker>-<issue>-<repo>-<role>` rather than after the issue alone, most
-general part first: an issue filed in `btclib-org/.github`'s tracker is the key
-and the repository is a detail of it — `btclib-org/.github#255` is one issue
-owed by seven repositories, `btclib-org/.github#177` by two — so the repository
-is what varies underneath an issue rather than the other way round, which is why
-`repo` comes after `issue`. Naming it that way also sorts every worktree of one
-issue together, which is what a port leaves behind.
-
-Each of the four parts earns its place against a different collision,
-and none of them is the same collision. `tracker` is the repository
-whose issue tracker holds the issue: an issue number is unique only
-within one tracker, so `btclib-org/.github#45` and
-`btclib-org/btclib#45` are different issues that would otherwise name
-the same worktree. `issue` is what prevents the collision that has
-actually happened — two worktrees of different work sharing a generic
-basename in one repository's own `.git`, keyed on its path's basename.
-`repo` prevents a different collision, a *path* one rather than a `.git`
-one: two repositories each keep their own `.git/worktrees/<basename>`
-and cannot collide there, but the workers of one session share one
-scratchpad directory, so a session carrying one issue into several
-repositories computes the same target path for each of them, and `git
-worktree add` refuses a directory that already exists — or worse, a
-second worker reads the first one's tree. `role` covers the narrower
-case of a coder and its reviewer holding a worktree at once, which the
-ordinary sequence avoids by each removing its own.
-
-An issue of `btclib-org/.github`'s tracker, worked in `btclib` by a coder, names
-its worktree `wt-github-255-btclib-coder`. The environment is created in the
-worktree, not the checkout, by whatever that tree's own `CONTRIBUTING.md` names
-under *The environment and the gates*, and a session reads that section, not
-this one, for the command. The editing, the gates and the commits all happen in
-the worktree before the push.
 
 ```shell
-WT=<scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
-git worktree add "$WT" origin/main -b <branch>
-git -C "$WT" push origin HEAD:refs/heads/<branch>
+git -C "${checkout:?}" pull --ff-only
 ```
 
-`-b <branch>` sits after the path and the commit-ish so that the placeholder
-ends the command, which is section 9 of `btclib-org/.github`'s rule. With the
-placeholder ahead of `"$WT"`, its `<` and its `>` are redirections performed
-left to right, so the `>` is reached only where the reader's own directory
-already holds the name `branch`: there the `<` succeeds, the line runs, and the
-`>` takes `"$WT"` as its target — a path with no directory at it is the file it
-creates. Ordinarily nothing holds that name, so the `<` fails first (`no such
-file or directory: branch`) and the line ends before the `>` opens anything.
+Read it only after that, once `git -C <checkout> rev-parse HEAD
+origin/main` prints one sha twice. A measurement that has to hold at a
+named revision reads `git -C <checkout> show <sha>:<path>` instead.
 
-The push names the worktree with `git -C "$WT"` because a `cd` binds the
-shell that runs it: a session that runs each line as its own command
-starts the next one in the directory it began in, the primary checkout,
-so a push after a `cd` offers that checkout's `HEAD` instead of the
-worktree's. `env -C <dir>` is the same binding for a command that takes
-no `-C` of its own. Neither binding rescues the assignment above it: a
-session that loses the `cd` loses `WT` with it, and `git -C ""` is
-documented to leave the working directory unchanged, so that push lands
-the same way, exit 0 and no diagnostic. That silence is `git`'s rather
-than the binding's: the BSD `env` macOS ships documents no case for an
-empty `-C` and refuses one — `cannot change directory to ''`, exit 125 —
-so a line bound with `env -C` stops there instead of running against the
-wrong tree. What the `-C` buys is a path that can be written out in
-full; write it out.
-
-Removing the worktree is part of finishing, and it stands in a block of
-its own: the block above ends in a placeholder, and a shell that
-discards that line as a parse error reads the next as a fresh command —
-which, in one block, is this line against whatever `$WT` already held.
-Standing alone it is a second fence, so `${WT:?}` is what it writes:
-with `$WT` unset or empty the expansion fails and the removal does not
-run. Those are the only cases it catches — a `$WT` an earlier session or
-command left holding a path expands, and the removal runs against
-whatever worktree that path names.
+Every session works in a worktree of its own, from its first edit, named
+`wt-<tracker>-<issue>-<repo>-<role>` — `wt-github-255-btclib-writer` for
+issue 255 of `btclib-org/.github`'s tracker, worked in `btclib` by a
+writer. The environment is created there, with the command `CONTRIBUTING.md`
+names under *The environment and the gates*. Every path is written out in
+full:
 
 ```shell
-git worktree remove --force "${WT:?}"
+git worktree add \
+  <scratchpad>/wt-<tracker>-<issue>-<repo>-<role> origin/main -b <branch>
 ```
 
-**Never `git stash` in a worktree either: `refs/stash` is shared.** A
-worktree isolates files, not refs, so `git stash push` pushes onto the
-same stack every other session pops from. Commit to your own branch
-instead.
+Removing it is part of finishing:
 
-**Do not rewrite `refs/heads/main`, and move it only onto
-`origin/main`.** That name is the local branch's, and no ruleset reaches
-it: a ruleset binds the forge's copy. The fast-forward above moves it
-onto `origin/main` and is inside that, where a merge, a commit on `main`
-or an `update-ref` to a branch tip leaves the ref somewhere
-`origin/main` is not. Your own branch is what you push, and the pull
-request is what moves `origin/main`.
+```shell
+git worktree remove --force <scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
+```
+
+`refs/stash` and the local `main` are shared by every worktree: never
+`git stash`, and move `main` only by the fast-forward above.
 
 ## What will otherwise waste a session
 
@@ -220,41 +145,23 @@ request is what moves `origin/main`.
   the same interpreter on every machine; what it costs is a line that
   ages on its own. Add it the day a hook is sensitive to which
   interpreter ran it.
-- **`git ls-files` reads the index merged with the working directory,
-  never a ref.** Its own manual's first sentence: "This command merges
-  the file listing in the index with the actual working directory
-  list." `--with-tree=<tree-ish>` does not change that — it is
-  documented only for use with `--error-unmatch`, to "pretend that paths
-  which were removed in the index since the named `<tree-ish>` are still
-  present." So it answers for whatever is staged, whether or not a
-  commit holds it. The executable-bit bullet below is the sharp case:
-  measured in a scratch repository, a file committed at `100644`, then
-  `chmod 755`'d and `git add`ed but never committed, reads as `100755`
-  under `git ls-files -s | awk '$1 == "100755"'`, while `git ls-tree -r
-  HEAD | awk '$1 == "100755"'` — the read that answers for the commit
-  rather than the index — answers empty for the same tree. A rule about
-  what the tree carries is answered by the commit, so that bullet's own
-  command reads `git ls-tree`.
 - **`.bat` files are CRLF in the working tree and LF in the index**,
   `.gitattributes` declaring `text eol=crlf`. A tool that normalizes one
   leaves `git diff` empty and the checkout wrong, which is why the
   line-ending hook excludes them and why `REVIEWING.md` carries a command
-  that reads the file rather than the diff. It is also why
-  `git show origin/main:<path>` is the wrong read for one of these: it
-  hands back the blob, so a `.bat` arrives LF and any line-ending
-  measurement taken from it describes the extraction rather than the
-  file. `git cat-file blob` and the contents API answer LF for the same
-  reason. `git archive` applies the attribute, so it is the read that is
-  both current and faithful:
+  that reads the file rather than the diff. A read of the blob —
+  `git show <ref>:<path>`, `git cat-file blob`, the contents API — hands
+  back LF, so a line-ending measurement taken from it describes the
+  extraction rather than the file. `git archive` applies the attribute:
 
     ```shell
-    git archive origin/main -- <path> | tar -xO
+    file=<path>
     ```
 
-    Measured against a checkout of the same commit, that returns the
-    file's carriage returns where the reads above return none — which is
-    how a batch linter came to report a tracked `.bat` as LF-only, from
-    a file that is CRLF everywhere it is actually read.
+    ```shell
+    git -C "${checkout:?}" archive origin/main -- "${file:?}" | tar -xO
+    ```
+
 - **PowerShell for the `.ps1` half is installable, not merely
   referenced.** `CONTRIBUTING.md` names
   `pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'` as what stands
@@ -267,119 +174,14 @@ request is what moves `origin/main`.
   a `.ps1` change being read for correctness without ever being parsed.
   `Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser` once
   `pwsh` is there.
-- **`blinter`'s exit code is not the gate's signal, and neither is a rule
-  code's count across the whole tree.** `.pre-commit-config.yaml`'s own
-  header says it is run by hand and does not gate; `uvx blinter . --no-config
-  --summary` still exits non-zero against an unmodified tree. `uvx blinter`
-  resolves `uv`'s own latest independently on each call, so a before run and
-  an after run of one comparison taken apart can land on two different
-  linters with nothing in the tree between them having changed; capture the
-  version once and hold every invocation of that comparison to it —
-  `--version` answers with a leading `v`, which PEP 440 accepts unchanged in
-  `--from`. A pin written into this file instead would make the same trade
-  the `.python-version` bullet above already declines for the interpreter.
-  `$V` is what holds one run's two halves to one linter; what a before run
-  and an after run taken on separate days share instead is whatever version
-  the first run's own report named, `$V` itself not surviving into a second
-  shell — so that is where `blinter --version`'s answer belongs, not in this
-  file:
-
-    ```shell
-    V=$(uvx blinter --version)
-    git archive origin/main | tar -x -C <tmpdir>
-    env -C <tmpdir> uvx --from "blinter==$V" \
-      blinter . --no-config --summary; echo $?
-    ```
-
-    So a session reading only that exit code cannot tell its own red from
-    the tree's. What a diff is judged on is the findings its own changed
-    lines produce, read by file, by rule code, and by the set of line
-    numbers each group's own `Line N, M:` header carries — not the exit
-    code, and not a rule code's count, because the same code fires
-    independently elsewhere: a file can carry two unrelated findings
-    under one code, one on a line a diff removes and one that stays, and
-    the code's count in that file is then identical before and after
-    even though the diff's own finding is gone. A count of the header's
-    own line numbers is not the key either, for the same reason: it is
-    that same rejected quantity under another name, so a fixed instance
-    paired with a different, newly introduced instance of the same code
-    still reads as no change, and `Context:` offers no help where its
-    text is the same generic phrase for both, as it is for a
-    delayed-expansion finding. The line numbers themselves still show
-    that swap, and show it even where blinter's own dedup — one
-    `Context:` per (file, code) group when every instance in it shares
-    one string — has collapsed two same-shaped instances to a single
-    line. What this key does not clear is a pure shift: an unrelated
-    edit earlier in the file that moves every later finding down by the
-    same offset changes the set with nothing in the group itself gained
-    or lost, which costs one extra look at the diff rather than a
-    missed defect.
-
-    **A line blinter skipped is absent from that key rather than clean in
-    it.** `blinter/parsing/embedded.py`'s `_detect_embedded_script_blocks`
-    returns the line numbers it reads as embedded script, and
-    `blinter/checkers/orchestration.py`'s `_process_file_checks` runs none
-    of the per-line checkers on those, so a defect a diff puts on one of
-    them changes nothing in the key. What lands in the set is decided by
-    pattern and reaches ordinary batch code: `\$\w+\s*=` is one of the
-    PowerShell patterns, so a batch `set` whose value is PowerShell text —
-    `set "PSFIND=$ErrorActionPreference = 'Stop';"` — matches it, where the
-    same assignment carrying no `$name =` matches nothing. A match opens a
-    block rather than skipping the one line, so the plain batch after it
-    lands in the set too, until a line blinter reads as batch closes the
-    block: a `del` redirected to `nul` is in the set behind a
-    `powershell` invocation while matching nothing on its own. The global
-    checkers run over a skipped line regardless, so it goes on carrying
-    findings of its own and nothing in the report says it was skipped; ask
-    blinter for the set rather than reading it off the report, at the same
-    `$V` captured above.
-
-    ```shell
-    uvx --from "blinter==$V" python -c '
-    import sys
-    from blinter.io.encoding import _validate_and_read_file
-    from blinter.parsing.embedded import _detect_embedded_script_blocks
-    lines, _encoding, _endings = _validate_and_read_file(sys.argv[1])
-    print(sorted(_detect_embedded_script_blocks(lines)))' <path>
-    ```
-
-    An empty list is an answer and not a failed invocation, a `.bat` here
-    answering both ways.
-- **The `was read using 'utf_8' encoding` block is on stderr, and it is
-  dropped rather than compared.** Which files it names moves under an
-  ASCII-only edit to an unrelated part of them, so a comparison that keeps
-  the block opens on a difference the diff did not make. The report itself is
-  on stdout, so sending stderr away drops the block and leaves the report
-  whole; a pipe alone does not reach it, and a run that merges the two
-  streams has to filter the lines back out. `$V` here is the version captured
-  above, held for this half of the comparison too:
-
-    ```shell
-    env -C <tmpdir> uvx --from "blinter==$V" \
-      blinter . --no-config --summary 2>/dev/null
-    ```
-
-    `blinter/io/encoding.py` asks `charset_normalizer` for the file's
-    encoding and keeps that answer only where its `coherence` is above
-    `0.7`, then decodes with the name it kept and reports that name. The
-    guard meant to suppress the warning for a file already read as UTF-8
-    or ASCII compares that name against `utf-8`, `utf-8-sig` and
-    `ascii`, spelled with hyphens, while `charset_normalizer` answers
-    `utf_8` with an underscore — a spelling Python accepts as an alias
-    for the codec and the guard does not accept as a match — so a file
-    holding no byte above 127 is named, and converting it to UTF-8 as
-    the warning advises is a no-op on it. What an edit moves is the
-    coherence, and the `0.7` gate reads it before the guard is reached
-    at all: below the gate the answer is discarded, the file decodes as
-    hyphenated `utf-8`, and the guard matches that — which is what
-    spares a file here rather than the guard's own `ascii` arm, every
-    `.bat` measured that `charset_normalizer` named `ascii` having
-    scored `0.0`, already below the gate. Coherence is derived from the
-    decoded text rather than from its bytes, so ASCII lines can move it;
-    they do not always, and where they do the move depends on where in
-    the file they go — one file stayed at `ascii` under the same block
-    prepended, appended and inserted mid-file, where another crossed the
-    gate downward.
+- **`blinter` does not gate, and its exit code is non-zero on the clean
+  tree.** Capture `V=$(uvx blinter --version)` once and run every half of
+  a comparison as `uvx --from "blinter==$V"`, stderr dropped (its `utf_8`
+  encoding notices move under unrelated edits). Judge a diff by the set
+  of line numbers per file and rule code, not by counts. Lines blinter
+  reads as embedded script — which can include plain batch lines after a
+  `$name =` match — get no per-line checks: ask
+  `blinter.parsing.embedded._detect_embedded_script_blocks` for the set.
 - **`ROOTDIR` is resolved, never assumed.** Every script derives it from
   its own location or from `PORTANODE_ROOT`, because the folder is
   mounted at a different point on every machine it is plugged into.
@@ -402,20 +204,21 @@ request is what moves `origin/main`.
     git ls-tree -r HEAD | awk '$1 == "100755" { print $4 }'
     ```
 
-    answers with the `.command` and `.sh` launchers, at the root, under
-    `linux/`, and under `macos/scripts/` and `linux/scripts/`, and with
-    nothing else. The root `.sh` launchers are Linux's own entry point
-    too — dispatching or refusing by `uname -s`, not macOS-exclusive — so
-    they earn the bit on both platforms' terms rather than only macOS's;
-    `linux/`'s own menus get the same bit for the reason
-    `linux/scripts/`'s `.sh` files do, and macOS's before them, a shell
-    reading the file directly. The `.bat` and `.ps1` halves stay 100644
-    because Windows does not read a POSIX mode, and every `lib.sh` —
-    those under `shared/` and each platform's forwarders into them alike
-    — is sourced rather than run; an executable bit on any of them would
-    say a thing about the file that running it does not bear out. A new
-    `.command` left non-executable does nothing when it is double-clicked
-    in Finder, which is the way it is meant to be run.
+    — read from the commit, not from `git ls-files -s`, which answers
+    for the index — answers with the `.command` and `.sh` launchers, at
+    the root, under `linux/`, and under `macos/scripts/` and
+    `linux/scripts/`, and with nothing else. The root `.sh` launchers
+    are Linux's own entry point too — dispatching or refusing by
+    `uname -s`, not macOS-exclusive — so they earn the bit on both
+    platforms' terms rather than only macOS's; `linux/`'s own menus get
+    the same bit for the reason `linux/scripts/`'s `.sh` files do, and
+    macOS's before them, a shell reading the file directly. The `.bat` and
+    `.ps1` halves stay 100644 because Windows does not read a POSIX mode, and
+    every `lib.sh` — those under `shared/` and each platform's forwarders into
+    them alike — is sourced rather than run; an executable bit on any of them
+    would say a thing about the file that running it does not bear out. A new
+    `.command` left non-executable does nothing when it is double-clicked in
+    Finder, which is the way it is meant to be run.
 
 - **The bit decides nothing on the volume this is built for.** macOS
   synthesises a mode for exFAT rather than storing one: a file written
@@ -423,8 +226,9 @@ request is what moves `origin/main`.
   runs regardless. Measured on an exFAT image —
 
     ```shell
-    hdiutil create -size 20m -fs ExFAT -volname T -o /tmp/t.dmg
-    hdiutil attach /tmp/t.dmg
+    d=$(mktemp -d)
+    hdiutil create -size 20m -fs ExFAT -volname T -o "$d/t.dmg"
+    hdiutil attach "$d/t.dmg"
     printf '#!/bin/bash\necho hi\n' > /Volumes/T/u.sh
     chmod 644 /Volumes/T/u.sh && ls -l /Volumes/T/u.sh && /Volumes/T/u.sh
     ```
@@ -434,50 +238,11 @@ request is what moves `origin/main`.
     archive on APFS, where GitHub's zipball carries the index mode
     through `unzip` unchanged.
 
-- **Linux's own exFAT driver does not synthesise a mode the way macOS's
-  does: it computes one from the mount's `fmask`, and omitting `fmask`
-  does not mean no mask at all — an unnamed `fmask` is the mounting
-  process's umask.** Measured on GitHub Actions `ubuntu-latest` (kernel
-  `6.17.0-1022-azure`, the in-kernel `exfat` module installed from
-  `linux-modules-extra-$(uname -r)`, the image built with `exfatprogs`
-  1.2.2), mounting directly with `mount -t exfat` rather than through a
-  desktop's own `udisks2` automount policy, and naming `uid=` and `gid=`
-  so that the mask is the only thing varying —
-
-    ```shell
-    truncate -s 32M /tmp/t.img
-    mkfs.exfat /tmp/t.img
-    for u in 022 077 000; do
-      d=/tmp/mnt-$u && sudo mkdir -p "$d"
-      sudo sh -c "umask $u; mount -t exfat \
-        -o loop,uid=$(id -u),gid=$(id -g) /tmp/t.img $d"
-      grep " $d " /proc/mounts
-      printf '#!/bin/bash\necho hi\n' > "$d/u.sh"
-      chmod 644 "$d/u.sh" && ls -l "$d/u.sh" && "$d/u.sh"
-      sudo umount "$d"
-    done
-    sudo mkdir -p /tmp/mnt-ctl
-    sudo sh -c "umask 000; mount -t exfat \
-      -o loop,uid=$(id -u),gid=$(id -g),fmask=133 /tmp/t.img /tmp/mnt-ctl"
-    ls -l /tmp/mnt-ctl/u.sh && /tmp/mnt-ctl/u.sh
-    sudo umount /tmp/mnt-ctl
-    ```
-
-    — where `fmask` and `dmask` come back as that umask each time, with
-    neither named on the command line: `022` reads `-rwxr-xr-x`, `077`
-    reads `-rwx------`, `000` reads `-rwxrwxrwx`, `chmod 644` changes
-    none of them, and the script runs under each, exit 0. The owner's
-    execute bit survives every umask that does not carry `1` in its own
-    owner digit, a mask being subtracted from `0777`. What does take it
-    away is the last mount, the control: an explicit `fmask=133` under a
-    umask of `000` reads `-rw-r--r--` (`0777 & ~0133`) and refuses the
-    script, `Permission denied`, exit 126. So a script on a plain,
-    unconfigured mount runs the way macOS's synthesis makes it run, and
-    the escape hatch macOS has none of is any mask clearing that bit:
-    the explicit `fmask` above, or — by the same two readings, no arm of
-    this run having taken it — a mounting process at a umask such as
-    `177`, which needs no mount option at all. What a desktop's own
-    `udisks2` automount passes for `fmask` was not measured here.
+- **On Linux, exFAT's mode comes from the mount's `fmask`, which defaults
+  to the mounting process's umask**: an ordinary mount runs the scripts
+  whatever `chmod` says, and an `fmask` clearing the owner's execute
+  bit refuses them; a umask doing the same is inferred, not measured
+  (#484, on `ubuntu-latest`; `udisks2`'s default not measured).
 
 ## Model
 
@@ -490,10 +255,8 @@ Do not use Fable unless explicitly instructed.
 
 ## Conventions to match
 
-- **The prose style is `CONTRIBUTING.md`'s "Documentation and comments"
-  section**: neutral, factual, dry; a comment carries the reasoning
-  *including the negative result*; measure rather than assert; one fact
-  in one place; no history in the prose.
+- **Prose style is section 9 of the standard** (pointer in
+  `CONTRIBUTING.md`'s *Documentation and comments*).
 - **Markdown wraps at 80 columns**, tables included (MD013 is on), so
   long commands go in fenced blocks split with `\`.
 - **A path is relative to `ROOTDIR` where the launcher itself consumes
@@ -514,16 +277,10 @@ Do not use Fable unless explicitly instructed.
   pasting one into a bug report hands over a path nobody else has. A path
   outside the folder entirely — a system binary, a user's keyring — is
   outside the rule rather than an exception to it.
-- **Never state how many of anything a file holds.** A stated count is a
-  line every open branch has to edit, and nothing here checks one.
 - **The version is a date, except between releases.** `VERSION` holds
   `YYYY.M.D` at a release and `YYYY.M`, month only, between them, and a
   release tag is the released string with a `v` in front. `RELEASING.md`
   is the procedure and the reason for the month-only value.
-- **A pull request that closes an issue names it in its title, in
-  parentheses**; one that closes nothing carries no parentheses. The
-  title becomes the landing commit's subject, `squash_merge_commit_title`
-  being `COMMIT_OR_PR_TITLE`.
 - **A commit subject is one physical line, however long.** The
   eighty-column wrap above is for files in the tree, and applying it to a
   subject is what produces a wrapped one. `%s` conceals the result: it
@@ -546,23 +303,9 @@ running it — on the platform it is for, from a volume that is not the
 boot disk — and a session that could not do that says so rather than
 leaving it to be assumed.
 
-"Could not do that" is narrower than it reads: the mechanism belongs to
-GitHub Actions, not to any one runner it offers. A workflow using
-`on: push` runs from whatever branch carries it rather than needing to
-sit on the default branch first — that requirement is
-`workflow_dispatch`'s alone — so a scratch branch holding a throwaway
-workflow file produces a real run on `ubuntu-latest`, `windows-latest`,
-or any other label it offers, without that workflow ever landing on
-`main`. `gh run list` and `gh run view --log` retrieve the output, and
-deleting the branch afterwards (`git push origin --delete <branch>`)
-removes a remote ref rather than a file, so there is no local file left
-to clean up.
-
-What such a run cannot establish is a property of the runner it lands
-on, not of GitHub Actions itself. Neither `ubuntu-latest` nor
-`windows-latest` carries a desktop session, so a `.desktop` file's trust
-behaviour in a file manager is out of reach on the first and a GUI
-launcher's own double-click through Explorer is out of reach on the
-second, for the same underlying reason. exFAT-on-a-removable-drive
-behaviour is only reachable through a loopback image, on any runner,
-which is not the same thing as a drive plugged into a running machine.
+A workflow on `on: push` runs from the branch that carries it, so a
+scratch branch holding a throwaway workflow gives a real run on any
+runner GitHub hosts; `gh run view --log` reads it, and deleting the branch
+(`git push origin --delete <branch>`) removes a remote ref, not a file.
+It cannot reach a desktop session or a drive plugged into a running
+machine; a loopback image is not one.
