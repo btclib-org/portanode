@@ -438,6 +438,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   commit not signed off by its author** (issue btclib-org/.github#1467):
   `CONTRIBUTING.md`'s shared half says how to sign off.
 
+### The primary-checkout section uses one form for the checkout
+
+- **The section writes the checkout as `"${checkout:?}"` throughout, says
+  what `<scratchpad>` is and names the pull** (issue
+  btclib-org/.github#1500).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
