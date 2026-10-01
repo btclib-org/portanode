@@ -427,6 +427,11 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (issue btclib-org/.github#1494), and the rest of the file is
   shortened.
 
+### `Dependency review` is a required check
+
+- **`REPOSITORY.md` and `CONTRIBUTING.md` name `Dependency review` as a
+  required check beside `Lint`** (issue btclib-org/.github#1465).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
