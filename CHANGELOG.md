@@ -421,6 +421,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (issue btclib-org/.github#1465): `Dependency review` fails on an added
   advisory of `moderate` severity or above, or an unlisted licence.
 
+### `CLAUDE.md` takes the shared primary-checkout section
+
+- **The section is the one `btclib-org/.github`'s `CLAUDE.md` carries**
+  (issue btclib-org/.github#1494), and the rest of the file is
+  shortened.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

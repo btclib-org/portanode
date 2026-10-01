@@ -64,11 +64,9 @@ and Ubuntu it has to run under, not on a single default:
   measured by mounting an exFAT image and running a script whose mode
   denies it (`CLAUDE.md`'s *What will otherwise waste a session* has
   the commands), while Ubuntu's own exFAT driver instead computes a mode
-  from the mount's own `fmask` — measured the same way, beside the
-  macOS bullet in `CLAUDE.md`: an `fmask` nobody names is the mounting
-  process's umask, and the script runs under every umask measured,
-  where a mask carrying `1` in its owner digit clears the execute bit
-  and the script fails. That is one mask away from the guarantee
+  from the mount's own `fmask`, which defaults to the mounting
+  process's umask (#484): an `fmask` clearing the owner's execute bit
+  makes the script fail. That is one mask away from the guarantee
   macOS's synthesis gives unconditionally.
 - **exFAT on Linux carries a further cost specific to Electrum**: its
   daemon binds a unix domain socket inside `electrum-datadir` for its own
