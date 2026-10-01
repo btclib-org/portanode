@@ -162,3 +162,60 @@ jobs:
           # carries one, and GitHub limits an unauthenticated request by
           # the address it comes from, which a runner shares
           external-repo-token: ${{ github.token }}
+
+  sign-off:
+    # btclib-org/.github's reusable-lint.yml job, written out because this
+    # file keeps its own lint job; section 11 of btclib-org/.github's
+    # README.md states the rule. It is not a required check, and its context
+    # is this name
+    name: Sign-off
+    # the commits read are those between a pull request's merge commit's two
+    # parents, and only a pull_request event checks that commit out. A draft
+    # and a closed pull request decline as the jobs above do
+    if: >-
+      ${{ github.event_name == 'pull_request'
+      && !github.event.pull_request.draft
+      && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    # git reads a few commits and uv may fetch an interpreter, so a job past
+    # this is hung
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      # the whole history: a branch's commits go back to where it left the
+      # base, however far that is
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # `path:` puts it beside this tree's checkout instead of over it;
+      # sparse, so what lands is .github/scripts and that repository's root
+      # files. `ref: main` is the script served from btclib-org/.github, as
+      # the config file of `Dependency review` is: one copy, which a change
+      # reaches every tree through
+      - name: Check out the sign-off script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: btclib-org/.github
+          ref: main
+          path: standard
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      # caching off: the job installs no dependency, so a cache has nothing
+      # to hold
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false
+
+      # --no-project, so nothing of this tree is installed and no interpreter
+      # is asked for: the script reads the standard library alone. HEAD is
+      # the merge commit: its first parent is the base, its second the head
+      - name: Check that every commit is signed off by its author
+        run: |
+          uv run --no-project \
+            standard/.github/scripts/check_sign_off.py HEAD^1..HEAD^2
