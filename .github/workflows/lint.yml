@@ -11,7 +11,7 @@ name: lint
 # so the hooks are the only answer a workflow can produce about the
 # checkout, and CONTRIBUTING.md's last section says what they leave uncovered.
 #
-# The `Lint` job's name becomes the required context, and that is a
+# A job's name becomes a required context, and that is a
 # second step rather than part of this one: a required context nothing
 # produces blocks every merge with nothing in the tree to explain why, so
 # the workflow lands first and REPOSITORY.md's "What gates a merge"
@@ -62,7 +62,7 @@ concurrency:
 
 jobs:
   lint:
-    # this name is the required check's context, a context being keyed by
+    # this name is a required check's context, a context being keyed by
     # name alone. Renaming it cannot be done in a pull request once the
     # rule names it: the branch stops producing the old name while the
     # rule still waits for it, so the rule moves first and the pull
@@ -129,8 +129,8 @@ jobs:
     # file keeps its own lint job; section 11 of btclib-org/.github's
     # README.md states the rule. A job of its own rather than a step of the
     # one above: it reads the forge's dependency graph and not the checkout,
-    # so it takes no checkout and no hook environment. Its context is this
-    # name.
+    # so it takes no checkout and no hook environment. It is a required
+    # check, and its context is this name.
     name: Dependency review
     # the action compares a pull request's base and head, which only a
     # pull_request event carries: on a push or a dispatch it has no pair

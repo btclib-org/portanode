@@ -42,8 +42,8 @@ gh api repos/btclib-org/portanode --jq '.default_branch'
 # main
 ```
 
-**`lint.yml` runs on every pull request, and a red `Lint` job stops the
-merge:**
+**`lint.yml` runs on every pull request, and a red `Lint` or `Dependency
+review` job stops the merge:**
 
 ```shell
 gh api repos/btclib-org/portanode/branches/main/protection \
@@ -51,12 +51,14 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 ```
 
 ```json
-{"checks":[{"app_id":15368,"context":"Lint"}],"contexts":["Lint"],"strict":true}
+{"checks":[{"app_id":15368,"context":"Lint"},
+           {"app_id":15368,"context":"Dependency review"}],
+ "contexts":["Lint","Dependency review"],"strict":true}
 ```
 
-names the context `Lint` — the job's name, `lint.yml` saying why that name
-is the context and why renaming it cannot be done in a pull request
-afterwards — as a required status check.
+names the contexts `Lint` and `Dependency review` — the jobs' names,
+`lint.yml` saying why a name is the context and why renaming it cannot be done
+in a pull request afterwards — as required status checks.
 
 **The requirement lives in classic branch protection, not in a ruleset
 rule.** None of the rulesets below carries a `required_status_checks`
@@ -68,22 +70,20 @@ gh api repos/btclib-org/portanode/rules/branches/main \
 ```
 
 lists only `main-integrity`'s four rules and `main-self-merge`'s one;
-`Lint` is required through the older `branches/main/protection` endpoint,
-which this repository keeps active alongside the rulesets rather than
-folding into one of them.
+`Lint` and `Dependency review` are required through the older
+`branches/main/protection` endpoint, which this repository keeps active
+alongside the rulesets rather than folding into one of them.
 
 **`strict` is on**, so a pull request also has to be up to date with
 `main` before GitHub will merge it — a rebase before every landing, not
-only a green `Lint`.
+only green checks.
 
-`links.yml` and `claude-review.yml` are not part of the required check: the
+`links.yml` and `claude-review.yml` are not part of the required checks: the
 first reports the internet's weather and the second an opinion, and neither is a
-thing to hold a merge on. `lint.yml`'s second job, `Dependency review`, is not
-in the rule yet: requiring it is the maintainer's step once a pull request has
-produced its context (btclib-org/.github#1465).
+thing to hold a merge on.
 
-What holds a pull request is the review and `Lint`; what holds every
-commit that reaches `main` is `main-integrity`.
+What holds a pull request is the review, `Lint` and `Dependency review`; what
+holds every commit that reaches `main` is `main-integrity`.
 
 ## Rulesets
 
