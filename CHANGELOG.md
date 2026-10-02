@@ -444,6 +444,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   what `<scratchpad>` is and names the pull** (issue
   btclib-org/.github#1500).
 
+### `CONTRIBUTING.md` says what stands in for the ack while the bot review is off
+
+- **The shared half says a local review of a named sha stands in for the
+  ack while `claude-review.yml` is off** (issue
+  btclib-org/.github#1527).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
