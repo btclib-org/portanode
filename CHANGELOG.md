@@ -472,6 +472,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   maintainer's included, lands with an approving review from somebody other than
   its author; the bypass is for emergencies** (issue btclib-org/.github#1362).
 
+### `REPOSITORY.md` reads the review switch as the organization's
+
+- **`REPOSITORY.md` no longer says the organization's variable store is
+  empty** (issue btclib-org/.github#1560). It states only that this
+  repository sets no variable of its own.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
