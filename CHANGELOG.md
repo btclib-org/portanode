@@ -468,7 +468,7 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 
 ### The maintainer's bypass is for emergencies only
 
-- **Every pull request lands with another owner's approval** (issue
+- **Every pull request lands with another person's approval** (issue
   btclib-org/.github#1362), and `REPOSITORY.md` no longer calls this a
   solo-maintainer tree.
 

@@ -124,7 +124,7 @@ that value for every repository][s11-branch].
 **`main-self-merge` is in `pull_request` mode, which is a review
 exception and not a signature one.** GitHub does not allow an author to
 approve their own pull request, so the maintainer's own pull requests need
-another owner's approval like any other. The bypass excuses the review, and it
+another person's approval like any other. The bypass excuses the review, and it
 is used only in an emergency. The other mode, `always`, would permit a direct
 push to `main` as well, and is not used here — what it would buy is a landing
 commit carrying the maintainer's own signature, which is worth nothing once the
