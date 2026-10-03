@@ -461,6 +461,11 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 - **A pull request whose commits lack the `Signed-off-by:` trailer cannot
   merge** (issue btclib-org/.github#1550): `Sign-off` is a required check.
 
+### `CONTRIBUTING.md` says the ack of record is a bot's
+
+- **The shared half says the ack of record is a bot's, and no longer that
+  it is off** (issue btclib-org/.github#452).
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
