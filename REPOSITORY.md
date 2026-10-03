@@ -306,6 +306,18 @@ answers `true`, `all` and `true`. `sha_pinning_required` is set at the
 organization level: [section 11 of the standard has the reasons for both
 fields][s11-tokens].
 
+## Sign-off on web commits
+
+```shell
+gh api repos/btclib-org/portanode --jq .web_commit_signoff_required
+# true
+gh api orgs/btclib-org --jq .web_commit_signoff_required
+# true
+```
+
+Set at the organization level, [for the reason section 11
+gives][s11-sigs].
+
 ## Security settings
 
 All of these are repository settings and none of them is in the tree, so
@@ -439,8 +451,8 @@ above reads back with a call of its own.
 
 **A switch no section of the standard states a rule for stays out.**
 `allow_forking`, `allow_update_branch`, `has_discussions`,
-`has_downloads`, `is_template` and `web_commit_signoff_required` are in
-that document and no section above reads any of them back. Against the
+`has_downloads` and `is_template` are in that document and no section
+above reads any of them back. Against the
 standard's own `README.md`, `grep -c allow_forking` answers `0` where
 `grep -c delete_branch_on_merge` does not, which is what makes the first
 an absence rather than a file that was not read. Recording them would
@@ -470,4 +482,5 @@ GitHub release cut by hand with nothing to publish to an index; and this
 tree has no `pyproject.toml` for a `homepage` to agree with.
 
 [s11-branch]: https://github.com/btclib-org/.github/blob/main/README.md#branch-protection-and-rulesets
+[s11-sigs]: https://github.com/btclib-org/.github/blob/main/README.md#signatures
 [s11-tokens]: https://github.com/btclib-org/.github/blob/main/README.md#tokens-publishing-scanning

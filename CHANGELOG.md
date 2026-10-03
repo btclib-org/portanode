@@ -450,6 +450,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   ack while `claude-review.yml` is off** (issue
   btclib-org/.github#1527).
 
+### `REPOSITORY.md` reads back the web sign-off setting
+
+- **`REPOSITORY.md` reads `web_commit_signoff_required` back** (issue
+  btclib-org/.github#1540): section 11 of the standard states the
+  organization setting.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
