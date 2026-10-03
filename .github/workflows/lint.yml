@@ -166,8 +166,8 @@ jobs:
   sign-off:
     # btclib-org/.github's reusable-lint.yml job, written out because this
     # file keeps its own lint job; section 11 of btclib-org/.github's
-    # README.md states the rule. It is not a required check, and its context
-    # is this name
+    # README.md states the rule. It is a required check, and its context is
+    # this name
     name: Sign-off
     # the commits read are those between a pull request's merge commit's two
     # parents, and only a pull_request event checks that commit out. A draft
