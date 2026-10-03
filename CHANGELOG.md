@@ -456,6 +456,11 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   btclib-org/.github#1540): section 11 of the standard states the
   organization setting.
 
+### The `Sign-off` check is required
+
+- **A pull request whose commits lack the `Signed-off-by:` trailer cannot
+  merge** (issue btclib-org/.github#1550): `Sign-off` is a required check.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

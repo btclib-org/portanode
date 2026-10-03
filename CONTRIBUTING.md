@@ -59,7 +59,9 @@ exactly them, so a red run there is a local run that was not done.
 **Every commit of a pull request carries a `Signed-off-by:` trailer
 naming its author**, which certifies the [Developer Certificate of
 Origin][dco]. `git commit -s` adds it, and `git rebase --signoff <base>`
-adds it to commits already made. [The standard's *Signatures*][s-sigs]
+adds it to commits already made. The `Sign-off` check is required, so a
+pull request whose commits lack the trailer cannot merge; its failure
+prints the command that adds it. [The standard's *Signatures*][s-sigs]
 says why a signature does not replace it, and which commits the
 `Sign-off` job skips.
 
@@ -399,7 +401,8 @@ gh api repos/btclib-org/portanode/branches/main/protection \
   --jq 'has("required_status_checks")'
 ```
 
-That answers `true`: a red `Lint` or `Dependency review` stops the merge.
+That answers `true`: a red `Lint`, `Dependency review` or `Sign-off` stops
+the merge.
 `REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
 branch protection rather than a ruleset rule, and what its `strict` flag
 costs.
