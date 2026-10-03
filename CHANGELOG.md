@@ -466,6 +466,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 - **The shared half says the ack of record is a bot's, and no longer that
   it is off** (issue btclib-org/.github#452).
 
+### `REPOSITORY.md` reads the review switch as the organization's
+
+- **`REPOSITORY.md` no longer says the organization's variable store is
+  empty** (issue btclib-org/.github#1560). It states only that this
+  repository sets no variable of its own.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
