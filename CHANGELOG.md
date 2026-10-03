@@ -466,6 +466,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
 - **The shared half says the ack of record is a bot's, and no longer that
   it is off** (issue btclib-org/.github#452).
 
+### The maintainer's bypass is for emergencies only
+
+- **Every pull request lands with another owner's approval** (issue
+  btclib-org/.github#1362), and `REPOSITORY.md` no longer calls this a
+  solo-maintainer tree.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line

@@ -123,13 +123,12 @@ that value for every repository][s11-branch].
 
 **`main-self-merge` is in `pull_request` mode, which is a review
 exception and not a signature one.** GitHub does not allow an author to
-approve their own pull request, so on a solo-maintainer repository the
-rule as written stops every one the maintainer opens; the bypass is what
-lets one merge at all. The other mode, `always`, would permit a direct push to
-`main` as well, and is not used here — what it would buy is a landing
-commit carrying the maintainer's own signature, which is worth nothing
-once the rule is read as asking for a valid signature rather than for
-that one.
+approve their own pull request, so the maintainer's own pull requests need
+another owner's approval like any other. The bypass excuses the review, and it
+is used only in an emergency. The other mode, `always`, would permit a direct
+push to `main` as well, and is not used here — what it would buy is a landing
+commit carrying the maintainer's own signature, which is worth nothing once the
+rule is read as asking for a valid signature rather than for that one.
 
 The rule's own parameters carry more than the approval count, and each is
 a decision:
@@ -209,15 +208,14 @@ the convention of writing the two alike keeps the same text.
 a `Co-Authored-By` trailer written in the commits of the branch survives
 only there.
 
-**`gh pr merge` cannot invoke the bypass**, refusing client-side before it
-asks GitHub anything:
+**`gh pr merge` refuses client-side to invoke the bypass** unless given
+`--admin`, before it asks GitHub anything:
 
 ```text
 Pull request is not mergeable: the base branch policy prohibits the merge
 ```
 
-The merge endpoint applies it server-side, and it is the same endpoint
-the merge button asks.
+With `--admin` it asks GitHub, which applies the bypass server-side.
 
 ## Head branches after a merge
 
