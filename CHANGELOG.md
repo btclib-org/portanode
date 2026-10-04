@@ -478,6 +478,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   empty** (issue btclib-org/.github#1560). It states only that this
   repository sets no variable of its own.
 
+### The forms set a type, and the history files lose `merge=union`
+
+- **The bug form sets `type: Bug`, not a label, and `merge=union` goes**
+  (issue btclib-org/.github#1584) (issue btclib-org/.github#1582).
+  Entries above on `merge=union` and `.gitattributes`' halves predate it.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
