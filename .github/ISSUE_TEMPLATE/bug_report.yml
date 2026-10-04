@@ -1,7 +1,7 @@
 ---
 name: Bug report
 description: A PortaNode script does not do what its documentation says
-labels: [bug]
+type: Bug
 
 body:
   - type: markdown
