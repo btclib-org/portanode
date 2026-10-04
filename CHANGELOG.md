@@ -484,6 +484,12 @@ say: the check at the top of `RELEASING.md` reads that off the forge.
   (issue btclib-org/.github#1584) (issue btclib-org/.github#1582).
   Entries above on `merge=union` and `.gitattributes`' halves predate it.
 
+### `--admin` waits for no required check
+
+- **`CONTRIBUTING.md`'s emergency paragraph says `--admin` skips the
+  required checks too** (issue btclib-org/.github#1597):
+  `REVIEWING.md`'s "hold the merge" excepts it.
+
 ## [2026.9.7] - First Tagged Release
 
 - **`CONTRIBUTING.md`'s `W036` paragraph and `CLAUDE.md`'s skipped-line
