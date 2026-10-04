@@ -87,6 +87,22 @@ jobs:
           # the hooks read the tree and nothing pushes it back
           persist-credentials: false
 
+      # check-changelog compares CHANGELOG.md with the merge base of HEAD
+      # and origin/main, and a shallow checkout holds neither the parents
+      # of HEAD nor origin/main. One more level of HEAD and main's tip give
+      # the merge base on a push and on a pull request while main is at
+      # most one commit past the event; past that there is none, and the
+      # hook says it compared nothing. A full checkout fetches main whole
+      # instead: a shallow fetch would make it shallow
+      - name: Fetch the base check-changelog compares against
+        run: |
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+            git fetch --no-tags --deepen=1 origin "$(git rev-parse HEAD)" \
+              +refs/heads/main:refs/remotes/origin/main
+          else
+            git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          fi
+
       # uv is the only prerequisite here as everywhere, and this is the
       # step that supplies it
       - name: Install uv
