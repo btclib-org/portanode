@@ -229,7 +229,7 @@ repos:
   # reports: the pragma survives autoupdate, which keeps a trailing
   # comment, where a baseline entry would match only the one sha
   - repo: https://github.com/btclib-org/.github
-    rev: 954e38b1afdd282f5318beb9bffceca70e55ee0a # pragma: allowlist secret
+    rev: f668578c07124c632dc36f9c4a92a3a4db8914e8 # pragma: allowlist secret
     hooks:
       - id: check-changelog
         args: [--grandfathered, "0"]
