@@ -103,7 +103,6 @@ with a "binary not found" rather than with anything naming the cause.
    either file still holds a `## [Unreleased]` section, its content is
    folded into this one and the heading is deleted. `VERSION` becomes
    the date, `YYYY.M.D`.
-   Earlier releases keep their `## [YYYY.M.D] - <title>` headings.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
@@ -138,7 +137,7 @@ with a "binary not found" rather than with anything naming the cause.
     `awk` and not `sed -n '/start/,/end/p'`: that range prints the
     heading that ends it, and trimming the last line with `sed '$d'`
     eats a real line whenever the section being cut is the last one in
-    the file, which the oldest release's is.
+    the file.
 
 1. Read back what landed rather than trusting the answer:
 
