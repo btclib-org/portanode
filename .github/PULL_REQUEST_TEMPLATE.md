@@ -17,8 +17,6 @@
      the point of running it locally is not to wait for CI to say so. -->
 
 - [ ] the lint gate is clean: `uvx pre-commit run --all-files`
-- [ ] `CHANGELOG.md` has an entry, if a user would notice the change;
-      `RELEASE_NOTES.md` too, if it is one a user has to act on
 - [ ] every commit carries a verified signature
 
 ## Anything the reviewer should know
