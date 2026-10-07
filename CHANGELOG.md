@@ -8,6 +8,11 @@ using YYYY.M.D format.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
+A release's own pull request writes the release's section under
+`## v<version>`, from the squash subjects since the previous tag. The
+older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
+pull request adds an entry.
+
 ## [Unreleased]
 
 - **`RELEASING.md`'s opening command names which workflows the tree
