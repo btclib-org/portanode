@@ -119,10 +119,10 @@ with a "binary not found" rather than with anything naming the cause.
       git push origin "v$(cat VERSION)"
     ```
 
-    `-s` and not a bare `git tag`: `tag-integrity` requires a signature
-    on `refs/tags/v*`, and a lightweight tag has no object to carry one.
-    `REPOSITORY.md`'s *Rulesets* section has that rule and the command
-    that reads which tags it has to match.
+    `-s` and not a bare `git tag`: a lightweight tag has no object to
+    carry a signature, and `tag-integrity` does not check one.
+    `REPOSITORY.md`'s *Rulesets* section has what the rule refuses and
+    the command that reads which tags it has to match.
 
 1. Publish the release, its body being the section just written:
 
@@ -142,12 +142,15 @@ with a "binary not found" rather than with anything naming the cause.
 1. Read back what landed rather than trusting the answer:
 
     ```shell
-    gh api repos/btclib-org/portanode/git/refs/tags/"v$(cat VERSION)" \
-      --jq '.object.type'
+    sha=$(gh api repos/btclib-org/portanode/git/refs/tags/"v$(cat VERSION)" \
+      --jq '.object.sha')
+    gh api repos/btclib-org/portanode/git/tags/"${sha:?}" \
+      --jq '.verification.verified'
     ```
 
-    answers `tag`, not `commit`. A `commit` there means the tag went up
-    unsigned, and the fix is to delete and re-cut it — which is why
+    answers `true`. A lightweight tag has no tag object, so the second
+    call answers 404, and an unsigned annotated tag answers `false`. The
+    fix for either is to delete and re-cut it — which is why
     `tag-integrity` carries no `deletion` rule.
 1. Open a separate pull request that bumps `VERSION` to `YYYY.M`, the
    month that sorts above the day just tagged — see *The version string*
