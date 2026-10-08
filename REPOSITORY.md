@@ -163,7 +163,7 @@ gh api repos/<owner>/<repo>/git/tags/<sha> --jq .verification
 
 A *lightweight* tag — a ref pointing straight at a commit — has no tag
 object for a signature to sit on, which is why `RELEASING.md` tags with
-`git tag -s` and reads the ref's `.object.type` back afterwards.
+`git tag -s` and reads the tag's signature back afterwards.
 
 Which tags exist is not recorded here: a tag is a ref in the repository,
 where everything else in this file is a setting outside it, so a tag
