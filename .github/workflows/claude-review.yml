@@ -105,7 +105,7 @@ jobs:
       id-token: write # the OIDC token the action mints at its own startup
     with:
       # what a review of this tree has to know that a review of any
-      # other tree does not, landing between the verdict paragraph and
+      # other tree does not, landing between the findings paragraph and
       # the gates instruction
       extra-prompt: |
         What this repository ships is launchers and prose. Nothing
