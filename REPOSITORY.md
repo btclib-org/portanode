@@ -149,7 +149,17 @@ asks again when a commit's author is not a recognised account.
 **`tag-integrity` carries no `deletion` or `non_fast_forward` rule**, and
 that is deliberate rather than an omission: a release that failed
 half-way is recovered by deleting the tag and re-cutting it, which either
-rule would block. What it does refuse is an unsigned `v*` tag.
+rule would block.
+
+A `v*` tag push that brings an unsigned commit is refused. A tag on a
+commit already on `main` is accepted whether it is signed, unsigned or
+lightweight, so the rule does not make a release tag signed
+(btclib-org/.github#1635). That rests on `git tag -s` in the release
+steps and on reading the signature back:
+
+```shell
+gh api repos/<owner>/<repo>/git/tags/<sha> --jq .verification
+```
 
 A *lightweight* tag — a ref pointing straight at a commit — has no tag
 object for a signature to sit on, which is why `RELEASING.md` tags with
