@@ -122,13 +122,14 @@ Classic protection's own copy of the rule is off: [the standard states
 that value for every repository][s11-branch].
 
 **`main-self-merge` is in `pull_request` mode, which is a review
-exception and not a signature one.** GitHub does not allow an author to
-approve their own pull request, so the maintainer's own pull requests need
-another person's approval like any other. The bypass excuses the review, and it
-is used only in an emergency. The other mode, `always`, would permit a direct
-push to `main` as well, and is not used here — what it would buy is a landing
-commit carrying the maintainer's own signature, which is worth nothing once the
-rule is read as asking for a valid signature rather than for that one.
+exception and not a signature one.** It lets `fametrano` merge a pull
+request without another person's approval, whoever its author is. When
+that is done is [`GOVERNANCE.md`'s *How a decision is made*][governance],
+and how is `CONTRIBUTING.md`'s *Landing it*. The other mode, `always`,
+would permit a direct push to `main` as well, and is not used here — what
+it would buy is a landing commit carrying the maintainer's own signature,
+which is worth nothing once the rule is read as asking for a valid
+signature rather than for that one.
 
 The rule's own parameters carry more than the approval count, and each is
 a decision:
@@ -478,6 +479,7 @@ answers `0`, `RELEASING.md` saying a release here is a signed tag and a
 GitHub release cut by hand with nothing to publish to an index; and this
 tree has no `pyproject.toml` for a `homepage` to agree with.
 
+[governance]: https://github.com/btclib-org/.github/blob/main/GOVERNANCE.md#how-a-decision-is-made
 [s11-branch]: https://github.com/btclib-org/.github/blob/main/README.md#branch-protection-and-rulesets
 [s11-sigs]: https://github.com/btclib-org/.github/blob/main/README.md#signatures
 [s11-tokens]: https://github.com/btclib-org/.github/blob/main/README.md#tokens-publishing-scanning
