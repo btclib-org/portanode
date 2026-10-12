@@ -123,13 +123,13 @@ that value for every repository][s11-branch].
 
 **`main-self-merge` is in `pull_request` mode, which is a review
 exception and not a signature one.** It lets `fametrano` merge a pull
-request without another person's approval, whoever its author is. When
-that is done is [`GOVERNANCE.md`'s *How a decision is made*][governance],
-and how is `CONTRIBUTING.md`'s *Landing it*. The other mode, `always`,
-would permit a direct push to `main` as well, and is not used here — what
-it would buy is a landing commit carrying the maintainer's own signature,
-which is worth nothing once the rule is read as asking for a valid
-signature rather than for that one.
+request without another person's approval, whoever its author is.
+btclib-org/.github's [`GOVERNANCE.md`][governance], *How a decision is
+made*, says when that is done, and `CONTRIBUTING.md`'s *Landing it* says
+how. The other mode, `always`, would permit a direct push to `main` as
+well, and is not used here — what it would buy is a landing commit
+carrying the maintainer's own signature, which is worth nothing once the
+rule is read as asking for a valid signature rather than for that one.
 
 The rule's own parameters carry more than the approval count, and each is
 a decision:
