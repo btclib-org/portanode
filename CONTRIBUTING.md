@@ -384,8 +384,8 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 That answers `true`: a red `Lint`, `Dependency review` or `Sign-off` stops
 the merge.
 `REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
-branch protection rather than a ruleset rule, and what its `strict` flag
-costs.
+branch protection rather than a ruleset rule, and that its `strict` flag
+is off.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a
