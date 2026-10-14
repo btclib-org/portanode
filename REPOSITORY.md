@@ -54,7 +54,7 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 {"checks":[{"app_id":15368,"context":"Lint"},
            {"app_id":15368,"context":"Dependency review"},
            {"app_id":15368,"context":"Sign-off"}],
- "contexts":["Lint","Dependency review","Sign-off"],"strict":true}
+ "contexts":["Lint","Dependency review","Sign-off"],"strict":false}
 ```
 
 names the contexts `Lint`, `Dependency review` and `Sign-off` — the jobs'
@@ -75,9 +75,9 @@ lists only `main-integrity`'s four rules and `main-self-merge`'s one;
 `branches/main/protection` endpoint, which this repository keeps active
 alongside the rulesets rather than folding into one of them.
 
-**`strict` is on**, so a pull request also has to be up to date with
-`main` before GitHub will merge it — a rebase before every landing, not
-only green checks.
+**`strict` is off**, so a pull request merges on green checks without
+being up to date with `main`. [Section 11 of the standard has the
+reason][s11-branch].
 
 `links.yml` and `claude-review.yml` are not part of the required checks: the
 first reports the internet's weather and the second an opinion, and neither is a
@@ -400,8 +400,7 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 turns that answer into a number, twenty concurrent jobs on the free plan,
 shared across every repository of the organization. `lint.yml` and
 `claude-review.yml` are what a pull request here starts, with `links.yml`
-added where the path its trigger names is touched. `CONTRIBUTING.md`'s
-*The landing queue* is what points here for the figure.
+added where the path its trigger names is touched.
 
 ## Pages, which this repository does not use
 
