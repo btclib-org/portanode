@@ -400,8 +400,7 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 turns that answer into a number, twenty concurrent jobs on the free plan,
 shared across every repository of the organization. `lint.yml` and
 `claude-review.yml` are what a pull request here starts, with `links.yml`
-added where the path its trigger names is touched. `CONTRIBUTING.md`'s
-*The landing queue* is what points here for the figure.
+added where the path its trigger names is touched.
 
 ## Pages, which this repository does not use
 
