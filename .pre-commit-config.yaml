@@ -64,6 +64,11 @@ ci:
   autofix_prs: false
   autoupdate_commit_msg: "Update the pinned pre-commit hook revisions"
   autoupdate_schedule: weekly
+  # the hook pre-commit.ci cannot run: actionlint-shellcheck runs past its
+  # time limit. What the skip costs is nothing that decides a merge --
+  # lint.yml runs this file whole, with the command a developer runs, on
+  # every commit and every pull request
+  skip: [actionlint-shellcheck]
 
 repos:
   # this file checking itself, and the only two hooks with no environment
@@ -98,8 +103,8 @@ repos:
   # concatenation -- are disabled at their own line in update-bitcoin.sh,
   # with the reasoning beside them, rather than here: a global disable
   # would silence a real instance of either alongside the false one.
-  # Pinned to the shellcheck-py version already used below as actionlint's
-  # additional_dependency, so one shellcheck runs across the tree.
+  # The actionlint hook below brings a Go build of shellcheck of its own,
+  # for the `run:` steps of the workflows; this one reads the launchers.
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1-1
     hooks:
@@ -488,34 +493,32 @@ repos:
   # key, a typo in a context reference, an action input that does not
   # exist, a job depending on a job that is not there are all things a
   # run discovers by failing.
-  # The Python packaging of actionlint rather than the upstream hook,
-  # whose only non-docker id is language: golang, i.e. a go toolchain on
-  # every machine that commits and on pre-commit.ci
-  - repo: https://github.com/Mateusz-Grzelinski/actionlint-py
-    rev: v1.7.12.25
+  # kjanat/actionlint rather than rhysd/actionlint: upstream does not parse
+  # `uses: $/...` (rhysd/actionlint#711; rhysd/actionlint#732, unmerged,
+  # implements it), and the fork does (btclib-org/.github#1698). The rev
+  # is the sha `pre-commit autoupdate --freeze` writes for the tag its
+  # comment names, the annotated tag's own object, so a moved tag cannot
+  # change what runs here.
+  # The cost: pre-commit.ci's weekly bump keeps this line frozen, writing
+  # the new sha with `  # frozen: <tag>`, two spaces before the `#`,
+  # which prettier above rewrites to one. The bot's pull request then
+  # fails prettier until a commit restores the one-space form. A local
+  # `pre-commit autoupdate` without `--freeze` writes the tag name instead
+  # and drops the comment. Either rewrite also drops the pragma that
+  # keeps detect-secrets from reporting the sha as a hex string, which
+  # is restored with it.
+  # The hook is `language: golang`, so pre-commit builds it with a go
+  # toolchain. `actionlint-shellcheck` installs a Go build of shellcheck
+  # beside actionlint in the hook's environment: actionlint hands the body
+  # of a `run:` step to shellcheck, and without one it validates the yaml
+  # around a script and not the script. No workflow has a
+  # `shell: python` step, so the pyflakes it also delegates to is not
+  # declared.
+  - repo: https://github.com/kjanat/actionlint
+    rev: 2da2ceb4af2c7ecc48f5b9311d85080c3971b5f0 # frozen: v1.17.0 # pragma: allowlist secret
     hooks:
-      - id: actionlint
+      - id: actionlint-shellcheck
         name: actionlint (github workflows)
-        # actionlint delegates the body of a run: step to shellcheck if
-        # it finds one on the PATH, and without it validates the yaml
-        # around a shell script rather than the script. That is a
-        # different subject from the shellcheck hook above: this one
-        # reads the lines a workflow inlines, where that one reads the
-        # launchers themselves.
-        # Declared rather than left to the machine, so that a commit and
-        # CI check the same thing -- the runner image happens to carry
-        # shellcheck, so leaving it to chance means CI checking more than
-        # a commit does. Pinned, unlike a rev, because nothing bumps this
-        # dependency today: pre-commit.ci moves rev, and this tree
-        # configures no dependabot `pre-commit` ecosystem entry to move
-        # an additional dependency -- one that exists, and would reach
-        # this hook, whose repo is neither `local` nor `meta` and whose
-        # language resolves to `python`, which that ecosystem's own
-        # parser covers. That absence is the point rather than the cost
-        # -- a shellcheck release adding a check would otherwise turn a
-        # pull request red for having changed nothing
-        additional_dependencies:
-          - shellcheck-py==0.11.0.1
   # actionlint asks whether a workflow is correct, zizmor whether it is
   # safe: a token persisted where a later step can read it, an expression
   # interpolated into a shell script, a trigger that runs a fork's code
