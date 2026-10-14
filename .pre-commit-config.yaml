@@ -224,7 +224,7 @@ repos:
         # excluded file is unwatched from then on. `keys/*.fingerprints`
         # and `*/checksums.sha256` are the hex this tree carries. The one
         # exclusion is a line filter on a `rev:` holding a 40-hex sha,
-        # which HexHighEntropyString reports and every autoupdate rewrites
+        # which HexHighEntropyString reports and an autoupdate rewrites
         # (btclib-org/.github#1723); with it, `detect-secrets scan` finds
         # nothing else in the tree
         args: [--baseline, .secrets.baseline]
