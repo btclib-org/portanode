@@ -103,8 +103,8 @@ repos:
   # concatenation -- are disabled at their own line in update-bitcoin.sh,
   # with the reasoning beside them, rather than here: a global disable
   # would silence a real instance of either alongside the false one.
-  # The actionlint hook below brings a Go build of shellcheck of its own,
-  # for the `run:` steps of the workflows; this one reads the launchers.
+  # This one reads the launchers; actionlint's hook below reads the `run:`
+  # steps.
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1-1
     hooks:
@@ -221,12 +221,11 @@ repos:
         # against a committed baseline rather than an exclusion: a
         # finding recorded there is one somebody has read, where an
         # excluded file is unwatched from then on. `keys/*.fingerprints`
-        # and `*/checksums.sha256` are the hex this tree carries, and
-        # `detect-secrets scan` with every plugin at its default,
-        # HexHighEntropyString included, answers with no finding
-        # anywhere in the tree -- unlike a sibling whose genesis-block
-        # constants needed that plugin off, nothing here is close enough
-        # to that threshold to need the same exception
+        # and `*/checksums.sha256` are the hex this tree carries. The one
+        # exclusion is a line filter on a `rev:` holding a 40-hex sha,
+        # which HexHighEntropyString reports and every autoupdate rewrites
+        # (btclib-org/.github#1723); with it, `detect-secrets scan` finds
+        # nothing else in the tree
         args: [--baseline, .secrets.baseline]
   # check-changelog runs ahead of markdownlint-cli2 below: that hook's
   # `--fix` repairs the very seam the third check exists to name.
