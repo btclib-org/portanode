@@ -65,13 +65,12 @@ folder that is not the boot disk. `README.md` is what a user reads,
   alone rather than sourcing both. A launcher sources one rather than
   repeating it.
 - **`keys/*.fingerprints` decide what an update will install.**
-  `electrum.fingerprints` pins one key, so an Electrum download signed by
-  anything else is refused; `bitcoin-core.fingerprints` pins none, Core's
-  `SHA256SUMS` being signed by many independent builders, and with no
-  fingerprint listed the updater still requires one good signature from a
-  key already in the keyring. Both files carry the reasoning in their own
-  comments; a diff that empties either one weakens an install path
-  without touching a script.
+  `shared/utilities/lib.sh`'s `pgp_verify_or_fail` has the rule.
+  `electrum.fingerprints` pins one key. `bitcoin-core.fingerprints` pins
+  none and asks for 3, so a fresh clone updates Bitcoin Core only once its
+  user has listed the builders they trust. Both files carry the reasoning
+  in their own comments; a diff that adds a key or lowers
+  `min-signatures` weakens an install path without touching a script.
 - **`*/checksums.sha256` is append-only**, and records integrity rather
   than authenticity: it detects a binary that changed under you, where
   the PGP step above is what says the binary was the publisher's. An

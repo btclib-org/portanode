@@ -59,17 +59,18 @@ if "%WNP_ANSWER%"=="" (
 )
 exit /b 0
 
-REM :verify_pgp_signature SIG DATA LABEL OUTVAR [FPR_FILE]
-REM Fails CLOSED (exit /b 1) unless a good signature is found. If FPR_FILE has
-REM any 40-hex fingerprint line, additionally requires a VALIDSIG from a listed
-REM key (pinning), and a line that is neither a fingerprint nor a comment
-REM refuses. Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT recommended).
+REM :verify_pgp_signature SIG DATA LABEL OUTVAR FPR_FILE
+REM Fails CLOSED (exit /b 1) unless SIG carries good signatures from as many
+REM distinct keys pinned in FPR_FILE as its min-signatures asks for, the
+REM rule shared/utilities/lib.sh's pgp_verify_or_fail states. A file that
+REM pins no key refuses. Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT
+REM recommended).
 REM Written flat (no %var% set-and-read inside a ( ) block) because a
 REM read of that shape inside one answers with the value the variable
 REM held when cmd.exe parsed the block. Delayed expansion is the other
 REM way of fixing that, and lib.bat cannot turn it on for itself: the
 REM local scoping it comes with would confine the OUTVAR this file sets
-REM for its caller. Written flat, none of STATUS_FILE, FPR_CLEAN or
+REM for its caller. Written flat, neither STATUS_FILE nor
 REM the caller's own SIG_FILE and DATA_FILE needs it -- each is read
 REM at a line that runs after the line setting it -- and the callers
 REM reach this label with delayed expansion disabled, which is what
@@ -194,19 +195,13 @@ if not %errorlevel%==0 (
     exit /b 1
 )
 
-REM Optional fingerprint pinning: enforce only if FPR_FILE lists a fingerprint,
-REM then require a pinned fingerprint to appear on a VALIDSIG line (which
-REM carries both signing and primary key fprs).
-REM FPR_FILE is read by shared/utilities/lib.sh's pinned_fingerprints rule,
-REM which that function's comment states: bytes rather than text, a UTF-8
-REM byte order mark opening the file dropped, CRLF, LF and CR each ending a
-REM line, a NUL byte refusing the file, ASCII spaces, tabs, vertical tabs
-REM and form feeds removed, and a line then skipped where it is empty or
-REM starts with #, pinned where it is 40 characters from [0-9A-Fa-f], and
-REM refused otherwise, naming the line. The bytes are decoded as Latin-1,
-REM one character per byte, so no decoder turns a byte PowerShell cannot
-REM read into one the rule accepts, and -creplace and -cnotmatch name their
-REM characters rather than \s, which matches U+00A0 as well.
+REM Pinning: FPR_FILE is read by shared/utilities/lib.sh's
+REM pinned_fingerprints rule, and the status file counted by
+REM pgp_verify_or_fail's, each as that function's comment states.
+REM The bytes are decoded as Latin-1, one character per byte, so no
+REM decoder turns a byte PowerShell cannot read into one the rule accepts,
+REM and -creplace and -cnotmatch name their characters rather than \s,
+REM which matches U+00A0 as well.
 REM A line is tested for emptiness by its Length and for # by an ordinal
 REM StartsWith, because -eq '' and StartsWith's default compare by culture,
 REM which ignores some characters: measured with the line
@@ -216,47 +211,20 @@ REM U+0001 alone as empty, where shared/utilities/lib.sh refuses both.
 REM PowerShell applies the rule rather than findstr: measured on
 REM windows-latest, findstr /i /r "^[0-9A-F][0-9A-F]*$" matched a
 REM CRLF-ended fingerprint line and not the same line LF-ended, and
-REM .gitattributes checks keys\*.fingerprints out LF-only. FPR_CLEAN
-REM receives the 40-hex lines alone, so the loop below never echoes
-REM comment text holding ) or >.
+REM .gitattributes checks keys\*.fingerprints out LF-only.
 REM A PowerShell that exits non-zero for any reason, including not
-REM running at all, refuses rather than leaving PIN at 0. The catch is
-REM what makes a file it cannot read one of those reasons: measured on
-REM windows-latest with FPR_FILE naming a directory, the read threw, the
-REM error did not stop the block, and it exited 0 with nothing pinned.
-REM FPR_CLEAN goes to -LiteralPath for the reason :install_verified's
-REM comment gives.
+REM running at all, refuses. The catch makes an error that does not stop
+REM the block one of those reasons: measured on windows-latest with
+REM FPR_FILE naming a directory, the read threw and the block ran on.
 REM The powershell argument below is one physical line for the reason
 REM :update_checksum's comment gives.
-set "FPR_CLEAN=%TEMP%\pn_fpr_%RANDOM%%RANDOM%.txt"
-set "PIN=0"
-if "%FPR_FILE%"=="" goto :verify_pgp_pins_read
-if not exist "%FPR_FILE%" goto :verify_pgp_pins_read
-type nul > "%FPR_CLEAN%"
-powershell -NoProfile -Command "& { try { $bytes = [IO.File]::ReadAllBytes($env:FPR_FILE); if ($bytes -contains 0) { Write-Output ('Error: ' + $env:FPR_FILE + ' holds a NUL byte, as a UTF-16 file does.'); exit 1 }; $text = [Text.Encoding]::GetEncoding(28591).GetString($bytes); if ($text.StartsWith([string][char]0xEF + [char]0xBB + [char]0xBF, [StringComparison]::Ordinal)) { $text = $text.Substring(3) }; $n = 0; $pins = @(); foreach ($l in ($text -split '\r\n|\r|\n')) { $n++; $f = $l -creplace '[ \t\v\f]', ''; if ($f.Length -eq 0 -or $f.StartsWith('#', [StringComparison]::Ordinal)) { continue }; if ($f -cnotmatch '^[0-9A-Fa-f]{40}$') { Write-Output ('Error: line ' + $n + ' of ' + $env:FPR_FILE + ' is not a 40-hex fingerprint: ' + $f); exit 1 }; $pins += $f }; if ($pins.Count -gt 0) { Set-Content -LiteralPath $env:FPR_CLEAN -Value $pins -Encoding Ascii -ErrorAction Stop } } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
+powershell -NoProfile -Command "& { try { if ([string]::IsNullOrEmpty($env:FPR_FILE)) { Write-Output ('Error: no file of pinned fingerprints given, so ' + $env:LABEL + ' is refused.'); exit 1 }; $name = [IO.Path]::GetFileName($env:FPR_FILE); $pins = @{}; $min = '1'; $minSet = $false; if (Test-Path -LiteralPath $env:FPR_FILE) { $bytes = [IO.File]::ReadAllBytes($env:FPR_FILE); if ($bytes -contains 0) { Write-Output ('Error: ' + $name + ' holds a NUL byte, as a UTF-16 file does.'); exit 1 }; $text = [Text.Encoding]::GetEncoding(28591).GetString($bytes); if ($text.StartsWith([string][char]0xEF + [char]0xBB + [char]0xBF, [StringComparison]::Ordinal)) { $text = $text.Substring(3) }; $n = 0; foreach ($l in ($text -split '\r\n|\r|\n')) { $n++; $f = $l -creplace '[ \t\v\f]', ''; if ($f.Length -eq 0 -or $f.StartsWith('#', [StringComparison]::Ordinal)) { continue }; if ($f.StartsWith('min-signatures=', [StringComparison]::Ordinal)) { if ($minSet) { Write-Output ('Error: line ' + $n + ' of ' + $name + ' sets min-signatures a second time.'); exit 1 }; $min = $f.Substring(15); $minSet = $true; if ($min -cnotmatch '^[1-9][0-9]*$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' does not set min-signatures to a whole number from 1: ' + $f); exit 1 }; continue }; if ($f -cnotmatch '^[0-9A-Fa-f]{40}$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' is not a 40-hex fingerprint: ' + $f); exit 1 }; $pins[$f.ToUpperInvariant()] = $true } }; if ($pins.Count -eq 0) { Write-Output ('Error: ' + $name + ' pins no key, so ' + $env:LABEL + ' is refused.'); Write-Output 'Add to it the fingerprints of the signers you trust.'; exit 1 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('Error: ' + $name + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for, so ' + $env:LABEL + ' is refused.'); exit 1 }; $sigs = New-Object System.Collections.ArrayList; foreach ($line in [IO.File]::ReadAllLines($env:STATUS_FILE)) { $w = $line.Split(' '); if ($w.Count -lt 2 -or $w[0] -cne '[GNUPG:]') { continue }; if ($w[1] -ceq 'NEWSIG') { [void]$sigs.Add(@{ goods = 0; valids = 0; revoked = $false; gid = ''; sfpr = ''; primary = '' }); continue }; if ($sigs.Count -eq 0) { continue }; $s = $sigs[$sigs.Count - 1]; if ($w[1] -ceq 'GOODSIG') { $s['goods'] += 1; $s['gid'] = $w[2].ToUpperInvariant() } elseif ($w[1] -ceq 'VALIDSIG') { $s['valids'] += 1; $s['sfpr'] = $w[2].ToUpperInvariant(); if ($w.Count -gt 11) { $s['primary'] = $w[11].ToUpperInvariant() } } elseif ($w[1] -ceq 'REVKEYSIG' -or $w[1] -ceq 'KEYREVOKED') { $s['revoked'] = $true } }; $counted = @{}; foreach ($s in $sigs) { if ($s['goods'] -eq 1 -and $s['valids'] -eq 1 -and -not $s['revoked'] -and $s['gid'].Length -ge 16 -and $s['sfpr'].EndsWith($s['gid'], [StringComparison]::Ordinal) -and $pins.ContainsKey($s['primary'])) { $counted[$s['primary']] = $true } }; if ($counted.Count -lt [int]$min) { Write-Output ('Error: ' + $env:LABEL + ' carries good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; it asks for ' + $min + '.'); Write-Output 'A key counts once, and not at all where it is expired or revoked.'; exit 1 }; Write-Output ($env:LABEL + ': good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; ' + $min + ' required.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
 if not %errorlevel%==0 (
-    echo Error: "%FPR_FILE%" was not accepted as a list of pinned
-    echo fingerprints, so %LABEL% is refused.
+    echo Error: %LABEL% is refused.
     del "%STATUS_FILE%" >nul 2>&1
-    del "%FPR_CLEAN%" >nul 2>&1
     exit /b 1
 )
-for %%Z in ("%FPR_CLEAN%") do if %%~zZ GTR 0 set "PIN=1"
-:verify_pgp_pins_read
-if "%PIN%"=="1" (
-    set "MATCHED="
-    for /f "usebackq delims=" %%K in ("%FPR_CLEAN%") do (
-        findstr /c:"[GNUPG:] VALIDSIG" "%STATUS_FILE%" | findstr /i /c:"%%K" >nul 2>&1 && set "MATCHED=1"
-    )
-    if not defined MATCHED (
-        echo Error: %LABEL% signed, but not by a pinned key in "%FPR_FILE%".
-        del "%STATUS_FILE%" >nul 2>&1
-        del "%FPR_CLEAN%" >nul 2>&1
-        exit /b 1
-    )
-)
 
-del "%FPR_CLEAN%" >nul 2>&1
 del "%STATUS_FILE%" >nul 2>&1
 if not "%OUTVAR%"=="" set "%OUTVAR%=1"
 exit /b 0
