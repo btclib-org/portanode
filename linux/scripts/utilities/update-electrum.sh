@@ -187,7 +187,8 @@ if [ "$DRY_RUN" -eq 1 ]; then
             fi
         else
             echo "gpg: found, no pinned fingerprint in" \
-                 "keys/electrum.fingerprints."
+                 "keys/electrum.fingerprints -- verification would refuse" \
+                 "the download."
         fi
     else
         echo "gpg: not found -- verification would fail closed unless" \

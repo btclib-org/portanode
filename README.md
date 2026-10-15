@@ -288,25 +288,31 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   download carries a valid PGP signature. This requires `gpg` to be installed
   and the signer's key imported: a detached signature file typically carries
   no public key, so `gpg` can validate only against a key already in the
-  local keyring, and a missing key — not a missing signature — is the usual
-  cause of a validation failure. To bypass (installs UNAUTHENTICATED
+  local keyring. For Electrum a missing key — not a missing signature — is
+  the usual cause of a validation failure; for Bitcoin Core it is a pin
+  file that lists no key yet, below. To bypass (installs UNAUTHENTICATED
   binaries — not recommended), set `PORTANODE_ALLOW_UNVERIFIED=1` in the
   environment.
     - **Bitcoin Core signing keys**: obtain builder keys from
-      [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys)
-      and import with `gpg --import`.
+      [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys),
+      import the ones you trust with `gpg --import`, and list their
+      fingerprints in `keys/bitcoin-core.fingerprints`. No key ships there,
+      so a Bitcoin Core update is refused until you do. Only the pinned
+      builders who signed that release count, so pin more than 3.
     - **Electrum signing key**: obtain the release signing key from electrum.org
       (Download page) and import with `gpg --import`.
     - **Key pinning**: `keys/electrum.fingerprints` and
-      `keys/bitcoin-core.fingerprints` list pinned signer fingerprints. If a file
-      lists any fingerprint, the matching download must be signed by one of those
-      keys. Electrum ships pinned to its release key; the Bitcoin Core list is a
-      template you can populate with the builders you choose to trust (without it,
-      any imported builder key that signed `SHA256SUMS` is accepted). A line
-      is read with its spaces removed, so a fingerprint pasted as
-      `gpg --fingerprint` prints it pins; a line that is then neither 40 hex
-      characters nor a `#` comment refuses the update and is named in the
-      error.
+      `keys/bitcoin-core.fingerprints` list pinned signer fingerprints. A
+      download needs good signatures from as many distinct listed keys as
+      the file's `min-signatures=` line asks for, 1 where it has none. An
+      expired or revoked key does not count, so refresh an expired key
+      (`gpg --refresh-keys <fingerprint>`, or import it again); a file
+      listing no key refuses every update. Electrum ships pinned to its
+      release key; the Bitcoin Core file asks for 3. A line is read with
+      its spaces removed, so a fingerprint pasted as `gpg --fingerprint`
+      prints it pins; a line that is then neither 40 hex characters, a
+      `min-signatures=` line nor a `#` comment refuses the update and is
+      named in the error.
 - **If an updater cannot run** — no network access to bitcoincore.org or
   electrum.org, or a release the updater's scraper does not find — download
   the binary by hand from

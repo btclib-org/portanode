@@ -1,20 +1,24 @@
 # Pinned PGP signing-key fingerprints for Bitcoin Core's SHA256SUMS (one
 # 40-hex fingerprint per line; lines starting with # are comments).
 #
-# Bitcoin Core's SHA256SUMS.asc is signed by MANY independent builders, and the
-# trusted set changes over time, so no fixed list ships here by default. With
-# this file holding no active fingerprints, the updater still FAILS CLOSED: it
-# requires at least one GOODSIG (i.e. SHA256SUMS must be signed by a key you
-# have imported) before installing.
+# Bitcoin Core's SHA256SUMS.asc is signed by many independent builders. The
+# updater installs only where it carries good signatures from at least
+# min-signatures distinct keys listed here; an expired or revoked key does
+# not count. No key ships here: which builders to trust is your choice,
+# and until you list them the update is refused. shared/utilities/lib.sh's
+# pgp_verify_or_fail has the rule.
 #
-# To additionally PIN specific builders, add their fingerprints below. Get the
-# current builder keys and verify their fingerprints from:
+# Get the current builder keys and verify their fingerprints from:
 #   https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys
 # then import the ones you trust:
 #   gpg --import <key>.gpg
 #   gpg --fingerprint <name>     # confirm before adding the line below
 #
 # Example line format (40 hex chars; the spaces gpg --fingerprint prints are
-# ignored, and a line that is neither a fingerprint nor a comment refuses the
-# update):
+# ignored, and a line that is neither a fingerprint, a min-signatures line
+# nor a comment refuses the update):
 # 0123456789ABCDEF0123456789ABCDEF01234567
+#
+# The number of distinct pinned keys that must sign, 3 being what Bitcoin
+# Core's contrib/verify-binaries/verify.py asks for by default:
+min-signatures=3

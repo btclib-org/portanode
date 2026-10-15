@@ -132,10 +132,11 @@ verify_sha256sums() {
     fi
 }
 
-# pinned_fingerprints FPR_FILE OUT_VAR
+# pinned_fingerprints FPR_FILE OUT_VAR [MIN_VAR]
 #
-# Sets OUT_VAR to the fingerprints FPR_FILE pins, one per line, and returns 0;
-# or prints the reason and returns 1 where the file is not one it accepts.
+# Sets OUT_VAR to the fingerprints FPR_FILE pins, one per line, and MIN_VAR,
+# where given, to the number of signatures it asks for, and returns 0; or
+# prints the reason and returns 1 where the file is not one it accepts.
 # pgp_verify_or_fail and the updaters' --dry-run previews both read the file
 # through it, so a preview reports the pin the verification enforces.
 # The file is read as bytes, by a rule win/scripts/utilities/lib.bat's
@@ -145,9 +146,12 @@ verify_sha256sums() {
 # way to keep one. Each line has its ASCII spaces, tabs, vertical tabs and
 # form feeds removed, so the spaced form gpg --fingerprint prints pins as the
 # unspaced one does, and is then skipped where it is empty or starts with #,
-# pinned where it is 40 characters from [0-9A-Fa-f], and refused otherwise,
-# naming the line: a key ID or a truncated paste skipped instead would, in a
-# file with no other pin, leave any GOODSIG accepted with nothing printed.
+# pinned where it is 40 characters from [0-9A-Fa-f], read as the number of
+# signatures where it is min-signatures= and a whole number from 1, and
+# refused otherwise, naming the line: a key ID or a truncated paste skipped
+# instead would pin one key fewer than the reader meant, with nothing
+# printed. A second min-signatures line is refused too, and a file without
+# one asks for 1.
 # Every other byte stays, U+00A0 included, so a line holding one is refused
 # rather than read by whatever the locale calls a space. Nothing here asks the
 # locale: measured on macOS under it_IT.UTF-8, tr -d '[:space:]' stops at the
@@ -161,9 +165,11 @@ pinned_fingerprints() {
     # a local sharing the caller's OUT_VAR name would receive the result.
     local _pf_file="$1"
     local _pf_out="$2"
-    local _pf_name _pf_text _pf_fpr _pf_pins="" _pf_line="" _pf_n=0
+    local _pf_min_out="${3:-}"
+    local _pf_name _pf_text _pf_fpr _pf_pins="" _pf_line="" _pf_n=0 _pf_min=""
     local _pf_nl=$'\n' _pf_cr=$'\r' _pf_ws=$' \t\v\f' _pf_bom=$'\xef\xbb\xbf'
     printf -v "$_pf_out" '%s' ""
+    [ -z "$_pf_min_out" ] || printf -v "$_pf_min_out" '%s' 1
     [ -e "$_pf_file" ] || return 0
     _pf_name="$(basename "$_pf_file")"
     if [ ! -f "$_pf_file" ] || [ ! -r "$_pf_file" ]; then
@@ -183,6 +189,20 @@ pinned_fingerprints() {
         _pf_n=$((_pf_n + 1))
         _pf_fpr=${_pf_line//[$_pf_ws]/}
         case "$_pf_fpr" in ''|\#*) continue ;; esac
+        if [[ "$_pf_fpr" == min-signatures=* ]]; then
+            if [ -n "$_pf_min" ]; then
+                echo "Error: line ${_pf_n} of ${_pf_name} sets min-signatures" \
+                     "a second time."
+                return 1
+            fi
+            _pf_min=${_pf_fpr#min-signatures=}
+            if ! [[ "$_pf_min" =~ ^[123456789][0123456789]*$ ]]; then
+                echo "Error: line ${_pf_n} of ${_pf_name} does not set" \
+                     "min-signatures to a whole number from 1: ${_pf_fpr}"
+                return 1
+            fi
+            continue
+        fi
         if ! [[ "$_pf_fpr" =~ ^[0-9ABCDEFabcdef]{40}$ ]]; then
             echo "Error: line ${_pf_n} of ${_pf_name} is not a 40-hex" \
                  "fingerprint: ${_pf_fpr}"
@@ -191,15 +211,19 @@ pinned_fingerprints() {
         _pf_pins="${_pf_pins:+${_pf_pins}${_pf_nl}}${_pf_fpr}"
     done <<< "$_pf_text"
     printf -v "$_pf_out" '%s' "$_pf_pins"
+    if [ -n "$_pf_min_out" ] && [ -n "$_pf_min" ]; then
+        printf -v "$_pf_min_out" '%s' "$_pf_min"
+    fi
     return 0
 }
 
-# pgp_verify_or_fail SIG_FILE DATA_FILE LABEL OUT_VAR [FPR_FILE]
+# pgp_verify_or_fail SIG_FILE DATA_FILE LABEL OUT_VAR FPR_FILE
 #
 # Verifies DATA_FILE against the detached SIG_FILE. FAILS CLOSED: returns
-# non-zero (so the caller aborts the install) unless a good signature is found.
-# If FPR_FILE is given and non-empty, additionally requires a VALIDSIG whose
-# fingerprint is listed there (key pinning); otherwise any GOODSIG is accepted.
+# non-zero (so the caller aborts the install) unless SIG_FILE carries good
+# signatures from as many distinct keys pinned in FPR_FILE as its
+# min-signatures asks for (pinned_fingerprints reads the file). A file that
+# pins no key refuses.
 # On success sets OUT_VAR to 1 (the caller uses it to gate checksum recording).
 #
 # Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass verification entirely (installs
@@ -302,34 +326,86 @@ pgp_verify_or_fail() {
         return 1
     fi
 
-    # Optional fingerprint pinning: require a VALIDSIG from a listed key. The
-    # VALIDSIG status line carries both the signing-key and primary-key
-    # fingerprints, so match a pinned fingerprint anywhere on those lines.
-    # pinned_fingerprints above reads the file, and a file it does not
-    # accept refuses rather than pinning nothing.
-    if [ -n "$fpr_file" ]; then
-        local pins validsig_lines fpr matched=0
-        if ! pinned_fingerprints "$fpr_file" pins; then
-            echo "Error: $(basename "$fpr_file") was not accepted as a list" \
-                 "of pinned fingerprints, so ${label} is refused."
-            rm -f "$status_file"
-            return 1
-        fi
-        if [ -n "$pins" ]; then
-            validsig_lines="$(grep '^\[GNUPG:\] VALIDSIG' "$status_file")"
-            while IFS= read -r fpr; do
-                if echo "$validsig_lines" | grep -qi -- "$fpr"; then
-                    matched=1
-                fi
-            done <<< "$pins"
-            if [ "$matched" -ne 1 ]; then
-                echo "Error: ${label} is signed, but not by a pinned key" \
-                     "listed in $(basename "$fpr_file")."
-                rm -f "$status_file"
-                return 1
-            fi
-        fi
+    # Pinning: count the distinct pinned keys that made a good signature,
+    # and require min-signatures of them. pinned_fingerprints above reads
+    # the file, and a file it does not accept refuses rather than pinning
+    # nothing.
+    local fpr_name pins min_sigs n_pins n_good
+    if [ -z "$fpr_file" ]; then
+        echo "Error: no file of pinned fingerprints given, so ${label} is" \
+             "refused."
+        rm -f "$status_file"
+        return 1
     fi
+    fpr_name="$(basename "$fpr_file")"
+    if ! pinned_fingerprints "$fpr_file" pins min_sigs; then
+        echo "Error: ${fpr_name} was not accepted as a list of pinned" \
+             "fingerprints, so ${label} is refused."
+        rm -f "$status_file"
+        return 1
+    fi
+    if [ -z "$pins" ]; then
+        echo "Error: ${fpr_name} pins no key, so ${label} is refused."
+        echo "Add to it the fingerprints of the signers you trust."
+        rm -f "$status_file"
+        return 1
+    fi
+    pins="$(printf '%s\n' "$pins" | tr 'abcdef' 'ABCDEF' | LC_ALL=C sort -u)"
+    n_pins="$(printf '%s\n' "$pins" | wc -l | tr -d ' ')"
+    # The length test keeps a min-signatures too large for bash's integers
+    # away from -lt, which errors on it rather than answering.
+    if [ "${#min_sigs}" -gt 9 ] || [ "$n_pins" -lt "$min_sigs" ]; then
+        echo "Error: ${fpr_name} pins ${n_pins} key(s), fewer than the" \
+             "${min_sigs} signatures it asks for, so ${label} is refused."
+        rm -f "$status_file"
+        return 1
+    fi
+
+    # gpg's doc/DETAILS starts each signature's status lines with NEWSIG,
+    # and the lines up to the next NEWSIG are that signature's. One counts
+    # where it has exactly one GOODSIG and one VALIDSIG, the GOODSIG's key
+    # ID ends the VALIDSIG's signing-key fingerprint, and the VALIDSIG's
+    # primary-key fingerprint, its tenth argument, is pinned. Read apart,
+    # a GOODSIG from one key and a VALIDSIG from another would add up to a
+    # signature neither made. KEYREVOKED or REVKEYSIG in the same block
+    # keeps it out: measured with gpg 2.5.24, a revoked key's signature
+    # carries REVKEYSIG, VALIDSIG and KEYREVOKED, and an expired key's
+    # carries EXPKEYSIG in place of GOODSIG. A key signing twice counts
+    # once.
+    n_good="$(awk -v pins="$(printf '%s' "$pins" | tr '\n' ' ')" '
+        function flush() {
+            if (open && goods == 1 && valids == 1 && !revoked &&
+                length(gid) >= 16 && length(sfpr) >= length(gid) &&
+                substr(sfpr, length(sfpr) - length(gid) + 1) == gid &&
+                (primary in pinned) && !(primary in counted)) {
+                counted[primary] = 1
+                n++
+            }
+        }
+        BEGIN { split(pins, list, " "); for (i in list) pinned[list[i]] = 1 }
+        $1 != "[GNUPG:]" { next }
+        $2 == "NEWSIG" {
+            flush()
+            open = 1; goods = 0; valids = 0; revoked = 0
+            gid = ""; sfpr = ""; primary = ""
+            next
+        }
+        $2 == "GOODSIG" { goods++; gid = toupper($3) }
+        $2 == "VALIDSIG" { valids++; sfpr = toupper($3); primary = toupper($12) }
+        $2 == "REVKEYSIG" || $2 == "KEYREVOKED" { revoked = 1 }
+        END { flush(); print n + 0 }
+    ' "$status_file")" || n_good=0
+    case "$n_good" in ''|*[!0123456789]*) n_good=0 ;; esac
+    if [ "$n_good" -lt "$min_sigs" ]; then
+        echo "Error: ${label} carries good signatures from ${n_good} key(s)" \
+             "pinned in ${fpr_name}; it asks for ${min_sigs}."
+        echo "A key counts once, and not at all where it is expired or" \
+             "revoked."
+        rm -f "$status_file"
+        return 1
+    fi
+    echo "${label}: good signatures from ${n_good} key(s) pinned in" \
+         "${fpr_name}; ${min_sigs} required."
 
     rm -f "$status_file"
     if [ -n "$out_var" ]; then

@@ -237,9 +237,8 @@ echo "Downloading $CHECKSUM_SIG_URL..."
 curl -fL -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 
 # Verify (fails closed; set PORTANODE_ALLOW_UNVERIFIED=1 to bypass). Same
-# fingerprints file as the other two platforms: SHA256SUMS is signed by
-# many independent builders and keys/bitcoin-core.fingerprints pins none
-# by design, so this is no new trust decision.
+# fingerprints file as the other two platforms, so this is no new trust
+# decision.
 UPDATE_CHECKSUMS=0
 if ! pgp_verify_or_fail \
   "$TMP_DIR/SHA256SUMS.asc" \
