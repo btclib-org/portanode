@@ -74,9 +74,8 @@ jobs:
     # this pull request's own group is still holding
     if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
     runs-on: ubuntu-latest
-    # a cold cache builds a node environment for markdownlint and
-    # prettier and a python one for most of the rest before a hook runs
-    # at all; a job past this is hung rather than working
+    # a cold cache builds a node, a go and a python environment before
+    # a hook runs at all; a job past this is hung rather than working
     timeout-minutes: 20
     steps:
       # every action pinned to a commit SHA with the tag in the comment:
