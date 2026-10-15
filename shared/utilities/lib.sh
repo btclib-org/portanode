@@ -571,6 +571,63 @@ installed_version() {
     ' "$checksum_file"
 }
 
+# preview_pinned_keys FPR_FILE NAME WHAT
+#
+# For an updater's --dry-run, with gpg found: prints what pgp_verify_or_fail
+# would make of FPR_FILE. It reads the file through pinned_fingerprints and
+# counts the distinct pins as that does, and reports the cases it refuses:
+# a file pinned_fingerprints does not accept, a file that pins no key, and a
+# file that pins fewer keys than its min-signatures asks for. Otherwise it
+# prints each pinned key and whether the local keyring holds it, and says so
+# where the keyring holds fewer of them than min-signatures asks for.
+# NAME is the file as the reader knows it (keys/electrum.fingerprints) and
+# WHAT is what a refusal would stop (the download). Always returns 0: a
+# preview reports and does not end the run.
+preview_pinned_keys() {
+    local _pk_file="$1"
+    local _pk_name="$2"
+    local _pk_what="$3"
+    local _pk_pins _pk_min _pk_fpr _pk_n _pk_found=0
+    local _pk_unless="unless PORTANODE_ALLOW_UNVERIFIED=1 is set."
+    if ! pinned_fingerprints "$_pk_file" _pk_pins _pk_min; then
+        echo "gpg: found, but ${_pk_name} was not accepted as a list of" \
+             "pinned fingerprints -- verification would refuse ${_pk_what}" \
+             "${_pk_unless}"
+        return 0
+    fi
+    if [ -z "$_pk_pins" ]; then
+        echo "gpg: found, but ${_pk_name} pins no key -- verification would" \
+             "refuse ${_pk_what} ${_pk_unless}"
+        return 0
+    fi
+    _pk_pins="$(printf '%s\n' "$_pk_pins" | tr 'abcdef' 'ABCDEF' \
+      | LC_ALL=C sort -u)"
+    _pk_n="$(printf '%s\n' "$_pk_pins" | wc -l | tr -d ' ')"
+    if [ "${#_pk_min}" -gt 9 ] || [ "$_pk_n" -lt "$_pk_min" ]; then
+        echo "gpg: found, but ${_pk_name} pins ${_pk_n} key(s), fewer than" \
+             "the ${_pk_min} signatures it asks for -- verification would" \
+             "refuse ${_pk_what} ${_pk_unless}"
+        return 0
+    fi
+    while IFS= read -r _pk_fpr; do
+        if gpg --list-keys "$_pk_fpr" >/dev/null 2>&1; then
+            echo "gpg: found, pinned key $_pk_fpr is in the local keyring."
+            _pk_found=$((_pk_found + 1))
+        else
+            echo "gpg: found, but pinned key $_pk_fpr is NOT in the local" \
+                 "keyring."
+        fi
+    done <<< "$_pk_pins"
+    echo "Verification asks for ${_pk_min} good signature(s) from distinct" \
+         "pinned keys."
+    if [ "$_pk_found" -lt "$_pk_min" ]; then
+        echo "Only ${_pk_found} pinned key(s) in the local keyring, fewer" \
+             "than the ${_pk_min} signatures asked for -- verification" \
+             "would fail closed ${_pk_unless}"
+    fi
+    return 0
+}
+
 # _verify_binaries_trim STRING — strip leading and trailing whitespace,
 # printed rather than echoed so a value starting with "-" is not read as
 # an option.

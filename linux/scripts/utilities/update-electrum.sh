@@ -163,33 +163,10 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "Would install Electrum ${VERSION} (currently installed: ${CURRENT})."
     echo "Would fetch: $URL"
     if command -v gpg >/dev/null 2>&1; then
-        # pinned_fingerprints is the reader pgp_verify_or_fail uses, so the
-        # pins named here are the ones the real run enforces.
-        if ! pinned_fingerprints "$ROOTDIR/keys/electrum.fingerprints" PINS; then
-            echo "gpg: found, but keys/electrum.fingerprints was not accepted" \
-                 "as a list of pinned fingerprints -- verification would" \
-                 "refuse the download."
-        elif [ -n "$PINS" ]; then
-            PINNED_KEY_FOUND=0
-            while IFS= read -r FPR; do
-                if gpg --list-keys "$FPR" >/dev/null 2>&1; then
-                    echo "gpg: found, pinned key $FPR is in the local keyring."
-                    PINNED_KEY_FOUND=1
-                else
-                    echo "gpg: found, but pinned key $FPR is NOT in the local" \
-                         "keyring."
-                fi
-            done <<< "$PINS"
-            if [ "$PINNED_KEY_FOUND" -eq 0 ]; then
-                echo "No pinned key is in the local keyring -- verification" \
-                     "would fail closed unless PORTANODE_ALLOW_UNVERIFIED=1" \
-                     "is set."
-            fi
-        else
-            echo "gpg: found, no pinned fingerprint in" \
-                 "keys/electrum.fingerprints -- verification would refuse" \
-                 "the download."
-        fi
+        # The helper reads the file as pgp_verify_or_fail does, so the pins
+        # named here are the ones the real run enforces.
+        preview_pinned_keys "$ROOTDIR/keys/electrum.fingerprints" \
+          "keys/electrum.fingerprints" "the download"
     else
         echo "gpg: not found -- verification would fail closed unless" \
              "PORTANODE_ALLOW_UNVERIFIED=1 is set."

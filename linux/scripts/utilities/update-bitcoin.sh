@@ -180,6 +180,8 @@ if [ "$DRY_RUN" -eq 1 ]; then
             echo "Warning: with none imported, verification would fail closed" \
                  "unless PORTANODE_ALLOW_UNVERIFIED=1 is set."
         fi
+        preview_pinned_keys "$ROOTDIR/keys/bitcoin-core.fingerprints" \
+          "keys/bitcoin-core.fingerprints" "the update"
     else
         echo "gpg: not found -- verification would fail closed unless" \
              "PORTANODE_ALLOW_UNVERIFIED=1 is set."

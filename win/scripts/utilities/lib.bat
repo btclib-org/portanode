@@ -195,9 +195,36 @@ if not %errorlevel%==0 (
     exit /b 1
 )
 
-REM Pinning: FPR_FILE is read by shared/utilities/lib.sh's
-REM pinned_fingerprints rule, and the status file counted by
-REM pgp_verify_or_fail's, each as that function's comment states.
+REM Pinning: FPR_FILE is read by the PowerShell :load_pin_reader holds, by
+REM shared/utilities/lib.sh's pinned_fingerprints rule, and the status file
+REM counted by pgp_verify_or_fail's, each as that function's comment states.
+REM A PowerShell that exits non-zero for any reason, including not
+REM running at all, refuses. The catch makes an error that does not stop
+REM the block one of those reasons: measured on windows-latest with
+REM FPR_FILE naming a directory, the read threw and the block ran on.
+REM The powershell argument below is one physical line for the reason
+REM :update_checksum's comment gives.
+call :load_pin_reader
+powershell -NoProfile -Command "& { try { if ([string]::IsNullOrEmpty($env:FPR_FILE)) { Write-Output ('Error: no file of pinned fingerprints given, so ' + $env:LABEL + ' is refused.'); exit 1 }; $file = $env:FPR_FILE; %PIN_READER_PS%; if ($pins.Count -eq 0) { Write-Output ('Error: ' + $name + ' pins no key, so ' + $env:LABEL + ' is refused.'); Write-Output 'Add to it the fingerprints of the signers you trust.'; exit 1 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('Error: ' + $name + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for, so ' + $env:LABEL + ' is refused.'); exit 1 }; $sigs = New-Object System.Collections.ArrayList; foreach ($line in [IO.File]::ReadAllLines($env:STATUS_FILE)) { $w = $line.Split(' '); if ($w.Count -lt 2 -or $w[0] -cne '[GNUPG:]') { continue }; if ($w[1] -ceq 'NEWSIG') { [void]$sigs.Add(@{ goods = 0; valids = 0; revoked = $false; gid = ''; sfpr = ''; primary = '' }); continue }; if ($sigs.Count -eq 0) { continue }; $s = $sigs[$sigs.Count - 1]; if ($w[1] -ceq 'GOODSIG') { $s['goods'] += 1; $s['gid'] = $w[2].ToUpperInvariant() } elseif ($w[1] -ceq 'VALIDSIG') { $s['valids'] += 1; $s['sfpr'] = $w[2].ToUpperInvariant(); if ($w.Count -gt 11) { $s['primary'] = $w[11].ToUpperInvariant() } } elseif ($w[1] -ceq 'REVKEYSIG' -or $w[1] -ceq 'KEYREVOKED') { $s['revoked'] = $true } }; $counted = @{}; foreach ($s in $sigs) { if ($s['goods'] -eq 1 -and $s['valids'] -eq 1 -and -not $s['revoked'] -and $s['gid'].Length -ge 16 -and $s['sfpr'].EndsWith($s['gid'], [StringComparison]::Ordinal) -and $pins.ContainsKey($s['primary'])) { $counted[$s['primary']] = $true } }; if ($counted.Count -lt [int]$min) { Write-Output ('Error: ' + $env:LABEL + ' carries good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; it asks for ' + $min + '.'); Write-Output 'A key counts once, and not at all where it is expired or revoked.'; exit 1 }; Write-Output ($env:LABEL + ': good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; ' + $min + ' required.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
+if not %errorlevel%==0 (
+    echo Error: %LABEL% is refused.
+    del "%STATUS_FILE%" >nul 2>&1
+    exit /b 1
+)
+
+del "%STATUS_FILE%" >nul 2>&1
+if not "%OUTVAR%"=="" set "%OUTVAR%=1"
+exit /b 0
+
+REM :load_pin_reader
+REM Sets PIN_READER_PS to the PowerShell that reads a file of pinned
+REM fingerprints, named by the $file variable the caller's block sets first,
+REM and leaves $name (the file's own name), $pins (the pinned keys, upper
+REM case, each once) and $min (the signatures asked for, 1 where the file
+REM sets none). :verify_pgp_signature and :preview_pinned_keys both paste it
+REM into their powershell argument, so that the preview reports the pins the
+REM verification enforces. A file it does not accept prints the reason and
+REM exits 1; a path that does not exist pins nothing.
 REM The bytes are decoded as Latin-1, one character per byte, so no
 REM decoder turns a byte PowerShell cannot read into one the rule accepts,
 REM and -creplace and -cnotmatch name their characters rather than \s,
@@ -212,21 +239,35 @@ REM PowerShell applies the rule rather than findstr: measured on
 REM windows-latest, findstr /i /r "^[0-9A-F][0-9A-F]*$" matched a
 REM CRLF-ended fingerprint line and not the same line LF-ended, and
 REM .gitattributes checks keys\*.fingerprints out LF-only.
-REM A PowerShell that exits non-zero for any reason, including not
-REM running at all, refuses. The catch makes an error that does not stop
-REM the block one of those reasons: measured on windows-latest with
-REM FPR_FILE naming a directory, the read threw and the block ran on.
-REM The powershell argument below is one physical line for the reason
-REM :update_checksum's comment gives.
-powershell -NoProfile -Command "& { try { if ([string]::IsNullOrEmpty($env:FPR_FILE)) { Write-Output ('Error: no file of pinned fingerprints given, so ' + $env:LABEL + ' is refused.'); exit 1 }; $name = [IO.Path]::GetFileName($env:FPR_FILE); $pins = @{}; $min = '1'; $minSet = $false; if (Test-Path -LiteralPath $env:FPR_FILE) { $bytes = [IO.File]::ReadAllBytes($env:FPR_FILE); if ($bytes -contains 0) { Write-Output ('Error: ' + $name + ' holds a NUL byte, as a UTF-16 file does.'); exit 1 }; $text = [Text.Encoding]::GetEncoding(28591).GetString($bytes); if ($text.StartsWith([string][char]0xEF + [char]0xBB + [char]0xBF, [StringComparison]::Ordinal)) { $text = $text.Substring(3) }; $n = 0; foreach ($l in ($text -split '\r\n|\r|\n')) { $n++; $f = $l -creplace '[ \t\v\f]', ''; if ($f.Length -eq 0 -or $f.StartsWith('#', [StringComparison]::Ordinal)) { continue }; if ($f.StartsWith('min-signatures=', [StringComparison]::Ordinal)) { if ($minSet) { Write-Output ('Error: line ' + $n + ' of ' + $name + ' sets min-signatures a second time.'); exit 1 }; $min = $f.Substring(15); $minSet = $true; if ($min -cnotmatch '^[1-9][0-9]*$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' does not set min-signatures to a whole number from 1: ' + $f); exit 1 }; continue }; if ($f -cnotmatch '^[0-9A-Fa-f]{40}$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' is not a 40-hex fingerprint: ' + $f); exit 1 }; $pins[$f.ToUpperInvariant()] = $true } }; if ($pins.Count -eq 0) { Write-Output ('Error: ' + $name + ' pins no key, so ' + $env:LABEL + ' is refused.'); Write-Output 'Add to it the fingerprints of the signers you trust.'; exit 1 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('Error: ' + $name + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for, so ' + $env:LABEL + ' is refused.'); exit 1 }; $sigs = New-Object System.Collections.ArrayList; foreach ($line in [IO.File]::ReadAllLines($env:STATUS_FILE)) { $w = $line.Split(' '); if ($w.Count -lt 2 -or $w[0] -cne '[GNUPG:]') { continue }; if ($w[1] -ceq 'NEWSIG') { [void]$sigs.Add(@{ goods = 0; valids = 0; revoked = $false; gid = ''; sfpr = ''; primary = '' }); continue }; if ($sigs.Count -eq 0) { continue }; $s = $sigs[$sigs.Count - 1]; if ($w[1] -ceq 'GOODSIG') { $s['goods'] += 1; $s['gid'] = $w[2].ToUpperInvariant() } elseif ($w[1] -ceq 'VALIDSIG') { $s['valids'] += 1; $s['sfpr'] = $w[2].ToUpperInvariant(); if ($w.Count -gt 11) { $s['primary'] = $w[11].ToUpperInvariant() } } elseif ($w[1] -ceq 'REVKEYSIG' -or $w[1] -ceq 'KEYREVOKED') { $s['revoked'] = $true } }; $counted = @{}; foreach ($s in $sigs) { if ($s['goods'] -eq 1 -and $s['valids'] -eq 1 -and -not $s['revoked'] -and $s['gid'].Length -ge 16 -and $s['sfpr'].EndsWith($s['gid'], [StringComparison]::Ordinal) -and $pins.ContainsKey($s['primary'])) { $counted[$s['primary']] = $true } }; if ($counted.Count -lt [int]$min) { Write-Output ('Error: ' + $env:LABEL + ' carries good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; it asks for ' + $min + '.'); Write-Output 'A key counts once, and not at all where it is expired or revoked.'; exit 1 }; Write-Output ($env:LABEL + ': good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; ' + $min + ' required.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
-if not %errorlevel%==0 (
-    echo Error: %LABEL% is refused.
-    del "%STATUS_FILE%" >nul 2>&1
-    exit /b 1
-)
+REM The text holds no double quote and no percent sign, so pasted into the
+REM caller's double-quoted -Command argument it stays one argument.
+:load_pin_reader
+set "PIN_READER_PS=$name = [IO.Path]::GetFileName($file); $pins = @{}; $min = '1'; $minSet = $false; if (Test-Path -LiteralPath $file) { $bytes = [IO.File]::ReadAllBytes($file); if ($bytes -contains 0) { Write-Output ('Error: ' + $name + ' holds a NUL byte, as a UTF-16 file does.'); exit 1 }; $text = [Text.Encoding]::GetEncoding(28591).GetString($bytes); if ($text.StartsWith([string][char]0xEF + [char]0xBB + [char]0xBF, [StringComparison]::Ordinal)) { $text = $text.Substring(3) }; $n = 0; foreach ($l in ($text -split '\r\n|\r|\n')) { $n++; $f = $l -creplace '[ \t\v\f]', ''; if ($f.Length -eq 0 -or $f.StartsWith('#', [StringComparison]::Ordinal)) { continue }; if ($f.StartsWith('min-signatures=', [StringComparison]::Ordinal)) { if ($minSet) { Write-Output ('Error: line ' + $n + ' of ' + $name + ' sets min-signatures a second time.'); exit 1 }; $min = $f.Substring(15); $minSet = $true; if ($min -cnotmatch '^[1-9][0-9]*$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' does not set min-signatures to a whole number from 1: ' + $f); exit 1 }; continue }; if ($f -cnotmatch '^[0-9A-Fa-f]{40}$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' is not a 40-hex fingerprint: ' + $f); exit 1 }; $pins[$f.ToUpperInvariant()] = $true } }"
+exit /b 0
 
-del "%STATUS_FILE%" >nul 2>&1
-if not "%OUTVAR%"=="" set "%OUTVAR%=1"
+REM :preview_pinned_keys FPR_FILE NAME WHAT
+REM For an updater's --dry-run, with gpg found: prints what
+REM :verify_pgp_signature would make of FPR_FILE. It reads the file with the
+REM PowerShell :load_pin_reader holds, and reports the cases that routine
+REM refuses: a file it does not accept, a file that pins no key, and a file
+REM that pins fewer keys than its min-signatures asks for. Otherwise it
+REM prints the pinned keys and the signatures asked for. NAME is the file as
+REM the user knows it and WHAT is what a refusal would stop. Always exits 0:
+REM a preview reports and does not end the run. The powershell argument is
+REM one physical line for the reason :update_checksum's comment gives.
+REM The values reach PowerShell through the environment, for the reason
+REM :install_verified's comment gives.
+:preview_pinned_keys
+set "PPK_FILE=%~1"
+set "PPK_NAME=%~2"
+set "PPK_WHAT=%~3"
+call :load_pin_reader
+powershell -NoProfile -Command "& { try { $file = $env:PPK_FILE; %PIN_READER_PS%; $unless = ' unless PORTANODE_ALLOW_UNVERIFIED=1 is set.'; if ($pins.Count -eq 0) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins no key -- verification would refuse ' + $env:PPK_WHAT + $unless); exit 0 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for -- verification would refuse ' + $env:PPK_WHAT + $unless); exit 0 }; foreach ($p in ($pins.Keys | Sort-Object)) { Write-Output ('Pinned key ' + $p + ' in ' + $env:PPK_NAME + '.') }; Write-Output ('Verification asks for ' + $min + ' good signature(s) from distinct pinned keys.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
+if not %errorlevel%==0 (
+    echo gpg: found, but %PPK_NAME% was not accepted as a list of pinned
+    echo fingerprints -- verification would refuse %PPK_WHAT% unless
+    echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
+)
 exit /b 0
 
 REM :update_checksum FILE ENTRY_PATH VERSION
