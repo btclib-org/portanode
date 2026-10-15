@@ -2,6 +2,9 @@
 # Validate setup: binaries, checksums, permissions, disk space (Linux)
 set -euo pipefail
 
+# bash looks for a bare name in the current directory, then in PATH. Found
+# through PATH, $0 has no directory, so the directory below would be wrong.
+case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
