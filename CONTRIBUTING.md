@@ -370,8 +370,11 @@ third party returning 502 would be a red merge with nothing to fix; the
 second posts the ack of record `REVIEWING.md` describes, which is an
 opinion for you to weigh. Neither belongs in a branch rule.
 
+`verified-signatures.yml` reports after each push to `main` whether every
+commit pushed is `verified`; [the standard's *Signatures*][s-sigs] has the rule.
+
 What holds a pull request is the review and green checks, and what
-holds every commit that reaches `main` — signature, linear history, no
+holds every commit that reaches `main` — linear history, no
 force push, no deletion — is a ruleset with no bypass actor.
 `REPOSITORY.md` reads all of it back from the endpoint rather than
 restating it.
