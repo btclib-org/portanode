@@ -130,6 +130,7 @@ where gpg >nul 2>&1
 if %errorlevel%==0 (
     echo gpg: found.
     call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
+    call "%SCRIPT_DIR%lib.bat" :preview_pinned_keys "%ROOTDIR%\keys\electrum.fingerprints" "keys\electrum.fingerprints" "the download"
 ) else (
     echo gpg: not found -- verification would fail closed unless
     echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
