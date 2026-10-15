@@ -98,6 +98,10 @@ jobs:
   # offering either: `inherit` hands the callee every secret this
   # repository holds, which is what zizmor's secrets-inherit audit flags.
   claude-review:
+    # the callee has no cache step, and `none` keeps it so: a run started
+    # by a comment gets no cache access, which is what actionlint's
+    # cache-call-unrestricted asks for
+    cache-mode: none
     uses: btclib-org/.github/.github/workflows/reusable-claude-review.yml@main
     permissions:
       contents: read
