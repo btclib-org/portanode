@@ -17,7 +17,6 @@
      the point of running it locally is not to wait for CI to say so. -->
 
 - [ ] the lint gate is clean: `uvx pre-commit run --all-files`
-- [ ] every commit carries a verified signature
 
 ## Anything the reviewer should know
 

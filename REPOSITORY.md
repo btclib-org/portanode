@@ -70,7 +70,7 @@ gh api repos/btclib-org/portanode/rules/branches/main \
   --jq '[.[] | {type, ruleset_id}]'
 ```
 
-lists only `main-integrity`'s four rules and `main-self-merge`'s one;
+lists only `main-integrity`'s rules and `main-self-merge`'s;
 `Lint`, `Dependency review` and `Sign-off` are required through the older
 `branches/main/protection` endpoint, which this repository keeps active
 alongside the rulesets rather than folding into one of them.
@@ -97,20 +97,25 @@ gh api repos/btclib-org/portanode/rulesets --jq '.[].id' | xargs -I{} \
     rules: [.rules[].type], bypass: [.bypass_actors[]?.bypass_mode]}'
 ```
 
-- `main-integrity`, on `refs/heads/main`: required signatures, required
-  linear history, no force push, no deletion. No bypass actor.
+- `main-integrity`, on `refs/heads/main`: required linear history, no
+  force push, no deletion. No bypass actor.
 - `main-self-merge`, on `refs/heads/main`: one `pull_request` rule.
   `fametrano` bypasses it in `pull_request` mode.
 - `tag-integrity`, on `refs/tags/v*`: required signatures. No bypass
   actor.
 
 **`main-integrity` has no bypass actor and is meant not to have one.** A
-commit that is unsigned, or that rewrites what is already on `main`, is
-refused before it is something to review — the maintainer's own push
-included. It costs nothing in practice for the reason the next section
-gives: the only thing writing to `main` is a merge GitHub performs
-itself, and GitHub signs those with its web-flow key. A valid signature
-is what the rule asks for, not a particular signer's.
+commit that rewrites what is already on `main` is refused before it is
+something to review — the maintainer's own push included.
+
+No ruleset over `main` carries `required_signatures`, so nothing refuses
+an unsigned commit at the push. `verified-signatures.yml` checks after the
+push: for each commit pushed it reads `.commit.verification.verified` from
+the API and fails naming any whose value is not `true`. A red run is read
+in the Actions tab; the check is not a required one. What a pull request
+writes to `main` is a merge GitHub performs itself, and GitHub signs those
+with its web-flow key. [The standard asks for a verified commit and not
+for a particular signer][s11-sigs].
 
 ```shell
 gh api repos/btclib-org/portanode/branches/main/protection \
@@ -118,8 +123,9 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 # false
 ```
 
-Classic protection's own copy of the rule is off: [the standard states
-that value for every repository][s11-branch].
+Classic protection's own copy of the rule is off, as it is in every
+ruleset over `main`: [the standard states that value for every
+repository][s11-branch].
 
 **`main-self-merge` is in `pull_request` mode, which is a review
 exception and not a signature one.** It lets `fametrano` merge a pull
@@ -129,7 +135,7 @@ made*, says when that is done, and `CONTRIBUTING.md`'s *Landing it* says
 how. The other mode, `always`, would permit a direct push to `main` as
 well, and is not used here — what it would buy is a landing commit
 carrying the maintainer's own signature, which is worth nothing once the
-rule is read as asking for a valid signature rather than for that one.
+standard asks for a verified commit rather than for that signer.
 
 The rule's own parameters carry more than the approval count, and each is
 a decision:
