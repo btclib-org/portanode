@@ -299,6 +299,20 @@ repos:
           ^(?![\x20\t]*[A-Za-z_][A-Za-z0-9_.-]*[\x20\t]+=[\x20\t])(?:(?:[^"'\n]|'[^'\n]*')*"<[^<>"'`\n]*>"|(?:[^"'\n]|"[^"\n]*")*'<[^<>"'`\n]*>')
         types: [markdown]
         exclude: ^(CHANGELOG|RELEASE_NOTES)\.md$
+      # bash looks for a bare name in the current directory, then in PATH,
+      # and a script found through PATH has a `$0` with no directory, so
+      # the directory it derives from `$0` is wrong. Every launcher and
+      # utility refuses that before it derives the directory. A `lib.sh`
+      # is sourced, never started, and has no `$0` of its own to check.
+      # `--negate` flags a file where no guard precedes the first
+      # `SCRIPT_DIR=`, and `--multiline` lets the pattern read the whole file
+      - id: run-by-path-guard
+        name: a script refuses a bare name before it derives its directory
+        language: pygrep
+        entry: '\A(?:(?!^SCRIPT_DIR=)[\s\S])*^case "\$0" in \*/\*\) ;; \*\) \[ -f "\$0" \] \|\| '
+        args: [--multiline, --negate]
+        files: \.(sh|command)$
+        exclude: (^|/)lib\.sh$
       # how the operating system is spelled, which neither spell-checker
       # reads as a misspelling: to `typos` and to `codespell` a known word
       # in another case is a known word, so a capital M and a small final
