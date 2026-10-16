@@ -17,16 +17,30 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
-## [Unreleased]
+## v2026.10.17
+
+**A Bitcoin Core update is refused until you pin the builders you
+trust.** `keys/bitcoin-core.fingerprints` ships no key and asks for
+`min-signatures=3`: good signatures from three distinct pinned keys.
+Add the primary-key fingerprints of the builders you trust, as the
+file's comments say; to trust fewer than three, lower that line too.
+A pin file that pins no key refuses, Electrum's included, and a subkey
+fingerprint matches nothing: replace any you listed with its primary
+key's. `update-bitcoin` with `--dry-run` reports a pin file the update
+would refuse.
 
 **A line in a `keys/*.fingerprints` file that is not a fingerprint now
-stops the update.** Every line that is neither blank nor a `#` comment
-must be a 40-hex fingerprint, the spaces `gpg --fingerprint` prints
-being allowed; a key ID or anything else refuses the update, and the
-error names the line. Check any line you added. On Windows,
-`keys/electrum.fingerprints` is now enforced: an Electrum download
-signed by a key other than the pinned one is refused, as it already
-was on macOS and Linux.
+stops the update.** Every line that is neither blank, a `#` comment nor
+a `min-signatures=` line must be a 40-hex fingerprint, the spaces
+`gpg --fingerprint` prints being allowed; a key ID or anything else
+refuses the update, and the error names the line. Check any line you
+added. On Windows, `keys/electrum.fingerprints` is now enforced: an
+Electrum download signed by a key other than the pinned one is refused,
+as it already was on macOS and Linux.
+
+**On macOS and Linux, run a script by its path.** A script started by a
+bare name that the shell found through `PATH` exits 1 rather than
+reading `lib.sh` from the current directory.
 
 ## [2026.9.7] - First Tagged Release
 

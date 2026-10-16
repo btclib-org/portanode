@@ -13,7 +13,11 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
-## [Unreleased]
+## v2026.10.17
+
+The second release published on the forge. An update counts good
+signatures from distinct pinned keys, and a script found by bare name
+through `PATH` refuses to run.
 
 - **`RELEASING.md`'s opening command names which workflows the tree
   holds rather than which ones GitHub's Actions API still lists**
@@ -500,6 +504,24 @@ pull request adds an entry.
 - **A `###` heading under a release older than the newest, absent from
   the file at the merge base with `origin/main`, is refused**
   (issue btclib-org/.github#1614).
+
+### A script started by a bare name found through `PATH` is refused
+
+- **A script whose `$0` has no slash and names no file in the current
+  directory exits 1, asking to be run by its path** (closes #630): it
+  sourced `lib.sh` from the current directory.
+
+### An update counts good signatures from distinct pinned keys
+
+- **An update needs good signatures from as many distinct pinned primary
+  keys as the pin file's `min-signatures=` asks, 1 where absent** (closes
+  #628). An expired, revoked or unpinned key does not count.
+
+### The `--dry-run` previews read the pin file
+
+- **Each preview reports a pin file the update would refuse** (closes
+  #632): Bitcoin Core's on every platform, and Electrum's on Windows,
+  read it by the rule the verification uses.
 
 ## [2026.9.7] - First Tagged Release
 
