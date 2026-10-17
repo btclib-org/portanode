@@ -15,9 +15,8 @@ pull request adds an entry.
 
 ## v2026.10.17
 
-The second release published on the forge. An update counts good
-signatures from distinct pinned keys, and a script found by bare name
-through `PATH` refuses to run.
+An update counts good signatures from distinct pinned keys, and a
+script found by bare name through `PATH` refuses to run.
 
 - **`RELEASING.md`'s opening command names which workflows the tree
   holds rather than which ones GitHub's Actions API still lists**
