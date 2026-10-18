@@ -45,7 +45,7 @@ fi
 
 # Refuse to wipe regtest data while a regtest node is using this datadir: on
 # Unix "rm -rf" deletes files held open by the running process and corrupts it.
-process_running_with "-datadir=${ROOTDIR}/bitcoin-datadir -regtest"
+regtest_node_running_on "${ROOTDIR}/bitcoin-datadir"
 case $? in
     0)
         echo "Error: a regtest Bitcoin process is using bitcoin-datadir."

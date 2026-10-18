@@ -38,9 +38,8 @@ folder that is not the boot disk. `README.md` is what a user reads,
     ```
 
 - **The shared code is platform-nameless, in `shared/`.** `shared/lib.sh`
-  resolves the root and looks a running process up by a string its
-  command line holds, and `shared/utilities/lib.sh` carries the download
-  and PGP helpers; `win/scripts/utilities/lib.bat` is the Windows half of
+  resolves the root and looks a running node up by its command line, and
+  `shared/utilities/lib.sh` carries the download and PGP helpers; `win/scripts/utilities/lib.bat` is the Windows half of
   the second, `.bat` and `.ps1` being genuinely different languages from
   `bash` where the shared library is not. `macos/scripts/lib.sh` and
   `macos/scripts/utilities/lib.sh` still exist, each a forwarder to the

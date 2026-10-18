@@ -58,21 +58,7 @@ if [ ! -x "$BTC_QT" ]; then
     exit 1
 fi
 
-# Linux runs bitcoin-qt as a plain executable rather than inside an app
-# bundle, so "ps -eo command=" (the GNU/procps form, distinct from macOS's
-# BSD "-ax") already lists it under its own name with no bundle path to
-# strip.
-if ps -eo command= 2>/dev/null | awk '
-  { cmd = tolower($0) }
-  cmd ~ /bitcoin-qt|bitcoind/ {
-    if (cmd ~ /-testnet/ || cmd ~ /-regtest/ ||
-        cmd ~ /-signet/ || cmd ~ /-chain=(testnet|testnet3|regtest|signet)/) {
-      next
-    }
-    found = 1
-  }
-  END { exit found ? 0 : 1 }
-'; then
+if mainnet_node_running; then
     echo "Error: A Bitcoin Core mainnet process appears to be running."
     echo "Stop it before starting another mainnet instance (or use a different"
     echo "datadir/ports)."
