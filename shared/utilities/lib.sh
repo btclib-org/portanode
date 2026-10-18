@@ -496,13 +496,14 @@ update_checksum() {
     # file and one carrying a "deny read" ACL both produce that empty
     # capture; a full volume does not, a read needing no free space.
     #
-    # What is tested is the result rather than the status, because
-    # without pipefail the assignment's status is awk's, which is 0. And
-    # "|| hash=''" above is what lets the test run at all: under errexit
-    # and pipefail together the command substitution carries tree_hash's
-    # own non-zero status and the caller dies at the assignment, with no
-    # message of its own, where a "||" list suppresses
-    # errexit for it and leaves the refusal here, named and returned.
+    # What is tested is the result rather than the status, because for a
+    # file, without pipefail, the assignment's status is awk's, which is
+    # 0. And "|| hash=''" above is what lets the test run at all: under
+    # errexit the command substitution carries tree_hash's non-zero
+    # status (for a file only with pipefail too; a directory's subshell
+    # sets pipefail itself) and the caller dies at the assignment, with
+    # no message of its own, where a "||" list suppresses errexit for it
+    # and leaves the refusal here, named and returned.
     # Which callers set which options is not listed here -- `git grep -n
     # '^set ' -- '*/scripts/utilities/update-*.sh'` answers it live.
     if [ -z "$hash" ]; then
