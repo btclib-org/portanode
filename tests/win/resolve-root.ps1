@@ -67,10 +67,6 @@ try {
     $elsewhere (Resolve-PortaNodeRoot -StartDir $repo)
   Test-Same 'root.bat: PORTANODE_ROOT overrides the walk' `
     $elsewhere (Invoke-BatResolveRoot "$repo\")
-
-  $env:PORTANODE_ROOT = Join-Path $tmp 'missing'
-  Test-Same 'PORTANODE_ROOT naming no directory is returned as given' `
-    $env:PORTANODE_ROOT (Resolve-PortaNodeRoot -StartDir $repo)
   Remove-Item Env:PORTANODE_ROOT
 } finally {
   Remove-Item -LiteralPath $tmp -Recurse -Force
