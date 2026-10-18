@@ -182,7 +182,6 @@ if not "!CMDLINE:%SELF%=!"=="!CMDLINE!" (
 )
 exit /b 0
 
-:leave_folder
 REM Makes System32 the current directory with pushd, for the caller to
 REM undo with popd before it returns, and returns 1 where it cannot.
 REM cmd.exe looks for a command run by its bare name in the current
@@ -191,6 +190,7 @@ REM placed in it would run in place of PowerShell. A script starts in
 REM the folder more often than not: a .ps1 launcher runs it from its own
 REM directory, and a .bat launcher passes on the directory it was
 REM started in. A caller runs this before its first external command.
+:leave_folder
 pushd "%SystemRoot%\System32" >nul 2>&1
 if /i "%CD%"=="%SystemRoot%\System32" exit /b 0
 echo Error: cannot change to the Windows System32 directory.

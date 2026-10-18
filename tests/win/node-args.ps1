@@ -54,7 +54,7 @@ $mainnet = @(
   $qt
 )
 foreach ($c in $mainnet) {
-  Test-Case "mainnet: $c" (Test-MainnetNode $c) $true
+  Test-Case -Description "mainnet: $c" -Got (Test-MainnetNode $c) -Want $true
 }
 
 $other = @(
@@ -83,15 +83,15 @@ $other = @(
   "D:\btc-testnet-old\win\bin\bitcoind.exe -datadir=D:\btc-testnet-old -testnet4"
 )
 foreach ($c in $other) {
-  Test-Case "other network: $c" (Test-MainnetNode $c) $false
+  Test-Case -Description "other network: $c" -Got (Test-MainnetNode $c) -Want $false
 }
 
-Test-Case 'split: quoted program and value' `
-  ((Split-CommandLine '"C:\a b\x.exe" -datadir="D:\c d" -regtest') -join '|') `
-  'C:\a b\x.exe|-datadir=D:\c d|-regtest'
-Test-Case 'split: unterminated quote' `
-  ((Split-CommandLine 'x.exe -datadir="D:\c d') -join '|') `
-  'x.exe|-datadir=D:\c d'
+Test-Case -Description 'split: quoted program and value' `
+  -Got ((Split-CommandLine '"C:\a b\x.exe" -datadir="D:\c d" -regtest') -join '|') `
+  -Want 'C:\a b\x.exe|-datadir=D:\c d|-regtest'
+Test-Case -Description 'split: unterminated quote' `
+  -Got ((Split-CommandLine 'x.exe -datadir="D:\c d') -join '|') `
+  -Want 'x.exe|-datadir=D:\c d'
 
 if ($script:failed -gt 0) {
   Write-Output "$script:failed case(s) failed"
