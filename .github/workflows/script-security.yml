@@ -5,18 +5,23 @@ name: script-security
 # .ps1 and .bat script: the hooks lint.yml runs read these files as text,
 # and .pre-commit-config.yaml's header says why neither tool is a hook.
 #
-# A security finding fails the job, and nothing else does. For PowerShell
-# the rules are ScriptSecurity, the settings preset the module ships; a
-# file it cannot parse fails too, since nothing in it was read. For batch
-# they are Blinter's SEC rules. Both tools' other rules stay by hand, as
-# CONTRIBUTING.md's last section says.
+# A security finding fails the job; a style finding does not. For
+# PowerShell the rules are ScriptSecurity, the settings preset the module
+# ships, and three security rules the preset leaves out:
+# PSAvoidUsingInvokeExpression, PSAvoidUsingBrokenHashAlgorithms and
+# PSAvoidUsingAllowUnencryptedAuthentication. A file PowerShell cannot
+# parse fails too, since nothing in it was read. For batch the rules are
+# Blinter's SEC rules, and the job fails as well where Blinter read a
+# number of files other than the number git tracks. Both tools' other
+# rules stay by hand, as CONTRIBUTING.md's last section says.
 #
-# Blinter's SEC rules fire on lines of main that the header calls no
-# defect. .github/blinter-accepted.tsv records each one by rule code, file
-# and the text of the line, not its number, so an edit elsewhere in the
-# file does not move it. A finding the file does not hold fails the job,
-# and so does an entry no finding matches: the file is kept equal to what
-# main carries, and the job prints the lines to add or to remove.
+# Blinter's SEC rules fire on lines that .pre-commit-config.yaml's header
+# calls no defect. .github/blinter-accepted.tsv records each one by rule
+# code, file and the text of the line, not its number, so an edit
+# elsewhere in the file does not move it. A finding the file does not
+# hold fails the job, and so does an entry no finding matches: the file
+# is kept equal to the findings of the tree it sits in, and the job
+# prints the lines to add or to remove.
 #
 # Its job's name becomes a required context only once a run is green, for
 # the reason lint.yml's header gives.
@@ -135,11 +140,21 @@ jobs:
         shell: pwsh
         run: |
           Import-Module "$env:RUNNER_TEMP/PSScriptAnalyzer/PSScriptAnalyzer.psd1"
-          $version = (Get-Module PSScriptAnalyzer).Version
+          $module = Get-Module PSScriptAnalyzer
+          $version = $module.Version
+          # the preset read from the module, so its list stays the module's,
+          # with the header's three rules added
+          $settings = Import-PowerShellDataFile `
+            (Join-Path $module.ModuleBase 'Settings/ScriptSecurity.psd1')
+          $settings.IncludeRules += @(
+            'PSAvoidUsingInvokeExpression'
+            'PSAvoidUsingBrokenHashAlgorithms'
+            'PSAvoidUsingAllowUnencryptedAuthentication'
+          )
           "PowerShell $($PSVersionTable.PSVersion), PSScriptAnalyzer $version"
           $files = @(git ls-files '*.ps1' '*.psm1' '*.psd1')
           $found = @(foreach ($f in $files) {
-            Invoke-ScriptAnalyzer -Path $f -Settings ScriptSecurity |
+            Invoke-ScriptAnalyzer -Path $f -Settings $settings |
               ForEach-Object { "::error file=$f,line=$($_.Line)::$($_.RuleName): $($_.Message)" }
           })
           "$($found.Count) security findings in $($files.Count) files"
