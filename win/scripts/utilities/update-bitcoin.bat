@@ -144,7 +144,7 @@ REM compare-versions.ps1's header has the rule. Run from its own
 REM directory by a relative name: win/scripts/root.ps1 says why.
 for /f "usebackq delims=" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^
   -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\compare-versions.ps1 -Installed $env:CURRENT -Requested $env:VERSION; exit $LASTEXITCODE"`) do set VERDICT=%%R
-if not defined VERDICT goto :downgrade_checked
+if "%VERDICT%"=="OK" goto :downgrade_checked
 setlocal enabledelayedexpansion
 if "!VERDICT!"=="OLDER" (
     echo Refusing to install Bitcoin Core !VERSION!: it is older than the installed !CURRENT!.
