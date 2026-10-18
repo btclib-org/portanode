@@ -192,7 +192,14 @@ REM being out of a hosted runner's reach the way ISS 334 found. This
 REM depends on ROOTDIR and DATADIR still being set in the console the
 REM macro runs in: every caller sets both before "start"ing it, and
 REM "start" hands the new console its own copy of that environment.
-cd /d "%ROOTDIR%\win\bin"
+REM
+REM The console starts in the user's profile, not in win\bin: cmd.exe
+REM looks for a bare command name in the current directory before PATH,
+REM so with win\bin there a command typed in this console, and doskey
+REM below, would be looked for in the folder first
+REM (#656). btc does not need it, naming bitcoin-cli.exe by its
+REM absolute path.
+cd /d "%USERPROFILE%"
 title %~1
 doskey btc="%%ROOTDIR%%\win\bin\bitcoin-cli.exe" %~2 -datadir="%%DATADIR%%" $*
 exit /b 0
