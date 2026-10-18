@@ -48,9 +48,17 @@ debug_list_dir() {
     echo "Debug: ${dir#"$ROOTDIR"/} contents: $entries"
 }
 
-# tree_hash PATH — deterministic content hash of a file or of every regular
-# file under a directory. AppleDouble sidecars (._*) are ignored so a source on
-# APFS and a copy on exFAT (which materialises ._* files) compare equal.
+# tree_hash PATH — deterministic content hash of a file, or of a directory:
+# each regular file under it by path and content, and each symlink by path
+# and target string. A symlink is never followed, so one that changes or
+# goes missing changes the hash. AppleDouble sidecars (._*) are ignored so a
+# source on APFS and a copy on exFAT (which materialises ._* files) compare
+# equal. For a directory it prints nothing and returns 1 where a file or
+# link under it cannot be read.
+#
+# The macOS updaters record a bundle's tree_hash in macos/checksums.sha256,
+# which is append-only, so a change to what this hashes leaves every bundle
+# entry already recorded unmatched.
 #
 # The checksum command is picked at run time rather than fixed to shasum:
 # macOS always has shasum, but a bare Linux install is not guaranteed to
@@ -69,10 +77,22 @@ tree_hash() {
         return 1
     fi
     if [ -d "$path" ]; then
-        ( cd "$path" && find . -type f ! -name '._*' -print0 \
-            | LC_ALL=C sort -z \
-            | xargs -0 "${sha_cmd[@]}" 2>/dev/null \
-            | "${sha_cmd[@]}" | awk '{print $1}' )
+        # xargs -r: GNU xargs otherwise runs the command once on empty
+        # input, hashing its own empty stdin; BSD xargs accepts the flag.
+        ( cd "$path" || exit 1
+          set -o pipefail
+          local files links
+          files="$(find . -type f ! -name '._*' -print0 \
+              | LC_ALL=C sort -z \
+              | xargs -0 -r "${sha_cmd[@]}")" || exit 1
+          links="$(find . -type l ! -name '._*' -print0 \
+              | LC_ALL=C sort -z \
+              | while IFS= read -r -d '' link; do
+                    target="$(readlink "$link")" || exit 1
+                    printf 'symlink  %s -> %s\n' "$link" "$target"
+                done)" || exit 1
+          printf '%s\n%s\n' "$files" "$links" \
+              | "${sha_cmd[@]}" | awk '{print $1}' )
     else
         "${sha_cmd[@]}" "$path" 2>/dev/null | awk '{print $1}'
     fi
@@ -84,7 +104,7 @@ tree_hash() {
 # files on write. Returns non-zero if still corrupt after several attempts.
 install_verified() {
     local src="$1" dest="$2" want got i
-    want="$(tree_hash "$src")"
+    want="$(tree_hash "$src")" || want=""
     if [ -z "$want" ]; then
         echo "Error: cannot hash source $src"
         return 1
@@ -93,7 +113,7 @@ install_verified() {
         rm -rf "$dest"
         cp -R "$src" "$dest"
         sync 2>/dev/null || true
-        got="$(tree_hash "$dest")"
+        got="$(tree_hash "$dest")" || got=""
         if [ "$got" = "$want" ]; then
             return 0
         fi
@@ -111,17 +131,36 @@ install_verified() {
 # ARCHIVE entries and checks them with whichever of shasum or sha256sum is
 # on PATH, the run-time pick tree_hash's comment above explains. The
 # sha256sum branch is not dead: a Linux install without shasum runs it.
+#
+# A line is an ARCHIVE's entry where it is 64 hex digits, a space, a space
+# or "*", and a file-name field equal to ARCHIVE as a whole string. Each
+# ARCHIVE needs exactly one entry, or the call refuses before hashing
+# anything: the check passes on the entries it finds, so a name matched as
+# a substring, or a name left without an entry, would let one listed
+# archive pass for another that SUMS_FILE does not list.
 verify_sha256sums() {
     local tmp_dir="$1"
     local sums_file="$2"
     shift 2
     local filtered="${sums_file}.filtered"
-    local -a grep_args=()
-    local name
+    local name count
+    : > "$tmp_dir/$filtered" || return 1
     for name in "$@"; do
-        grep_args+=(-e "$name")
+        # ENVIRON rather than -v: awk reads escape sequences in a -v value.
+        count="$(_vs_name="$name" _vs_out="$tmp_dir/$filtered" awk '
+            length($0) > 66 && substr($0, 1, 64) !~ /[^0-9A-Fa-f]/ &&
+            substr($0, 65, 1) == " " && substr($0, 66, 1) ~ /^[ *]$/ &&
+            substr($0, 67) == ENVIRON["_vs_name"] {
+                n++
+                print >> ENVIRON["_vs_out"]
+            }
+            END { print n + 0 }' "$tmp_dir/$sums_file")" || count=""
+        if [ "$count" != 1 ]; then
+            echo "Error: ${sums_file} holds ${count:-an unreadable number of}" \
+                 "entries for ${name}; exactly 1 is required."
+            return 1
+        fi
     done
-    grep -F "${grep_args[@]}" "$tmp_dir/$sums_file" > "$tmp_dir/$filtered"
     if command -v shasum >/dev/null 2>&1; then
         (cd "$tmp_dir" && shasum -a 256 -c "$filtered")
     elif command -v sha256sum >/dev/null 2>&1; then
@@ -406,24 +445,17 @@ update_checksum() {
     local checksum_file="${4:-$ROOTDIR/macos/checksums.sha256}"
     local hash=""
 
-    if [ ! -f "$file" ]; then
+    # A directory is an app bundle, recorded by tree_hash as a whole.
+    if [ ! -f "$file" ] && [ ! -d "$file" ]; then
         echo "Error: checksum source not found at ${file#"$ROOTDIR"/}"
         debug_list_dir "$(dirname "$file")"
         exit 1
     fi
 
-    if command -v shasum >/dev/null 2>&1; then
-        hash="$(shasum -a 256 "$file" | awk '{print $1}')" || hash=""
-    elif command -v sha256sum >/dev/null 2>&1; then
-        hash="$(sha256sum "$file" | awk '{print $1}')" || hash=""
-    else
-        echo "Warning: shasum/sha256sum not found;"
-        echo "checksums not updated."
-        return 0
-    fi
+    hash="$(tree_hash "$file")" || hash=""
 
-    # shasum and sha256sum write to stderr and print nothing on stdout
-    # for a file they cannot read, so awk prints nothing and hash is
+    # tree_hash prints nothing for a file or bundle it cannot read, and
+    # nothing where neither shasum nor sha256sum is on PATH, so hash is
     # empty. The entry built below would then carry an empty hash field
     # into the append-only checksums.sha256, where it can neither be
     # rewritten nor ever match: verify_checksum_entry's awk reads such a
@@ -434,9 +466,9 @@ update_checksum() {
     # What is tested is the result rather than the status, because
     # without pipefail the assignment's status is awk's, which is 0. And
     # "|| hash=''" above is what lets the test run at all: under errexit
-    # and pipefail together the command substitution carries shasum's
-    # own non-zero status and the caller dies at the assignment, with
-    # only shasum's stderr behind it, where a "||" list suppresses
+    # and pipefail together the command substitution carries tree_hash's
+    # own non-zero status and the caller dies at the assignment, with no
+    # message of its own, where a "||" list suppresses
     # errexit for it and leaves the refusal here, named and returned.
     # Which callers set which options is not listed here -- `git grep -n
     # '^set ' -- '*/scripts/utilities/update-*.sh'` answers it live.
@@ -475,7 +507,8 @@ verify_checksum_entry() {
     local label="${4:-backup binary}"
     local hash=""
 
-    if [ ! -f "$file" ]; then
+    # A directory is an app bundle, hashed by tree_hash as a whole.
+    if [ ! -f "$file" ] && [ ! -d "$file" ]; then
         echo "Error: ${label} not found at ${file#"$ROOTDIR"/}"
         debug_list_dir "$(dirname "$file")"
         return 2
@@ -486,12 +519,9 @@ verify_checksum_entry() {
         return 2
     fi
 
-    if command -v shasum >/dev/null 2>&1; then
-        hash="$(shasum -a 256 "$file" | awk '{print $1}')"
-    elif command -v sha256sum >/dev/null 2>&1; then
-        hash="$(sha256sum "$file" | awk '{print $1}')"
-    else
-        echo "Error: Neither shasum nor sha256sum found."
+    hash="$(tree_hash "$file")" || hash=""
+    if [ -z "$hash" ]; then
+        echo "Error: could not hash ${label} at ${file#"$ROOTDIR"/}."
         return 2
     fi
 
@@ -620,8 +650,9 @@ _verify_binaries_trim() {
 #
 # Parses CHECKSUM_FILE (ROOTDIR-relative) for lines of the form
 # "<sha256>  <path>[  version=<label>]", keeps only the entries whose
-# path is under "PREFIX/", then hashes each such file under ROOTDIR and
-# prints one OK/FAILED/MISSING line per unique path.
+# path is under "PREFIX/", then hashes each such path under ROOTDIR with
+# tree_hash, a directory (an app bundle) as a whole, and prints one
+# OK/FAILED/MISSING line per unique path.
 #
 # Returns 1 and prints "Error: ..." on a malformed line, an unreadable
 # checksum file, a hash of the wrong length, or a missing shasum/
@@ -717,7 +748,7 @@ verify_binaries() {
         else
             expected_versions_str=""
         fi
-        if [ ! -f "$file" ]; then
+        if [ ! -f "$file" ] && [ ! -d "$file" ]; then
             if [ -n "$expected_versions_str" ]; then
                 echo "$path: MISSING (expected versions: $expected_versions_str)"
             else
@@ -726,15 +757,15 @@ verify_binaries() {
             fail=$((fail + 1))
             continue
         fi
-        if command -v shasum >/dev/null 2>&1; then
-            computed_hash="$(shasum -a 256 "$file" | awk '{print $1}')"
-        elif command -v sha256sum >/dev/null 2>&1; then
-            computed_hash="$(sha256sum "$file" | awk '{print $1}')"
-        else
+        if ! command -v shasum >/dev/null 2>&1 && \
+           ! command -v sha256sum >/dev/null 2>&1; then
             echo "Error: Neither shasum nor sha256sum found."
             echo "Install coreutils or similar."
             return 1
         fi
+        # A path tree_hash cannot read hashes to nothing, which matches no
+        # entry and so reads FAILED.
+        computed_hash="$(tree_hash "$file")" || computed_hash=""
         matches=()
         for i in "${!rec_path[@]}"; do
             if [ "${rec_path[$i]}" = "$path" ] && [ "${rec_hash[$i]}" = "$computed_hash" ]; then

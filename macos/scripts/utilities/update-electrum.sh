@@ -203,15 +203,19 @@ hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
 if [ "$install_rc" -ne 0 ]; then
     exit 1
 fi
+# The bundle's entry is what the check below and rollback-electrum.sh
+# read; the executable keeps its own for the reason update-bitcoin.sh
+# gives beside its own pair.
+update_checksum "$ROOTDIR/macos/bin/Electrum.app" \
+  "macos/bin/Electrum.app" "$VERSION"
 update_checksum \
   "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
   "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
   "$VERSION"
 echo "Verifying installed Electrum against checksums.sha256..."
-if ! verify_checksum_entry \
-    "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-    "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-    "$ROOTDIR/macos/checksums.sha256" "Electrum"; then
+if ! verify_checksum_entry "$ROOTDIR/macos/bin/Electrum.app" \
+    "macos/bin/Electrum.app" \
+    "$ROOTDIR/macos/checksums.sha256" "Electrum.app"; then
     echo "Error: post-install verification failed (filesystem corruption?)."
     exit 1
 fi

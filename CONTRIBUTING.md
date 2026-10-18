@@ -303,6 +303,14 @@ launcher on a macOS, a Windows and a Linux machine, from a volume that
 is not the boot disk — which is the case the paths in these scripts
 exist for, and the one a checkout on an internal disk never exercises.
 
+**`tests/integrity-helpers.sh` tests `shared/utilities/lib.sh`'s checksum
+helpers** and the macOS rollbacks and `verify-binaries.sh` that use them.
+No workflow runs it, so a change to them runs it by hand, with `bash`:
+
+```shell
+bash tests/integrity-helpers.sh
+```
+
 **The `.bat` and `.ps1` halves are read by the generic hooks and by no
 parser.** PowerShell's is PSScriptAnalyzer, and
 `.pre-commit-config.yaml`'s header says why it is not a hook here; run it

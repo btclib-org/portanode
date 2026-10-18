@@ -48,15 +48,20 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
     CHECKSUM_FILE="$ROOTDIR/macos/checksums.sha256"
     BACKUP_BIN="$BACKUP_DIR/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
+    # The whole bundle is checked, not its executable alone: update-bitcoin.sh
+    # records a macos/bin/Bitcoin-Qt.app entry hashing every file and symlink
+    # in it.
     rc=0
     verify_checksum_entry \
-      "$BACKUP_BIN" \
-      "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+      "$BACKUP_DIR/Bitcoin-Qt.app" \
+      "macos/bin/Bitcoin-Qt.app" \
       "$CHECKSUM_FILE" \
-      "backup binary" || rc=$?
+      "backup" || rc=$?
     if [ "$rc" -ne 0 ]; then
         if [ "$rc" -eq 1 ]; then
-            echo "Error: backup binary checksum not recognized."
+            echo "Error: the backup's checksum is not recognized: no" \
+                 "macos/bin/Bitcoin-Qt.app entry in macos/checksums.sha256" \
+                 "matches it."
         fi
         exit 1
     fi
