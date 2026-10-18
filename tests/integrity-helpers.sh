@@ -144,6 +144,8 @@ else
     cleans_up() {
         local sh="$1" td out rc=0
         td="$(mktemp -d "$T/tmpdir.XXXXXX")"
+        # shellcheck disable=SC2016 # $1 and $2 are the child shell's own
+        # arguments, so the script is single-quoted on purpose
         out="$(TMPDIR="$td" "$sh" -c \
             'set -euo pipefail; . "$1"; tree_hash "$2"' _ \
             "$REPO/shared/utilities/lib.sh" "$B" 2>&1)" || rc=$?
