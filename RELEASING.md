@@ -106,6 +106,24 @@ with a "binary not found" rather than with anything naming the cause.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
+1. Read the open alerts and stop while any is open. The command prints
+   each open Dependabot and code-scanning alert, and exits `0` only
+   where there is none and both calls answered:
+
+    ```shell
+    open=$({ gh api --paginate \
+        'repos/btclib-org/portanode/dependabot/alerts?state=open' \
+        --jq '.[] | "dependabot \(.number) \(.security_advisory.severity) \(.dependency.package.name)"' \
+      && gh api --paginate \
+        'repos/btclib-org/portanode/code-scanning/alerts?state=open' \
+        --jq '.[] | "code-scanning \(.number) \(.rule.id) \(.html_url)"'; }) \
+      && printf '%s\n' "$open" && test -z "$open"
+    ```
+
+    Fix an alert, or dismiss it on its page with the reason GitHub asks
+    for, and run the command again. A call that does not answer (404,
+    403) stops the release as an open alert does. Both calls answer to
+    the `repo` scope of `gh auth login`.
 1. Tag the merged commit, **signed**, from the primary checkout brought
    forward under `CLAUDE.md`'s *The primary checkout is the maintainer's*
    preconditions — on `main` and clean — plus the ancestry `--ff-only`
