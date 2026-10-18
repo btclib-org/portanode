@@ -294,10 +294,11 @@ launcher on a macOS, a Windows and a Linux machine, from a volume that
 is not the boot disk — which is the case the paths in these scripts
 exist for, and the one a checkout on an internal disk never exercises.
 
-**The `.bat` and `.ps1` halves are read by the generic hooks and by no
-parser.** PowerShell's is PSScriptAnalyzer, and
-`.pre-commit-config.yaml`'s header says why it is not a hook here; run it
-by hand, against a `pwsh` that carries the module:
+**The `.bat` and `.ps1` halves are read by the generic hooks, and by
+`script-security.yml` for security findings alone** (*What gates a
+merge*, below). PowerShell's parser is PSScriptAnalyzer, and
+`.pre-commit-config.yaml`'s header says why it is not a hook here; run
+all of its rules by hand, against a `pwsh` that carries the module:
 
 ```shell
 pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
@@ -348,6 +349,11 @@ a path the loop really reads.
 pre-commit run --all-files`, which is the same command this section gives
 you: one declaration of what the hooks are, so a hook added to
 `.pre-commit-config.yaml` needs no edit to a workflow.
+
+**`script-security.yml` runs the security rules of PSScriptAnalyzer and
+Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
+its header says what fails it. A Blinter finding it reports is fixed, or
+added to `.github/blinter-accepted.tsv` as the line the job prints.
 
 **Whether its answer holds the merge is a separate question**, and the
 command is what says which state we are in:

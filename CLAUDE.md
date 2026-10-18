@@ -178,8 +178,8 @@ git worktree remove --force <scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
   a `.ps1` change being read for correctness without ever being parsed.
   `Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser` once
   `pwsh` is there.
-- **`blinter` does not gate, and its exit code is non-zero on the clean
-  tree.** Capture `V=$(uvx blinter --version)` once and run every half of
+- **`blinter` gates only through `script-security.yml`'s security
+  rules, and its exit code is non-zero on the clean tree.** Capture `V=$(uvx blinter --version)` once and run every half of
   a comparison as `uvx --from "blinter==$V"`, stderr dropped (its `utf_8`
   encoding notices move under unrelated edits). Judge a diff by the set
   of line numbers per file and rule code, not by counts. Lines blinter

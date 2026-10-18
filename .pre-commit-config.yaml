@@ -57,6 +57,12 @@
 # Run it by hand, as above; reconsider it when it reads a `^`
 # continuation.
 #
+# The security rules of both tools run in CI all the same, in
+# .github/workflows/script-security.yml. Blinter's findings that are no
+# defect are listed in a file beside it rather than marked in the
+# scripts, and both tools are pinned to a hash, so a new release runs
+# only once a commit names it.
+#
 # Skip a hook with SKIP=<id>.
 ci:
   # a bot committing to a branch is at odds with a setup where no
