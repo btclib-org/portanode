@@ -350,11 +350,6 @@ pre-commit run --all-files`, which is the same command this section gives
 you: one declaration of what the hooks are, so a hook added to
 `.pre-commit-config.yaml` needs no edit to a workflow.
 
-**`script-security.yml` runs the security rules of PSScriptAnalyzer and
-Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
-its header says what fails it. A Blinter finding it reports is fixed, or
-added to `.github/blinter-accepted.tsv` as the line the job prints.
-
 **Whether its answer holds the merge is a separate question**, and the
 command is what says which state we are in:
 
@@ -368,6 +363,11 @@ the merge.
 `REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
+
+**`script-security.yml` runs the security rules of PSScriptAnalyzer and
+Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
+its header says what fails it. A Blinter finding it reports is fixed, or
+added to `.github/blinter-accepted.tsv` as the line the job prints.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a

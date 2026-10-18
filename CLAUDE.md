@@ -179,8 +179,9 @@ git worktree remove --force <scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
   `Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser` once
   `pwsh` is there.
 - **`blinter` gates only through `script-security.yml`'s security
-  rules, and its exit code is non-zero on the clean tree.** Capture `V=$(uvx blinter --version)` once and run every half of
-  a comparison as `uvx --from "blinter==$V"`, stderr dropped (its `utf_8`
+  rules, and its exit code is non-zero on the clean tree.** Capture
+  `V=$(uvx blinter --version)` once and run every half of a comparison
+  as `uvx --from "blinter==$V"`, stderr dropped (its `utf_8`
   encoding notices move under unrelated edits). Judge a diff by the set
   of line numbers per file and rule code, not by counts. Lines blinter
   reads as embedded script — which can include plain batch lines after a
