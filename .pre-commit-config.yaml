@@ -103,7 +103,10 @@ repos:
       - id: pinned-rev
         name: every pre-commit rev names a released version
         language: pygrep
-        entry: '^\x20*rev:\x20("?|[0-9a-f]{40}\x20+\x23\x20frozen:\x20)v?([0-9]+|[0-9][0-9.]*(a|b|rc|dev)[0-9]+)"?$'
+        # one line and no literal space in it, for the reason
+        # local-link-prefix below gives
+        entry: |-
+          ^\x20*rev:\x20("?|[0-9a-f]{40}\x20+\x23\x20frozen:\x20)v?([0-9]+|[0-9][0-9.]*(a|b|rc|dev)[0-9]+)"?$
         files: ^\.pre-commit-config\.yaml$
   # the executable half of the tree: identify reads a shebang on an
   # executable file, so .command launchers are typed "shell" here the same
