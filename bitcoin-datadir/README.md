@@ -12,7 +12,8 @@ For local installation this folder is typically in:
 
 - `bitcoin.conf`: Node configuration (e.g., dbcache, txindex).
 - `bitcoin.local.conf`: Your own secrets (`rpcpassword`, `rpcauth`),
-  included by `bitcoin.conf` and ignored by git. You create it.
+  ignored by git. You create it, and `bitcoin.conf`'s `[secrets]` comment
+  says how to include it.
 - `blocks/`: Block data (mainnet).
 - `chainstate/`: Chain state database (mainnet).
 - `indexes/`: Indexes (e.g., txindex, coinstats) (mainnet).
@@ -38,9 +39,10 @@ Edit `bitcoin.conf` for settings like:
 - `maxmempool=4096`: Mempool size (MB).
 - `prune=550`: Prune blocks to ~550MB.
 
-`bitcoin.conf` does not open RPC on mainnet; its `[rpc]` comment says
-when to set `server=1`, and its `[secrets]` comment says how to keep
-a password out of git.
+`bitcoin.conf` sets `server=1` under `[regtest]` only, so RPC is open
+on regtest and closed on mainnet, testnet3 and testnet4; its `[rpc]`
+comment says when to set it elsewhere, and its `[secrets]` comment says
+how to keep a password out of git.
 
 ## Wallets
 
