@@ -76,17 +76,55 @@ resolve_root() {
     (cd "$start_dir" && pwd -P)
 }
 
+# _utf8_locale: prints the name of a UTF-8 locale this machine has; 1 where
+# it finds none.
+_utf8_locale() {
+    local loc
+    for loc in C.UTF-8 en_US.UTF-8; do
+        if [ "$(LC_ALL=$loc locale charmap 2>/dev/null)" = UTF-8 ]; then
+            printf '%s\n' "$loc"
+            return 0
+        fi
+    done
+    return 1
+}
+
 # _process_args: one line per running process, holding its arguments as
 # ps prints them. A test replaces this function to feed the functions below
 # a process list of its own.
+#
+# ps runs under a UTF-8 locale where the machine has one, whatever the
+# caller's locale: under C, macOS ps prints "è" as "M-CM-(", and a path
+# holding it never matches itself. Without one, ps runs under C, and
+# _ps_shows refuses every string that is not printable ASCII.
 _process_args() {
-    ps -A -ww -o args=
+    local loc
+    loc="$(_utf8_locale)" || loc=C
+    LC_ALL="$loc" ps -A -ww -o args=
+}
+
+# _ps_shows <string>: 0 where _process_args prints <string> as itself; 1
+# where it may print it otherwise. Printable ASCII it prints as itself. Any
+# other character it prints as itself only under a UTF-8 locale that calls
+# it printable: macOS ps prints a tab as "\011" even under C.UTF-8.
+_ps_shows() {
+    local loc
+    (
+        LC_ALL=C
+        case $1 in (*[![:print:]]*) exit 1 ;; esac
+    ) && return 0
+    loc="$(_utf8_locale)" || return 1
+    (
+        LC_ALL=$loc
+        case $1 in (*[![:print:]]*) exit 1 ;; esac
+    )
 }
 
 # process_running_with <string>: 0 where the command line of a running
 # process holds <string>, ignoring case; 1 where none does; 2 where the
-# process list could not be read or searched, which a caller about to
-# delete something treats as 0.
+# process list could not be read or searched, or ps may not print <string>
+# as itself (_ps_shows), which a caller about to delete something treats
+# as 0.
 #
 # The string is compared as a string. pgrep -f reads its pattern as an
 # extended regular expression, so a path holding "(", "+" or "[" does not
@@ -95,6 +133,7 @@ _process_args() {
 # which carries the string, is not in it.
 process_running_with() {
     local procs
+    _ps_shows "$1" || return 2
     procs="$(_process_args)" || return 2
     grep -q -i -F -e "$1" <<<"$procs"
     case $? in

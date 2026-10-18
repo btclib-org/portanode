@@ -1,0 +1,99 @@
+# shellcheck shell=bash
+# Tests of process_running_with in shared/lib.sh on a string holding a
+# character outside ASCII, with and without a UTF-8 locale in the caller's
+# environment. Run from anywhere, on macOS or Linux:
+#
+#     bash tests/process-running-with-locale.sh
+#
+# It starts a stand-in process, a bash whose command line carries a datadir
+# argument, and no node. Exit 0 where every case passes, 1 where one fails.
+
+set -u
+
+# bash looks for a bare name in the current directory, then in PATH. Found
+# through PATH, $0 has no directory, so the directory below would be wrong.
+case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+REPO="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+# shellcheck source=shared/lib.sh
+. "$REPO/shared/lib.sh"
+
+failures=0
+
+# expect <status> <description> <command> [argument...]: runs the command
+# in a subshell and compares its exit status with <status>.
+expect() {
+    local want="$1" what="$2" got
+    shift 2
+    ("$@")
+    got=$?
+    if [ "$got" -ne "$want" ]; then
+        echo "FAIL: $what (wanted $want, got $got)"
+        failures=$((failures + 1))
+    fi
+}
+
+# without_locale <command> [argument...]: runs the command with no locale
+# variable set, as a launcher started outside Terminal is.
+without_locale() {
+    unset LANG LC_ALL LC_CTYPE
+    "$@"
+}
+
+# under <locale> <command> [argument...]
+under() {
+    export LC_ALL="$1"
+    shift
+    "$@"
+}
+
+# no_utf8_locale <command> [argument...]: runs the command as on a machine
+# that has no UTF-8 locale.
+no_utf8_locale() {
+    # shellcheck disable=SC2329 # the functions of lib.sh call it
+    _utf8_locale() { return 1; }
+    "$@"
+}
+
+ARG="-datadir=/portanode-test-$$/Disco è/bitcoin-datadir/regtest_bob"
+ASCII_ARG="-datadir=/portanode-test-$$/Disco/bitcoin-datadir/regtest_bob"
+
+# The "; :" keeps bash from replacing itself with sleep, which would drop
+# the arguments from the command line.
+"$BASH" -c 'sleep 60; :' bitcoind -regtest "$ARG" "$ASCII_ARG" 2>/dev/null &
+CHILD=$!
+trap 'pkill -P "$CHILD" 2>/dev/null; kill "$CHILD" 2>/dev/null' EXIT
+
+# ps lists the child once it has started; this waits up to five seconds.
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    process_running_with "$ASCII_ARG" && break
+    sleep 0.5
+done
+
+if loc="$(_utf8_locale)"; then
+    expect 0 "found with no locale variable set" \
+        without_locale process_running_with "$ARG"
+    expect 0 "found under LC_ALL=C" under C process_running_with "$ARG"
+    expect 0 "found under LC_ALL=$loc" under "$loc" process_running_with "$ARG"
+    expect 1 "a string outside ASCII no process holds answers 1" \
+        process_running_with "$ARG-absent"
+else
+    echo "This machine has no UTF-8 locale."
+    expect 2 "a string outside ASCII answers 2" process_running_with "$ARG"
+fi
+
+expect 2 "no UTF-8 locale: a string outside ASCII answers 2" \
+    no_utf8_locale process_running_with "$ARG"
+expect 0 "no UTF-8 locale: a string in ASCII is still found" \
+    no_utf8_locale process_running_with "$ASCII_ARG"
+expect 1 "no UTF-8 locale: a string in ASCII no process holds answers 1" \
+    no_utf8_locale process_running_with "$ASCII_ARG-absent"
+
+expect 2 "a string holding a tab, which ps escapes, answers 2" \
+    process_running_with "$ARG"$'\t'
+
+if [ "$failures" -ne 0 ]; then
+    echo "$failures case(s) failed"
+    exit 1
+fi
+echo "Every case passed."
