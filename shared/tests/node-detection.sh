@@ -8,9 +8,10 @@
 # names. It has no shebang and no executable bit, being run rather than
 # launched (CLAUDE.md, on the executable bit).
 
-TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=shared/lib.sh
-. "$TESTS_DIR/../lib.sh"
+. "$SCRIPT_DIR/../lib.sh"
 
 FAILED=0
 CASES=0
