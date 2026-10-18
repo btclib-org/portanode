@@ -19,14 +19,14 @@ function Write-TestResult {
 # Passes where $Actual equals $Expected, case included.
 function Test-Same {
   param([string]$Name, [string]$Expected, [string]$Actual)
-  Write-TestResult $Name ($Expected -ceq $Actual) @(
+  Write-TestResult -Name $Name -Passed ($Expected -ceq $Actual) -Detail @(
     "expected: $Expected", "actual:   $Actual")
 }
 
 # Passes where $Part occurs in $Text, case included.
 function Test-Contain {
   param([string]$Name, [string]$Text, [string]$Part)
-  Write-TestResult $Name ($Text.Contains($Part)) @(
+  Write-TestResult -Name $Name -Passed ($Text.Contains($Part)) -Detail @(
     "wanted:   $Part", "in:       $Text")
 }
 

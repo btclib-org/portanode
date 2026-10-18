@@ -15,7 +15,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests\run.ps1
 ```
 
 Each runner prints one line per case, `ok` or `not ok` and then what the
-case checks, and exits 1 where any case failed.
+case checks, and exits 1 where any case failed or any test file exited
+non-zero.
 
 What the suite does not reach is a launcher starting Bitcoin Core or
 Electrum, from a volume that is not the boot disk: no binary is in the

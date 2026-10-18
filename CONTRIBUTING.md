@@ -378,6 +378,10 @@ the merge.
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
 
+`tests.yml` runs the suite on every pull request, and its `Tests` job
+passes where every platform did. No branch rule names `Tests`, so a red
+one does not hold the merge.
+
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a
 third party returning 502 would be a red merge with nothing to fix; the

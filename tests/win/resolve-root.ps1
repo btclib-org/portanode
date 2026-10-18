@@ -11,7 +11,7 @@ Remove-Item Env:PORTANODE_ROOT -ErrorAction SilentlyContinue
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ('portanode-tests-' + [guid]::NewGuid())
 $tmp = (New-Item -ItemType Directory -Path $tmp).FullName
 
-function New-Root {
+function Add-TestRoot {
   param([string]$Path, [string[]]$Directories)
   foreach ($name in $Directories) {
     New-Item -ItemType Directory -Force -Path (Join-Path $Path $name) | Out-Null
@@ -45,7 +45,7 @@ try {
 
   foreach ($platform in 'macos', 'win', 'linux') {
     $root = Join-Path $tmp "only-$platform"
-    New-Root $root @("$platform\scripts")
+    Add-TestRoot $root @("$platform\scripts")
     Test-Same "VERSION and $platform\ alone mark a root" `
       $root (Resolve-PortaNodeRoot -StartDir (Join-Path $root "$platform\scripts"))
     Test-Same "root.bat: VERSION and $platform\ alone mark a root" `
