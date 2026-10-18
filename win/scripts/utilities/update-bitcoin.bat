@@ -50,12 +50,12 @@ call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
-REM The current directory is System32 rather than the folder. cmd.exe
-REM looks for a bare command name in the current directory before PATH,
-REM for every PATHEXT extension, so with the folder there a gpg.bat at
-REM its root would answer for gpg and a powershell.bat for powershell
-REM (#656). lib.bat's :verify_checksum takes a relative FILE against
-REM ROOTDIR.
+REM The current directory is System32 rather than the folder, so that a
+REM gpg or a powershell planted at the folder's root does not answer for
+REM the real one: cmd.exe resolves a bare name against the current
+REM directory before PATH, as win/scripts/bitcoin/lib.bat's :cli_console
+REM comment measures (#656). lib.bat's :verify_checksum takes a relative
+REM FILE against ROOTDIR.
 pushd "%SystemRoot%\System32" >nul 2>&1
 if /i not "%CD%"=="%SystemRoot%\System32" (
     echo Error: cannot change to the Windows System32 directory.
