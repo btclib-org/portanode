@@ -12,23 +12,19 @@ name: claude-review
 #
 # What it is here for is the ack of record. Section 11 of the
 # organization's standard says the author does not supply their own, and
-# this repository has one maintainer -- so without this the only reading
-# a pull request can get is the one its author wrote.
+# makes it this workflow's.
 #
 # Not a required check, and it must not become one. What it produces is a
 # review of type COMMENT, an opinion for the author to weigh; a review
 # that gated a merge would make a model's judgement a branch rule.
 #
-# REPOSITORY.md's main-self-merge rule counts one approving review before
-# it lets a pull request merge; a review of type COMMENT does not supply
-# that count, so this workflow is not a route to it -- fametrano bypasses
-# the whole rule in pull_request mode regardless, being the only account
-# that ever merges here. What holds a merge is Lint, the required status
-# check REPOSITORY.md names, and this review stays outside it. What it
-# buys instead is the reading a human weighs before pressing merge,
-# chosen over a second human approving every pull request because
-# nothing would land while nobody is available, and because the model is
-# already the reviewer of record in substance.
+# REPOSITORY.md's main-self-merge rule holds every pull request, the
+# maintainer's included, until somebody other than its author approves
+# it. A review of type COMMENT is not an approval, so this workflow is
+# not a route to it. What holds a merge is that approval and the
+# required status checks REPOSITORY.md names, and this review is
+# neither. What it buys is the reading the approver weighs before
+# approving.
 #
 # One calling job reaches both of the callee's jobs, and each of those
 # declines the events that are not its own, so the job below carries no
