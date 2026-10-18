@@ -79,7 +79,7 @@ expect_refused "PORTANODE_ROOT naming a file" "$TMP/good/VERSION"
 # with none above it start_dir comes back.
 out="$(unset PORTANODE_ROOT; resolve_root "$TMP/walk/x/y")"
 [ "$out" = "$walk" ] || fail "walk: printed '$out', wanted '$walk'"
-out="$(PORTANODE_ROOT= resolve_root "$TMP/walk/x/y")"
+out="$(PORTANODE_ROOT='' resolve_root "$TMP/walk/x/y")"
 [ "$out" = "$walk" ] || fail "empty PORTANODE_ROOT walks: printed '$out', wanted '$walk'"
 nested="$(cd "$TMP/nested/a/b" && pwd -P)"
 out="$(unset PORTANODE_ROOT; resolve_root "$TMP/nested/a/b")"
@@ -101,7 +101,7 @@ while IFS= read -r f; do
         *PORTANODE_ROOT*) ;;
         *) fail "$f: the output does not name PORTANODE_ROOT" ;;
     esac
-done < <(git -C "$REPO" grep -l '^ROOTDIR="\$(resolve_root' -- '*.sh' '*.command')
+done < <(git -C "$REPO" grep -l "^ROOTDIR=\"\$(resolve_root" -- '*.sh' '*.command')
 [ "$callers" -gt 0 ] || fail "no caller of resolve_root found: the pattern reads nothing"
 
 if [ "$failures" -ne 0 ]; then
