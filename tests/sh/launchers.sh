@@ -38,8 +38,7 @@ for name in Bitcoin Electrum Utilities; do
 done
 
 out="$(run '99\n0\n' "$REPO/Bitcoin-Launcher.sh")"
-check "an unknown entry is refused and the menu shown again" \
-    contains "$out" "Invalid selection."
+check "an unknown entry is refused" contains "$out" "Invalid selection."
 
 ln -s "$REPO/Bitcoin-Launcher.sh" "$TMP/launcher"
 out="$(run '0\n' "$TMP/launcher")"

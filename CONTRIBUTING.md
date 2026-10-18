@@ -415,6 +415,10 @@ its header says what fails it. A Blinter finding it reports is fixed
 or, where it is no defect, added to `.github/blinter-accepted.tsv` as the
 line the job prints.
 
+`tests.yml` runs the suite on every pull request, and its `Tests` job
+passes where every platform did. No branch rule names `Tests`, so a red
+one does not hold the merge.
+
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a
 third party returning 502 would be a red merge with nothing to fix; the

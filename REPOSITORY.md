@@ -409,9 +409,9 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 [GitHub's own table](https://docs.github.com/en/actions/reference/limits)
 turns that answer into a number, twenty concurrent jobs on the free plan,
 shared across every repository of the organization. `lint.yml`,
-`script-security.yml` and `claude-review.yml` are what a pull request
-here starts, with `links.yml` added where the path its trigger names is
-touched.
+`script-security.yml`, `tests.yml` and `claude-review.yml` are what a pull
+request here starts, with `links.yml` added where the path its trigger
+names is touched.
 
 ## Pages, which this repository does not use
 

@@ -661,7 +661,7 @@ because that document, and not this one, is where the rule lives.
       | xargs -I{} sh -c 'grep -qU "$(printf "\r")" {} || echo {}'
     ```
 
-- **Were the launchers run?** `CONTRIBUTING.md`'s last section says no
-  gate reaches them and what stands in for one. A review of a launcher
-  change that ran nothing says so, in those words, rather than leaving it
-  to be assumed.
+- **Were the launchers run?** `CONTRIBUTING.md`'s last section says what
+  the suite under `tests/` reaches, what it does not, and what stands in
+  for that. A review of a launcher change that ran nothing says so, in
+  those words, rather than leaving it to be assumed.
