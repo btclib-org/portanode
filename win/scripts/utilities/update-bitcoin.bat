@@ -272,7 +272,7 @@ REM character and a longer name holding FILE answer for it (#657).
 REM Built as one physical line -- see :update_checksum in lib.bat (#144).
 REM Values reach PowerShell as $env: reads: see :install_verified in
 REM lib.bat (#578).
-powershell -NoProfile -Command "& { $want = @(); foreach ($l in (Get-Content -LiteralPath ($env:TMPDIR + '\SHA256SUMS'))) { if ($l -match '^([0-9A-Fa-f]{64}) [ *](.+)$' -and $matches[2] -ceq $env:FILE) { $want += $matches[1] } } if ($want.Count -eq 0) { Write-Host 'Checksum entry not found.'; exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath ($env:TMPDIR + '\' + $env:FILE); if (-not $fh) { Write-Host 'Checksum failed.'; exit 1 } foreach ($h in $want) { if ($h -ine $fh.Hash) { Write-Host 'Checksum failed.'; exit 1 } } Write-Host ($env:FILE + ': OK') }" || goto :error
+powershell -NoProfile -Command "& { $want = @(); foreach ($l in (Get-Content -LiteralPath ($env:TMPDIR + '\SHA256SUMS'))) { if ($l -match '^([0-9A-Fa-f]{64}) [ *](.+)$' -and $matches[2] -ceq $env:FILE) { $want += $matches[1] } } if ($want.Count -eq 0) { Write-Host 'Checksum entry not found.'; exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath ($env:TMPDIR + '\' + $env:FILE); if (-not $fh) { Write-Host 'Checksum failed.'; exit 1 } foreach ($h in $want) { if (-not ($h -ieq $fh.Hash)) { Write-Host 'Checksum failed.'; exit 1 } } Write-Host ($env:FILE + ': OK') }" || goto :error
 
 REM Expand-Archive writes a non-terminating error and leaves
 REM powershell.exe exiting 0 -- measured on windows-latest, an archive
