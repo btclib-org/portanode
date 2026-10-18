@@ -17,7 +17,8 @@ the open issue.
 - **An update installs only what its publisher signed.** The updaters
   refuse a download whose PGP signatures do not satisfy
   `keys/*.fingerprints`, as `README.md`'s *PGP verification fails closed*
-  says.
+  says. The open issues under *The publishers and `bin/`* below are where
+  it falls short.
 - **An installed binary that changes is detected.** `checksums.sha256`
   records each binary after a verified install, and `verify-binaries`
   and the rollbacks check against it.
@@ -26,9 +27,9 @@ the open issue.
 
 ## Threat model
 
-PortaNode is a folder of launchers on a portable drive. It holds no
-service of its own: what listens on the network is Bitcoin Core and
-Electrum, which the launchers start. The launchers run with the rights
+PortaNode is a folder of launchers on a portable drive. It runs no
+service of its own: what talks to the network is Bitcoin Core and
+Electrum, which the launchers start, and the updaters' downloads. The launchers run with the rights
 of the user who starts them; none asks for more.
 
 **What is defended.**
@@ -58,7 +59,7 @@ not vulnerabilities*:
 - a key imported into your own keyring that is not the publisher's;
 - an update installed with verification switched off;
 - the data on a drive that is lost or stolen;
-- Bitcoin Core's own warning about exFAT on macOS;
+- the corruption risk Bitcoin Core warns of on exFAT under macOS;
 - launchers that are not signed or notarized, so the operating system
   cannot tell them from an attacker's script.
 
@@ -125,8 +126,8 @@ weaker than claimed:
   index can roll a user back;
 - [ISS 660]: the macOS and Linux updaters' `curl` follows a redirect to
   plain HTTP for the index and the probes;
-- [ISS 668]: macOS `update-bitcoin` can install `Bitcoin-Qt.app` whose
-  zip `SHA256SUMS` does not list;
+- [ISS 668]: macOS `update-bitcoin` can install a `Bitcoin-Qt.app` zip
+  that `SHA256SUMS` does not list;
 - [ISS 652], [ISS 653], [ISS 656] and [ISS 657]: the Windows updaters'
   hash check, download directory, command lookup and checksum lookups.
 
@@ -151,9 +152,8 @@ decides which binaries and which data it uses. `PORTANODE_ROOT` is
 accepted without the check applied otherwise ([ISS 663]). A `-clean`
 launcher deletes regtest data only when it finds no node running on it,
 and Alice's check on macOS and Linux misses some command lines
-([ISS 661]); the
-mainnet check skips a node whose path holds a network's name
-([ISS 662]).
+([ISS 661]). The mainnet check skips a node whose path holds a
+network's name ([ISS 662]).
 
 **Electrum and its servers.** The plain `mainnet` launcher uses
 Electrum's own server choice, and `mainnet-local-server-only` talks to a
@@ -175,7 +175,7 @@ Saltzer and Schroeder's principles, as they apply to launchers.
   half is a separate implementation, kept in step by review
   (`REVIEWING.md`'s *Does the change reach the other platforms?*).
 - **Least privilege.** The launchers run as the user who starts them and
-  ask for no elevation, and only the updaters reach the network.
+  ask for no elevation, and only the updaters download anything.
 - **Open design.** Every launcher is a short script in the tree, and the
   limitations are published (*Limitations, not vulnerabilities*).
 - **Psychological acceptability.** The private Electrum path is a menu
