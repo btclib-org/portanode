@@ -12,7 +12,9 @@ name: script-security
 # PSAvoidUsingAllowUnencryptedAuthentication. A file PowerShell cannot
 # parse fails too, since nothing in it was read. For batch the rules are
 # Blinter's SEC rules, and the job fails as well where Blinter read a
-# number of files other than the number git tracks. Both tools' other
+# number of files other than the number git tracks, or where a tracked
+# .bat or .cmd file holds a LINT:IGNORE directive, which would silence a
+# finding without an entry in the list below. Both tools' other
 # rules stay by hand, as CONTRIBUTING.md's last section says.
 #
 # Blinter's SEC rules fire on lines that .pre-commit-config.yaml's header
@@ -91,6 +93,14 @@ jobs:
       - name: Check the .bat scripts with Blinter's security rules
         run: |
           t="$RUNNER_TEMP"
+          rc=0
+          git grep -n -i 'LINT:IGNORE' -- '*.bat' '*.cmd' || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            echo "::error::a LINT:IGNORE directive; .github/blinter-accepted.tsv holds exceptions"
+            exit 1
+          elif [ "$rc" -ne 1 ]; then
+            exit "$rc"
+          fi
           "$t/blinter/bin/blinter" . --no-config --format json \
             --output "$t/blinter.json" || true
           tracked=$(git ls-files '*.bat' '*.cmd' | wc -l)

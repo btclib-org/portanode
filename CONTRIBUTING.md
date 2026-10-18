@@ -366,8 +366,9 @@ is off.
 
 **`script-security.yml` runs the security rules of PSScriptAnalyzer and
 Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
-its header says what fails it. A Blinter finding it reports is fixed, or
-added to `.github/blinter-accepted.tsv` as the line the job prints.
+its header says what fails it. A Blinter finding it reports is fixed
+or, where it is no defect, added to `.github/blinter-accepted.tsv` as the
+line the job prints.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a
