@@ -494,7 +494,9 @@ update_checksum() {
     # rewritten nor ever match: verify_checksum_entry's awk reads such a
     # line's path as $1, and no real hash equals a path. A chmod 000
     # file and one carrying a "deny read" ACL both produce that empty
-    # capture; a full volume does not, a read needing no free space.
+    # capture, and so does a bundle hashed while the volume holding
+    # TMPDIR is full, where tree_hash keeps its lists. For a file a full
+    # volume does not, a read needing no free space.
     #
     # What is tested is the result rather than the status, because for a
     # file, without pipefail, the assignment's status is awk's, which is
