@@ -31,7 +31,8 @@ exit /b 1
 
 REM The current directory is outside the folder, for the reason
 REM update-bitcoin.bat's comment on its own pushd gives (#656).
-pushd "%SystemRoot%\System32" >nul 2>&1 || (
+pushd "%SystemRoot%\System32" >nul 2>&1
+if /i not "%CD%"=="%SystemRoot%\System32" (
     echo Error: cannot change to the Windows System32 directory.
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
