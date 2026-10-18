@@ -62,12 +62,13 @@ ci:
   # a bot committing to a branch is at odds with a setup where no
   # workflow token can write: a failing hook is fixed by its author
   autofix_prs: false
-  # every `rev:` below is a full commit sha with its tag in a
-  # `# frozen:` comment, so a tag moved upstream changes nothing that
-  # runs here. The sha is the commit the tag points at, which `git
-  # ls-remote <repo> '<tag>^{}'` prints for an annotated tag; `--freeze`
-  # writes the tag object's own sha there, and pre-commit takes either.
-  # pre-commit.ci keeps that form when it bumps a line already
+  # every `rev:` below is a full sha, and one cut from a tag carries that
+  # tag in a `# frozen:` comment, so a tag moved upstream changes nothing
+  # that runs here. The sha is what `pre-commit autoupdate --freeze`
+  # writes: `git rev-parse <tag>`, which for an annotated tag is the tag
+  # object's own sha and not the commit it points at. A line pinned to the
+  # commit would be rewritten by the first `--freeze` run, release or no
+  # release. pre-commit.ci keeps that form when it bumps a line already
   # in it (`--freeze` format is automatically preserved, its documentation
   # at https://pre-commit.ci says); a local `pre-commit autoupdate`
   # without `--freeze` writes the bare tag back and drops the comment, so
@@ -213,9 +214,12 @@ repos:
   #
   # The version has no hash beside it. pre-commit installs a python hook
   # with `pip install . <additional_dependencies>`, and pip takes a hash
-  # only from a requirements file or a URL fragment: `typos==1.50.1
-  # --hash=sha256:...` as one entry is an invalid requirement, and a URL
-  # names one of the platform wheels PyPI holds for the release. A
+  # from a URL fragment or from a requirements file, neither of which
+  # fits: `typos==1.50.1 --hash=sha256:...` as one entry is an invalid
+  # requirement; a URL names one file, one platform's wheel or the sdist,
+  # which compiles typos from Rust on install; and `-r <file>` after the
+  # `.` fails ("Can't verify hashes for these file:// requirements because
+  # they point to directories"). A
   # file PyPI has published under a name is never replaced under it
   # (https://pypi.org/help/#file-name-reuse), which is what the version
   # pin rests on
@@ -240,7 +244,7 @@ repos:
   # Not gitleaks: all of its hook ids invoke it with --staged, so under
   # "pre-commit run --all-files" it scans an empty staged set and passes
   - repo: https://github.com/Yelp/detect-secrets
-    rev: 01886c8a910c64595c47f186ca1ffc0b77fa5458 # frozen: v1.5.0
+    rev: 68e8b45440415753fff70a312ece8da92ba85b4a # frozen: v1.5.0
     hooks:
       - id: detect-secrets
         name: detect-secrets (credentials of other systems)
@@ -492,7 +496,7 @@ repos:
   # holds; git ls-files '*.toml' is what says whether this comment has
   # gone stale
   - repo: https://github.com/ComPWA/taplo-pre-commit
-    rev: ade0f95ddcf661c697d4670d2cfcbe95d0048a0a # frozen: v0.9.3
+    rev: 23eab0f0eedcbedebff420f5fdfb284744adc7b3 # frozen: v0.9.3
     hooks:
       - id: taplo-format
         name: taplo (toml, in place fixes)
@@ -512,7 +516,7 @@ repos:
   # reads every workflow and goes further than the schema does, into
   # expressions, contexts and runner labels
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0494aa7fa1314e98913a41227d8f0a515b2c1049 # frozen: 0.38.2
+    rev: 4f85d46a92dc17713078e5de73f8a13190edf6fc # frozen: 0.38.2
     hooks:
       - id: check-dependabot
       # .github/ISSUE_TEMPLATE/ is read the same way and by nothing else
@@ -540,7 +544,7 @@ repos:
   # `shell: python` step, so the pyflakes it also delegates to is not
   # declared.
   - repo: https://github.com/kjanat/actionlint
-    rev: 08bb2c4f0d039744455b87aef1c647fb8b66d37b # frozen: v1.17.0
+    rev: 2da2ceb4af2c7ecc48f5b9311d85080c3971b5f0 # frozen: v1.17.0
     hooks:
       - id: actionlint-shellcheck
         name: actionlint (github workflows)
