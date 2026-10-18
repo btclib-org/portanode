@@ -83,7 +83,7 @@ with a "binary not found" rather than with anything naming the cause.
 
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
    --all-files`, exit code 0, then `git status --porcelain` empty. Run
-   the command that reads the open alerts now as well, so that a
+   the alert command of the step before the tag now as well, so that a
    fix it asks for lands before the release notes do.
 1. Decide the date, and make the three files say it. `CHANGELOG.md`
    gains `## v<version>`, the tag's own heading, alone on its line,
@@ -122,11 +122,11 @@ with a "binary not found" rather than with anything naming the cause.
       && { test -z "$open" || { printf '%s\n' "$open"; false; }; }
     ```
 
-    Fix the alert and run the command again. Only a class that [section
-    10 of the organization
+    Fix the alert and run the command again. A Scorecard alert may be
+    dismissed only in a class that [section 10 of the organization
     standard](https://github.com/btclib-org/.github#10-workflows) names
-    in its *scorecard* entry may be dismissed, with reason `won't fix`
-    and the citation that entry asks for. A call that does not answer
+    in its *scorecard* entry, with reason `won't fix`, citing what that
+    entry names for its class. A call that does not answer
     (404, 403) stops the release as an open alert does. Both calls answer
     to the `repo` scope of `gh auth login`.
 1. Tag the merged commit, **signed**, from the primary checkout brought
