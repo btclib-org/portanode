@@ -14,7 +14,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-if ($Installed -eq 'unknown') {
+if ($Installed -ceq 'unknown') {
     Write-Output 'OK'
     exit 0
 }

@@ -529,10 +529,11 @@ verify_checksum_entry() {
 }
 
 # installed_version FILE ENTRY_PATH [CHECKSUM_FILE] — the "version=" label of
-# the checksums.sha256 entry matching FILE's current hash, for a --dry-run
-# plan's "currently installed" line. Echoes "unknown" rather than failing:
-# nothing here gates an install, so a missing file or an unrecorded hash is
-# reported, not an error.
+# the checksums.sha256 entry matching FILE's current hash. Its answer is a
+# --dry-run plan's "currently installed" line, and what refuse_downgrade
+# compares before an update. Echoes "unknown" rather than failing where the
+# file is missing or its hash unrecorded, and refuse_downgrade refuses
+# nothing on "unknown".
 installed_version() {
     local file="$1"
     local entry_path="$2"

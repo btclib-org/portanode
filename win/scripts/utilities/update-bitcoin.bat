@@ -180,9 +180,9 @@ if %errorlevel%==0 (
 )
 
 REM Flat rather than the one "if ... ( )" this replaced, for the reason
-REM the scrape above is flat: CURRENT, ARCHIVE_LEN, ARCHIVE_MB and
-REM FREE_GB are each set and read here, and inside one block cmd.exe
-REM would read all four as they stood when it parsed the block. The
+REM the scrape above is flat: ARCHIVE_LEN, ARCHIVE_MB and FREE_GB are
+REM each set and read here, and inside one block cmd.exe would read
+REM all three as they stood when it parsed the block. The
 REM errorlevel of the "where gpg" below is the same case (#383), and
 REM the one that decides whether a preview reports gpg as present:
 REM measured on windows-latest, "%errorlevel%" read at top level after

@@ -55,6 +55,7 @@ unknown 1.0 pass
 28.1 28.0rc1 refuse
 28.0rc1 28.1 refuse
 28.1 27.0;x refuse
+UNKNOWN 1.0 refuse
 "
 PWSH="$(command -v pwsh || true)"
 PS1="$ROOT/win/scripts/utilities/compare-versions.ps1"
@@ -87,22 +88,36 @@ else
 fi
 
 # --- no updater calls curl but through curl_https -------------------------
-# A call is curl as a command word: at the start of a line, or after "$(",
-# a pipe, ";" or "&". The control is a line of each shape it must catch.
-CALL='(^[[:space:]]*|[$][(]|[|;&][[:space:]]*)curl[[:space:]]'
-control="$(grep -cE "$CALL" <<'EOF'
+# Every line where curl is a word, curl_https and curl_rc being other words,
+# outside a comment, except the message naming the index fetch's bound.
+# The control holds each shape of a call it must catch, and the two
+# shapes it must let pass.
+bare_curl() {
+    grep -nwE 'curl' "$@" \
+      | grep -vE ':[0-9]+:[[:space:]]*#' \
+      | grep -vF '"(curl --max-time 300)."'
+}
+cat > "$WORK/shapes.sh" <<'EOF'
+curl -fL x
     curl -fL x
 V="$(curl -fsSL x)"
+V="$( curl -fsSL x)"
 a | curl -s x
+if curl -s x; then :; fi
+! curl -s x
+command curl -s x
+a && curl -s x
+curl_https -fL x
+curl_rc=0
 EOF
-)"
-bare="$(grep -nE "$CALL" \
+control="$(bare_curl /dev/null "$WORK/shapes.sh" | wc -l | tr -d ' ')"
+bare="$(bare_curl \
   "$ROOT"/macos/scripts/utilities/update-*.sh \
   "$ROOT"/linux/scripts/utilities/update-*.sh)"
-if [ "$control" -eq 3 ] && [ -z "$bare" ]; then
+if [ "$control" -eq 9 ] && [ -z "$bare" ]; then
     pass "updaters call curl only through curl_https"
 else
-    fail "updaters call curl directly (control $control of 3): $bare"
+    fail "updaters call curl directly (control $control of 9): $bare"
 fi
 
 # --- curl_https against local servers ------------------------------------
