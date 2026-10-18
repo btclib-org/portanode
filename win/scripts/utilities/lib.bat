@@ -399,8 +399,9 @@ exit /b 0
 REM :installed_version FILE ENTRY_PATH CHECKSUM_FILE OUTVAR
 REM Sets OUTVAR to the "version=" label of the checksum entry matching
 REM FILE's current hash, or "unknown". It never fails the caller. Its
-REM answer is a --dry-run plan's "currently installed" line, and what
-REM compare-versions.ps1 compares before an update: "unknown" there
+REM answer is a --dry-run plan's "currently installed" line, a
+REM rollback's version lines, and what compare-versions.ps1 compares
+REM before an update: "unknown" there
 REM means nothing is refused.
 :installed_version
 set "IV_FILE_RAW=%~1"

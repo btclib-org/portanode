@@ -56,6 +56,11 @@ unknown 1.0 pass
 28.0rc1 28.1 refuse
 28.1 27.0;x refuse
 UNKNOWN 1.0 refuse
+99999999999999999999999999999999 1 refuse
+1 99999999999999999999999999999999 pass
+28.1 18446744073709551643.0 pass
+28.1 028.01 pass
+28.10 28.9 refuse
 "
 PWSH="$(command -v pwsh || true)"
 PS1="$ROOT/win/scripts/utilities/compare-versions.ps1"
@@ -159,6 +164,9 @@ EOF
     for _ in $(seq 50); do [ -s "$WORK/https.port" ] && break; sleep 0.1; done
     HTTPS="https://127.0.0.1:$(cat "$WORK/https.port")"
     # Each refusal has its control: plain curl fetching the same URL.
+    # --proto alone refuses the redirect to HTTP too, so these checks do
+    # not show that --proto-redir is passed; the curl log of the updater
+    # runs below does.
     # -k because the certificate is self-signed.
     check() {
         local want="$1" what="$2"

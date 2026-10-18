@@ -25,17 +25,20 @@ if ($Installed -notmatch $pattern -or $Requested -notmatch $pattern) {
 }
 
 # Component by component, a missing one read as 0, the way refuse_downgrade
-# reads them: [version] refuses a single component and more than four.
+# reads them: [version] refuses a single component and more than four. Each
+# is compared as a string, leading zeros stripped, the longer being the
+# larger, so no component is too large to compare.
 $a = $Installed.Split('.')
 $b = $Requested.Split('.')
 $n = [Math]::Max($a.Count, $b.Count)
 for ($i = 0; $i -lt $n; $i++) {
-    $x = if ($i -lt $a.Count) { [decimal]$a[$i] } else { [decimal]0 }
-    $y = if ($i -lt $b.Count) { [decimal]$b[$i] } else { [decimal]0 }
-    if ($y -gt $x) {
+    $x = if ($i -lt $a.Count) { $a[$i].TrimStart('0') } else { '' }
+    $y = if ($i -lt $b.Count) { $b[$i].TrimStart('0') } else { '' }
+    $c = if ($y.Length -ne $x.Length) { $y.Length - $x.Length } else { [string]::CompareOrdinal($y, $x) }
+    if ($c -gt 0) {
         break
     }
-    if ($y -lt $x) {
+    if ($c -lt 0) {
         Write-Output 'OLDER'
         exit 0
     }

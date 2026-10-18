@@ -530,10 +530,10 @@ verify_checksum_entry() {
 
 # installed_version FILE ENTRY_PATH [CHECKSUM_FILE] — the "version=" label of
 # the checksums.sha256 entry matching FILE's current hash. Its answer is a
-# --dry-run plan's "currently installed" line, and what refuse_downgrade
-# compares before an update. Echoes "unknown" rather than failing where the
-# file is missing or its hash unrecorded, and refuse_downgrade refuses
-# nothing on "unknown".
+# --dry-run plan's "currently installed" line, a rollback's version lines,
+# and what refuse_downgrade compares before an update. Echoes "unknown"
+# rather than failing where the file is missing or its hash unrecorded, and
+# refuse_downgrade refuses nothing on "unknown".
 installed_version() {
     local file="$1"
     local entry_path="$2"
@@ -828,13 +828,18 @@ refuse_downgrade() {
             n="${#b[@]}"
         fi
         for ((i = 0; i < n; i++)); do
-            # 10# reads a component such as 08 as decimal, not octal.
-            x=$((10#${a[i]:-0}))
-            y=$((10#${b[i]:-0}))
-            if [ "$y" -gt "$x" ]; then
+            # Compared as strings, leading zeros stripped, the longer being
+            # the larger: no component overflows, where $((...)) wraps past
+            # 64 bits.
+            x="${a[i]:-0}"
+            x="${x#"${x%%[!0]*}"}"
+            y="${b[i]:-0}"
+            y="${y#"${y%%[!0]*}"}"
+            if [ "${#y}" -gt "${#x}" ] \
+              || { [ "${#y}" -eq "${#x}" ] && [[ "$y" > "$x" ]]; }; then
                 return 0
             fi
-            if [ "$y" -lt "$x" ]; then
+            if [ "${#y}" -lt "${#x}" ] || [[ "$y" < "$x" ]]; then
                 why="it is older than the installed $installed"
                 break
             fi
