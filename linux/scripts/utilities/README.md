@@ -85,11 +85,10 @@ Can be used if an update fails.
 - Update scripts download, verify and unpack on the local temp
   directory, never on the removable volume, and clean up on exit.
 - Update scripts verify PGP signatures for Bitcoin Core and Electrum
-  downloads before installing, and fail closed: a bad signature, a
-  missing signer key, or no `gpg` at all aborts the update rather than
-  installing unverified binaries. Set `PORTANODE_ALLOW_UNVERIFIED=1` to
-  bypass verification (not recommended). `README.md`'s *Updating
-  Binaries* section has where to obtain each project's signing key, why a
+  downloads before installing, and fail closed: a bad signature, a missing
+  signer key, or no `gpg` at all aborts the update rather than installing
+  unverified binaries. `README.md`'s *Updating Binaries* section has what
+  to do when it fails: where to obtain each project's signing key, why a
   missing key rather than a missing signature is the usual cause of a
   validation failure, and how key pinning works.
 - Backups are stored in `linux/bin/backup/`; rollbacks depend on these.

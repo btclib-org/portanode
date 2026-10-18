@@ -645,10 +645,10 @@ because that document, and not this one, is where the rule lives.
     names the subject on one platform; whether the other platforms have
     it, and whether they needed the same change, is the reading.
 - **Does verification still fail closed?** An update script installs
-  nothing whose PGP signature did not verify, `PORTANODE_ALLOW_UNVERIFIED`
-  being the one documented way past it. A diff that turns a verification
-  failure into a warning, or that installs before verifying rather than
-  after, is a blocking finding whatever else it does.
+  nothing whose PGP signature did not verify. A diff that turns a
+  verification failure into a warning, that adds a way past it, or that
+  installs before verifying rather than after, is a blocking finding
+  whatever else it does.
 - **Do the `.bat` files still end their lines with CRLF?** `.gitattributes`
   checks them out that way because cmd.exe reads a `.bat` line by line,
   and `.pre-commit-config.yaml` excludes them from the line-ending fixer

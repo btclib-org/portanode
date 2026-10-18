@@ -296,9 +296,9 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   no public key, so `gpg` can validate only against a key already in the
   local keyring. For Electrum a missing key — not a missing signature — is
   the usual cause of a validation failure; for Bitcoin Core it is a pin
-  file that lists no key yet, below. To bypass (installs UNAUTHENTICATED
-  binaries — not recommended), set `PORTANODE_ALLOW_UNVERIFIED=1` in the
-  environment.
+  file that lists no key yet, below. Nothing skips the check: where it
+  fails, fix what the error names — install `gpg`, import the key, or pin
+  the signers you trust — and run the update again.
     - **Bitcoin Core signing keys**: obtain builder keys from
       [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys),
       import the ones you trust with `gpg --import`, and list their
@@ -521,10 +521,6 @@ something that *is* a vulnerability is the organization's, shown on
   key you imported is the publisher's. Verify a fingerprint against the
   publisher's own site before importing, which is what *Updating
   Binaries* above asks.
-- **`PORTANODE_ALLOW_UNVERIFIED=1` installs unauthenticated binaries**,
-  and it is documented rather than removed because the alternative is
-  somebody working around the check in a way nobody can see. Setting it
-  is a decision, and it is not a defect in the script that obeyed it.
 - **`checksums.sha256` is integrity and not authenticity.** It detects a
   binary that changed under you; it says nothing about where the binary
   came from, that being what the PGP step decides. A checksum entry is

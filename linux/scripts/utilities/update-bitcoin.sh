@@ -177,14 +177,12 @@ if [ "$DRY_RUN" -eq 1 ]; then
           || PUBKEYS=0
         echo "gpg: found, ${PUBKEYS} public key(s) in the local keyring."
         if [ "$PUBKEYS" -eq 0 ]; then
-            echo "Warning: with none imported, verification would fail closed" \
-                 "unless PORTANODE_ALLOW_UNVERIFIED=1 is set."
+            echo "Warning: with none imported, verification would fail closed."
         fi
         preview_pinned_keys "$ROOTDIR/keys/bitcoin-core.fingerprints" \
           "keys/bitcoin-core.fingerprints" "the update"
     else
-        echo "gpg: not found -- verification would fail closed unless" \
-             "PORTANODE_ALLOW_UNVERIFIED=1 is set."
+        echo "gpg: not found -- verification would fail closed."
     fi
     # --max-time 30, the bound latest-bitcoin-version.ps1 passes as
     # -TimeoutSec 30 on its own archive HEAD probe: a host that accepts
@@ -238,15 +236,12 @@ curl -fL -o "$TMP_DIR/SHA256SUMS" "$CHECKSUM_URL"
 echo "Downloading $CHECKSUM_SIG_URL..."
 curl -fL -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 
-# Verify (fails closed; set PORTANODE_ALLOW_UNVERIFIED=1 to bypass). Same
-# fingerprints file as the other two platforms, so this is no new trust
-# decision.
-UPDATE_CHECKSUMS=0
+# Verify (fails closed). Same fingerprints file as the other two platforms,
+# so this is no new trust decision.
 if ! pgp_verify_or_fail \
   "$TMP_DIR/SHA256SUMS.asc" \
   "$TMP_DIR/SHA256SUMS" \
   "SHA256SUMS" \
-  UPDATE_CHECKSUMS \
   "$ROOTDIR/keys/bitcoin-core.fingerprints"; then
     exit 1
 fi
@@ -268,14 +263,10 @@ for b in $BIN_NAMES; do
     fi
 done
 
-if [ $UPDATE_CHECKSUMS -eq 1 ]; then
-    for b in $BIN_NAMES; do
-        update_checksum "$TMP_BIN_DIR/$b" "linux/bin/$b" "$VERSION" \
-          "$ROOTDIR/linux/checksums.sha256"
-    done
-else
-    echo "Warning: PGP signature(s) not verified; skipping checksum update."
-fi
+for b in $BIN_NAMES; do
+    update_checksum "$TMP_BIN_DIR/$b" "linux/bin/$b" "$VERSION" \
+      "$ROOTDIR/linux/checksums.sha256"
+done
 
 # Replace binaries. Everything below copies from the local temp dir onto
 # ROOTDIR via install_verified, which re-reads and retries until the
@@ -303,21 +294,17 @@ trap - EXIT
 
 # Final integrity gate: re-read the installed binaries and confirm they
 # match the (PGP-verified) hashes just recorded. Catches corruption that
-# happens after the verified copy. Only when checksums were updated (i.e.
-# PGP verified); with PORTANODE_ALLOW_UNVERIFIED set, install_verified
-# already checked the copy.
-if [ "$UPDATE_CHECKSUMS" -eq 1 ]; then
-    echo "Verifying installed binaries against checksums.sha256..."
-    vfail=0
-    for b in $BIN_NAMES; do
-        verify_checksum_entry "$BIN_DIR/$b" "linux/bin/$b" \
-          "$ROOTDIR/linux/checksums.sha256" "$b" || vfail=1
-    done
-    if [ "$vfail" -ne 0 ]; then
-        echo "Error: post-install verification failed (filesystem corruption?)."
-        exit 1
-    fi
-    echo "All Bitcoin binaries verified."
+# happens after the verified copy.
+echo "Verifying installed binaries against checksums.sha256..."
+vfail=0
+for b in $BIN_NAMES; do
+    verify_checksum_entry "$BIN_DIR/$b" "linux/bin/$b" \
+      "$ROOTDIR/linux/checksums.sha256" "$b" || vfail=1
+done
+if [ "$vfail" -ne 0 ]; then
+    echo "Error: post-install verification failed (filesystem corruption?)."
+    exit 1
 fi
+echo "All Bitcoin binaries verified."
 
 echo "Bitcoin Core updated to $VERSION"

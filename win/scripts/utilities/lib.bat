@@ -67,18 +67,18 @@ if "%WNP_ANSWER%"=="" (
 )
 exit /b 0
 
-REM :verify_pgp_signature SIG DATA LABEL OUTVAR FPR_FILE
+REM :verify_pgp_signature SIG DATA LABEL FPR_FILE
 REM Fails CLOSED (exit /b 1) unless SIG carries good signatures from as many
 REM distinct keys pinned in FPR_FILE as its min-signatures asks for, the
 REM rule shared/utilities/lib.sh's pgp_verify_or_fail states. A file that
-REM pins no key refuses. Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT
-REM recommended).
+REM pins no key refuses.
 REM Written flat (no %var% set-and-read inside a ( ) block) because a
 REM read of that shape inside one answers with the value the variable
 REM held when cmd.exe parsed the block. Delayed expansion is the other
 REM way of fixing that, and lib.bat cannot turn it on for itself: the
-REM local scoping it comes with would confine the OUTVAR this file sets
-REM for its caller. Written flat, neither STATUS_FILE nor
+REM local scoping it comes with would confine the variables its labels
+REM set for their callers, :installed_version's OUTVAR among them.
+REM Written flat, neither STATUS_FILE nor
 REM the caller's own SIG_FILE and DATA_FILE needs it -- each is read
 REM at a line that runs after the line setting it -- and the callers
 REM reach this label with delayed expansion disabled, which is what
@@ -91,21 +91,12 @@ REM exit points throughout the file.
 set "SIG_FILE=%~1"
 set "DATA_FILE=%~2"
 set "LABEL=%~3"
-set "OUTVAR=%~4"
-set "FPR_FILE=%~5"
-if not "%OUTVAR%"=="" set "%OUTVAR%=0"
-
-if "%PORTANODE_ALLOW_UNVERIFIED%"=="1" (
-    echo Warning: PORTANODE_ALLOW_UNVERIFIED=1 set; skipping PGP verification
-    echo of %LABEL%. Installing UNAUTHENTICATED binaries.
-    exit /b 0
-)
+set "FPR_FILE=%~4"
 
 where gpg >nul 2>&1
 if not %errorlevel%==0 (
     echo Error: gpg not found; cannot verify %LABEL%.
-    echo Install gpg and import the signing key, or set
-    echo PORTANODE_ALLOW_UNVERIFIED=1 to bypass ^(NOT recommended^).
+    echo Install gpg and import the signing key.
     exit /b 1
 )
 
@@ -199,7 +190,7 @@ if not %errorlevel%==0 (
 findstr /c:"[GNUPG:] GOODSIG" "%STATUS_FILE%" >nul 2>&1
 if not %errorlevel%==0 (
     echo Error: no valid PGP signature on %LABEL% ^(is the signer's key imported?^).
-    echo Import the signing key, or set PORTANODE_ALLOW_UNVERIFIED=1 ^(NOT recommended^).
+    echo Import the signing key.
     del "%STATUS_FILE%" >nul 2>&1
     exit /b 1
 )
@@ -222,7 +213,6 @@ if not %errorlevel%==0 (
 )
 
 del "%STATUS_FILE%" >nul 2>&1
-if not "%OUTVAR%"=="" set "%OUTVAR%=1"
 exit /b 0
 
 REM :load_pin_reader
@@ -271,11 +261,10 @@ set "PPK_FILE=%~1"
 set "PPK_NAME=%~2"
 set "PPK_WHAT=%~3"
 call :load_pin_reader
-powershell -NoProfile -Command "& { try { $file = $env:PPK_FILE; %PIN_READER_PS%; $unless = ' unless PORTANODE_ALLOW_UNVERIFIED=1 is set.'; if ($pins.Count -eq 0) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins no key -- verification would refuse ' + $env:PPK_WHAT + $unless); exit 0 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for -- verification would refuse ' + $env:PPK_WHAT + $unless); exit 0 }; foreach ($p in ($pins.Keys | Sort-Object)) { Write-Output ('Pinned key ' + $p + ' in ' + $env:PPK_NAME + '.') }; Write-Output ('Verification asks for ' + $min + ' good signature(s) from distinct pinned keys.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
+powershell -NoProfile -Command "& { try { $file = $env:PPK_FILE; %PIN_READER_PS%; if ($pins.Count -eq 0) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins no key -- verification would refuse ' + $env:PPK_WHAT + '.'); exit 0 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for -- verification would refuse ' + $env:PPK_WHAT + '.'); exit 0 }; foreach ($p in ($pins.Keys | Sort-Object)) { Write-Output ('Pinned key ' + $p + ' in ' + $env:PPK_NAME + '.') }; Write-Output ('Verification asks for ' + $min + ' good signature(s) from distinct pinned keys.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
 if not %errorlevel%==0 (
     echo gpg: found, but %PPK_NAME% was not accepted as a list of pinned
-    echo fingerprints -- verification would refuse %PPK_WHAT% unless
-    echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
+    echo fingerprints -- verification would refuse %PPK_WHAT%.
 )
 exit /b 0
 
