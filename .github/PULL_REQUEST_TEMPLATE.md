@@ -6,9 +6,9 @@
 
 ## How it was verified
 
-<!-- The command you ran and what it answered: the suite under tests/,
-     and for what it does not reach, which is a launcher starting what
-     it launches, running the launcher on a macOS, a Windows and a Linux
+<!-- The command you ran and what it answered. The suite under tests/
+     does not start what a launcher launches: a change to that is
+     verified by running the launcher on a macOS, a Windows and a Linux
      machine, from a volume that is not the boot disk. -->
 
 ## Checks

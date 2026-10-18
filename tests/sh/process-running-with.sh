@@ -39,6 +39,7 @@ check "the string is compared ignoring case" \
 check "a string no command line holds answers 1" \
     same 1 "$(status_of process_running_with "$MARKER-absent")"
 
+# shellcheck disable=SC2329 # process_running_with calls it
 ps() { return 1; }
 check "a process list that cannot be read answers 2" \
     same 2 "$(status_of process_running_with "$MARKER")"
