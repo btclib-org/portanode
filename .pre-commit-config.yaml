@@ -65,7 +65,8 @@
 # release runs only once a commit names it. Blinter's security findings
 # that are no defect are listed in .github/blinter-accepted.tsv rather
 # than marked in the scripts, and the job refuses a LINT:IGNORE
-# directive in any of them.
+# directive in any of them, and any byte neither printable ASCII nor
+# ASCII whitespace, through which Blinter could read one.
 #
 # Skip a hook with SKIP=<id>.
 ci:

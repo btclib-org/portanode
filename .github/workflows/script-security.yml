@@ -14,8 +14,13 @@ name: script-security
 # Blinter's SEC rules, and the job fails as well where Blinter read a
 # number of files other than the number git tracks, or where a tracked
 # .bat or .cmd file holds a LINT:IGNORE directive, which would silence a
-# finding without an entry in the list below. Both tools' other
-# rules stay by hand, as CONTRIBUTING.md's last section says.
+# finding without an entry in the list below. It fails too on a byte in
+# those files that is neither printable ASCII nor ASCII whitespace:
+# Blinter upper-cases a line with Python before it looks for the
+# directive, which turns a dotless i into I, and git grep folds ASCII
+# only, so ASCII text is what lets the two read the same directive. Both
+# tools' other rules stay by hand, as CONTRIBUTING.md's last section
+# says.
 #
 # Blinter's SEC rules fire on lines that .pre-commit-config.yaml's header
 # calls no defect. .github/blinter-accepted.tsv records each one by rule
@@ -93,6 +98,14 @@ jobs:
       - name: Check the .bat scripts with Blinter's security rules
         run: |
           t="$RUNNER_TEMP"
+          rc=0
+          LC_ALL=C git grep -n -E '[^[:print:][:space:]]' -- '*.bat' '*.cmd' || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            echo "::error::a byte neither printable ASCII nor whitespace"
+            exit 1
+          elif [ "$rc" -ne 1 ]; then
+            exit "$rc"
+          fi
           rc=0
           git grep -n -i 'LINT:IGNORE' -- '*.bat' '*.cmd' || rc=$?
           if [ "$rc" -eq 0 ]; then
