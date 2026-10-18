@@ -15,6 +15,7 @@ if errorlevel 1 (
 
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"
+set "ALLOW_DOWNGRADE=0"
 :parse_args
 if "%~1"=="" goto :args_done
 if "%~1"=="--version" (
@@ -28,7 +29,12 @@ if "%~1"=="--dry-run" (
     shift
     goto :parse_args
 )
-echo Usage: %~nx0 [--version ^<v^>] [--dry-run]
+if "%~1"=="--allow-downgrade" (
+    set "ALLOW_DOWNGRADE=1"
+    shift
+    goto :parse_args
+)
+echo Usage: %~nx0 [--version ^<v^>] [--dry-run] [--allow-downgrade]
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
@@ -120,6 +126,24 @@ set "FILE=electrum-%VERSION%.exe"
 set "SIG_FILE=%FILE%.asc"
 set "BASE_URL=https://download.electrum.org/%VERSION%/"
 set "URL=%BASE_URL%%FILE%"
+call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
+if "%ALLOW_DOWNGRADE%"=="1" goto :downgrade_checked
+set VERDICT=
+REM compare-versions.ps1's header has the rule. Run from its own
+REM directory by a relative name: win/scripts/root.ps1 says why.
+for /f "usebackq delims=" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\compare-versions.ps1 -Installed $env:CURRENT -Requested $env:VERSION; exit $LASTEXITCODE"`) do set VERDICT=%%R
+if not defined VERDICT goto :downgrade_checked
+setlocal enabledelayedexpansion
+if "!VERDICT!"=="OLDER" (
+    echo Refusing to install Electrum !VERSION!: it is older than the installed !CURRENT!.
+) else (
+    echo Refusing to install Electrum !VERSION!: it cannot be compared with the installed !CURRENT!.
+)
+endlocal
+echo Run again with --allow-downgrade to install it anyway.
+goto :error
+:downgrade_checked
 
 REM Flat rather than the one "if ... ( )" this replaced, for the reason
 REM the scrape above is flat: CURRENT, ARCHIVE_LEN, ARCHIVE_MB and
@@ -131,7 +155,6 @@ REM measured on windows-latest, "%errorlevel%" read at top level after
 REM two commands in turn answers for each of them, where inside a block
 REM it answers for whatever ran before the block was parsed.
 if not "%DRY_RUN%"=="1" goto :dry_run_done
-call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
 echo --dry-run: nothing will be downloaded, verified or installed.
 setlocal enabledelayedexpansion
 echo Would install Electrum !VERSION! ^(currently installed: !CURRENT!^).

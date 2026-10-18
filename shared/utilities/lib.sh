@@ -784,3 +784,65 @@ verify_binaries() {
 
     echo "Binaries verified."
 }
+
+# curl_https ARGS... -- curl, refusing every protocol but HTTPS on the
+# request and on every redirect -L follows. The updaters call it in place
+# of curl: the files they fetch are checked by PGP, but the index that
+# picks the version, and the probes that test it, are not.
+curl_https() {
+    curl --proto '=https' --proto-redir '=https' "$@"
+}
+
+# refuse_downgrade INSTALLED REQUESTED ALLOW NAME
+#
+# Returns 1, with a message, where REQUESTED is older than INSTALLED. An
+# old release still carries valid signatures, so without this an index
+# listing only old releases rolls an install back to one with known
+# vulnerabilities. INSTALLED is installed_version's answer, whose
+# "unknown" leaves nothing to compare with. A version that is not digits
+# and dots cannot be ordered, and is refused the same way. Equal versions
+# pass: reinstalling a release is not a downgrade. ALLOW is 1 where the
+# user passed --allow-downgrade, which skips the comparison.
+# win/scripts/utilities/compare-versions.ps1 holds the same rule for
+# Windows.
+refuse_downgrade() {
+    local installed="$1"
+    local requested="$2"
+    local allow="$3"
+    local name="$4"
+    local re='^[0-9]+(\.[0-9]+)*$'
+    local why="" i n x y
+    local -a a=() b=()
+
+    if [ "$allow" = "1" ] || [ "$installed" = "unknown" ]; then
+        return 0
+    fi
+    if ! [[ "$installed" =~ $re ]] || ! [[ "$requested" =~ $re ]]; then
+        why="it cannot be compared with the installed $installed"
+    else
+        IFS=. read -r -a a <<< "$installed"
+        IFS=. read -r -a b <<< "$requested"
+        n="${#a[@]}"
+        if [ "${#b[@]}" -gt "$n" ]; then
+            n="${#b[@]}"
+        fi
+        for ((i = 0; i < n; i++)); do
+            # 10# reads a component such as 08 as decimal, not octal.
+            x=$((10#${a[i]:-0}))
+            y=$((10#${b[i]:-0}))
+            if [ "$y" -gt "$x" ]; then
+                return 0
+            fi
+            if [ "$y" -lt "$x" ]; then
+                why="it is older than the installed $installed"
+                break
+            fi
+        done
+    fi
+    if [ -z "$why" ]; then
+        return 0
+    fi
+    echo "Refusing to install $name $requested: $why."
+    echo "Run again with --allow-downgrade to install it anyway."
+    return 1
+}

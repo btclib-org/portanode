@@ -69,7 +69,8 @@ Can be used if an update fails
   called by a `.bat` with whatever that call needs — the root for
   `free-space-gb.ps1`, `monitor-bitcoin-log.ps1` and
   `verify-binaries.ps1`, a datadir for `filesystem-type.ps1`, a datadir
-  and an account for `set-datadir-acl.ps1`, nothing at all for the two
+  and an account for `set-datadir-acl.ps1`, two versions for
+  `compare-versions.ps1`, nothing at all for the two
   `latest-*-version.ps1` — and none is run directly.
 - Most scripts require internet for downloads; ensure connectivity.
 - Update scripts download, verify and (for Bitcoin Core) extract on
@@ -84,6 +85,12 @@ Can be used if an update fails
   key rather than a missing signature is the usual cause of a validation
   failure, and how key pinning works.
 - Backups are stored in `win/bin/backup/`; rollbacks depend on these.
+- Update scripts refuse a version older than the installed one, or one
+  they cannot compare with it, whether the publisher's index or
+  `--version` names it: an old release still carries valid signatures.
+  `--allow-downgrade` installs it anyway.
+  The installed version is the one `win/checksums.sha256` records for
+  the installed binary's hash; where it records none, nothing is refused.
 - `win/checksums.sha256` is append-only: a new verified hash is added with
   `version=<x>`, and an entry already present is left as it is rather than
   being added again.

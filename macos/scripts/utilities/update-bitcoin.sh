@@ -13,6 +13,7 @@ cd "$ROOTDIR"
 
 VERSION_OVERRIDE=""
 DRY_RUN=0
+ALLOW_DOWNGRADE=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --version)
@@ -23,8 +24,13 @@ while [ $# -gt 0 ]; do
             DRY_RUN=1
             shift
             ;;
+        --allow-downgrade)
+            ALLOW_DOWNGRADE=1
+            shift
+            ;;
         *)
-            echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" >&2
+            echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" \
+              "[--allow-downgrade]" >&2
             exit 1
             ;;
     esac
@@ -78,7 +84,7 @@ else
     # grep -c was. It buys a message naming the publisher and the bound,
     # and a fixed exit 1 in place of curl's own status. The candidate
     # probe below is where the silence is real: -fsIL carries no -S.
-    INDEX_HTML="$(curl -fsSL --max-time 300 -H "User-Agent: PortaNode" \
+    INDEX_HTML="$(curl_https -fsSL --max-time 300 -H "User-Agent: PortaNode" \
       https://bitcoincore.org/bin/)" || {
         echo "Failed to fetch the release index from bitcoincore.org" \
              "(curl --max-time 300)."
@@ -102,7 +108,7 @@ else
         # bash's own "if" returns 0 when the condition is false and there
         # is no "else", which would have reported every miss as success.
         curl_rc=0
-        curl -fsIL --max-time 30 -o /dev/null "$candidate_url" || curl_rc=$?
+        curl_https -fsIL --max-time 30 -o /dev/null "$candidate_url" || curl_rc=$?
         if [ "$curl_rc" -eq 0 ]; then
             VERSION="$candidate"
             break
@@ -121,6 +127,13 @@ else
     FILE="$(release_file "$VERSION")"
     echo "Latest Bitcoin Core with a macOS build: ${VERSION}"
 fi
+
+CURRENT="$(installed_version \
+  "$APP_DIR/${APP_NAME}/Contents/MacOS/Bitcoin-Qt" \
+  "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+  "$ROOTDIR/macos/checksums.sha256")"
+refuse_downgrade "$CURRENT" "$VERSION" "$ALLOW_DOWNGRADE" "Bitcoin Core" \
+  || exit 1
 
 # The ".app" zip ships only the GUI; the command-line tools (bitcoind,
 # bitcoin-cli, etc.) live in the loose-binary tarball, so fetch that too and
@@ -154,10 +167,6 @@ CHECKSUM_SIG_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/"\
 "SHA256SUMS.asc"
 
 if [ "$DRY_RUN" -eq 1 ]; then
-    CURRENT="$(installed_version \
-      "$APP_DIR/${APP_NAME}/Contents/MacOS/Bitcoin-Qt" \
-      "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
-      "$ROOTDIR/macos/checksums.sha256")"
     echo "--dry-run: nothing will be downloaded, verified or installed."
     echo "Would install Bitcoin Core ${VERSION} (currently installed: ${CURRENT})."
     echo "Would fetch: $URL"
@@ -193,7 +202,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     # curl's own failure -- the bound firing, or a host refusing the
     # connection -- otherwise ends the run at this assignment, with the
     # free-space line below unreached.
-    ARCHIVE_LEN="$(curl -fsIL --max-time 30 "$URL" \
+    ARCHIVE_LEN="$(curl_https -fsIL --max-time 30 "$URL" \
       | tr -d '\r' \
       | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
       || ARCHIVE_LEN=""
@@ -226,13 +235,13 @@ TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-bitcoin.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 echo "Downloading $URL..."
-curl -fL -o "$TMP_DIR/$FILE" "$URL"
+curl_https -fL -o "$TMP_DIR/$FILE" "$URL"
 echo "Downloading $CHECKSUM_URL..."
-curl -fL -o "$TMP_DIR/SHA256SUMS" "$CHECKSUM_URL"
+curl_https -fL -o "$TMP_DIR/SHA256SUMS" "$CHECKSUM_URL"
 echo "Downloading $CHECKSUM_SIG_URL..."
-curl -fL -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
+curl_https -fL -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 echo "Downloading ${CLI_ARCHIVE} (for CLI tools)..."
-curl -fL -o "$TMP_DIR/$CLI_ARCHIVE" \
+curl_https -fL -o "$TMP_DIR/$CLI_ARCHIVE" \
   "https://bitcoincore.org/bin/bitcoin-core-${VERSION}/${CLI_ARCHIVE}"
 
 # Verify (fails closed; set PORTANODE_ALLOW_UNVERIFIED=1 to bypass)
