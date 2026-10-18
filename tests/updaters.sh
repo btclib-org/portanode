@@ -22,6 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(dirname "$SCRIPT_DIR")"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tests.XXXXXX")"
 SERVER_PIDS=""
+# shellcheck disable=SC2329 # invoked by the EXIT trap below
 cleanup() {
     for pid in $SERVER_PIDS; do
         kill "$pid" 2>/dev/null
@@ -89,8 +90,12 @@ fi
 # A call is curl as a command word: at the start of a line, or after "$(",
 # a pipe, ";" or "&". The control is a line of each shape it must catch.
 CALL='(^[[:space:]]*|[$][(]|[|;&][[:space:]]*)curl[[:space:]]'
-control="$(printf '%s\n' '    curl -fL x' 'V="$(curl -fsSL x)"' 'a | curl -s x' \
-  | grep -cE "$CALL")"
+control="$(grep -cE "$CALL" <<'EOF'
+    curl -fL x
+V="$(curl -fsSL x)"
+a | curl -s x
+EOF
+)"
 bare="$(grep -nE "$CALL" \
   "$ROOT"/macos/scripts/utilities/update-*.sh \
   "$ROOT"/linux/scripts/utilities/update-*.sh)"
@@ -173,7 +178,10 @@ echo '<a href="bitcoin-core-27.0/">bitcoin-core-27.0/</a>'
 echo '<a href="4.0.0/">4.0.0/</a>'
 EOF
 printf '#!/bin/sh\nexit 1\n' > "$STUBS/pgrep"
-printf '#!/bin/sh\necho "$STUB_ARCH"\n' > "$STUBS/uname"
+cat > "$STUBS/uname" <<'EOF'
+#!/bin/sh
+echo "$STUB_ARCH"
+EOF
 chmod +x "$STUBS/curl" "$STUBS/pgrep" "$STUBS/uname"
 
 sha() {
@@ -212,7 +220,7 @@ expect() {
         pass "$1"
     else
         fail "$1 (exit $RC)"
-        sed 's/^/     /' <<< "$OUT"
+        while IFS= read -r line; do echo "     $line"; done <<< "$OUT"
     fi
 }
 
