@@ -13,6 +13,9 @@
 # and a file that belongs here but is missing from the negations
 # below shows up as absent from `git ls-files` the first time anybody
 # looks, rather than as a gap an enumeration cannot announce.
+#
+# The same rule ignores `bitcoin.local.conf`, the file `bitcoin.conf`
+# includes for local secrets; it must not be added to the negations.
 /*
 !/.gitignore
 !/README.md
