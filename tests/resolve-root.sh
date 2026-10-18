@@ -10,7 +10,11 @@
 
 set -u
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+# bash looks for a bare name in the current directory, then in PATH. Found
+# through PATH, $0 has no directory, so the directory below would be wrong.
+case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+REPO="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 failures=0
