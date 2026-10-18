@@ -29,8 +29,9 @@ the open issue.
 
 PortaNode is a folder of launchers on a portable drive. It runs no
 service of its own: what talks to the network is Bitcoin Core and
-Electrum, which the launchers start, and the updaters' downloads. The launchers run with the rights
-of the user who starts them; none asks for more.
+Electrum, which the launchers start, and the updaters' downloads. The
+launchers run with the rights of the user who starts them; none asks
+for more.
 
 **What is defended.**
 
