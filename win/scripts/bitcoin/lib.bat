@@ -138,7 +138,7 @@ exit /b 0
 
 :cli_console
 REM Turns the console it runs in into a bitcoin-cli session for one
-REM launcher: it changes to win\bin, titles the console after the
+REM launcher: it changes to the user's profile, titles the console after the
 REM launcher the first argument names, and defines the btc macro. The
 REM second argument carries the switches that vary between launchers,
 REM the network and a port where one is set; ROOTDIR and DATADIR are

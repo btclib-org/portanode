@@ -358,7 +358,9 @@ REM field is the hash and its second the entry path, each compared whole,
 REM as shared/utilities/lib.sh's verify_checksum_entry compares them: a
 REM substring test reads a line as naming any path its own text holds
 REM (#657). The path is compared without regard to case, as Windows
-REM resolves one.
+REM resolves one. '\s+' carries one backslash: powershell.exe keeps a
+REM backslash literal unless it precedes a double quote, so a doubled one
+REM would reach the regex as a literal backslash.
 powershell -NoProfile -Command "& { $path = $env:CHECKPATH_ENTRY; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:FILEPATH_FS; if (-not $fh) { Write-Host ('Error: could not hash ' + $env:FILEPATH_REL + '.'); exit 1 } $found = $false; foreach ($l in (Get-Content -LiteralPath $checksum)) { $w = $l.Trim() -split '\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\','/') -ieq $path) { $found = $true; break } } if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0
@@ -404,8 +406,8 @@ REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 REM Values reach PowerShell as $env: reads, for the reason
 REM :install_verified's comment above gives. The entry is matched as
-REM :verify_checksum matches it, and a file Get-FileHash cannot read
-REM leaves OUTVAR "unknown".
+REM :verify_checksum matches it, its '\s+' included, and a file
+REM Get-FileHash cannot read leaves OUTVAR "unknown".
 for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:IV_FILE_FS -ErrorAction SilentlyContinue; if (-not $fh) { exit 0 } foreach ($l in (Get-Content -LiteralPath $env:IV_CHECKSUM)) { $w = $l.Trim() -split '\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\','/') -ieq $env:IV_ENTRY_ENTRY) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
 exit /b 0
 
