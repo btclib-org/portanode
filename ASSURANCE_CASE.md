@@ -156,9 +156,10 @@ and Alice's check on macOS and Linux misses some command lines
 ([ISS 661]).
 
 The mainnet launcher refuses to start while a mainnet node is running.
-Its check skips a node whose path holds a network's name, so a second
-node starts and fails on the port the first one holds: [ISS 662] on
-macOS and Linux, [ISS 676] on Windows.
+Its check skips a node whose command line contains `-testnet`,
+`-regtest` or `-signet`, paths included, so a second node starts and
+fails on the port the first one holds: [ISS 662] on macOS and Linux,
+[ISS 676] on Windows.
 
 **Electrum and its servers.** The plain `mainnet` launcher uses
 Electrum's own server choice, and `mainnet-local-server-only` talks to a
@@ -177,12 +178,13 @@ Saltzer and Schroeder's principles, as they apply to launchers.
 - **Economy of mechanism.** The macOS and Linux scripts share one
   library, `shared/`, for the root walk (`resolve_root` in
   `shared/lib.sh`), the PGP check (`pgp_verify_or_fail`) and the checksum
-  bookkeeping (`update_checksum`, `verify_checksum_entry`), the last two
-  in `shared/utilities/lib.sh`. The Windows half is a separate
+  bookkeeping (`update_checksum`, `verify_checksum_entry`), both in
+  `shared/utilities/lib.sh`. The Windows half is a separate
   implementation, kept in step by review (`REVIEWING.md`'s *Does the
   change reach the other platforms?*).
-- **Least privilege.** The launchers run as the user who starts them and
-  ask for no elevation, and only the updaters download anything.
+- **Least privilege.** The launchers ask for no rights beyond their
+  user's (*Threat model*), and only the updaters reach the network
+  themselves (*Entry points*).
 - **Open design.** Every launcher is a short script in the tree, and the
   limitations are published (*Limitations, not vulnerabilities*).
 - **Psychological acceptability.** The private Electrum path is a menu
@@ -212,8 +214,8 @@ to, and what counters each.
   monitors print `debug.log` lines to the terminal unfiltered.
 - **Shell defects.** `shellcheck` reads every `.sh` and `.command`
   script as a hook of the lint gate, which `lint.yml` runs on every pull
-  request (`CONTRIBUTING.md`'s last section). No required check reads
-  the `.bat` and `.ps1` halves ([ISS 644]).
+  request (`CONTRIBUTING.md`'s last section). No required check runs a
+  security analysis on the `.bat` and `.ps1` halves ([ISS 644]).
 - **Secrets in the tree.** `detect-secrets` runs as a hook of the lint
   gate, against `.secrets.baseline`.
 
