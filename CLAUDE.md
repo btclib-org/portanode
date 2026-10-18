@@ -301,7 +301,7 @@ Do not use Fable unless explicitly instructed.
 
 ## How to verify
 
-The lint gate, the suite under `tests/`, and what they do not reach,
+The lint gate and the suite under `tests/`, and what they do not reach,
 are `CONTRIBUTING.md`'s last section. Nothing here starts what a
 launcher launches, so a change to that is verified by running the
 launcher — on the platform it is for, from a volume that is not the
