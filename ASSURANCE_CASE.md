@@ -157,7 +157,8 @@ and Alice's check on macOS and Linux misses some command lines
 
 The mainnet launcher refuses to start while a mainnet node is running.
 Its check skips a node whose path holds a network's name, so a second
-node starts and fails on the port the first one holds ([ISS 662]).
+node starts and fails on the port the first one holds: [ISS 662] on
+macOS and Linux, [ISS 676] on Windows.
 
 **Electrum and its servers.** The plain `mainnet` launcher uses
 Electrum's own server choice, and `mainnet-local-server-only` talks to a
@@ -233,3 +234,4 @@ to, and what counters each.
 [ISS 666]: https://github.com/btclib-org/portanode/issues/666
 [ISS 668]: https://github.com/btclib-org/portanode/issues/668
 [ISS 670]: https://github.com/btclib-org/portanode/issues/670
+[ISS 676]: https://github.com/btclib-org/portanode/issues/676
