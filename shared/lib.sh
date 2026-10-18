@@ -5,16 +5,30 @@
 # arithmetic into shared/ lives in one forwarder per platform instead of
 # in every script that would otherwise source it directly.
 
+# is_portanode_root <dir>: 0 where <dir> holds VERSION and at least one of
+# macos/, win/ or linux/, which is what marks a root; 1 otherwise.
+# Both ways resolve_root arrives at a root apply it.
+is_portanode_root() {
+    [ -f "$1/VERSION" ] && \
+        { [ -d "$1/macos" ] || [ -d "$1/win" ] || [ -d "$1/linux" ]; }
+}
+
+# resolve_root <start_dir>: prints the root. A PORTANODE_ROOT that is not
+# one (is_portanode_root) is an error: nothing is printed, the message
+# names the variable on stderr, and the status is 1. A caller stops on it,
+# as in ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1, because the
+# empty ROOTDIR would otherwise be the root of every path built after it.
 resolve_root() {
     local start_dir="$1"
 
     if [ -n "${PORTANODE_ROOT:-}" ]; then
-        if [ -d "$PORTANODE_ROOT" ]; then
+        if is_portanode_root "$PORTANODE_ROOT"; then
             (cd "$PORTANODE_ROOT" && pwd -P)
             return 0
         fi
-        printf "%s" "$PORTANODE_ROOT"
-        return 0
+        printf 'PORTANODE_ROOT is set to "%s", which is not a PortaNode folder: it holds no VERSION beside macos/, win/ or linux/. Unset PORTANODE_ROOT, or set it to the folder.\n' \
+            "$PORTANODE_ROOT" >&2
+        return 1
     fi
 
     local dir="$start_dir"
@@ -38,8 +52,7 @@ resolve_root() {
         # ancestor further up. The loosened match only fires where no
         # real root sits between start_dir and it, which is not a shape
         # any caller in this tree is in.
-        if [ -f "$dir/VERSION" ] && \
-           { [ -d "$dir/macos" ] || [ -d "$dir/win" ] || [ -d "$dir/linux" ]; }; then
+        if is_portanode_root "$dir"; then
             (cd "$dir" && pwd -P)
             return 0
         fi

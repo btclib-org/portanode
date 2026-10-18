@@ -1,3 +1,24 @@
+# True where Dir holds VERSION plus one of macos/, win/ or linux/, the
+# marker resolve_root in shared/lib.sh looks for; the comment at the head
+# of that loop argues why any one of the three is enough.
+# -PathType Container is what makes the platform test a directory test:
+# without it a plain file named win answers here. The VERSION test carries
+# no -PathType, so a directory of that name answers where resolve_root's
+# own [ -f ] refuses it. -LiteralPath: see Resolve-PortaNodeRoot below.
+function Test-PortaNodeRoot {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Dir
+  )
+
+  foreach ($name in 'macos', 'win', 'linux') {
+    if (Test-Path -LiteralPath (Join-Path $Dir $name) -PathType Container) {
+      return (Test-Path -LiteralPath (Join-Path $Dir 'VERSION'))
+    }
+  }
+  return $false
+}
+
 function Resolve-PortaNodeRoot {
   param(
     [Parameter(Mandatory = $true)]
@@ -22,32 +43,22 @@ function Resolve-PortaNodeRoot {
   # way, and a .bat starts a .ps1 that way through powershell -Command:
   # 5.1's -File resolves ".\<name>" against the current directory as a
   # pattern as well. Measured on windows-latest under both versions.
+  #
+  # A PORTANODE_ROOT that is not a root is an error: the message names the
+  # variable and the function returns nothing, which a caller stops on
+  # (`if (-not $Root) { exit 1 }`), there being no root to build paths on.
   if ($env:PORTANODE_ROOT) {
-    try {
+    if (Test-PortaNodeRoot -Dir $env:PORTANODE_ROOT) {
       return (Resolve-Path -LiteralPath $env:PORTANODE_ROOT).Path
-    } catch {
-      return $env:PORTANODE_ROOT
     }
+    $host.UI.WriteErrorLine("PORTANODE_ROOT is set to `"$env:PORTANODE_ROOT`", which is not a PortaNode folder: it holds no VERSION beside macos/, win/ or linux/. Unset PORTANODE_ROOT, or set it to the folder.")
+    return $null
   }
 
   $start = (Resolve-Path -LiteralPath $StartDir).Path
   $dir = $start
   while ($true) {
-    # A root is marked by VERSION plus one of macos/, win/ or linux/,
-    # which is the marker resolve_root in shared/lib.sh looks for; the
-    # comment at the head of that loop argues why any one of the three is
-    # enough. -PathType Container is what makes the platform test a
-    # directory test: without it a plain file named win answers here. The
-    # VERSION test carries no -PathType, so a directory of that name
-    # answers where resolve_root's own [ -f ] refuses it.
-    $platform = $false
-    foreach ($name in 'macos', 'win', 'linux') {
-      if (Test-Path -LiteralPath (Join-Path $dir $name) -PathType Container) {
-        $platform = $true
-        break
-      }
-    }
-    if ($platform -and (Test-Path -LiteralPath (Join-Path $dir 'VERSION'))) {
+    if (Test-PortaNodeRoot -Dir $dir) {
       return $dir
     }
     $parent = Split-Path -Parent $dir

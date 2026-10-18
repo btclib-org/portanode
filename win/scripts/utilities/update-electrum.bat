@@ -8,6 +8,10 @@ REM own: update-bitcoin.bat's own comment on the same two lines gives
 REM the reason for each (#411).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"

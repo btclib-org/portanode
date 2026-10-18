@@ -4,6 +4,10 @@ REM Rollback Last Electrum Update
 
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 set "BACKUP_DIR=%ROOTDIR%\win\bin\backup\electrum"
 REM Explicitly disabled above (line 2) rather than merely not
 REM enabled, so the guarantee holds regardless of what a caller set:

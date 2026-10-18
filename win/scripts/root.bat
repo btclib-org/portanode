@@ -35,9 +35,15 @@ REM different decision rather than a shorter path.
 set "START_DIR=%~1"
 set "OUTVAR=%~2"
 
+REM A PORTANODE_ROOT that is not a root is an error, not a path to use as
+REM it stands: the message names the variable, errorlevel is 1 and OUTVAR
+REM is left alone. A caller stops on it, there being no root to build paths
+REM on. :is_root is the test the walk below applies too.
 if defined PORTANODE_ROOT (
     set "ROOTDIR=%PORTANODE_ROOT%"
-    goto :root_resolved
+    call :is_root && goto :root_resolved
+    echo PORTANODE_ROOT is set to "%PORTANODE_ROOT%", which is not a PortaNode folder: it holds no VERSION beside macos\, win\ or linux\. Unset PORTANODE_ROOT, or set it to the folder. 1>&2
+    exit /b 1
 )
 
 set "ROOTDIR=%START_DIR%"
@@ -49,11 +55,7 @@ REM enough. The trailing backslash is what makes "if exist" test for a
 REM directory: without it a plain file named win answers here. VERSION
 REM is tested without one, so a directory of that name answers here
 REM where resolve_root's own [ -f ] refuses it.
-if exist "%ROOTDIR%\VERSION" (
-    if exist "%ROOTDIR%\macos\" goto :root_resolved
-    if exist "%ROOTDIR%\win\" goto :root_resolved
-    if exist "%ROOTDIR%\linux\" goto :root_resolved
-)
+call :is_root && goto :root_resolved
 for %%I in ("%ROOTDIR%\..") do set "PARENT=%%~fI"
 if /I "%PARENT%"=="%ROOTDIR%" goto :find_root_failed
 set "ROOTDIR=%PARENT%"
@@ -84,6 +86,17 @@ for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
 if "%ROOTDIR:~-1%"=="\" if not "%ROOTDIR:~-2%"==":\" set "ROOTDIR=%ROOTDIR:~0,-1%"
 if not "%OUTVAR%"=="" set "%OUTVAR%=%ROOTDIR%"
 exit /b 0
+
+:is_root
+REM Errorlevel 0 where ROOTDIR holds VERSION and one of macos\, win\ or
+REM linux\, 1 otherwise. The comment under :find_root says why the marker
+REM is VERSION plus any one of the three, and why they are tested as they are.
+if exist "%ROOTDIR%\VERSION" (
+    if exist "%ROOTDIR%\macos\" exit /b 0
+    if exist "%ROOTDIR%\win\" exit /b 0
+    if exist "%ROOTDIR%\linux\" exit /b 0
+)
+exit /b 1
 
 :pause_if_own_console
 REM Waits before returning, but only where the console this script is

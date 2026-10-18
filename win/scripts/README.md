@@ -30,4 +30,4 @@ Root launchers are available for specific areas: `Bitcoin-Launcher.*`,
 
 ## Customization
 
-Set `PORTANODE_ROOT` to override paths: `set PORTANODE_ROOT=C:\custom\path`.
+Set `PORTANODE_ROOT` to the PortaNode folder, the one holding `VERSION`, to skip the walk up from the script: `set PORTANODE_ROOT=C:\custom\path`. A value that is not that folder stops the script with a message naming it.

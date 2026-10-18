@@ -26,7 +26,7 @@ case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, 
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/scripts/lib.sh"
-ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
 
 run_script() {
   local rel="$1"

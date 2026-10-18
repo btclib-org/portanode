@@ -7,6 +7,10 @@ REM caller here is the console this was started from. The measurement is
 REM in win\scripts\root.bat, above :resolve_root (#473).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%win\scripts\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%win\scripts\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 REM The root is quoted where the .command and .ps1 halves
 REM parenthesise it: a mount point carrying & reaches cmd.exe's

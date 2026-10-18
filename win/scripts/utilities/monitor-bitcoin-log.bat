@@ -12,6 +12,10 @@ REM reads a bang-delimited variable, so disabling it outright costs
 REM nothing.
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 set "LOG_FILE=%ROOTDIR%\bitcoin-datadir\debug.log"
 

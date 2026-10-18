@@ -10,6 +10,10 @@ REM :report_permission_effect turns it back on for its own block, at
 REM the line that block's comment names.
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 set "BDD=%ROOTDIR%\bitcoin-datadir"
 set "EDD=%ROOTDIR%\electrum-datadir"
