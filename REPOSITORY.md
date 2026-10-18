@@ -99,8 +99,8 @@ gh api repos/btclib-org/portanode/rulesets --jq '.[].id' | xargs -I{} \
 
 - `main-integrity`, on `refs/heads/main`: required linear history, no
   force push, no deletion. No bypass actor.
-- `main-self-merge`, on `refs/heads/main`: one `pull_request` rule.
-  `fametrano` bypasses it in `pull_request` mode.
+- `main-self-merge`, on `refs/heads/main`: one `pull_request` rule. No
+  bypass actor.
 - `tag-integrity`, on `refs/tags/v*`: required signatures. No bypass
   actor.
 
@@ -127,15 +127,21 @@ Classic protection's own copy of the rule is off, as it is in every
 ruleset over `main`: [the standard states that value for every
 repository][s11-branch].
 
-**`main-self-merge` is in `pull_request` mode, which is a review
-exception and not a signature one.** It lets `fametrano` merge a pull
-request without another person's approval, whoever its author is.
-btclib-org/.github's [`GOVERNANCE.md`][governance], *How a decision is
-made*, says when that is done, and `CONTRIBUTING.md`'s *Landing it* says
-how. The other mode, `always`, would permit a direct push to `main` as
-well, and is not used here — what it would buy is a landing commit
-carrying the maintainer's own signature, which is worth nothing once the
-standard asks for a verified commit rather than for that signer.
+**`main-self-merge` has no bypass actor**, because `README.md` carries
+the OpenSSF Best Practices badge, and [section 11 of the
+standard][s11-branch] allows no bypass in such a tree. So a pull request
+lands only once somebody other than its author has approved it, the
+maintainer's own included. btclib-org/.github's
+[`GOVERNANCE.md`][governance], *How a decision is made*, says what is
+done in an emergency. The maintainer's own bypass, in `pull_request`
+mode, is removed right after the pull request recording this lands
+([ISS 647](https://github.com/btclib-org/portanode/issues/647)). This
+reads the bypass back:
+
+```shell
+gh api repos/btclib-org/portanode/rulesets/20736361 --jq '.bypass_actors'
+# []
+```
 
 The rule's own parameters carry more than the approval count, and each is
 a decision:
@@ -225,15 +231,6 @@ the convention of writing the two alike keeps the same text.
 a `Co-Authored-By` trailer written in the commits of the branch survives
 only there.
 
-**`gh pr merge` refuses client-side to invoke the bypass** unless given
-`--admin`, before it asks GitHub anything:
-
-```text
-Pull request is not mergeable: the base branch policy prohibits the merge
-```
-
-With `--admin` it asks GitHub, which applies the bypass server-side.
-
 ## Head branches after a merge
 
 ```shell
@@ -292,14 +289,22 @@ gh api repos/btclib-org/portanode/actions/permissions/workflow \
 ```
 
 answers `read` and `false`, and that is the floor every workflow here
-starts from. `claude-review.yml` is the only one that elevates it —
-`pull-requests: write` to post a comment and `id-token: write` for the
-OIDC token the action mints at startup, on the `claude-review` job that
-calls `btclib-org/.github`'s `reusable-claude-review.yml` — where the
-lint hooks fix a checkout that is thrown away and lychee only reads one.
-The value is a repository setting that stops following the organization
-default once it is set, so lowering the default here would not lower
-what that job declares.
+starts from. `claude-review.yml` and `scorecard.yml` raise it, each on
+the job that calls a reusable workflow of `btclib-org/.github`:
+
+```shell
+git grep -n -E '^ +[a-z-]+: write' -- .github/workflows/
+```
+
+`claude-review.yml` grants `pull-requests: write` to post a comment and
+`id-token: write` for the OIDC token the action mints at startup.
+`scorecard.yml` grants `id-token: write` to publish the score,
+`security-events: write` to upload its findings to code scanning, and
+`actions: read` for the workflow-run history its Packaging check reads.
+The lint hooks fix a checkout that is thrown away, and lychee only reads
+one. The value is a repository setting that stops following the
+organization default once it is set, so lowering the default here would
+not lower what those jobs declare.
 
 ```shell
 gh api repos/btclib-org/portanode/actions/permissions \
@@ -370,15 +375,16 @@ only a preference but the fallback if it does.
 
 [pvr]: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
 
-Code scanning is not configured, and `code-scanning/default-setup` is the
-endpoint that answers for why: `actions` is the only language it lists,
-so what CodeQL would analyse here is this repository's own workflow
-files, not its launcher scripts, and default setup has simply not been
-turned on for it. `code-quality/setup` answers with an empty `languages`
-list of its own, which is the code-quality feature's state and not
-CodeQL's — the two endpoints cover different features and do not
-corroborate each other. What reads the launchers instead is `shellcheck`,
-in `.pre-commit-config.yaml`'s own hooks.
+CodeQL's default setup is not configured, and
+`code-scanning/default-setup` is the endpoint that answers for why:
+`actions` is the only language it lists, so what CodeQL would analyse
+here is this repository's own workflow files, not its launcher scripts,
+and default setup has simply not been turned on for it.
+`code-quality/setup` answers with an empty `languages` list of its own,
+which is the code-quality feature's state and not CodeQL's — the two
+endpoints cover different features and do not corroborate each other.
+What reads the launchers instead is `shellcheck`, in
+`.pre-commit-config.yaml`'s own hooks.
 
 ## Plan-gated settings
 
@@ -440,6 +446,17 @@ name the same things; there is no package here and so no keyword list to
 agree with, which makes the topics a discoverability question rather than
 an alignment one, and the six above are what answer it.
 
+## Homepage
+
+```shell
+gh api repos/btclib-org/portanode --jq .homepage
+# https://btclib.org/portanode/
+```
+
+It is the *About* link on the repository page, and it points at this
+project's page on `btclib.org`. There is no `pyproject.toml` here for
+the URL to agree with, so this is its only record.
+
 ## What this file passes over
 
 The endpoints above answer for more than this repository decides, and the
@@ -477,12 +494,10 @@ records the repository's Actions secrets rather than passing them over,
 that zero having the organization's own stores as its control.
 
 **Where a checklist step has no subject here.** Section 16's checklist
-asks for the publishing environments and, where a tree releases, a
-`homepage` holding the URL `pyproject.toml`'s field of that name carries.
+asks for the publishing environments.
 `gh api repos/btclib-org/portanode/environments --jq '.total_count'`
 answers `0`, `RELEASING.md` saying a release here is a signed tag and a
-GitHub release cut by hand with nothing to publish to an index; and this
-tree has no `pyproject.toml` for a `homepage` to agree with.
+GitHub release cut by hand with nothing to publish to an index.
 
 [governance]: https://github.com/btclib-org/.github/blob/main/GOVERNANCE.md#how-a-decision-is-made
 [s11-branch]: https://github.com/btclib-org/.github/blob/main/README.md#branch-protection-and-rulesets

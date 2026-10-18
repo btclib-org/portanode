@@ -152,6 +152,14 @@ with a "binary not found" rather than with anything naming the cause.
     call answers 404, and an unsigned annotated tag answers `false`. The
     fix for either is to delete and re-cut it — which is why
     `tag-integrity` carries no `deletion` rule.
+1. Review the bestpractices.dev answers. Refresh the saved answers with
+   btclib-org/.github's `.github/scripts/bestpractices.py`, and run its
+   `--stale` and `--differ` to find what to read (section 10 of its README).
+   Read <https://www.bestpractices.dev/projects/15649> against the release
+   and update every answer it changed: the release notes, the
+   vulnerabilities it fixed and the signed tag. Then refresh the saved
+   answers again. An advisory this repository publishes is owed the same
+   review.
 1. Open a separate pull request that bumps `VERSION` to `YYYY.M`, the
    month that sorts above the day just tagged — see *The version string*
    above. It does not travel with the release: every command above reads
