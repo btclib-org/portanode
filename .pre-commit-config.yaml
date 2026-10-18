@@ -74,7 +74,7 @@ ci:
   # without `--freeze` writes the bare tag back and drops the comment, so
   # a local run is `pre-commit autoupdate --freeze`. The bot writes two
   # spaces before the `#`, which prettier below rewrites to one, so its
-  # pull request fails prettier until a commit restores that
+  # pull request fails prettier until a commit puts back the one space
   autoupdate_commit_msg: "Update the pinned pre-commit hook revisions"
   autoupdate_schedule: weekly
   # the hook pre-commit.ci cannot run: actionlint-shellcheck runs past
@@ -96,7 +96,7 @@ repos:
   # only a major follows every future release of it, and a prerelease is
   # not a release. pre-commit says the first half itself, on stderr, on a
   # run that then exits zero -- which is the difference between a warning
-  # and a gate. A commit SHA stays acceptable: forty hex characters do not
+  # and a gate. A SHA stays acceptable: forty hex characters do not
   # end in a prerelease marker. What a frozen rev names is its
   # `# frozen:` comment, so the same two moves are refused there
   - repo: local
@@ -219,10 +219,13 @@ repos:
   # requirement; a URL names one file, one platform's wheel or the sdist,
   # which compiles typos from Rust on install; and `-r <file>` after the
   # `.` fails ("Can't verify hashes for these file:// requirements because
-  # they point to directories"). A
-  # file PyPI has published under a name is never replaced under it
-  # (https://pypi.org/help/#file-name-reuse), which is what the version
-  # pin rests on
+  # they point to directories").
+  #
+  # A file PyPI has published under a name is never replaced under it
+  # (https://pypi.org/help/#file-name-reuse), but a new file can still be
+  # added under the same version, and pip prefers one with a more specific
+  # platform tag or a higher build tag (`CandidateEvaluator._sort_key`):
+  # the version pin does not fix what is installed
   - repo: local
     hooks:
       - id: typos
