@@ -1,10 +1,11 @@
-#!/bin/bash
+# shellcheck shell=bash
 # Tests of resolve_root in shared/lib.sh and of every script that calls it,
 # for the macOS and Linux launchers. Run from anywhere:
 #
 #     bash tests/resolve-root.sh
 #
-# It needs bash and a POSIX userland, and writes only under a directory it
+# It needs bash, git and a git checkout of this tree, which it asks for the
+# scripts that call resolve_root, and a POSIX userland. It writes only under a directory it
 # makes with mktemp and removes. Exit 0 where every case passes, 1 where
 # one fails. win/scripts/root.bat and root.ps1 are not run by it.
 
@@ -93,18 +94,19 @@ out="$(unset PORTANODE_ROOT; resolve_root "$TMP/nested/a/b")"
 # before it prints a ROOTDIR or builds a path on it. Each runs as a user
 # runs it, by its path, with stdin closed.
 callers=0
+refusal="$(PORTANODE_ROOT="$TMP/gone" resolve_root "$TMP" 2>&1)"
 while IFS= read -r f; do
     callers=$((callers + 1))
     out="$(PORTANODE_ROOT="$TMP/gone" bash "$REPO/$f" < /dev/null 2>&1)"
     rc=$?
     [ "$rc" -eq 1 ] || fail "$f: status $rc with a refused PORTANODE_ROOT, wanted 1"
-    case "$out" in
-        *'ROOTDIR is'*) fail "$f: went on to print ROOTDIR" ;;
-    esac
-    case "$out" in
-        *PORTANODE_ROOT*) ;;
-        *) fail "$f: the output does not name PORTANODE_ROOT" ;;
-    esac
+    # The message alone: a caller that went on after it, because its
+    # `|| exit 1` is gone, prints or fails with something more.
+    # A script under `set -e` stops without it, so the run above cannot
+    # tell, and the line is read as well.
+    grep -q '^ROOTDIR="\$(resolve_root "\$SCRIPT_DIR")" || exit 1$' "$REPO/$f" ||
+        fail "$f: the call to resolve_root is not followed by || exit 1"
+    [ "$out" = "$refusal" ] || fail "$f: printed '$out', wanted the refusal alone"
 done < <(git -C "$REPO" grep -l "^ROOTDIR=\"\$(resolve_root" -- '*.sh' '*.command')
 [ "$callers" -gt 0 ] || fail "no caller of resolve_root found: the pattern reads nothing"
 

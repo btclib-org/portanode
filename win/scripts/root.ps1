@@ -11,6 +11,9 @@ function Test-PortaNodeRoot {
     [string]$Dir
   )
 
+  if (-not (Test-Path -LiteralPath $Dir -PathType Container)) {
+    return $false
+  }
   foreach ($name in 'macos', 'win', 'linux') {
     if (Test-Path -LiteralPath (Join-Path $Dir $name) -PathType Container) {
       return (Test-Path -LiteralPath (Join-Path $Dir 'VERSION'))

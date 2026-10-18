@@ -36,9 +36,10 @@ set "START_DIR=%~1"
 set "OUTVAR=%~2"
 
 REM A PORTANODE_ROOT that is not a root is an error, not a path to use as
-REM it stands: the message names the variable, errorlevel is 1 and OUTVAR
-REM is left alone. A caller stops on it, there being no root to build paths
-REM on. :is_root is the test the walk below applies too.
+REM it stands: the message names the variable and errorlevel is 1. ROOTDIR
+REM holds the refused value, this file running in the caller's scope, and
+REM OUTVAR is not set. A caller stops on it, there being no root to build
+REM paths on. :is_root is the test the walk below applies too.
 if defined PORTANODE_ROOT (
     set "ROOTDIR=%PORTANODE_ROOT%"
     call :is_root && goto :root_resolved
