@@ -48,8 +48,8 @@ foreach ($name in 'Bitcoin', 'Electrum', 'Utilities') {
 }
 
 # The .bat menu is given no unknown entry: fed "99" and then "0" through a
-# pipe, it shows itself again without end on windows-latest, the second
-# "set /p" reading nothing and leaving "99" in place.
+# pipe, it showed itself again without end on windows-latest, for a reason
+# not run down here.
 $out = Invoke-Launcher 'Bitcoin-Launcher.ps1' @('99', '0')
 Test-Contain 'Bitcoin-Launcher.ps1 refuses an unknown entry' `
   $out 'Invalid selection.'
