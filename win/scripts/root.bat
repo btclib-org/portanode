@@ -162,6 +162,10 @@ REM so a key ends the countdown early, which is what the message
 REM offers; that half is documented rather than measured here, a
 REM hosted runner having no console to type into.
 REM
+REM timeout.exe is named by its full path because this label runs after
+REM the caller's popd, in the directory the caller was started in, which
+REM may be in the folder: :leave_folder below says why that matters.
+REM
 REM The test reaches every console but one, and PORTANODE_LAUNCHER is
 REM how that one announces itself: a .ps1 launcher starts a .bat through
 REM a cmd.exe of PowerShell's own, whose command line names the script
@@ -174,6 +178,20 @@ set CMDLINE=!CMDCMDLINE:"=!
 if not "!CMDLINE:%SELF%=!"=="!CMDLINE!" (
     echo.
     echo Closing in 30 seconds; press a key to close now.
-    timeout /t 30 >nul
+    "%SystemRoot%\System32\timeout.exe" /t 30 >nul
 )
 exit /b 0
+
+:leave_folder
+REM Makes System32 the current directory with pushd, for the caller to
+REM undo with popd before it returns, and returns 1 where it cannot.
+REM cmd.exe looks for a command run by its bare name in the current
+REM directory before PATH, so with the folder there a powershell.bat
+REM placed in it would run in place of PowerShell. A script starts in
+REM the folder more often than not: a .ps1 launcher runs it from its own
+REM directory, and a .bat launcher passes on the directory it was
+REM started in. A caller runs this before its first external command.
+pushd "%SystemRoot%\System32" >nul 2>&1
+if /i "%CD%"=="%SystemRoot%\System32" exit /b 0
+echo Error: cannot change to the Windows System32 directory.
+exit /b 1

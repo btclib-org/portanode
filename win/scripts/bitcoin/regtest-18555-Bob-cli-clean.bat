@@ -79,5 +79,7 @@ set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
 set BITCOIND_CMD=%BITCOIND_CMD% -regtest -port=18555 -rpcport=18554 -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18444
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666
-start "" cmd /k %BITCOIND_CMD%
-start "" cmd /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest -rpcport=18554"
+REM start looks for a bare name in the current directory first, so
+REM cmd.exe is named by its full path: root.bat's :leave_folder says why.
+start "" "%SystemRoot%\System32\cmd.exe" /k %BITCOIND_CMD%
+start "" "%SystemRoot%\System32\cmd.exe" /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest -rpcport=18554"

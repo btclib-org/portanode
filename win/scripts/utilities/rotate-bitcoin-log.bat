@@ -20,6 +20,15 @@ if not exist "%LOG_FILE%" (
     exit /b 0
 )
 
+REM System32 is the current directory from here to each popd: root.bat's
+REM :leave_folder says why. It is changed before the first rename, so a
+REM failure to change it leaves every archive where it was.
+call "%SCRIPT_DIR%..\root.bat" :leave_folder
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
+
 set /a START=%MAX_ROTATIONS%-1
 REM One rotation per call rather than the "( )" body this replaced:
 REM with delayed expansion off, a "%NEXT%" read inside that body is
@@ -51,10 +60,12 @@ REM its next run, which is a race it can lose (see monitor-bitcoin-log.ps1).
 if exist "%ROOTDIR%\.last_log_offset" del /f /q "%ROOTDIR%\.last_log_offset"
 
 echo Log rotated: bitcoin-datadir\debug.log
+popd >nul 2>&1
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0
 
 :rotate_failed
+popd >nul 2>&1
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 
