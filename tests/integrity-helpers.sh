@@ -108,6 +108,20 @@ ln -s ../Resources/lib.py "$B/Contents/MacOS/lib.py"
 check ok "tree_hash is back where it was once the symlink is" \
     same "$h0" "$(sha "$B")"
 
+# Two trees whose names and targets would read alike joined by " -> ":
+# link "a" to "b -> c", and link "a -> b" to "c".
+mkdir -p "$T/c1" "$T/c2"
+ln -s 'b -> c' "$T/c1/a"
+ln -s c "$T/c2/a -> b"
+check ok "tree_hash tells a link's name from its target" \
+    differs "$(sha "$T/c1")" "$(sha "$T/c2")"
+
+mkdir -p "$T/n1" "$T/n2"
+ln -s x "$T/n1/l"
+ln -s "x"$'\n' "$T/n2/l"
+check ok "tree_hash tells a target from the same target ending in a newline" \
+    differs "$(sha "$T/n1")" "$(sha "$T/n2")"
+
 printf 'sidecar' > "$B/Contents/._lib.py"
 check ok "tree_hash ignores an AppleDouble sidecar" \
     same "$h0" "$(sha "$B")"

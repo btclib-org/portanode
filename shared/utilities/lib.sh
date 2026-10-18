@@ -77,22 +77,50 @@ tree_hash() {
         return 1
     fi
     if [ -d "$path" ]; then
-        # xargs -r: GNU xargs otherwise runs the command once on empty
-        # input, hashing its own empty stdin; BSD xargs accepts the flag.
+        # What is hashed is a stream of records, each a type letter, a path
+        # and a value, every field ended by a NUL: "f", the path and the
+        # content hash for a file, "l", the path and the target for a
+        # symlink. No path or target can hold a NUL, so no two trees give
+        # one stream; a separator a name can hold, such as " -> " or a
+        # newline, would let two trees collide.
+        #
+        # The files are hashed in one batch for speed, and their hashes are
+        # paired with the NUL-separated paths by position. shasum and GNU
+        # sha256sum print a name holding a newline or a backslash on one
+        # line behind a leading backslash, which is dropped; a tool that
+        # does not escape prints more lines than there are files, and the
+        # count check refuses. xargs -r: GNU xargs otherwise runs the
+        # command once on empty input; BSD xargs accepts the flag.
         ( cd "$path" || exit 1
           set -o pipefail
-          local files links
-          files="$(find . -type f ! -name '._*' -print0 \
-              | LC_ALL=C sort -z \
-              | xargs -0 -r "${sha_cmd[@]}")" || exit 1
-          links="$(find . -type l ! -name '._*' -print0 \
-              | LC_ALL=C sort -z \
-              | while IFS= read -r -d '' link; do
-                    target="$(readlink "$link")" || exit 1
-                    printf 'symlink  %s -> %s\n' "$link" "$target"
-                done)" || exit 1
-          printf '%s\n%s\n' "$files" "$links" \
-              | "${sha_cmd[@]}" | awk '{print $1}' )
+          local tmp out
+          tmp="$(mktemp -d)" || exit 1
+          trap 'rm -rf "$tmp"' EXIT
+          find . -type f ! -name '._*' -print0 | LC_ALL=C sort -z \
+              > "$tmp/files" || exit 1
+          find . -type l ! -name '._*' -print0 | LC_ALL=C sort -z \
+              > "$tmp/links" || exit 1
+          xargs -0 -r "${sha_cmd[@]}" < "$tmp/files" \
+              | sed 's/^\\//' | cut -c 1-64 > "$tmp/hashes" || exit 1
+          [ "$(LC_ALL=C tr -cd '\000' < "$tmp/files" | wc -c)" -eq \
+            "$(wc -l < "$tmp/hashes")" ] || exit 1
+          ! grep -qvE '^[0-9a-f]{64}$' "$tmp/hashes" || exit 1
+          # In the symlink loop, readlink -n prints the target with no line
+          # end of its own (macOS's adds one only where the target does not
+          # already end in a newline), and the x keeps the target's trailing
+          # newlines, which command substitution would strip.
+          out="$(
+            {
+              while IFS= read -r -d '' p && IFS= read -r h <&3; do
+                  printf 'f\0%s\0%s\0' "$p" "$h"
+              done < "$tmp/files" 3< "$tmp/hashes"
+              while IFS= read -r -d '' p; do
+                  t="$(readlink -n "$p" && printf x)" || exit 1
+                  printf 'l\0%s\0%s\0' "$p" "${t%x}"
+              done < "$tmp/links"
+            } | "${sha_cmd[@]}" | awk '{print $1}'
+          )" || exit 1
+          printf '%s\n' "$out" )
     else
         "${sha_cmd[@]}" "$path" 2>/dev/null | awk '{print $1}'
     fi
