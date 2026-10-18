@@ -103,6 +103,7 @@ FILENAME="${BASENAME%.*}"
   -uacomment="${FILENAME}" \
   -datadir="${DATADIR}" \
   -regtest \
+  -server \
   -port=18555 \
   -rpcport=18554 \
   -addnode=localhost:18444 \

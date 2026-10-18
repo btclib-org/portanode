@@ -64,5 +64,6 @@ FILENAME="${BASENAME%.*}"
   -uacomment="${FILENAME}" \
   -datadir="${DATADIR}" \
   -regtest \
+  -server \
   -addnode=localhost:18555 \
   -addnode=localhost:18666

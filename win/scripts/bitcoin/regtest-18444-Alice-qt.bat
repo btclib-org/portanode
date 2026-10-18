@@ -38,5 +38,6 @@ start "" "%ROOTDIR%\win\bin\bitcoin-qt.exe" ^
   -uacomment=%~n0 ^
   -datadir="%DATADIR%" ^
   -regtest ^
+  -server ^
   -addnode=localhost:18555 ^
   -addnode=localhost:18666

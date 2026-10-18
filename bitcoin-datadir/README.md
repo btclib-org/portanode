@@ -39,10 +39,8 @@ Edit `bitcoin.conf` for settings like:
 - `maxmempool=4096`: Mempool size (MB).
 - `prune=550`: Prune blocks to ~550MB.
 
-`bitcoin.conf` sets `server=1` under `[regtest]` only, so RPC is open
-on regtest and closed on mainnet, testnet3 and testnet4; its `[rpc]`
-comment says when to set it elsewhere, and its `[secrets]` comment says
-how to keep a password out of git.
+`bitcoin.conf`'s `[rpc]` comment says where RPC is open, and its
+`[secrets]` comment says how to keep a password out of git.
 
 ## Wallets
 
