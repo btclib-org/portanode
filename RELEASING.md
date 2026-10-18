@@ -113,7 +113,7 @@ with a "binary not found" rather than with anything naming the cause.
     ```shell
     open=$({ gh api --paginate \
         'repos/btclib-org/portanode/dependabot/alerts?state=open' \
-        --jq '.[] | "dependabot \(.number) \(.security_advisory.severity) \(.dependency.package.name)"' \
+        --jq '.[] | "dependabot \(.number) \(.dependency.package.name)"' \
       && gh api --paginate \
         'repos/btclib-org/portanode/code-scanning/alerts?state=open' \
         --jq '.[] | "code-scanning \(.number) \(.rule.id) \(.html_url)"'; }) \
