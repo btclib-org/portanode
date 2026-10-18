@@ -1,9 +1,9 @@
 # Verifying a release
 
-A release of PortaNode is a signed tag, `v` and the date it was cut
-(`RELEASING.md` says what a release is). Check the tag's signature before
-you run a launcher from it: the signature is what says the folder holds
-what the maintainer released.
+Each release of PortaNode has a signed tag named `v` and the date it was
+cut (`RELEASING.md`). Check the tag's signature before you run a
+launcher from it: the signature is what says the folder holds what the
+maintainer released.
 
 ## Who signs the tags
 
@@ -11,7 +11,8 @@ The tags are signed with the OpenPGP key of the maintainer,
 [`fametrano`](https://github.com/fametrano), Ferdinando Ametrano:
 
 - primary key: `91D9 67D0 8A2F 3646 A0C4  2ED0 07B5 59B7 1373 BF5D`
-- signing subkey: `B115 1204 0C6E 86D7 B5E0  3DD1 4D71 ED3A 9A8E DFC5`
+- the subkey that signed the tags so far:
+  `B115 1204 0C6E 86D7 B5E0  3DD1 4D71 ED3A 9A8E DFC5`
 
 A tag signed by any other key is not a release of this repository until
 this file names that key.
@@ -43,10 +44,15 @@ git -C portanode verify-tag v<version>
 The second command lists the tags, newest first. The third exits
 `0` and prints, among other lines:
 
+<!-- gpg prints this line whole, so it is not wrapped -->
+<!-- markdownlint-disable line-length -->
+
 ```text
-gpg: Good signature from "Ferdinando M. Ametrano <ferdinando@ametrano.net>"
+gpg: Good signature from "Ferdinando M. Ametrano <ferdinando@ametrano.net>" [unknown]
 Primary key fingerprint: 91D9 67D0 8A2F 3646 A0C4  2ED0 07B5 59B7 1373 BF5D
 ```
+
+<!-- markdownlint-enable line-length -->
 
 Compare that fingerprint with the one under *Who signs the tags*. `gpg`
 also prints `WARNING: This key is not certified with a trusted

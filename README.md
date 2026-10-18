@@ -154,8 +154,8 @@ executable bit the launchers carry in the repository, which is what
 *Prerequisites*' **Permissions** bullet above is about; a folder that
 reached the disk any other way is under *Troubleshooting*.
 
-A release is a signed tag. [`VERIFYING.md`](./VERIFYING.md) shows how to
-check one in a clone before running anything from it.
+Each release has a signed tag. [`VERIFYING.md`](./VERIFYING.md) shows
+how to check it in a clone before running anything from it.
 
 Where on the disk it sits is free. A launcher walks up from its own
 location to the directory holding `VERSION` beside `macos/`, `win/` or
@@ -258,13 +258,13 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
 - **Mainnet**: `Electrum-Launcher.*`'s menu runs `mainnet` or
   `mainnet-local-server-only`.
     - `mainnet` leaves the choice of server to Electrum, which by default
-      connects to several public servers from the list it ships. The one
-      it uses as its history server learns every address of your wallet
-      and every transaction you broadcast; every server it connects to
-      sees the IP address you connect from. Electrum's own description
-      of its `oneserver` setting says so. Network settings you change in
-      Electrum are kept in `electrum-datadir/`, which both mainnet
-      entries share.
+      connects to about ten public servers. The one it picks as its
+      history server learns every address of your wallet, as Electrum's
+      own description of its `oneserver` setting says, and every
+      transaction you broadcast goes through it. Every server it
+      connects to sees the IP address you connect from. Network settings
+      you change in Electrum are kept in `electrum-datadir/`, which both
+      mainnet entries share.
     - `mainnet-local-server-only` passes `--oneserver` and
       `--server localhost:50002:s`, so Electrum connects to an Electrum
       server on this machine and to no other. Use it where your

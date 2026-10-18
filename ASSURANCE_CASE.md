@@ -120,8 +120,8 @@ pins, Bitcoin Core asking for several builders and Electrum for its
 release key (`README.md`'s *Updating Binaries*). Which key is the
 publisher's is yours to establish, as *Limitations, not
 vulnerabilities* says, and so is the decision to switch verification
-off ([ISS 670] removes that switch). Open issues where this boundary is
-weaker than claimed:
+off ([ISS 670] is to remove that switch). Open issues where this
+boundary is weaker than claimed:
 
 - [ISS 651]: an update installs an older signed release, so a hostile
   index can roll a user back;
@@ -153,8 +153,11 @@ decides which binaries and which data it uses. `PORTANODE_ROOT` is
 accepted without the check applied otherwise ([ISS 663]). A `-clean`
 launcher deletes regtest data only when it finds no node running on it,
 and Alice's check on macOS and Linux misses some command lines
-([ISS 661]). The mainnet check skips a node whose path holds a
-network's name ([ISS 662]).
+([ISS 661]).
+
+The mainnet launcher refuses to start while a mainnet node is running.
+Its check skips a node whose path holds a network's name, so a second
+node starts and fails on the port the first one holds ([ISS 662]).
 
 **Electrum and its servers.** The plain `mainnet` launcher uses
 Electrum's own server choice, and `mainnet-local-server-only` talks to a
@@ -171,10 +174,12 @@ Saltzer and Schroeder's principles, as they apply to launchers.
   fresh clone installs no Bitcoin Core until its user chooses the
   builders to trust.
 - **Economy of mechanism.** The macOS and Linux scripts share one
-  library, `shared/`, for the root walk, the downloads and the PGP check
-  (`CLAUDE.md`'s *What is in the tree, and what is not*). The Windows
-  half is a separate implementation, kept in step by review
-  (`REVIEWING.md`'s *Does the change reach the other platforms?*).
+  library, `shared/`, for the root walk (`resolve_root` in
+  `shared/lib.sh`), the PGP check (`pgp_verify_or_fail`) and the checksum
+  bookkeeping (`update_checksum`, `verify_checksum_entry`), the last two
+  in `shared/utilities/lib.sh`. The Windows half is a separate
+  implementation, kept in step by review (`REVIEWING.md`'s *Does the
+  change reach the other platforms?*).
 - **Least privilege.** The launchers run as the user who starts them and
   ask for no elevation, and only the updaters download anything.
 - **Open design.** Every launcher is a short script in the tree, and the
@@ -226,4 +231,5 @@ to, and what counters each.
 [ISS 662]: https://github.com/btclib-org/portanode/issues/662
 [ISS 663]: https://github.com/btclib-org/portanode/issues/663
 [ISS 666]: https://github.com/btclib-org/portanode/issues/666
+[ISS 668]: https://github.com/btclib-org/portanode/issues/668
 [ISS 670]: https://github.com/btclib-org/portanode/issues/670
