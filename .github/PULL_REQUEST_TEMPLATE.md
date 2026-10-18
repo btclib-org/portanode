@@ -6,9 +6,10 @@
 
 ## How it was verified
 
-<!-- The command you ran and what it answered. There is no suite here:
-     what stands in for one is running the launcher on a macOS, a
-     Windows and a Linux machine, from a volume that is not the boot
+<!-- The command you ran and what it answered. No workflow runs a test
+     suite: CONTRIBUTING.md's last section names the tests run by hand,
+     and what stands in for the rest is running the launcher on a macOS,
+     a Windows and a Linux machine, from a volume that is not the boot
      disk, which is the case the launcher's own paths exist for. -->
 
 ## Checks

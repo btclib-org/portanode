@@ -46,6 +46,10 @@ for args in \
     "-datadir=$D -regtest" \
     "-regtest -datadir=$D" \
     "-regtest=1 -datadir=$D" \
+    "-regtest=2 -datadir=$D" \
+    "-regtest= -datadir=$D" \
+    "-regtest=-1 -datadir=$D" \
+    "-noregtest=0 -datadir=$D" \
     "-datadir=$D -chain=regtest" \
     "-chain=regtest -datadir=$D" \
     "--regtest --datadir=$D" \
@@ -65,6 +69,12 @@ for args in \
     "-datadir=$D" \
     "-datadir=$D -testnet" \
     "-datadir=$D -regtest=0" \
+    "-datadir=$D -regtest=abc" \
+    "-datadir=$D -regtest=00" \
+    "-datadir=$D -noregtest" \
+    "-datadir=$D -noregtest=1" \
+    "-datadir=$D -chain=main" \
+    "-datadir=$D -chain=regtestx" \
     "-datadir=$D/regtest_bob -regtest" \
     "-datadir=$D-regtest" \
     "-datadir=/Volumes/other/bitcoin-datadir -regtest" \
@@ -84,6 +94,12 @@ for args in \
     "-datadir=/Volumes/btc-testnet4-old -uacomment=x" \
     "-datadir=/Volumes/chain=regtest" \
     "-testnet=0" \
+    "-testnet=abc" \
+    "-notestnet" \
+    "-notestnet=1" \
+    "-chain=main" \
+    "-chain=testnet" \
+    "-chain=testnet3" \
     "-datadir=$D" \
     ""; do
     PROCS="$BIN $args"$'\n'
@@ -96,12 +112,13 @@ expect 0 "mainnet bitcoind found" mainnet_node_running
 for args in \
     "-testnet" \
     "-testnet=1" \
+    "-testnet=2" \
+    "-notestnet=0" \
     "-testnet4" \
     "-regtest" \
     "-signet" \
     "--signet" \
-    "-chain=testnet" \
-    "-chain=testnet3" \
+    "-chain=test" \
     "-chain=testnet4" \
     "-chain=regtest" \
     "-chain=signet" \

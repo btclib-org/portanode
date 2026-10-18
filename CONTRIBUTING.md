@@ -284,15 +284,21 @@ shares: `git -C <worktree> rev-parse --git-path hooks` answers with the
 maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
+**`shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
+helpers**, which the Alice `-clean` launchers and the mainnet launchers
+use to find a running node. No workflow runs it, so a change to them runs
+it by hand, with `bash`:
+
+```shell
+bash shared/tests/node-detection.sh
+```
+
 **What the gate does not reach is running the thing this repository
 ships.** The hooks read prose, configuration and, through `shellcheck`,
 the `.sh` and `.command` launchers themselves — `shellcheck` reads a
 launcher by its shebang rather than by directory, so `linux/scripts/`'s
 own `.sh` files are in scope already and reaching them added no hook —
-but nothing here runs one. `shared/tests/node-detection.sh` runs the
-helpers of `shared/lib.sh` that find a running node, on process lists it
-supplies, with `bash shared/tests/node-detection.sh`; no workflow runs it.
-For the launchers themselves, what stands in for a suite is running the
+but nothing here runs one. So what stands in for a suite is running the
 launcher on a macOS, a Windows and a Linux machine, from a volume that
 is not the boot disk — which is the case the paths in these scripts
 exist for, and the one a checkout on an internal disk never exercises.
