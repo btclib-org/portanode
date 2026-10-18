@@ -90,8 +90,13 @@ if loc="$(_utf8_locale)"; then
     expect 0 "found under LC_ALL=$loc on a line holding a byte that is not UTF-8" \
         under "$loc" listing "bitcoind -uacomment="$'\xff'" $ARG" \
         process_running_with "$ARG"
-    expect 0 "found under LC_ALL=$loc whatever the case of a letter outside ASCII" \
-        under "$loc" listing "bitcoind ${ARG/è/È}" process_running_with "$ARG"
+    for caller in "$loc" C; do
+        expect 0 "found under LC_ALL=$caller whatever the case of a letter outside ASCII" \
+            under "$caller" listing "bitcoind ${ARG/è/È}" \
+            process_running_with "$ARG"
+    done
+    expect 0 "found with no locale variable set whatever the case of a letter outside ASCII" \
+        without_locale listing "bitcoind ${ARG/è/È}" process_running_with "$ARG"
 else
     echo "This machine has no UTF-8 locale."
     expect 2 "a string outside ASCII answers 2" process_running_with "$ARG"
@@ -106,6 +111,8 @@ expect 1 "no UTF-8 locale: a string in ASCII no process holds answers 1" \
 
 expect 2 "a string holding a tab, which ps escapes, answers 2" \
     process_running_with "$ARG"$'\t'
+expect 2 "a string holding a byte that is not UTF-8 answers 2" \
+    process_running_with "$ARG"$'\xff'
 
 if [ "$failures" -ne 0 ]; then
     echo "$failures case(s) failed"

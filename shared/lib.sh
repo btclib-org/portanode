@@ -132,15 +132,18 @@ _ps_shows() {
 # list is read in full before grep starts, so grep's own command line,
 # which carries the string, is not in it.
 #
-# The list is searched twice. Under a UTF-8 locale, macOS grep finds
-# nothing after a byte that is not UTF-8 on the same line, and macOS ps
-# prints such a byte as itself under C.UTF-8. Under C, grep compares bytes
-# and folds the case of ASCII letters only, so "È" does not match "è" there.
+# The list is searched twice, whatever the caller's locale. The first
+# search runs under the UTF-8 locale, where there is one, because under C
+# grep folds the case of ASCII letters only, so "È" does not match "è"
+# there. The second runs under C, because under a UTF-8 locale macOS grep
+# finds nothing after a byte that is not UTF-8 on the same line, and macOS
+# ps prints such a byte as itself under C.UTF-8.
 process_running_with() {
-    local procs first
+    local procs loc first
     _ps_shows "$1" || return 2
     procs="$(_process_args)" || return 2
-    grep -q -i -F -e "$1" <<<"$procs"
+    loc="$(_utf8_locale)" || loc=C
+    LC_ALL="$loc" grep -q -i -F -e "$1" <<<"$procs"
     first=$?
     [ "$first" -eq 0 ] && return 0
     LC_ALL=C grep -q -i -F -e "$1" <<<"$procs"
