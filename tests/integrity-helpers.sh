@@ -138,6 +138,23 @@ else
         [ "$rc" -ne 0 ] && [ -z "$h" ]; }
     check ok "tree_hash prints nothing and fails on an unreadable file" \
         unreadable "$B"
+    # Under the updaters' set -euo pipefail, with each bash at hand (macOS's
+    # /bin/bash is 3.2): the refusal leaves no temporary directory, and
+    # stderr holds shasum's or sha256sum's refusal and nothing else.
+    cleans_up() {
+        local sh="$1" td out rc=0
+        td="$(mktemp -d "$T/tmpdir.XXXXXX")"
+        out="$(TMPDIR="$td" "$sh" -c \
+            'set -euo pipefail; . "$1"; tree_hash "$2"' _ \
+            "$REPO/shared/utilities/lib.sh" "$B" 2>&1)" || rc=$?
+        [ "$rc" -ne 0 ] && [ -z "$(ls -A "$td")" ] &&
+            ! printf '%s\n' "$out" | grep -qv 'Permission denied'
+    }
+    for sh in $(printf '%s\n' "$BASH" /bin/bash | sort -u); do
+        [ -x "$sh" ] || continue
+        check ok "a failed tree_hash leaves no temporary directory ($sh)" \
+            cleans_up "$sh"
+    done
     chmod 644 "$B/Contents/Resources/other.py"
 fi
 

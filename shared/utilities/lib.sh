@@ -93,8 +93,13 @@ tree_hash() {
         # command once on empty input; BSD xargs accepts the flag.
         ( cd "$path" || exit 1
           set -o pipefail
-          local tmp out
-          tmp="$(mktemp -d)" || exit 1
+          # No "local": the subshell already scopes tmp and out, and on
+          # macOS's bash 3.2 a local is gone by the time the EXIT trap
+          # runs on "exit 1", which leaves the directory behind.
+          # A template, because macOS's mktemp -d without one ignores
+          # TMPDIR.
+          tmp="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tree-hash.XXXXXX")" \
+              || exit 1
           trap 'rm -rf "$tmp"' EXIT
           find . -type f ! -name '._*' -print0 | LC_ALL=C sort -z \
               > "$tmp/files" || exit 1
