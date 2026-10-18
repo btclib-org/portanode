@@ -131,16 +131,24 @@ _ps_shows() {
 # match itself there, and a guard built on it reports no process. The
 # list is read in full before grep starts, so grep's own command line,
 # which carries the string, is not in it.
+#
+# The list is searched twice. Under a UTF-8 locale, macOS grep finds
+# nothing after a byte that is not UTF-8 on the same line, and macOS ps
+# prints such a byte as itself under C.UTF-8. Under C, grep compares bytes
+# and folds the case of ASCII letters only, so "È" does not match "è" there.
 process_running_with() {
-    local procs
+    local procs first
     _ps_shows "$1" || return 2
     procs="$(_process_args)" || return 2
     grep -q -i -F -e "$1" <<<"$procs"
+    first=$?
+    [ "$first" -eq 0 ] && return 0
+    LC_ALL=C grep -q -i -F -e "$1" <<<"$procs"
     case $? in
         0) return 0 ;;
-        1) return 1 ;;
-        *) return 2 ;;
+        1) [ "$first" -eq 1 ] && return 1 ;;
     esac
+    return 2
 }
 
 # regtest_node_running_on and mainnet_node_running read a command line as a

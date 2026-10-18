@@ -34,7 +34,7 @@ expect() {
 }
 
 # without_locale <command> [argument...]: runs the command with no locale
-# variable set, as a launcher started outside Terminal is.
+# variable set.
 without_locale() {
     unset LANG LC_ALL LC_CTYPE
     "$@"
@@ -42,8 +42,18 @@ without_locale() {
 
 # under <locale> <command> [argument...]
 under() {
-    export LC_ALL="$1"
+    local loc="$1"
     shift
+    LC_ALL="$loc" "$@"
+}
+
+# listing <lines> <command> [argument...]: runs the command with <lines> as
+# the process list.
+listing() {
+    PROCS="$1"
+    shift
+    # shellcheck disable=SC2329 # the functions of lib.sh call it
+    _process_args() { printf '%s\n' "$PROCS"; }
     "$@"
 }
 
@@ -77,6 +87,11 @@ if loc="$(_utf8_locale)"; then
     expect 0 "found under LC_ALL=$loc" under "$loc" process_running_with "$ARG"
     expect 1 "a string outside ASCII no process holds answers 1" \
         process_running_with "$ARG-absent"
+    expect 0 "found under LC_ALL=$loc on a line holding a byte that is not UTF-8" \
+        under "$loc" listing "bitcoind -uacomment="$'\xff'" $ARG" \
+        process_running_with "$ARG"
+    expect 0 "found under LC_ALL=$loc whatever the case of a letter outside ASCII" \
+        under "$loc" listing "bitcoind ${ARG/è/È}" process_running_with "$ARG"
 else
     echo "This machine has no UTF-8 locale."
     expect 2 "a string outside ASCII answers 2" process_running_with "$ARG"
