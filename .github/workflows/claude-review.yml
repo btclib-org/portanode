@@ -109,10 +109,10 @@ jobs:
       # the gates instruction
       extra-prompt: |
         What this repository ships is launchers and prose. Nothing
-        here starts what a launcher launches, so a change to that is
-        verified by running the launcher on the platform it is for,
-        from a volume that is not the boot disk -- which no job does,
-        this one included. A review that reasons about what a script
+        here starts what a launcher launches -- no job does, this one
+        included -- so a change to that is verified by running the
+        launcher on the platform it is for, from a volume that is not
+        the boot disk. A review that reasons about what a script
         would do says so in those words rather than reporting a trace
         as a run.
     secrets:
