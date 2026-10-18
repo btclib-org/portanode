@@ -82,7 +82,9 @@ with a "binary not found" rather than with anything naming the cause.
 ## Cutting one
 
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
-   --all-files`, exit code 0, then `git status --porcelain` empty.
+   --all-files`, exit code 0, then `git status --porcelain` empty. Run
+   the command that reads the open alerts now as well, so that a
+   fix it asks for lands before the release notes do.
 1. Decide the date, and make the three files say it. `CHANGELOG.md`
    gains `## v<version>`, the tag's own heading, alone on its line,
    above the previous release's. The first line of its body says what
@@ -117,13 +119,16 @@ with a "binary not found" rather than with anything naming the cause.
       && gh api --paginate \
         'repos/btclib-org/portanode/code-scanning/alerts?state=open' \
         --jq '.[] | "code-scanning \(.number) \(.rule.id) \(.html_url)"'; }) \
-      && printf '%s\n' "$open" && test -z "$open"
+      && { test -z "$open" || { printf '%s\n' "$open"; false; }; }
     ```
 
-    Fix an alert, or dismiss it on its page with the reason GitHub asks
-    for, and run the command again. A call that does not answer (404,
-    403) stops the release as an open alert does. Both calls answer to
-    the `repo` scope of `gh auth login`.
+    Fix the alert and run the command again. Only a class that [section
+    10 of the organization
+    standard](https://github.com/btclib-org/.github#10-workflows) names
+    in its *scorecard* entry may be dismissed, with reason `won't fix`
+    and the citation that entry asks for. A call that does not answer
+    (404, 403) stops the release as an open alert does. Both calls answer
+    to the `repo` scope of `gh auth login`.
 1. Tag the merged commit, **signed**, from the primary checkout brought
    forward under `CLAUDE.md`'s *The primary checkout is the maintainer's*
    preconditions — on `main` and clean — plus the ancestry `--ff-only`
