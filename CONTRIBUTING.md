@@ -372,6 +372,10 @@ opinion for you to weigh. Neither belongs in a branch rule.
 `verified-signatures.yml` reports after each push to `main` whether every
 commit pushed is `verified`; [the standard's *Signatures*][s-sigs] has the rule.
 
+`scorecard.yml` runs the OpenSSF Scorecard after each push to `main` and
+weekly, and publishes the score the `README.md` badge shows. It does not
+run on a pull request.
+
 What holds a pull request is the review and green checks, and what
 holds every commit that reaches `main` — linear history, no
 force push, no deletion — is a ruleset with no bypass actor.
