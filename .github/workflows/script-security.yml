@@ -18,9 +18,11 @@ name: script-security
 # those files that is neither printable ASCII nor ASCII whitespace:
 # Blinter upper-cases a line with Python before it looks for the
 # directive, which turns a dotless i into I, and git grep folds ASCII
-# only, so ASCII text is what lets the two read the same directive. Both
-# tools' other rules stay by hand, as CONTRIBUTING.md's last section
-# says.
+# only, so ASCII text is what lets the two read the same directive. It
+# fails on a CR not followed by LF as well: Blinter ends a line at a lone
+# CR and sed below does not, so the two would number lines differently
+# and a finding's key could take another line's text. Both tools' other
+# rules stay by hand, as CONTRIBUTING.md's last section says.
 #
 # Blinter's SEC rules fire on lines that .pre-commit-config.yaml's header
 # calls no defect. .github/blinter-accepted.tsv records each one by rule
@@ -99,9 +101,10 @@ jobs:
         run: |
           t="$RUNNER_TEMP"
           rc=0
-          LC_ALL=C git grep -n -E '[^[:print:][:space:]]' -- '*.bat' '*.cmd' || rc=$?
+          LC_ALL=C git grep -n -E -e '[^[:print:][:space:]]' -e $'\r.' \
+            -- '*.bat' '*.cmd' || rc=$?
           if [ "$rc" -eq 0 ]; then
-            echo "::error::a byte neither printable ASCII nor whitespace"
+            echo "::error::a byte neither printable ASCII nor whitespace, or a CR without LF"
             exit 1
           elif [ "$rc" -ne 1 ]; then
             exit "$rc"

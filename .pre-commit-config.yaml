@@ -66,7 +66,8 @@
 # that are no defect are listed in .github/blinter-accepted.tsv rather
 # than marked in the scripts, and the job refuses a LINT:IGNORE
 # directive in any of them, and any byte neither printable ASCII nor
-# ASCII whitespace, through which Blinter could read one.
+# ASCII whitespace, through which Blinter could read one, and any CR
+# not followed by LF, at which Blinter ends a line the job does not.
 #
 # Skip a hook with SKIP=<id>.
 ci:
