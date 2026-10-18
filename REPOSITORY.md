@@ -133,10 +133,7 @@ standard][s11-branch] allows no bypass in such a tree. So a pull request
 lands only once somebody other than its author has approved it, the
 maintainer's own included. btclib-org/.github's
 [`GOVERNANCE.md`][governance], *How a decision is made*, says what is
-done in an emergency. The maintainer's own bypass, in `pull_request`
-mode, is removed right after the pull request recording this lands
-([ISS 647](https://github.com/btclib-org/portanode/issues/647)). This
-reads the bypass back:
+done in an emergency. This reads the bypass actors back:
 
 ```shell
 gh api repos/btclib-org/portanode/rulesets/20736361 --jq '.bypass_actors'
