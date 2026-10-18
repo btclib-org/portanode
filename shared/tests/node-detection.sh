@@ -16,6 +16,8 @@ FAILED=0
 CASES=0
 PROCS=""
 
+# the functions of lib.sh call it
+# shellcheck disable=SC2329
 _process_args() {
     printf '%s' "$PROCS"
 }
@@ -112,6 +114,7 @@ PROCS=$'/bin/ls /Volumes/btc-testnet-old\n'
 expect 1 "no node running (mainnet)" mainnet_node_running
 
 # A process list that cannot be read answers 2 and not "no node".
+# shellcheck disable=SC2329
 _process_args() {
     return 1
 }
