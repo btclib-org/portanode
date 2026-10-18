@@ -1,0 +1,82 @@
+---
+name: tests
+
+# the suite under tests/, on each platform the launchers are for:
+# tests/run.sh on Linux and macOS, tests/run.ps1 on Windows under both
+# PowerShell editions. tests/README.md says what it covers and how to add a
+# test.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # closed too, for the reason lint.yml gives at the same line
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # keyed as lint.yml's group is, and for its reasons
+  group: tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  posix:
+    name: Tests (${{ matrix.os }})
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # /bin/bash, which on macOS is the bash a .command starts with
+      - name: Run the suite
+        run: /bin/bash tests/run.sh
+
+  windows:
+    name: Tests (windows-latest, ${{ matrix.shell }})
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # PowerShell 7 and Windows PowerShell 5.1, which win/scripts/root.ps1
+        # says differ in how they run a script by its path
+        shell: [pwsh, powershell]
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run the suite
+        shell: ${{ matrix.shell }}
+        run: .\tests\run.ps1
+
+  tests:
+    # the one context for a branch rule to name: a matrix job's names change
+    # with its matrix, this one's does not. It passes where every job above
+    # did. lint.yml's header says why the rule follows a green run rather
+    # than landing with the workflow
+    name: Tests
+    if: ${{ always() && !github.event.pull_request.draft && github.event.action != 'closed' }}
+    needs: [posix, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check that every platform passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          for result in $RESULTS; do
+            [ "$result" = success ] || exit 1
+          done

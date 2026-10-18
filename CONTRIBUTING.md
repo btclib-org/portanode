@@ -284,15 +284,30 @@ shares: `git -C <worktree> rev-parse --git-path hooks` answers with the
 maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
-**What the gate does not reach is running the thing this repository
-ships.** The hooks read prose, configuration and, through `shellcheck`,
-the `.sh` and `.command` launchers themselves — `shellcheck` reads a
-launcher by its shebang rather than by directory, so `linux/scripts/`'s
-own `.sh` files are in scope already and reaching them added no hook —
-but nothing here runs one. So what stands in for a suite is running the
-launcher on a macOS, a Windows and a Linux machine, from a volume that
-is not the boot disk — which is the case the paths in these scripts
-exist for, and the one a checkout on an internal disk never exercises.
+**The suite under `tests/` runs the launchers and their helpers**, with
+`bash` on macOS and Linux and with PowerShell on Windows, and
+`tests.yml` runs it on all three on every pull request. On macOS and
+Linux:
+
+```shell
+bash tests/run.sh
+```
+
+`tests/README.md` has the Windows command, what the suite covers, and
+how a test is added. **A major change adds or updates tests there**:
+one that gives a launcher or a helper a new behaviour, or corrects one.
+
+**What neither the gate nor the suite reaches is a launcher starting
+what it launches.** The hooks read prose, configuration and, through
+`shellcheck`, the `.sh` and `.command` launchers themselves —
+`shellcheck` reads a launcher by its shebang rather than by directory,
+so `linux/scripts/`'s own `.sh` files are in scope already and reaching
+them added no hook. The suite runs a launcher's menu and leaves it, no
+binary being in the tree. So a change to what a launcher starts is
+verified by running it on a macOS, a Windows and a Linux machine, from a
+volume that is not the boot disk — which is the case the paths in these
+scripts exist for, and the one a checkout on an internal disk never
+exercises.
 
 **The `.bat` and `.ps1` halves are read by the generic hooks and by no
 parser.** PowerShell's is PSScriptAnalyzer, and

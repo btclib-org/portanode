@@ -5,11 +5,9 @@ name: lint
 # second list of the same tools: a commit and CI then enforce one thing,
 # and a hook added to that file needs no edit here.
 #
-# It is the whole of what a merge here can be gated on. There is no suite
-# and no documentation build in this tree -- what stands in for one is
-# running a launcher on the platform it is for, which no runner does --
-# so the hooks are the only answer a workflow can produce about the
-# checkout, and CONTRIBUTING.md's last section says what they leave uncovered.
+# The suite is tests.yml's, and there is no documentation build in this
+# tree. CONTRIBUTING.md's last section says what the hooks and the suite
+# leave uncovered.
 #
 # A job's name becomes a required context, and that is a
 # second step rather than part of this one: a required context nothing
