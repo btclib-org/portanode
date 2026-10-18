@@ -104,7 +104,7 @@ while IFS= read -r f; do
     # `|| exit 1` is gone, prints or fails with something more.
     # A script under `set -e` stops without it, so the run above cannot
     # tell, and the line is read as well.
-    grep -q '^ROOTDIR="\$(resolve_root "\$SCRIPT_DIR")" || exit 1$' "$REPO/$f" ||
+    grep -q "^ROOTDIR=\"\$(resolve_root \"\$SCRIPT_DIR\")\" || exit 1\$" "$REPO/$f" ||
         fail "$f: the call to resolve_root is not followed by || exit 1"
     [ "$out" = "$refusal" ] || fail "$f: printed '$out', wanted the refusal alone"
 done < <(git -C "$REPO" grep -l "^ROOTDIR=\"\$(resolve_root" -- '*.sh' '*.command')
