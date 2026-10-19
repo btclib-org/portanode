@@ -103,17 +103,29 @@ _process_args() {
     LC_ALL="$loc" ps -A -ww -o args=
 }
 
+# _printable_ascii <string>: 0 where every character of <string> is printable
+# ASCII; 1 otherwise.
+_printable_ascii() {
+    (
+        LC_ALL=C
+        case $1 in (*[![:print:]]*) exit 1 ;; esac
+    )
+}
+
 # _ps_shows <string>: 0 where _process_args prints <string> as itself; 1
 # where it may print it otherwise. Printable ASCII it prints as itself. Any
 # other character it prints as itself only under a UTF-8 locale that calls
 # it printable: macOS ps prints a tab as "\011" even under C.UTF-8.
+#
+# A byte that is not UTF-8 is refused by grep, not by the case below:
+# bash 3.2 calls such a byte printable under a UTF-8 locale. Under that
+# locale "." matches no such byte, so grep -v -x '.*' finds it.
 _ps_shows() {
     local loc
-    (
-        LC_ALL=C
-        case $1 in (*[![:print:]]*) exit 1 ;; esac
-    ) && return 0
+    _printable_ascii "$1" && return 0
     loc="$(_utf8_locale)" || return 1
+    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$1"
+    [ $? -eq 1 ] || return 1
     (
         LC_ALL=$loc
         case $1 in (*[![:print:]]*) exit 1 ;; esac
@@ -122,9 +134,9 @@ _ps_shows() {
 
 # process_running_with <string>: 0 where the command line of a running
 # process holds <string>, ignoring case; 1 where none does; 2 where the
-# process list could not be read or searched, or ps may not print <string>
-# as itself (_ps_shows), which a caller about to delete something treats
-# as 0.
+# process list could not be read or searched, ps may not print <string> as
+# itself (_ps_shows), or both searches below may miss it, which a caller
+# about to delete something treats as 0.
 #
 # The string is compared as a string. pgrep -f reads its pattern as an
 # extended regular expression, so a path holding "(", "+" or "[" does not
@@ -138,6 +150,10 @@ _ps_shows() {
 # there. The second runs under C, because under a UTF-8 locale macOS grep
 # finds nothing after a byte that is not UTF-8 on the same line, and macOS
 # ps prints such a byte as itself under C.UTF-8.
+#
+# Both searches can miss a string outside ASCII on a line that is not
+# UTF-8, for the reasons above. Where the list holds such a line, found
+# as in _ps_shows, the answer is 2, not 1.
 process_running_with() {
     local procs loc first
     _ps_shows "$1" || return 2
@@ -149,8 +165,12 @@ process_running_with() {
     LC_ALL=C grep -q -i -F -e "$1" <<<"$procs"
     case $? in
         0) return 0 ;;
-        1) [ "$first" -eq 1 ] && return 1 ;;
+        1) [ "$first" -eq 1 ] || return 2 ;;
+        *) return 2 ;;
     esac
+    _printable_ascii "$1" && return 1
+    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$procs"
+    [ $? -eq 1 ] && return 1
     return 2
 }
 
