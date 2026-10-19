@@ -358,9 +358,8 @@ REM field is the hash and its second the entry path, each compared whole,
 REM as shared/utilities/lib.sh's verify_checksum_entry compares them: a
 REM substring test reads a line as naming any path its own text holds
 REM (#657). The path is compared without regard to case, as Windows
-REM resolves one. '\s+' carries one backslash: powershell.exe keeps a
-REM backslash literal unless it precedes a double quote, so a doubled one
-REM would reach the regex as a literal backslash.
+REM resolves one. '\s+' carries one backslash, for the reason
+REM latest-electrum-version.ps1's header gives.
 powershell -NoProfile -Command "& { $path = $env:CHECKPATH_ENTRY; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:FILEPATH_FS; if (-not $fh) { Write-Host ('Error: could not hash ' + $env:FILEPATH_REL + '.'); exit 1 } $found = $false; foreach ($l in (Get-Content -LiteralPath $checksum)) { $w = $l.Trim() -split '\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\','/') -ieq $path) { $found = $true; break } } if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0

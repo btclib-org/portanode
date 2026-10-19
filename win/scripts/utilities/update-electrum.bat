@@ -187,7 +187,7 @@ exit /b 0
 REM Download/verify on the local disk (%TEMP%), never on the removable volume;
 REM only the final, verified electrum.exe is copied onto win\bin. Created
 REM here, after the --dry-run exit above, so a dry run never leaves an empty
-REM directory behind. The name and the checks are update-bitcoin.bat's,
+REM directory behind. The naming scheme and the checks are update-bitcoin.bat's,
 REM for the reasons its own comment gives (#653).
 set "TMP_ID="
 for /f "usebackq delims=" %%G in (`powershell -NoProfile -Command "[guid]::NewGuid().ToString('N')"`) do set "TMP_ID=%%G"
