@@ -23,7 +23,7 @@ case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, 
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd -P)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
-ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
 echo ROOTDIR is "${ROOTDIR}"
 BIN_DIR="${ROOTDIR}/linux/bin"
 BTC_QT="${BIN_DIR}/bitcoin-qt"
@@ -45,7 +45,7 @@ fi
 
 # Refuse to wipe regtest data while a regtest node is using this datadir: on
 # Unix "rm -rf" deletes files held open by the running process and corrupts it.
-process_running_with "-datadir=${ROOTDIR}/bitcoin-datadir -regtest"
+regtest_node_running_on "${ROOTDIR}/bitcoin-datadir"
 case $? in
     0)
         echo "Error: a regtest Bitcoin process is using bitcoin-datadir."
@@ -95,5 +95,6 @@ FILENAME="${BASENAME%.*}"
   -uacomment="${FILENAME}" \
   -datadir="${DATADIR}" \
   -regtest \
+  -server \
   -addnode=localhost:18555 \
   -addnode=localhost:18666

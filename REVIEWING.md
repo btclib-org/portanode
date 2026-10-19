@@ -601,8 +601,10 @@ because that document, and not this one, is where the rule lives.
   from the `.bat` that calls them; `free-space-gb.ps1` and
   `filesystem-type.ps1` take `$Path`, and `set-datadir-acl.ps1` takes an
   `$Account` beside its own; `latest-bitcoin-version.ps1` and
-  `latest-electrum-version.ps1` take no parameter and reach no root; and
-  `win/scripts/root.ps1` is the walk itself, its `$StartDir` naming where
+  `latest-electrum-version.ps1` take no parameter and reach no root;
+  `win/scripts/bitcoin/node-args.ps1` and its test,
+  `tests/win/node-args.ps1`, read command lines and reach no root either;
+  and `win/scripts/root.ps1` is the walk itself, its `$StartDir` naming where
   the search begins rather than what it finds. The assignment pattern
   carries PowerShell's `$name = value` beside `NAME=value`, so a `.ps1`
   line assigning from `$Root` is one the walk can follow, and `Join-Path`

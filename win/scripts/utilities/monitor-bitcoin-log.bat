@@ -12,6 +12,10 @@ REM reads a bang-delimited variable, so disabling it outright costs
 REM nothing.
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 set "LOG_FILE=%ROOTDIR%\bitcoin-datadir\debug.log"
 
@@ -34,11 +38,19 @@ if not exist "%LOG_FILE%" (
     exit /b 0
 )
 
+REM System32 is the current directory from here to the popd below:
+REM root.bat's :leave_folder says why.
+call "%SCRIPT_DIR%..\root.bat" :leave_folder
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 REM Run from its own directory by a relative name: win/scripts/root.ps1
 REM says why, and the values arrive as $env: reads.
 powershell -NoProfile -ExecutionPolicy Bypass ^
   -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\monitor-bitcoin-log.ps1 -RootDir $env:ROOTDIR %NO_NOTIFY_ARG%; exit $LASTEXITCODE"
 set "ERR=%ERRORLEVEL%"
+popd >nul 2>&1
 
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b %ERR%

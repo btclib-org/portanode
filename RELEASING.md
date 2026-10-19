@@ -76,13 +76,17 @@ Each walks up from its own location until it finds a directory holding a
 `VERSION` file and at least one platform directory beside it — `shared/`
 being sourced by every platform's own `lib.sh`, `macos/scripts/lib.sh`
 included — before falling back. Renaming that file, or deleting it,
-breaks every launcher that was not given `PORTANODE_ROOT`, and does so
-with a "binary not found" rather than with anything naming the cause.
+breaks every launcher. One given `PORTANODE_ROOT` stops with a message
+naming that variable; the others fall back to their own folder and fail
+with a "not found" error, such as `Error: Binaries directory not found at
+macos/bin`, rather than with anything naming the cause.
 
 ## Cutting one
 
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
-   --all-files`, exit code 0, then `git status --porcelain` empty.
+   --all-files`, exit code 0, then `git status --porcelain` empty. Run
+   the alert command of the step before the tag here too, so that a fix
+   lands before the release notes do.
 1. Decide the date, and make the three files say it. `CHANGELOG.md`
    gains `## v<version>`, the tag's own heading, alone on its line,
    above the previous release's. The first line of its body says what
@@ -106,6 +110,25 @@ with a "binary not found" rather than with anything naming the cause.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
+1. Read the open alerts and stop while any is open. The command prints
+   each open Dependabot and code-scanning alert, and exits `0` only
+   where there is none and both calls answered:
+
+    ```shell
+    open=$({ gh api --paginate \
+        'repos/btclib-org/portanode/dependabot/alerts?state=open' \
+        --jq '.[] | "dependabot \(.number) \(.dependency.package.name)"' \
+      && gh api --paginate \
+        'repos/btclib-org/portanode/code-scanning/alerts?state=open' \
+        --jq '.[] | "code-scanning \(.number) \(.rule.id) \(.html_url)"'; }) \
+      && { test -z "$open" || { printf '%s\n' "$open"; false; }; }
+    ```
+
+    Fix the alert and run the command again. A Scorecard alert may be
+    dismissed only as [section 10 of the organization
+    standard](https://github.com/btclib-org/.github#10-workflows)'s
+    *scorecard* entry allows. A call that fails (404, 403) stops the
+    release as an open alert does.
 1. Tag the merged commit, **signed**, from the primary checkout brought
    forward under `CLAUDE.md`'s *The primary checkout is the maintainer's*
    preconditions — on `main` and clean — plus the ancestry `--ff-only`

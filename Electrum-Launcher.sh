@@ -24,7 +24,7 @@ resolve_symlink() {
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd)"
 . "$SCRIPT_DIR/shared/lib.sh"
-ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
 UNAME="$(uname -s 2>/dev/null || true)"
 
 case "$UNAME" in

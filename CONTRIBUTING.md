@@ -284,6 +284,15 @@ shares: `git -C <worktree> rev-parse --git-path hooks` answers with the
 maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
+**`shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
+helpers**, which the Alice `-clean` launchers and the mainnet launchers
+use to find a running node. No workflow runs it, so a change to them runs
+it by hand, with `bash`:
+
+```shell
+bash shared/tests/node-detection.sh
+```
+
 **What the gate does not reach is running the thing this repository
 ships.** The hooks read prose, configuration and, through `shellcheck`,
 the `.sh` and `.command` launchers themselves — `shellcheck` reads a
@@ -306,6 +315,15 @@ pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
 
 Its `ParseError` severity is PowerShell's own parser refusing the file,
 which is a different answer from a style finding.
+
+**`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
+which the Windows mainnet launcher uses to read a running node's network
+switches. No workflow runs it: run it by hand after changing that file.
+It starts no process, so `pwsh` runs it on any system:
+
+```shell
+pwsh -NoProfile -File tests/win/node-args.ps1
+```
 
 `.bat` has Blinter, which installs under uv alone:
 

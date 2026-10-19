@@ -474,9 +474,9 @@ list, and it is the only list.
   Core starts, while testnet3, testnet4 and regtest each get their own
   `bitcoin-datadir/<network>/wallets/` — see `bitcoin-datadir/README.md`.
   Use encrypted storage.
-- **Network Security**: Bitcoin Core RPC is enabled in `bitcoin.conf`. Bind to
-  localhost only and use strong passwords. Configure firewall to restrict
-  access.
+- **Network Security**: see the `[rpc]` and `[secrets]` comments in
+  `bitcoin-datadir/bitcoin.conf` for where RPC is open and where passwords
+  go; where RPC is on, bind to localhost and restrict it with the firewall.
 - **Permissions**: `./macos/scripts/utilities/set-permissions.sh`,
   `win/scripts/utilities/set-permissions.bat`, or
   `./linux/scripts/utilities/set-permissions.sh` restrict data-directory
