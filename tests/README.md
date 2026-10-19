@@ -19,8 +19,9 @@ case checks, and exits 1 where any case failed or any test file exited
 non-zero.
 
 What the suite does not reach is a launcher starting Bitcoin Core or
-Electrum, from a volume that is not the boot disk: no binary is in the
-tree, and a runner has no such volume.
+Electrum: no binary is in the tree. On Windows, CI runs the menus from a
+checkout on `D:`, with Windows on `C:`; on macOS and Linux it runs them
+from the runner's home directory.
 
 ## Adding a test
 
