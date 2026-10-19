@@ -110,6 +110,34 @@ macos/bin`, rather than with anything naming the cause.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
+1. Check that `VERIFYING.md` names the key that is about to sign. Git
+   signs with `user.signingkey`; where it is unset, git signs with the
+   committer identity, and the command prints an error naming `key`, then
+   `not named: none`.
+   The command reads the secret keyring, because a name that two keys
+   share can match a public key this machine cannot sign with. Where the
+   setting matches no secret key or more than one, it names none.
+   Otherwise it looks for the primary key's fingerprint, spaces aside, in
+   the key list of `origin/main`'s `VERIFYING.md`:
+
+    ```shell
+    key=$(git config user.signingkey)
+    primary=$(gpg --with-colons --list-secret-keys "${key:?}" \
+      | awk -F: '$1=="sec"{n++} $1=="fpr"&&n==1&&f==""{f=$10}
+          END{if(n==1)print f; exit n!=1}') \
+      && git fetch origin \
+      && git show origin/main:VERIFYING.md | grep '^- primary key:' \
+        | tr -d ' ' | grep -qF "${primary:?}" \
+      && echo "named" || echo "not named: ${primary:-none}"
+    ```
+
+    `not named: none` means that `user.signingkey` is unset, or matched no
+    secret key or several, so the setting is what changes, not
+    `VERIFYING.md`. Where it
+    answers `not named` with a fingerprint, change `VERIFYING.md` to name that
+    primary key and its signing subkey, and land the change as a pull
+    request before the tag. A tag signed by a key the file does not
+    name is not a release (`VERIFYING.md`, *Who signs the tags*).
 1. Read the open alerts and stop while any is open. The command prints
    each open Dependabot and code-scanning alert, and exits `0` only
    where there is none and both calls answered:
