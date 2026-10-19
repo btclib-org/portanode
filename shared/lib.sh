@@ -76,32 +76,82 @@ resolve_root() {
     (cd "$start_dir" && pwd -P)
 }
 
+# _utf8_locale: prints the name of a UTF-8 locale this machine has; 1 where
+# it finds none.
+_utf8_locale() {
+    local loc
+    for loc in C.UTF-8 en_US.UTF-8; do
+        if [ "$(LC_ALL=$loc locale charmap 2>/dev/null)" = UTF-8 ]; then
+            printf '%s\n' "$loc"
+            return 0
+        fi
+    done
+    return 1
+}
+
 # _process_args: one line per running process, holding its arguments as
 # ps prints them. A test replaces this function to feed the functions below
 # a process list of its own.
+#
+# ps runs under a UTF-8 locale where the machine has one, whatever the
+# caller's locale: under C, macOS ps prints "è" as "M-CM-(", and a path
+# holding it never matches itself. Without one, ps runs under C, and
+# _ps_shows refuses every string that is not printable ASCII.
 _process_args() {
-    ps -A -ww -o args=
+    local loc
+    loc="$(_utf8_locale)" || loc=C
+    LC_ALL="$loc" ps -A -ww -o args=
+}
+
+# _ps_shows <string>: 0 where _process_args prints <string> as itself; 1
+# where it may print it otherwise. Printable ASCII it prints as itself. Any
+# other character it prints as itself only under a UTF-8 locale that calls
+# it printable: macOS ps prints a tab as "\011" even under C.UTF-8.
+_ps_shows() {
+    local loc
+    (
+        LC_ALL=C
+        case $1 in (*[![:print:]]*) exit 1 ;; esac
+    ) && return 0
+    loc="$(_utf8_locale)" || return 1
+    (
+        LC_ALL=$loc
+        case $1 in (*[![:print:]]*) exit 1 ;; esac
+    )
 }
 
 # process_running_with <string>: 0 where the command line of a running
 # process holds <string>, ignoring case; 1 where none does; 2 where the
-# process list could not be read or searched, which a caller about to
-# delete something treats as 0.
+# process list could not be read or searched, or ps may not print <string>
+# as itself (_ps_shows), which a caller about to delete something treats
+# as 0.
 #
 # The string is compared as a string. pgrep -f reads its pattern as an
 # extended regular expression, so a path holding "(", "+" or "[" does not
 # match itself there, and a guard built on it reports no process. The
 # list is read in full before grep starts, so grep's own command line,
 # which carries the string, is not in it.
+#
+# The list is searched twice, whatever the caller's locale. The first
+# search runs under the UTF-8 locale, where there is one, because under C
+# grep folds the case of ASCII letters only, so "È" does not match "è"
+# there. The second runs under C, because under a UTF-8 locale macOS grep
+# finds nothing after a byte that is not UTF-8 on the same line, and macOS
+# ps prints such a byte as itself under C.UTF-8.
 process_running_with() {
-    local procs
+    local procs loc first
+    _ps_shows "$1" || return 2
     procs="$(_process_args)" || return 2
-    grep -q -i -F -e "$1" <<<"$procs"
+    loc="$(_utf8_locale)" || loc=C
+    LC_ALL="$loc" grep -q -i -F -e "$1" <<<"$procs"
+    first=$?
+    [ "$first" -eq 0 ] && return 0
+    LC_ALL=C grep -q -i -F -e "$1" <<<"$procs"
     case $? in
         0) return 0 ;;
-        1) return 1 ;;
-        *) return 2 ;;
+        1) [ "$first" -eq 1 ] && return 1 ;;
     esac
+    return 2
 }
 
 # regtest_node_running_on and mainnet_node_running read a command line as a
@@ -152,21 +202,16 @@ _line_selects_network() {
     return 1
 }
 
-# regtest_node_running_on <datadir>: 0 where a running process was started
-# with -datadir=<datadir> and selects regtest, in either order and in any
-# form Core reads as regtest; 1 where none was; 2 where the process list
-# could not be read, which a caller about to delete something treats as 0.
-# The datadir is compared ignoring case and a trailing slash, and as a whole
-# argument, so a node on a directory inside <datadir> does not answer for it.
-#
-# Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
-# toward "running" costs a refusal, the other way a deleted datadir.
-regtest_node_running_on() {
+# _regtest_node_in <locale> <datadir> <process list>: regtest_node_running_on's
+# search of one list, its letters folded to lower case by tr under <locale>:
+# 0 where a line holds a regtest node on the datadir, 1 where none does, 2
+# where tr failed, as BSD tr does under a UTF-8 locale on a byte that is not
+# UTF-8.
+_regtest_node_in() {
     local dir procs line pad
-    dir="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+    dir="$(printf '%s' "$2" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
     dir="${dir%/}"
-    procs="$(_process_args)" || return 2
-    procs="$(printf '%s\n' "$procs" | tr '[:upper:]' '[:lower:]')" || return 2
+    procs="$(printf '%s\n' "$3" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
     while IFS= read -r line; do
         pad=" $line "
         if { _line_has_arg "$pad" "datadir=$dir" \
@@ -176,6 +221,71 @@ regtest_node_running_on() {
         fi
     done <<<"$procs"
     return 1
+}
+
+# _regtest_node_by_grep <locale> <datadir> <process list>: the same search
+# for a datadir holding a letter outside ASCII, with grep finding the
+# datadir whatever its case, under <locale>. GNU tr does not fold "È" to
+# "è" there, so _regtest_node_in misses an "è" node. Each line grep finds is
+# folded under C, with the text grep matched, and read as _regtest_node_in
+# reads it.
+_regtest_node_by_grep() {
+    local dir="${2%/}" line found pad
+    while IFS= read -r line; do
+        pad=" $(printf '%s' "$line" | LC_ALL=C tr '[:upper:]' '[:lower:]') "
+        while IFS= read -r found; do
+            found="$(printf '%s' "$found" | LC_ALL=C tr '[:upper:]' '[:lower:]')"
+            if { _line_has_arg "$pad" "$found" || _line_has_arg "$pad" "$found/"; } \
+                && _line_selects_network "$pad" regtest regtest; then
+                return 0
+            fi
+        done < <(LC_ALL="$1" grep -a -o -i -F -e "datadir=$dir" <<<"$line" 2>/dev/null)
+    done < <(LC_ALL="$1" grep -a -i -F -e "datadir=$dir" <<<"$3" 2>/dev/null)
+    return 1
+}
+
+# regtest_node_running_on <datadir>: 0 where a running process was started
+# with -datadir=<datadir> and selects regtest, in either order and in any
+# form Core reads as regtest; 1 where none was; 2 where the process list
+# could not be read or searched, or ps may not print <datadir> as itself
+# (_ps_shows), which a caller about to delete something treats as 0.
+# The datadir is compared ignoring case and a trailing slash, and as a whole
+# argument, so a node on a directory inside <datadir> does not answer for it.
+#
+# A datadir in printable ASCII is searched under C, where tr folds case
+# and fails on no byte. Any other datadir is searched under the UTF-8
+# locale as well, whatever the caller's locale, for the reasons
+# process_running_with gives. BSD tr folds a letter outside ASCII there and
+# GNU tr does not, so grep under that locale searches too: GNU grep folds
+# it. A miss is 1 only where the process list is valid UTF-8, because BSD
+# tr fails on a byte that is not, and GNU tr and BSD grep pass over a line
+# holding one without the letter folded or found; otherwise it is 2.
+#
+# Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
+# toward "running" costs a refusal, the other way a deleted datadir.
+regtest_node_running_on() {
+    local procs loc first
+    _ps_shows "$1" || return 2
+    procs="$(_process_args)" || return 2
+    if (LC_ALL=C; case $1 in *[!\ -~]*) exit 1 ;; esac); then
+        _regtest_node_in C "$1" "$procs"
+        return $?
+    fi
+    loc="$(_utf8_locale)" || return 2
+    _regtest_node_in "$loc" "$1" "$procs"
+    first=$?
+    [ "$first" -eq 0 ] && return 0
+    _regtest_node_in C "$1" "$procs"
+    case $? in
+        0) return 0 ;;
+        1) ;;
+        *) first=2 ;;
+    esac
+    _regtest_node_by_grep "$loc" "$1" "$procs" && return 0
+    [ "$first" -eq 1 ] || return 2
+    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$procs"
+    [ $? -eq 1 ] && return 1
+    return 2
 }
 
 # mainnet_node_running: 0 where a running bitcoin-qt or bitcoind selects no
