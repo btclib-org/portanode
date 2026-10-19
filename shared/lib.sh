@@ -225,10 +225,10 @@ _regtest_node_in() {
 
 # _regtest_node_by_grep <locale> <datadir> <process list>: the same search
 # for a datadir holding a letter outside ASCII, with grep finding the
-# datadir whatever its case, under <locale>. GNU tr folds only ASCII letters
-# there, so "È" stays "È" and _regtest_node_in misses an "è" node. Each
-# line grep finds is folded under C, with the text grep matched, and read as
-# _regtest_node_in reads it.
+# datadir whatever its case, under <locale>. GNU tr does not fold "È" to
+# "è" there, so _regtest_node_in misses an "è" node. Each line grep finds is
+# folded under C, with the text grep matched, and read as _regtest_node_in
+# reads it.
 _regtest_node_by_grep() {
     local dir="${2%/}" line found pad
     while IFS= read -r line; do
