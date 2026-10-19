@@ -130,10 +130,11 @@ REM The test is on size rather than existence, an empty file answering
 REM no more than a missing one; no case measured here separates the
 REM two.
 REM What reaches this line is a %TEMP% under which cmd.exe cannot
-REM create the file at all: one that is missing (#684's runs on
-REM windows-latest leave it missing after :warn_if_no_pubkeys), a
-REM drive letter that is not mapped, a path whose own directory
-REM component is a file. An unset %TEMP%, whose path resolves to the
+REM create the file at all: one that is missing (windows-latest runs
+REM 39182563899 and 39182668674 leave it missing after
+REM :warn_if_no_pubkeys), a drive letter that is not mapped, a path
+REM whose own directory component is a file.
+REM An unset %TEMP%, whose path resolves to the
 REM current drive's root, does not reach it, nor does one whose ACL
 REM grants the account read and execute alone, an Administrators entry
 REM beside it still granting a group the account is in full control.
