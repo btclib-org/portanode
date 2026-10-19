@@ -10,6 +10,10 @@ REM out of every path built on ROOTDIR, and a folder mounted at a path
 REM holding one is legal on exFAT and NTFS alike (#374).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 pushd "%ROOTDIR%" >nul 2>&1
 

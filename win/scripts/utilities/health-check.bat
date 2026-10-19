@@ -15,6 +15,10 @@ REM and its arguments under that same pass and strips a second time,
 REM from a bang-delimited read as readily as from a percent one (#411).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 pushd "%ROOTDIR%" >nul 2>&1
 

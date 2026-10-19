@@ -13,6 +13,10 @@ REM caller here is the console this was started from. The measurement is
 REM in win\scripts\root.bat, above :resolve_root (#473).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 echo ROOTDIR is "%ROOTDIR%"
 
 if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (

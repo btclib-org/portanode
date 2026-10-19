@@ -200,6 +200,14 @@ git worktree remove --force <scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
   decision and not a cosmetic one: read the comment beside the loop
   before loosening or tightening it, since either changes how often a
   caller ends up at the fallback above instead of at a real root.
+
+    `PORTANODE_ROOT` is not walked, and it does not fall back: it has to
+    pass the same probe, and one that does not stops the launcher, with
+    a message naming the variable. `resolve_root` prints it and returns
+    1, `root.bat` exits 1, `Resolve-PortaNodeRoot` returns nothing, and
+    a caller stops on that. A new caller does the same.
+    `bash tests/resolve-root.sh` checks the `.sh` and `.command` callers
+    and does not run the `.bat` and `.ps1` ones.
 - **The executable bit is set on what macOS and Linux run, and on
   nothing else**, which is the rule and not a description of today's
   tree:

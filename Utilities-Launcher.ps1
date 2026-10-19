@@ -6,6 +6,7 @@ $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location -LiteralPath (Join-Path $ScriptRoot 'win\scripts')
 try { . .\root.ps1 } finally { Pop-Location }
 $Root = Resolve-PortaNodeRoot -StartDir $ScriptRoot
+if (-not $Root) { exit 1 }
 
 # win\scripts\root.bat's :pause_if_own_console reads this. The menu
 # below is the console a script returns to, so nothing it printed is

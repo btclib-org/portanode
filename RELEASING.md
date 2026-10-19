@@ -76,8 +76,10 @@ Each walks up from its own location until it finds a directory holding a
 `VERSION` file and at least one platform directory beside it — `shared/`
 being sourced by every platform's own `lib.sh`, `macos/scripts/lib.sh`
 included — before falling back. Renaming that file, or deleting it,
-breaks every launcher that was not given `PORTANODE_ROOT`, and does so
-with a "binary not found" rather than with anything naming the cause.
+breaks every launcher. One given `PORTANODE_ROOT` stops with a message
+naming that variable; the others fall back to their own folder and fail
+with a "not found" error, such as `Error: Binaries directory not found at
+macos/bin`, rather than with anything naming the cause.
 
 ## Cutting one
 

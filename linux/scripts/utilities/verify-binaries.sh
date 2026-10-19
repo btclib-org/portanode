@@ -8,7 +8,7 @@ case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
-ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
 
 # The parser lives in shared/utilities/lib.sh's verify_binaries: this
 # script and macos/scripts/utilities/verify-binaries.sh differ only in
