@@ -47,9 +47,9 @@ foreach ($name in 'Bitcoin', 'Electrum', 'Utilities') {
   Test-Same "$ps1 exits 0 on 0" "exit 0" (Get-LastLine $out)
 }
 
-# The .bat menu is given no unknown entry: fed "99" and then "0" through a
-# pipe, it showed itself again without end on windows-latest, for a reason
-# not run down here.
+# The .bat menu is given no unknown entry: it keeps the last choice when
+# set /p reads nothing (ISS 686), and fed "99" through a pipe it shows
+# itself without end.
 $out = Invoke-Launcher 'Bitcoin-Launcher.ps1' @('99', '0')
 Test-Contain 'Bitcoin-Launcher.ps1 refuses an unknown entry' `
   $out 'Invalid selection.'
