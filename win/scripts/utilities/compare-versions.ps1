@@ -1,13 +1,12 @@
-# Prints OLDER where -Requested is older than -Installed, UNCOMPARABLE where
-# either is not digits and dots, and OK otherwise; exits 0.
+# Prints OK where -Installed is "unknown", OLDER where -Requested is older,
+# UNCOMPARABLE where either is not digits and dots, and OK otherwise; exits 0.
 #
 # update-bitcoin.bat and update-electrum.bat refuse to install a version unless
 # this script prints OK or --allow-downgrade is passed, so a run that prints
 # nothing refuses too. The rule, and why it exists, is refuse_downgrade's in
-# shared/utilities/lib.sh. An -Installed of "unknown", :installed_version's
-# answer where nothing is recorded, prints OK. The answer is on stdout because
-# the caller reads it through a for /f: latest-bitcoin-version.ps1's header
-# says why.
+# shared/utilities/lib.sh. "unknown" is :installed_version's answer where
+# nothing is recorded. The answer is on stdout because the caller reads it
+# through a for /f: latest-bitcoin-version.ps1's header says why.
 param(
     [string]$Installed = '',
     [string]$Requested = ''

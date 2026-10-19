@@ -324,6 +324,14 @@ It starts no process, so `pwsh` runs it on any system:
 pwsh -NoProfile -File tests/win/node-args.ps1
 ```
 
+**`tests/updaters.sh` tests the updaters' downgrade refusal and HTTPS-only
+fetches.** No workflow runs it: run it by hand after changing an updater,
+`refuse_downgrade`, `curl_https` or `compare-versions.ps1`:
+
+```shell
+bash tests/updaters.sh
+```
+
 `.bat` has Blinter, which installs under uv alone:
 
 ```shell
