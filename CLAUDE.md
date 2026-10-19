@@ -205,8 +205,9 @@ git worktree remove --force <scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
     pass the same probe, and one that does not stops the launcher, with
     a message naming the variable. `resolve_root` prints it and returns
     1, `root.bat` exits 1, `Resolve-PortaNodeRoot` returns nothing, and
-    every caller stops on that. A new caller does the same, and
-    `bash tests/resolve-root.sh` checks the `.sh` and `.command` ones.
+    a caller stops on that. A new caller does the same.
+    `bash tests/resolve-root.sh` checks the `.sh` and `.command` callers
+    and does not run the `.bat` and `.ps1` ones.
 - **The executable bit is set on what macOS and Linux run, and on
   nothing else**, which is the rule and not a description of today's
   tree:

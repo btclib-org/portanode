@@ -52,10 +52,7 @@ set "ROOTDIR=%START_DIR%"
 REM A root is marked by VERSION plus one of macos\, win\ or linux\,
 REM which is the marker resolve_root in shared/lib.sh looks for; the
 REM comment at the head of that loop argues why any one of the three is
-REM enough. The trailing backslash is what makes "if exist" test for a
-REM directory: without it a plain file named win answers here. VERSION
-REM is tested without one, so a directory of that name answers here
-REM where resolve_root's own [ -f ] refuses it.
+REM enough.
 call :is_root && goto :root_resolved
 for %%I in ("%ROOTDIR%\..") do set "PARENT=%%~fI"
 if /I "%PARENT%"=="%ROOTDIR%" goto :find_root_failed
@@ -90,8 +87,10 @@ exit /b 0
 
 :is_root
 REM Errorlevel 0 where ROOTDIR holds VERSION and one of macos\, win\ or
-REM linux\, 1 otherwise. The comment under :find_root says why the marker
-REM is VERSION plus any one of the three, and why they are tested as they are.
+REM linux\, 1 otherwise. The trailing backslash is what makes "if exist" test
+REM for a directory: without it a plain file named win answers here. VERSION
+REM is tested without one, so a directory of that name answers here where
+REM resolve_root's own [ -f ] refuses it.
 if exist "%ROOTDIR%\VERSION" (
     if exist "%ROOTDIR%\macos\" exit /b 0
     if exist "%ROOTDIR%\win\" exit /b 0

@@ -5,9 +5,10 @@
 #     bash tests/resolve-root.sh
 #
 # It needs bash, git and a git checkout of this tree, which it asks for the
-# scripts that call resolve_root, and a POSIX userland. It writes only under a directory it
-# makes with mktemp and removes. Exit 0 where every case passes, 1 where
-# one fails. win/scripts/root.bat and root.ps1 are not run by it.
+# scripts that call resolve_root, and a POSIX userland. It writes only
+# under a directory it makes with mktemp and removes. Exit 0 where every
+# case passes, 1 where one fails. win/scripts/root.bat and root.ps1 are not
+# run by it.
 
 set -u
 
