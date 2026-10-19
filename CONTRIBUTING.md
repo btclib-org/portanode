@@ -284,6 +284,15 @@ shares: `git -C <worktree> rev-parse --git-path hooks` answers with the
 maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
+**`shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
+helpers**, which the Alice `-clean` launchers and the mainnet launchers
+use to find a running node. No workflow runs it, so a change to them runs
+it by hand, with `bash`:
+
+```shell
+bash shared/tests/node-detection.sh
+```
+
 **What the gate does not reach is running the thing this repository
 ships.** The hooks read prose, configuration and, through `shellcheck`,
 the `.sh` and `.command` launchers themselves — `shellcheck` reads a

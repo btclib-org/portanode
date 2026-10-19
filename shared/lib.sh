@@ -76,6 +76,13 @@ resolve_root() {
     (cd "$start_dir" && pwd -P)
 }
 
+# _process_args: one line per running process, holding its arguments as
+# ps prints them. A test replaces this function to feed the functions below
+# a process list of its own.
+_process_args() {
+    ps -A -ww -o args=
+}
+
 # process_running_with <string>: 0 where the command line of a running
 # process holds <string>, ignoring case; 1 where none does; 2 where the
 # process list could not be read or searched, which a caller about to
@@ -88,11 +95,115 @@ resolve_root() {
 # which carries the string, is not in it.
 process_running_with() {
     local procs
-    procs="$(ps -A -ww -o args=)" || return 2
+    procs="$(_process_args)" || return 2
     grep -q -i -F -e "$1" <<<"$procs"
     case $? in
         0) return 0 ;;
         1) return 1 ;;
         *) return 2 ;;
     esac
+}
+
+# regtest_node_running_on and mainnet_node_running read a command line as a
+# string, where ps gives no argument boundaries. An argument is a run between
+# spaces, so a flag is found only as a word of its own. A path holding
+# "-regtest" is not the flag, and a path holding a space is still found,
+# because the datadir is searched as a whole string.
+#
+# Bitcoin Core (src/common/args.cpp, src/util/chaintype.cpp) reads "-flag" and
+# "--flag" alike. A boolean flag is true bare, with an empty value, or with a
+# value whose leading integer is not zero: "-regtest=2" is true, "-regtest=0"
+# and "-regtest=abc" are false. "-noflag" is false, and "-noflag=0" is true.
+# The network is a flag or "-chain=<name>", testnet3's name there being "test".
+
+# _line_has_arg <padded line> <argument>: 0 where the line holds <argument>
+# as a whole argument, in either dash form.
+_line_has_arg() {
+    [[ $1 == *" -$2 "* || $1 == *" --$2 "* ]]
+}
+
+# _value_reads_false <value>: 0 where Core reads the boolean value as false:
+# a value that is not empty and whose leading integer is zero or absent.
+_value_reads_false() {
+    local re='^0*($|[^0-9])'
+    [ -n "$1" ] && [[ ${1#[+-]} =~ $re ]]
+}
+
+# _line_selects_network <line> <flag> <chain>: 0 where the line selects the
+# network named <flag> as a flag and <chain> as a "-chain" value, in any form
+# above. The line may be padded.
+_line_selects_network() {
+    local word
+    local -a words
+    read -r -a words <<<"$1"
+    for word in "${words[@]}"; do
+        case $word in
+            --*) word=${word#--} ;;
+            -*) word=${word#-} ;;
+            *) continue ;;
+        esac
+        case $word in
+            "$2") return 0 ;;
+            "$2="*) _value_reads_false "${word#*=}" || return 0 ;;
+            "no$2="*) _value_reads_false "${word#*=}" && return 0 ;;
+            "chain=$3") return 0 ;;
+        esac
+    done
+    return 1
+}
+
+# regtest_node_running_on <datadir>: 0 where a running process was started
+# with -datadir=<datadir> and selects regtest, in either order and in any
+# form Core reads as regtest; 1 where none was; 2 where the process list
+# could not be read, which a caller about to delete something treats as 0.
+# The datadir is compared ignoring case and a trailing slash, and as a whole
+# argument, so a node on a directory inside <datadir> does not answer for it.
+#
+# Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
+# toward "running" costs a refusal, the other way a deleted datadir.
+regtest_node_running_on() {
+    local dir procs line pad
+    dir="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+    dir="${dir%/}"
+    procs="$(_process_args)" || return 2
+    procs="$(printf '%s\n' "$procs" | tr '[:upper:]' '[:lower:]')" || return 2
+    while IFS= read -r line; do
+        pad=" $line "
+        if { _line_has_arg "$pad" "datadir=$dir" \
+                || _line_has_arg "$pad" "datadir=$dir/"; } \
+            && _line_selects_network "$pad" regtest regtest; then
+            return 0
+        fi
+    done <<<"$procs"
+    return 1
+}
+
+# mainnet_node_running: 0 where a running bitcoin-qt or bitcoind selects no
+# network other than mainnet; 1 where none does; 2 where the process list
+# could not be read. A line is a node when it holds "bitcoin-qt" or
+# "bitcoind" anywhere, ignoring case, as the launchers read it.
+# The network flags are read as whole arguments, so a node whose path holds
+# "-testnet" is still a mainnet node.
+#
+# A network flag read as true anywhere on the line selects that network, though
+# Core reads only the last one, so a repeated flag can hide a mainnet node.
+mainnet_node_running() {
+    local procs line pad net
+    local nets=(testnet:test testnet4:testnet4 signet:signet regtest:regtest)
+    procs="$(_process_args)" || return 2
+    procs="$(printf '%s\n' "$procs" | tr '[:upper:]' '[:lower:]')" || return 2
+    while IFS= read -r line; do
+        case $line in
+            *bitcoin-qt* | *bitcoind*) ;;
+            *) continue ;;
+        esac
+        pad=" $line "
+        for net in "${nets[@]}"; do
+            if _line_selects_network "$pad" "${net%%:*}" "${net##*:}"; then
+                continue 2
+            fi
+        done
+        return 0
+    done <<<"$procs"
+    return 1
 }
