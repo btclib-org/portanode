@@ -93,7 +93,7 @@ if loc="$(_utf8_locale)"; then
     expect 0 "found under LC_ALL=C" under C process_running_with "$ARG"
     expect 0 "found under LC_ALL=$loc" under "$loc" process_running_with "$ARG"
     expect 1 "a string outside ASCII no process holds answers 1" \
-        process_running_with "$ARG-absent"
+        listing "bitcoind $ARG" process_running_with "$ARG-absent"
     expect 0 "found under LC_ALL=$loc on a line holding a byte that is not UTF-8" \
         under "$loc" listing "bitcoind -uacomment="$'\xff'" $ARG" \
         process_running_with "$ARG"
@@ -148,6 +148,11 @@ if loc="$(_utf8_locale)"; then
             under "$caller" listing "bitcoind -regtest -uacomment="$'\xff'" ${ARG/è/È}" \
             not_1 regtest_node_running_on "$DIR"
     done
+    for caller in "$loc" C; do
+        expect 0 "a string outside ASCII in another case on a line holding a byte that is not UTF-8 is found or refused under LC_ALL=$caller, never denied" \
+            under "$caller" listing "bitcoind -uacomment="$'\xff'" ${ARG/è/È}" \
+            not_1 process_running_with "$ARG"
+    done
     echo "ok - SKIP: the cases for a machine with no UTF-8 locale (this one has $loc)"
 else
     echo "ok - SKIP: the cases that need a UTF-8 locale (this machine has none)"
@@ -161,6 +166,9 @@ expect 0 "no UTF-8 locale: a string in ASCII is still found" \
     no_utf8_locale process_running_with "$ASCII_ARG"
 expect 1 "no UTF-8 locale: a string in ASCII no process holds answers 1" \
     no_utf8_locale process_running_with "$ASCII_ARG-absent"
+expect 1 "a string in ASCII no process holds answers 1 on a line holding a byte that is not UTF-8" \
+    listing "bitcoind -uacomment="$'\xff'" $ASCII_ARG" \
+    process_running_with "$ASCII_ARG-absent"
 
 expect 2 "no UTF-8 locale: a datadir outside ASCII answers 2" \
     no_utf8_locale regtest_node_running_on "$DIR"
