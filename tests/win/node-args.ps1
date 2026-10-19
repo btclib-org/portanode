@@ -47,10 +47,18 @@ $mainnet = @(
   "$qt -notestnet=",
   "$qt -notestnet=1",
   "$qt -chain=main",
-  "$qt -chain=testnet",
-  "$qt -chain=testnet3",
-  "$qt -chain=regtestx",
   "$qt -regtest.port=1",
+  "$qt -testnet=+-1",
+  "$qt -testnet=0x1",
+  "$qt -chain=main",
+  "$qt -testnet=0 -chain=main",
+  # A switch given twice takes its last value.
+  "$qt -testnet -notestnet",
+  "$qt -testnet -testnet=0",
+  "$qt -testnet=1 -testnet=0",
+  "$qt -regtest -noregtest",
+  "$qt -chain=test -chain=main",
+  "$qt -notestnet=0 -notestnet",
   $qt
 )
 foreach ($c in $mainnet) {
@@ -80,10 +88,30 @@ $other = @(
   "$qt -chain=regtest",
   "$qt --chain=regtest",
   "$qt -datadir=`"D:\btc testnet\data`" -regtest",
-  "D:\btc-testnet-old\win\bin\bitcoind.exe -datadir=D:\btc-testnet-old -testnet4"
+  "D:\btc-testnet-old\win\bin\bitcoind.exe -datadir=D:\btc-testnet-old -testnet4",
+  "$qt -testnet=1abc",
+  "$qt -testnet=99999999999",
+  "$qt /-regtest",
+  "$qt -TestNet4=1",
+  # A switch given twice takes its last value.
+  "$qt -notestnet -testnet",
+  "$qt -testnet=0 -testnet",
+  "$qt -noregtest -regtest",
+  "$qt -chain=main -chain=test",
+  "$qt -testnet -notestnet=0",
+  # Core refuses to start on an unknown -chain name, or on two networks.
+  "$qt -chain=testnet",
+  "$qt -chain=testnet3",
+  "$qt -chain=regtestx",
+  "$qt -chain=MAIN",
+  "$qt -Chain=Regtest",
+  "$qt -chain",
+  "$qt -nochain",
+  "$qt -chain=main -testnet",
+  "$qt -testnet -regtest"
 )
 foreach ($c in $other) {
-  Test-Case -Description "other network: $c" -Got (Test-MainnetNode $c) -Want $false
+  Test-Case -Description "not mainnet: $c" -Got (Test-MainnetNode $c) -Want $false
 }
 
 Test-Case -Description 'split: quoted program and value' `
