@@ -285,7 +285,7 @@ maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
 **The suite under `tests/` runs the launchers and their helpers**, with
-`bash` on macOS and Linux and with PowerShell on Windows. `tests.yml`
+`bash` on macOS and Linux and with PowerShell on Windows. `test.yml`
 runs it on Ubuntu on every pull request; `os-macos.yml` and
 `os-windows.yml` run it on macOS and Windows weekly and before a
 release. On macOS and Linux:
@@ -418,7 +418,7 @@ its header says what fails it. A Blinter finding it reports is fixed
 or, where it is no defect, added to `.github/blinter-accepted.tsv` as the
 line the job prints.
 
-`tests.yml`'s `tests: every job passed` job passes where every job of
+`test.yml`'s `test: every job passed` job passes where every job of
 its run did. No branch rule names it, so a red one does not hold the
 merge. `os-macos.yml` and `os-windows.yml` gate nothing.
 

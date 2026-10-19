@@ -1,5 +1,5 @@
 ---
-name: tests
+name: test
 
 # the suite under tests/ on one image, ubuntu-latest, for the reason
 # section 10 of the organization's standard gives: the plan's ceiling on
@@ -21,7 +21,7 @@ permissions:
 
 concurrency:
   # keyed as lint.yml's group is, and for its reasons
-  group: tests-${{ github.event.pull_request.number || github.ref }}
+  group: test-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,8 +44,8 @@ jobs:
   # job reads its run's job listing rather than `needs`.
   # lint.yml's header says why the rule follows a green run rather than
   # landing with the workflow
-  tests-passed:
-    name: "tests: every job passed"
+  test-passed:
+    name: "test: every job passed"
     # orders this job last, and hands the step below suite's own result
     needs: [suite]
     # not always(): a run its concurrency group cancelled would fail here.

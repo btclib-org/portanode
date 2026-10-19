@@ -3,7 +3,7 @@ name: os-windows
 
 # the Windows part of the platform sweep: the suite under tests/, under
 # PowerShell 7 and Windows PowerShell 5.1, which win/scripts/root.ps1 says
-# differ in how they run a script by its path. The gate, tests.yml, runs one
+# differ in how they run a script by its path. The gate, test.yml, runs one
 # image for the reason its header gives; this answers weekly, and before a
 # release, where RELEASING.md dispatches it. It gates no merge.
 

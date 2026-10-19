@@ -5,7 +5,7 @@ name: lint
 # second list of the same tools: a commit and CI then enforce one thing,
 # and a hook added to that file needs no edit here.
 #
-# The suite is tests.yml's, the security rules over the Windows scripts
+# The suite is test.yml's, the security rules over the Windows scripts
 # are script-security.yml's, and there is no documentation build in this
 # tree. CONTRIBUTING.md's last section says what the hooks and the suite
 # leave uncovered, and which tests are run by hand.
