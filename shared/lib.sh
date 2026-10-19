@@ -91,11 +91,11 @@ process_running_with() {
     esac
 }
 
-# The two functions below read a command line as a string, where ps gives no
-# argument boundaries. An argument is a run between spaces, so a flag is
-# found only as a word of its own. A path holding "-regtest" is not the flag,
-# and a path holding a space is still found, because the datadir is searched
-# as a whole string.
+# regtest_node_running_on and mainnet_node_running read a command line as a
+# string, where ps gives no argument boundaries. An argument is a run between
+# spaces, so a flag is found only as a word of its own. A path holding
+# "-regtest" is not the flag, and a path holding a space is still found,
+# because the datadir is searched as a whole string.
 #
 # Bitcoin Core (src/common/args.cpp, src/util/chaintype.cpp) reads "-flag" and
 # "--flag" alike. A boolean flag is true bare, with an empty value, or with a
@@ -141,10 +141,10 @@ _line_selects_network() {
 
 # regtest_node_running_on <datadir>: 0 where a running process was started
 # with -datadir=<datadir> and selects regtest, in either order and in any
-# form Core reads as regtest; 1 where none was; 2 where the process list could not be read, which a
-# caller about to delete something treats as 0. The datadir is compared
-# ignoring case and a trailing slash, and as a whole argument, so a node on a
-# directory inside <datadir> does not answer for it.
+# form Core reads as regtest; 1 where none was; 2 where the process list
+# could not be read, which a caller about to delete something treats as 0.
+# The datadir is compared ignoring case and a trailing slash, and as a whole
+# argument, so a node on a directory inside <datadir> does not answer for it.
 #
 # Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
 # toward "running" costs a refusal, the other way a deleted datadir.
@@ -171,6 +171,9 @@ regtest_node_running_on() {
 # "bitcoind" anywhere, ignoring case, as the launchers read it.
 # The network flags are read as whole arguments, so a node whose path holds
 # "-testnet" is still a mainnet node.
+#
+# A network flag read as true anywhere on the line selects that network, though
+# Core reads only the last one, so a repeated flag can hide a mainnet node.
 mainnet_node_running() {
     local procs line pad net
     local nets=(testnet:test testnet4:testnet4 signet:signet regtest:regtest)

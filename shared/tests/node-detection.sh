@@ -5,8 +5,8 @@
 #
 # It exits 0 where every case passes and 1 otherwise. It starts no node and
 # reads no process list: each case replaces _process_args with the lines it
-# names. It has no shebang and no executable bit, being run rather than
-# launched (CLAUDE.md, on the executable bit).
+# names. It has no shebang and no executable bit: CLAUDE.md's executable-bit
+# rule gives the bit to the launchers only.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
