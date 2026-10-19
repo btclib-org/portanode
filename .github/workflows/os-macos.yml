@@ -2,7 +2,7 @@
 name: os-macos
 
 # the macOS part of the platform sweep: the suite under tests/, under the
-# /bin/bash a .command starts with. The gate, tests.yml, runs one image for
+# /bin/bash a .command starts with. The gate, test.yml, runs one image for
 # the reason its header gives; this answers weekly, and before a release,
 # where RELEASING.md dispatches it. It gates no merge.
 

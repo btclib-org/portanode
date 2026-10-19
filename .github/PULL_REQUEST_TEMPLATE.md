@@ -6,7 +6,7 @@
 
 ## How it was verified
 
-<!-- The command you ran and what it answered. tests.yml runs the suite
+<!-- The command you ran and what it answered. test.yml runs the suite
      under tests/, and CONTRIBUTING.md's last section names the tests
      still run by hand. None of them starts what a launcher launches: a
      change to that is verified by running the launcher on a macOS, a
