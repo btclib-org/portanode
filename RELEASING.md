@@ -112,7 +112,8 @@ macos/bin`, rather than with anything naming the cause.
    was pushed straight to `main` is a tag on a commit that was refused.
 1. Check that `VERIFYING.md` names the key that is about to sign. Git
    signs with `user.signingkey`; where it is unset, git signs with the
-   committer identity, and the command stops with an error naming `key`.
+   committer identity, and the command prints an error naming `key`, then
+   `not named: none`.
    The command reads the secret keyring, because a name that two keys
    share can match a public key this machine cannot sign with. Where the
    setting matches no secret key or more than one, it names none.
@@ -130,8 +131,9 @@ macos/bin`, rather than with anything naming the cause.
       && echo "named" || echo "not named: ${primary:-none}"
     ```
 
-    `not named: none` means that `user.signingkey` matched no secret key or
-    several, so the setting is what changes, not `VERIFYING.md`. Where it
+    `not named: none` means that `user.signingkey` is unset, or matched no
+    secret key or several, so the setting is what changes, not
+    `VERIFYING.md`. Where it
     answers `not named` with a fingerprint, change `VERIFYING.md` to name that
     primary key and its signing subkey, and land the change as a pull
     request before the tag. A tag signed by a key the file does not

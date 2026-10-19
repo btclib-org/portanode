@@ -103,8 +103,10 @@ file on the drive.
   its RPC where it is on (the regtest Qt launchers pass `-server`, the
   regtest `-cli` launchers run `bitcoind`, which turns it on itself, and
   `bitcoin.conf` sets it on no network), Electrum's connections to its
-  servers, and Electrum's daemon RPC socket,
-  `electrum-datadir/daemon_rpc_socket`.
+  servers, and Electrum's daemon RPC: a unix socket, `daemon_rpc_socket`,
+  in the network's datadir (`electrum-datadir/` on mainnet, a subdirectory
+  on the others) on macOS and Linux, and a TCP port on `127.0.0.1` on
+  Windows (`README.md`'s filesystem notes).
 
 ## Trust boundaries
 
@@ -126,12 +128,15 @@ vulnerabilities* says, and so is the decision to switch verification
 off ([ISS 670] is to remove that switch). Open issues where this
 boundary is weaker than claimed:
 
-- [ISS 651]: an update installs an older signed release, so a hostile
-  index can roll a user back;
-- [ISS 660]: the macOS and Linux updaters' `curl` follows a redirect to
-  plain HTTP for the index and the probes;
 - [ISS 668]: macOS `update-bitcoin` can install a `Bitcoin-Qt.app` zip
   that `SHA256SUMS` does not list.
+
+The updaters refuse a version older than the installed one, or one they
+cannot compare with it, unless `--allow-downgrade` is passed
+(`refuse_downgrade` in `shared/utilities/lib.sh`, and
+`win/scripts/utilities/compare-versions.ps1`). On macOS and Linux they
+fetch through `curl_https`, which allows HTTPS only on the request and on
+every redirect (`--proto '=https' --proto-redir '=https'`).
 
 The Windows updaters refuse a file `Get-FileHash` cannot read, compare
 the hash and path fields of a checksum line whole, and
@@ -156,10 +161,8 @@ no RPC and writes no `.cookie`. The regtest Qt launchers pass `-server`
 and the regtest `-cli` launchers run `bitcoind`, which turns RPC on and
 writes a `.cookie` itself, so on regtest RPC is open to local processes,
 with a `.cookie` exFAT cannot protect.
-Local secrets belong in `bitcoin.local.conf`, which git ignores and
-`bitcoin.conf` includes once its `includeconf` line is uncommented;
-a password added to the tracked `bitcoin.conf` is still one commit away
-from being published. Bitcoin Core binds RPC to the loopback interface
+`bitcoin.conf`'s `[secrets]` comment says where local secrets
+belong. Bitcoin Core binds RPC to the loopback interface
 unless `rpcbind` and `rpcallowip` both say otherwise.
 
 **The launcher and its environment.** The root a launcher resolves
@@ -227,8 +230,10 @@ to, and what counters each.
 - **Insecure temporary file (CWE-377).** The macOS and Linux updaters
   download into a fresh `mktemp -d` directory, the Windows ones into a
   fresh `%TEMP%\portanode-<name>.<GUID>`.
-- **Cleartext transmission (CWE-319).** Every download URL is `https`;
-  [ISS 660] is the redirect gap.
+- **Cleartext transmission (CWE-319).** Every download URL is `https`,
+  and on macOS and Linux a redirect to another scheme is refused
+  (`curl_https`). The Windows updaters' `Invoke-WebRequest` calls are
+  not known to refuse one: [ISS 695].
 - **Improper neutralization of output (CWE-150).** [ISS 629]: the log
   monitors print `debug.log` lines to the terminal unfiltered.
 - **Shell defects.** `shellcheck` reads every `.sh` and `.command`
@@ -240,9 +245,8 @@ to, and what counters each.
 
 [ISS 629]: https://github.com/btclib-org/portanode/issues/629
 [ISS 644]: https://github.com/btclib-org/portanode/issues/644
-[ISS 651]: https://github.com/btclib-org/portanode/issues/651
 [ISS 658]: https://github.com/btclib-org/portanode/issues/658
 [ISS 659]: https://github.com/btclib-org/portanode/issues/659
-[ISS 660]: https://github.com/btclib-org/portanode/issues/660
 [ISS 668]: https://github.com/btclib-org/portanode/issues/668
 [ISS 670]: https://github.com/btclib-org/portanode/issues/670
+[ISS 695]: https://github.com/btclib-org/portanode/issues/695
