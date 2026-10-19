@@ -40,8 +40,10 @@ SEC009	win/scripts/utilities/monitor-bitcoin-log.bat	powershell -NoProfile -Exec
 SEC009	win/scripts/utilities/set-permissions.bat	for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
 SEC009	win/scripts/utilities/set-permissions.bat	powershell -NoProfile -ExecutionPolicy Bypass ^
 SEC009	win/scripts/utilities/update-bitcoin.bat	for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+SEC009	win/scripts/utilities/update-bitcoin.bat	for /f "usebackq delims=" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^
 SEC009	win/scripts/utilities/update-bitcoin.bat	for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
 SEC009	win/scripts/utilities/update-electrum.bat	for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+SEC009	win/scripts/utilities/update-electrum.bat	for /f "usebackq delims=" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^
 SEC009	win/scripts/utilities/update-electrum.bat	for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^
 SEC009	win/scripts/utilities/validate-setup.bat	for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
 SEC009	win/scripts/utilities/verify-binaries.bat	powershell -NoProfile -ExecutionPolicy Bypass ^
