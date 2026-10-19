@@ -106,7 +106,7 @@ file on the drive.
   servers, and Electrum's daemon RPC: a unix socket, `daemon_rpc_socket`,
   in the network's datadir (`electrum-datadir/` on mainnet, a subdirectory
   on the others) on macOS and Linux, and a TCP port on `127.0.0.1` on
-  Windows (`README.md`'s filesystem notes).
+  Windows (`README.md`'s *Choosing a filesystem*).
 
 ## Trust boundaries
 
@@ -131,8 +131,8 @@ boundary is weaker than claimed:
 - [ISS 668]: macOS `update-bitcoin` can install a `Bitcoin-Qt.app` zip
   that `SHA256SUMS` does not list.
 
-The updaters refuse a version older than the installed one, or one they
-cannot compare with it, unless `--allow-downgrade` is passed
+The updaters refuse a version older than the installed one, or one that
+is not digits and dots, unless `--allow-downgrade` is passed
 (`refuse_downgrade` in `shared/utilities/lib.sh`, and
 `win/scripts/utilities/compare-versions.ps1`). On macOS and Linux they
 fetch through `curl_https`, which allows HTTPS only on the request and on
