@@ -116,8 +116,8 @@ macos/bin`, rather than with anything naming the cause.
    The command reads the secret keyring, because a name that two keys
    share can match a public key this machine cannot sign with. Where the
    setting matches no secret key or more than one, it names none.
-   Otherwise it looks for the primary key's fingerprint, spaces aside, in the key list
-   of `origin/main`'s `VERIFYING.md`:
+   Otherwise it looks for the primary key's fingerprint, spaces aside, in
+   the key list of `origin/main`'s `VERIFYING.md`:
 
     ```shell
     key=$(git config user.signingkey)
