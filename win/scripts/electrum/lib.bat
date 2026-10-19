@@ -3,7 +3,11 @@ REM Shared guard for the Electrum launchers beside this file, called by label:
 REM     call "%SCRIPT_DIR%lib.bat" :label [arguments]
 REM It prints its own message and returns 1 where the caller must stop, so a
 REM caller writes: if errorlevel 1 exit /b 1
+REM
+REM LIB_DIR is this file's directory, read before the shift below, which
+REM moves %0 along with the arguments.
 set "ACTION=%~1"
+set "LIB_DIR=%~dp0"
 if "%ACTION%"=="" goto :eof
 shift
 goto %ACTION%
@@ -45,15 +49,24 @@ REM directory, each printing FINDSTR: Cannot open and exiting 1, not 2. So a
 REM miss on is_portable says the datum is absent only once something the
 REM file certainly holds has been found in it. run_electrum is the frozen
 REM main script's own entry name and reads out of both builds of 4.8.1.
+REM
+REM Both searches run with System32 as the current directory, and their
+REM answers are read once it is changed back: root.bat's :leave_folder
+REM says why.
+call "%LIB_DIR%..\root.bat" :leave_folder
+if errorlevel 1 exit /b 1
 findstr /m /c:"run_electrum" "%ELECTRUM_EXE%" >nul
-if errorlevel 1 (
+set "CONTROL_RC=%ERRORLEVEL%"
+findstr /m /c:"is_portable" "%ELECTRUM_EXE%" >nul
+set "PORTABLE_RC=%ERRORLEVEL%"
+popd >nul 2>&1
+if not "%CONTROL_RC%"=="0" (
     echo Error: "%ELECTRUM_EXE%" could not be read as an Electrum build, so
     echo whether it keeps its data directory in electrum-datadir cannot be
     echo told. Run win\scripts\utilities\update-electrum.bat to install one.
     exit /b 1
 )
-findstr /m /c:"is_portable" "%ELECTRUM_EXE%" >nul
-if errorlevel 1 exit /b 0
+if not "%PORTABLE_RC%"=="0" exit /b 0
 echo Error: "%ELECTRUM_EXE%" is Electrum's portable Windows build.
 echo It ignores --dir and keeps its data directory under the directory it
 echo is started from, so this launcher cannot hold the wallet in

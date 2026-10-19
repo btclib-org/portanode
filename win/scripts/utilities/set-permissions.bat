@@ -29,6 +29,14 @@ if not exist "%EDD%" (
     exit /b 1
 )
 
+REM System32 is the current directory from here to the popd at the foot:
+REM root.bat's :leave_folder says why.
+call "%SCRIPT_DIR%..\root.bat" :leave_folder
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
+
 echo Setting restrictive permissions on data directories...
 REM set-datadir-acl.ps1 replaces the directory's DACL in one write with a
 REM protected one granting %USERDOMAIN%\%USERNAME% full control,
@@ -138,6 +146,7 @@ call :report_permission_effect "%EDD%" electrum-datadir "%EDD_INHERIT_RC%"
 set "EDD_STATUS=%ERRORLEVEL%"
 set "STATUS=%BDD_STATUS%"
 if %EDD_STATUS% GTR %STATUS% set "STATUS=%EDD_STATUS%"
+popd >nul 2>&1
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b %STATUS%
 

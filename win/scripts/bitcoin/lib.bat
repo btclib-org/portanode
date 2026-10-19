@@ -18,7 +18,11 @@ REM a message quoting the mount point tells the reader where this run
 REM happened rather than which directory in the folder is meant.
 REM ROOTDIR is not among the arguments: a label reads it from the
 REM caller's environment, so a caller resolves it before the call.
+REM
+REM LIB_DIR is this file's directory, read before the shift below, which
+REM moves %0 along with the arguments.
 set "ACTION=%~1"
+set "LIB_DIR=%~dp0"
 if "%ACTION%"=="" goto :eof
 shift
 goto %ACTION%
@@ -59,13 +63,19 @@ set "PSFIND=%PSFIND% $_.CommandLine -and ((($_.CommandLine -replace"
 set "PSFIND=%PSFIND% ('\\+' + $q), $q) -replace '\\+','\') -match $re) -and"
 set "PSFIND=%PSFIND% (-not $s -or $_.CommandLine -match [regex]::Escape($s))});"
 set "PSFIND=%PSFIND% if ($p.Count -gt 0) { exit 2 }"
+REM System32 is the current directory around the query: root.bat's
+REM :leave_folder says why.
+call "%LIB_DIR%..\root.bat" :leave_folder
+if errorlevel 1 exit /b 1
 powershell -NoProfile -Command "%PSFIND%"
-if "%ERRORLEVEL%"=="2" (
+set "PSFIND_RC=%ERRORLEVEL%"
+popd >nul 2>&1
+if "%PSFIND_RC%"=="2" (
     echo Error: a Bitcoin node is using "%NODE_DATADIR_REL%".
     echo Stop it before a clean start.
     exit /b 1
 )
-if not "%ERRORLEVEL%"=="0" (
+if not "%PSFIND_RC%"=="0" (
     echo Error: could not tell whether a Bitcoin node is using
     echo "%NODE_DATADIR_REL%". Nothing has been deleted.
     exit /b 1
@@ -73,25 +83,33 @@ if not "%ERRORLEVEL%"=="0" (
 exit /b 0
 
 :require_no_mainnet_node
-REM Refuse to start a second mainnet node. A process carrying a network switch
-REM is on another chain and does not count, which is what leaves a regtest or
-REM testnet node running while mainnet starts.
+REM Refuse to start a second mainnet node. A process whose arguments select
+REM another network does not count, which is what leaves a regtest or testnet
+REM node running while mainnet starts. node-args.ps1 beside this file reads
+REM them as Bitcoin Core does, so a node run from a path holding "-testnet"
+REM is still a mainnet node (#676).
 REM
-REM Bitcoin Core takes an exclusive lock on the data directory, so a second
-REM node exits by itself with "Cannot obtain a lock on directory"; what this
-REM adds is the message arriving in the window the user is looking at. That is
-REM also why a check that cannot run is not read as a node here, where the
-REM guard above reads it as one: starting a node deletes nothing.
+REM A check that cannot run is not read as a node here, where the guard
+REM above reads it as one: starting a node deletes nothing, and Bitcoin
+REM Core refuses a second node on the same data directory by itself.
+REM
+REM node-args.ps1 is dot-sourced by a relative name from its own directory:
+REM win/scripts/root.ps1 says why.
 setlocal
 set "PSFIND=$ErrorActionPreference = 'Stop';"
-set "PSFIND=%PSFIND% $chain = '-(testnet|regtest|signet)' +"
-set "PSFIND=%PSFIND% '|-chain=(testnet|testnet3|regtest|signet)';"
+set "PSFIND=%PSFIND% Set-Location -LiteralPath $env:LIB_DIR; . .\node-args.ps1;"
 set "PSFIND=%PSFIND% $p = @(Get-CimInstance Win32_Process | Where-Object {"
 set "PSFIND=%PSFIND% $_.Name -in 'bitcoin-qt.exe','bitcoind.exe' -and"
-set "PSFIND=%PSFIND% $_.CommandLine -and $_.CommandLine -notmatch $chain});"
+set "PSFIND=%PSFIND% $_.CommandLine -and (Test-MainnetNode $_.CommandLine)});"
 set "PSFIND=%PSFIND% if ($p.Count -gt 0) { exit 2 }"
-powershell -NoProfile -Command "%PSFIND%"
-if "%ERRORLEVEL%"=="2" (
+REM System32 is the current directory around the query: root.bat's
+REM :leave_folder says why.
+call "%LIB_DIR%..\root.bat" :leave_folder
+if errorlevel 1 exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "%PSFIND%"
+set "PSFIND_RC=%ERRORLEVEL%"
+popd >nul 2>&1
+if "%PSFIND_RC%"=="2" (
     echo Error: a Bitcoin Core mainnet node is already running.
     echo Stop it before starting another mainnet instance, or use a different
     echo data directory and ports.
