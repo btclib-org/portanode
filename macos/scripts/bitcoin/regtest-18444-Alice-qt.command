@@ -23,7 +23,7 @@ case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, 
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd -P)"
 # shellcheck source=macos/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
-ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
 echo ROOTDIR is "${ROOTDIR}"
 DATADIR="${ROOTDIR}/bitcoin-datadir"
 NETDIR="${DATADIR}/regtest"
@@ -66,5 +66,6 @@ FILENAME="${BASENAME%.*}"
   -uacomment="${FILENAME}" \
   -datadir="${DATADIR}" \
   -regtest \
+  -server \
   -addnode=localhost:18555 \
   -addnode=localhost:18666

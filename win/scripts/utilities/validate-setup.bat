@@ -10,8 +10,18 @@ REM out of every path built on ROOTDIR, and a folder mounted at a path
 REM holding one is legal on exFAT and NTFS alike (#374).
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
-pushd "%ROOTDIR%" >nul 2>&1
+REM System32 is the current directory from here to each popd: root.bat's
+REM :leave_folder says why.
+call "%SCRIPT_DIR%..\root.bat" :leave_folder
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 echo Validating setup at "%ROOTDIR%"
 
@@ -27,7 +37,7 @@ if exist "%SCRIPT_DIR%verify-binaries.bat" (
     echo WARNING: verify-binaries.bat not found, skipping checksum check
 )
 
-if exist "bitcoin-datadir" if exist "electrum-datadir" (
+if exist "%ROOTDIR%\bitcoin-datadir" if exist "%ROOTDIR%\electrum-datadir" (
     echo OK: Data directories exist
 ) else (
     echo WARNING: Data directories not found

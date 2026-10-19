@@ -33,8 +33,9 @@ A test file holds the cases of one subject, a helper or a launcher:
   `tests/lib.ps1`, calls `Test-Same` or `Test-Contain` once per case and
   ends with `Complete-Test`.
 
-The runners pick up every file in those directories, and the files already
-there are the model to copy.
+The runners pick up every file in those directories.
+`tests/sh/resolve-root.sh` and `tests/win/resolve-root.ps1` are the model
+to copy.
 
 A file under `tests/sh/` carries the guard the `run-by-path-guard` hook
 asks of every `.sh`, and neither a shebang nor the executable bit: it is

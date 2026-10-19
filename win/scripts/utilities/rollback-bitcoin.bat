@@ -4,6 +4,10 @@ REM Rollback Bitcoin Core binaries (Windows)
 
 set "SCRIPT_DIR=%~dp0"
 call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 set "BACKUP_DIR=%ROOTDIR%\win\bin\backup\bitcoin"
 REM Explicitly disabled above (line 2) rather than merely not
 REM enabled, so the guarantee holds regardless of what a caller set:
@@ -28,6 +32,14 @@ call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
+REM System32 is the current directory from here to each popd: root.bat's
+REM :leave_folder says why.
+call "%SCRIPT_DIR%..\root.bat" :leave_folder
+if errorlevel 1 (
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
+
 REM A rollback replaces the files update-bitcoin.bat installs, so it refuses on
 REM the same condition: replacing an .exe under a running process is the same
 REM operation whichever script does it, and a rollback is run when something
@@ -37,17 +49,17 @@ REM change to one is owed to the other.
 tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
 if %errorlevel%==0 (
     echo Error: Bitcoin Core is running. Stop it before rolling back.
+    popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 tasklist /fi "imagename eq bitcoin-qt.exe" | find /i "bitcoin-qt.exe" >nul
 if %errorlevel%==0 (
     echo Error: Bitcoin Core is running. Stop it before rolling back.
+    popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
-
-pushd "%ROOTDIR%" >nul 2>&1
 
 if not exist "%BACKUP_DIR%" (
     echo No backup found in win\bin\backup\bitcoin

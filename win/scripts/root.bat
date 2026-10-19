@@ -35,9 +35,16 @@ REM different decision rather than a shorter path.
 set "START_DIR=%~1"
 set "OUTVAR=%~2"
 
+REM A PORTANODE_ROOT that is not a root is an error, not a path to use as
+REM it stands: the message names the variable and errorlevel is 1. ROOTDIR
+REM holds the refused value, this file running in the caller's scope, and
+REM OUTVAR is not set. A caller stops on it, there being no root to build
+REM paths on. :is_root is the test the walk below applies too.
 if defined PORTANODE_ROOT (
     set "ROOTDIR=%PORTANODE_ROOT%"
-    goto :root_resolved
+    call :is_root && goto :root_resolved
+    echo PORTANODE_ROOT is set to "%PORTANODE_ROOT%", which is not a PortaNode folder: it holds no VERSION beside macos\, win\ or linux\. Unset PORTANODE_ROOT, or set it to the folder. 1>&2
+    exit /b 1
 )
 
 set "ROOTDIR=%START_DIR%"
@@ -45,15 +52,8 @@ set "ROOTDIR=%START_DIR%"
 REM A root is marked by VERSION plus one of macos\, win\ or linux\,
 REM which is the marker resolve_root in shared/lib.sh looks for; the
 REM comment at the head of that loop argues why any one of the three is
-REM enough. The trailing backslash is what makes "if exist" test for a
-REM directory: without it a plain file named win answers here. VERSION
-REM is tested without one, so a directory of that name answers here
-REM where resolve_root's own [ -f ] refuses it.
-if exist "%ROOTDIR%\VERSION" (
-    if exist "%ROOTDIR%\macos\" goto :root_resolved
-    if exist "%ROOTDIR%\win\" goto :root_resolved
-    if exist "%ROOTDIR%\linux\" goto :root_resolved
-)
+REM enough.
+call :is_root && goto :root_resolved
 for %%I in ("%ROOTDIR%\..") do set "PARENT=%%~fI"
 if /I "%PARENT%"=="%ROOTDIR%" goto :find_root_failed
 set "ROOTDIR=%PARENT%"
@@ -84,6 +84,19 @@ for %%I in ("%ROOTDIR%") do set "ROOTDIR=%%~fI"
 if "%ROOTDIR:~-1%"=="\" if not "%ROOTDIR:~-2%"==":\" set "ROOTDIR=%ROOTDIR:~0,-1%"
 if not "%OUTVAR%"=="" set "%OUTVAR%=%ROOTDIR%"
 exit /b 0
+
+:is_root
+REM Errorlevel 0 where ROOTDIR holds VERSION and one of macos\, win\ or
+REM linux\, 1 otherwise. The trailing backslash is what makes "if exist" test
+REM for a directory: without it a plain file named win answers here. VERSION
+REM is tested without one, so a directory of that name answers here where
+REM resolve_root's own [ -f ] refuses it.
+if exist "%ROOTDIR%\VERSION" (
+    if exist "%ROOTDIR%\macos\" exit /b 0
+    if exist "%ROOTDIR%\win\" exit /b 0
+    if exist "%ROOTDIR%\linux\" exit /b 0
+)
+exit /b 1
 
 :pause_if_own_console
 REM Waits before returning, but only where the console this script is
@@ -162,6 +175,10 @@ REM so a key ends the countdown early, which is what the message
 REM offers; that half is documented rather than measured here, a
 REM hosted runner having no console to type into.
 REM
+REM timeout.exe is named by its full path because this label runs after
+REM the caller's popd, in the directory the caller was started in, which
+REM may be in the folder: :leave_folder below says why that matters.
+REM
 REM The test reaches every console but one, and PORTANODE_LAUNCHER is
 REM how that one announces itself: a .ps1 launcher starts a .bat through
 REM a cmd.exe of PowerShell's own, whose command line names the script
@@ -174,6 +191,24 @@ set CMDLINE=!CMDCMDLINE:"=!
 if not "!CMDLINE:%SELF%=!"=="!CMDLINE!" (
     echo.
     echo Closing in 30 seconds; press a key to close now.
-    timeout /t 30 >nul
+    "%SystemRoot%\System32\timeout.exe" /t 30 >nul
 )
 exit /b 0
+
+REM Makes System32 the current directory with pushd, for the caller to
+REM undo with popd before it returns, and returns 1 where it cannot.
+REM cmd.exe looks for a command run by its bare name in the current
+REM directory before PATH. Measured on windows-latest, run 39180182985:
+REM a PowerShell.bat in the current directory ran in place of
+REM PowerShell, from a plain line and from a for /f capture alike, and
+REM with the folder there a tasklist.bat took health-check.bat over, a
+REM batch file run without call never returning to its caller. A script
+REM starts in the folder more often than not: a .ps1 launcher runs it
+REM from its own directory, and a .bat launcher passes on the directory
+REM it was started in. A caller runs this before its first external
+REM command.
+:leave_folder
+pushd "%SystemRoot%\System32" >nul 2>&1
+if /i "%CD%"=="%SystemRoot%\System32" exit /b 0
+echo Error: cannot change to the Windows System32 directory.
+exit /b 1

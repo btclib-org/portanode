@@ -109,10 +109,11 @@ jobs:
       # the gates instruction
       extra-prompt: |
         What this repository ships is launchers and prose. Nothing
-        here runs a launcher, so a change to one is verified by
-        running it on the platform it is for, from a volume that is
-        not the boot disk -- which no job does, this one included. A
-        review that reasons about what a script would do says so in
-        those words rather than reporting a trace as a run.
+        here starts what a launcher launches -- no job does, this one
+        included -- so a change to that is verified by running the
+        launcher on the platform it is for, from a volume that is not
+        the boot disk. A review that reasons about what a script
+        would do says so in those words rather than reporting a trace
+        as a run.
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

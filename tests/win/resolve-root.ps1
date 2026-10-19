@@ -61,12 +61,17 @@ try {
   Test-Same 'root.bat: a file named win does not mark a root' `
     $start (Invoke-BatResolveRoot $start)
 
-  $elsewhere = (New-Item -ItemType Directory -Path (Join-Path $tmp 'elsewhere')).FullName
+  $elsewhere = Join-Path $tmp 'elsewhere'
+  Add-TestRoot $elsewhere @('win')
   $env:PORTANODE_ROOT = $elsewhere
-  Test-Same 'PORTANODE_ROOT naming a directory overrides the walk' `
+  Test-Same 'PORTANODE_ROOT naming a PortaNode folder overrides the walk' `
     $elsewhere (Resolve-PortaNodeRoot -StartDir $repo)
-  Test-Same 'root.bat: PORTANODE_ROOT overrides the walk' `
+  Test-Same 'root.bat: PORTANODE_ROOT naming a PortaNode folder overrides the walk' `
     $elsewhere (Invoke-BatResolveRoot "$repo\")
+
+  $env:PORTANODE_ROOT = (New-Item -ItemType Directory -Path (Join-Path $tmp 'not-a-root')).FullName
+  Test-Same 'PORTANODE_ROOT naming no PortaNode folder resolves to nothing' `
+    '' ([string](Resolve-PortaNodeRoot -StartDir $repo 2>$null))
   Remove-Item Env:PORTANODE_ROOT
 } finally {
   Remove-Item -LiteralPath $tmp -Recurse -Force

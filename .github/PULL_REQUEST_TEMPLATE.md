@@ -6,10 +6,12 @@
 
 ## How it was verified
 
-<!-- The command you ran and what it answered. The suite under tests/
-     does not start what a launcher launches: a change to that is
-     verified by running the launcher on a macOS, a Windows and a Linux
-     machine, from a volume that is not the boot disk. -->
+<!-- The command you ran and what it answered. tests.yml runs the suite
+     under tests/, and CONTRIBUTING.md's last section names the tests
+     still run by hand. None of them starts what a launcher launches: a
+     change to that is verified by running the launcher on a macOS, a
+     Windows and a Linux machine, from a volume that is not the boot
+     disk. -->
 
 ## Checks
 

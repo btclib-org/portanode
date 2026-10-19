@@ -21,6 +21,14 @@ REM archive-size request in the same --dry-run block passes as
 REM -TimeoutSec 30, rather than a second number to defend. It covers
 REM a gpg slow for its own reasons, which is not the case measured
 REM above.
+REM gpg runs under a hidden cmd.exe, which redirects its output and
+REM reads WNP_ANSWER_FILE from its own environment rather than having
+REM the path spliced in. gpg can start keyboxd, which outlives this
+REM script. Where Start-Process redirects gpg's output itself, keyboxd
+REM holds the caller's output pipe, and a caller reading it never
+REM returns (windows-latest run 39181636990); under the hidden window
+REM it does not (run 39182563899). taskkill /t ends gpg along with
+REM that cmd.exe.
 REM An empty answer file is not a keyring holding no key, so the two
 REM print different warnings and neither ends the run: --dry-run
 REM reaches its free-space line and exits 0 either way (#327, #336).
@@ -47,7 +55,7 @@ REM each call is checked by a hook in .pre-commit-config.yaml (#448).
 :warn_if_no_pubkeys
 set "WNP_ANSWER_FILE=%TEMP%\pn_pubkeys_%RANDOM%%RANDOM%.txt"
 type nul > "%WNP_ANSWER_FILE%"
-powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $p = Start-Process -FilePath 'gpg' -ArgumentList '--batch','--list-keys','--with-colons' -NoNewWindow -PassThru -RedirectStandardOutput $out -RedirectStandardError $err; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { $p.Kill() }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $q = [char]34; $p = Start-Process -FilePath 'cmd.exe' -ArgumentList ('/d /v:off /c gpg --batch --list-keys --with-colons > ' + $q + '%%WNP_ANSWER_FILE%%.out' + $q + ' 2> ' + $q + '%%WNP_ANSWER_FILE%%.err' + $q) -WindowStyle Hidden -PassThru; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { taskkill.exe /pid $p.Id /t /f }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
 set "WNP_ANSWER="
 set /p WNP_ANSWER=<"%WNP_ANSWER_FILE%"
 del "%WNP_ANSWER_FILE%" >nul 2>&1
@@ -122,14 +130,15 @@ REM a bad signature leaves 1 and a key not imported leaves 2.
 REM The test is on size rather than existence, an empty file answering
 REM no more than a missing one; no case measured here separates the
 REM two.
-REM A %TEMP% that is merely missing does not reach this line, the
-REM powershell :warn_if_no_pubkeys runs above creating it, nor does an
-REM unset %TEMP%, whose path resolves to the current drive's root, nor
-REM one whose ACL grants the account read and execute alone, an
-REM Administrators entry beside it still granting a group the account
-REM is in full control. What reaches it is a %TEMP% under which
-REM cmd.exe cannot create the file at all -- a drive letter that is
-REM not mapped, a path whose own directory component is a file.
+REM What reaches this line is a %TEMP% under which cmd.exe cannot
+REM create the file at all: one that is missing (windows-latest runs
+REM 39182563899 and 39182668674 leave it missing after
+REM :warn_if_no_pubkeys), a drive letter that is not mapped, a path
+REM whose own directory component is a file.
+REM An unset %TEMP%, whose path resolves to the
+REM current drive's root, does not reach it, nor does one whose ACL
+REM grants the account read and execute alone, an Administrators entry
+REM beside it still granting a group the account is in full control.
 REM The message names the absence rather than a cause, for the reason
 REM :warn_if_no_pubkeys's comment gives of its own unknown branch.
 set "STATUS_OK=0"
@@ -323,9 +332,8 @@ REM unset either way, coerces to an empty string in $entry, and
 REM Add-Content still appends an entry whose hash field is empty into
 REM the append-only checksums.sha256. $fh is checked before ".Hash" is
 REM read, so either failure leaves it unset and exits 1 with nothing
-REM appended. :verify_checksum below already fails closed on the same
-REM $null unguarded, because PowerShell binds a $null argument into
-REM String.StartsWith as a false match rather than raising.
+REM appended. :verify_checksum and :installed_version below test the
+REM same way.
 powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $version = $env:VERSION_LABEL; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $file; if (-not $fh) { Write-Host ('Error: could not hash the source of ' + $env:FILEPATH_ENTRY + '; not appending to win/checksums.sha256.'); exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  ' + $env:FILEPATH_ENTRY + '  version=' + $version; $existing = Get-Content -LiteralPath $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -LiteralPath $checksum -Value $entry } }"
 if errorlevel 1 exit /b 1
 exit /b 0
@@ -335,6 +343,9 @@ set "FILEPATH_RAW=%~1"
 set "CHECKPATH_RAW=%~2"
 call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
 call :normalize_entry_path "%CHECKPATH_RAW%" CHECKPATH_ENTRY
+REM A relative FILE is taken against ROOTDIR, not against the current
+REM directory, which the updaters keep outside the folder (#656).
+if not "%FILEPATH_FS:~1,1%"==":" if not "%FILEPATH_FS:~0,1%"=="\" set "FILEPATH_FS=%ROOTDIR%\%FILEPATH_FS%"
 REM Fails CLOSED on a missing file, converging on
 REM shared/utilities/lib.sh's verify_checksum_entry, which returns
 REM non-zero on the same case.
@@ -344,12 +355,21 @@ echo Error: %FILEPATH_REL% not found.
 exit /b 1
 :verify_checksum_found
 if "%CHECKSUM_FILE%"=="" exit /b 1
+call :rootdir_relative "%FILEPATH_FS%" FILEPATH_REL
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 REM "-not" rather than "!" for the reason :update_checksum's comment
 REM above gives. Values reach PowerShell as $env: reads, for the reason
 REM :install_verified's comment below gives.
-powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $path = $env:CHECKPATH_ENTRY; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content -LiteralPath $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
+REM A file Get-FileHash cannot read is refused by name, as
+REM :update_checksum refuses it (#652). A line matches where its first
+REM field is the hash and its second the entry path, each compared whole,
+REM as shared/utilities/lib.sh's verify_checksum_entry compares them: a
+REM substring test reads a line as naming any path its own text holds
+REM (#657). The path is compared without regard to case, as Windows
+REM resolves one. '\s+' carries one backslash, for the reason
+REM latest-electrum-version.ps1's header gives.
+powershell -NoProfile -Command "& { $path = $env:CHECKPATH_ENTRY; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:FILEPATH_FS; if (-not $fh) { Write-Host ('Error: could not hash ' + $env:FILEPATH_REL + '.'); exit 1 } $found = $false; foreach ($l in (Get-Content -LiteralPath $checksum)) { $w = $l.Trim() -split '\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\','/') -ieq $path) { $found = $true; break } } if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0
 
@@ -393,8 +413,10 @@ if not exist "%IV_CHECKSUM%" exit /b 0
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 REM Values reach PowerShell as $env: reads, for the reason
-REM :install_verified's comment above gives.
-for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $env:IV_FILE_FS).Hash.ToLower(); $path = $env:IV_ENTRY_ENTRY.ToLower(); $lines = Get-Content -LiteralPath $env:IV_CHECKSUM; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($path)) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
+REM :install_verified's comment above gives. The entry is matched as
+REM :verify_checksum matches it, its '\s+' included, and a file
+REM Get-FileHash cannot read leaves OUTVAR "unknown".
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:IV_FILE_FS -ErrorAction SilentlyContinue; if (-not $fh) { exit 0 } foreach ($l in (Get-Content -LiteralPath $env:IV_CHECKSUM)) { $w = $l.Trim() -split '\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\','/') -ieq $env:IV_ENTRY_ENTRY) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
 exit /b 0
 
 REM :rootdir_relative PATH OUTVAR

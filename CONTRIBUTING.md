@@ -297,7 +297,19 @@ bash tests/run.sh
 how a test is added. **A major change adds or updates tests there**:
 one that gives a launcher or a helper a new behaviour, or corrects one.
 
-**What neither the gate nor the suite reaches is a launcher starting
+**Two test files sit outside the suite's directories, and no workflow
+runs them**, so a change to what they test runs them by hand, with
+`bash`. `shared/tests/node-detection.sh` tests `shared/lib.sh`'s
+node-detection helpers, which the Alice `-clean` launchers and the
+mainnet launchers use to find a running node. `tests/resolve-root.sh`
+tests `resolve_root` and the `.sh` and `.command` scripts that call it:
+
+```shell
+bash shared/tests/node-detection.sh
+bash tests/resolve-root.sh
+```
+
+**What neither the gate nor the tests reach is a launcher starting
 what it launches.** The hooks read prose, configuration and, through
 `shellcheck`, the `.sh` and `.command` launchers themselves —
 `shellcheck` reads a launcher by its shebang rather than by directory,
@@ -320,6 +332,15 @@ pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
 
 Its `ParseError` severity is PowerShell's own parser refusing the file,
 which is a different answer from a style finding.
+
+**`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
+which the Windows mainnet launcher uses to read a running node's network
+switches. It is in the suite, so `tests.yml` runs it on Windows. It
+starts no process, so `pwsh` also runs it on any system:
+
+```shell
+pwsh -NoProfile -File tests/win/node-args.ps1
+```
 
 `.bat` has Blinter, which installs under uv alone:
 

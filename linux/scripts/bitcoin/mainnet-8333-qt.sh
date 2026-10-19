@@ -23,7 +23,7 @@ case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, 
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd -P)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
-ROOTDIR="$(resolve_root "$SCRIPT_DIR")"
+ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
 echo ROOTDIR is "${ROOTDIR}"
 DATADIR="${ROOTDIR}/bitcoin-datadir"
 NETDIR="${DATADIR}"
@@ -58,21 +58,7 @@ if [ ! -x "$BTC_QT" ]; then
     exit 1
 fi
 
-# Linux runs bitcoin-qt as a plain executable rather than inside an app
-# bundle, so "ps -eo command=" (the GNU/procps form, distinct from macOS's
-# BSD "-ax") already lists it under its own name with no bundle path to
-# strip.
-if ps -eo command= 2>/dev/null | awk '
-  { cmd = tolower($0) }
-  cmd ~ /bitcoin-qt|bitcoind/ {
-    if (cmd ~ /-testnet/ || cmd ~ /-regtest/ ||
-        cmd ~ /-signet/ || cmd ~ /-chain=(testnet|testnet3|regtest|signet)/) {
-      next
-    }
-    found = 1
-  }
-  END { exit found ? 0 : 1 }
-'; then
+if mainnet_node_running; then
     echo "Error: A Bitcoin Core mainnet process appears to be running."
     echo "Stop it before starting another mainnet instance (or use a different"
     echo "datadir/ports)."

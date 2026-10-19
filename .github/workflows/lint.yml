@@ -7,7 +7,7 @@ name: lint
 #
 # The suite is tests.yml's, and there is no documentation build in this
 # tree. CONTRIBUTING.md's last section says what the hooks and the suite
-# leave uncovered.
+# leave uncovered, and which tests are run by hand.
 #
 # A job's name becomes a required context, and that is a
 # second step rather than part of this one: a required context nothing
