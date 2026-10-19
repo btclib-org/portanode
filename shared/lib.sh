@@ -252,13 +252,14 @@ _regtest_node_by_grep() {
 # The datadir is compared ignoring case and a trailing slash, and as a whole
 # argument, so a node on a directory inside <datadir> does not answer for it.
 #
-# The list is searched under the UTF-8 locale, where there is one, and under
-# C, whatever the caller's locale, for the reasons process_running_with
-# gives. Each search folds case with tr, which BSD tr does for a letter
-# outside ASCII under a UTF-8 locale and GNU tr does not. Where those find
-# no node and the datadir holds such a letter, grep under the UTF-8 locale
-# searches again: GNU grep folds its case. BSD grep stops at a byte that is
-# not UTF-8, but there tr fails and the answer is 2.
+# A datadir in printable ASCII is searched under C, where tr folds case
+# and fails on no byte. Any other datadir is searched under the UTF-8
+# locale as well, whatever the caller's locale, for the reasons
+# process_running_with gives. BSD tr folds a letter outside ASCII there and
+# GNU tr does not, so grep under that locale searches too: GNU grep folds
+# it. A miss is 1 only where the process list is valid UTF-8, because BSD
+# tr fails on a byte that is not, and GNU tr and BSD grep pass over a line
+# holding one without the letter folded or found; otherwise it is 2.
 #
 # Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
 # toward "running" costs a refusal, the other way a deleted datadir.
@@ -266,7 +267,11 @@ regtest_node_running_on() {
     local procs loc first
     _ps_shows "$1" || return 2
     procs="$(_process_args)" || return 2
-    loc="$(_utf8_locale)" || loc=C
+    if (LC_ALL=C; case $1 in *[!\ -~]*) exit 1 ;; esac); then
+        _regtest_node_in C "$1" "$procs"
+        return $?
+    fi
+    loc="$(_utf8_locale)" || return 2
     _regtest_node_in "$loc" "$1" "$procs"
     first=$?
     [ "$first" -eq 0 ] && return 0
@@ -276,10 +281,10 @@ regtest_node_running_on() {
         1) ;;
         *) first=2 ;;
     esac
-    if ! (LC_ALL=C; case $1 in *[!\ -~]*) exit 1 ;; esac); then
-        _regtest_node_by_grep "$loc" "$1" "$procs" && return 0
-    fi
-    [ "$first" -eq 1 ] && return 1
+    _regtest_node_by_grep "$loc" "$1" "$procs" && return 0
+    [ "$first" -eq 1 ] || return 2
+    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$procs"
+    [ $? -eq 1 ] && return 1
     return 2
 }
 

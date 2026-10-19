@@ -122,6 +122,26 @@ if loc="$(_utf8_locale)"; then
             regtest_node_running_on "$DIR"
     done
     for caller in "$loc" C; do
+        for line in \
+            "bitcoind -regtest ${ARG/è/È}x" \
+            "bitcoind -regtest ${ARG/è/È}/sub" \
+            "bitcoind -regtest -conf=${ARG/è/È}" \
+            "bitcoind ${ARG/è/È}" \
+            "bitcoind -regtest=0 ${ARG/è/È}"; do
+            expect 1 "under LC_ALL=$caller no regtest node on the datadir: $line" \
+                under "$caller" listing "$line" regtest_node_running_on "$DIR"
+        done
+    done
+    expect 2 "a datadir outside ASCII and a line holding a byte that is not UTF-8, no node on it, answers 2" \
+        listing "bitcoind -regtest -uacomment="$'\xff'" -datadir=/other" \
+        regtest_node_running_on "$DIR"
+    expect 1 "a datadir in ASCII answers 1 on a line holding a byte that is not UTF-8" \
+        listing "bitcoind -regtest -uacomment="$'\xff'" -datadir=/other" \
+        regtest_node_running_on "$ASCII_DIR"
+    expect 0 "a datadir in ASCII is found on a line holding a byte that is not UTF-8" \
+        listing "bitcoind -regtest -uacomment="$'\xff'" $ASCII_ARG" \
+        regtest_node_running_on "$ASCII_DIR"
+    for caller in "$loc" C; do
         expect 0 "regtest node found under LC_ALL=$caller on a line holding a byte that is not UTF-8" \
             under "$caller" listing "bitcoind -regtest -uacomment="$'\xff'" $ARG" \
             regtest_node_running_on "$DIR"
