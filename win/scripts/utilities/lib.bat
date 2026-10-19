@@ -21,6 +21,14 @@ REM archive-size request in the same --dry-run block passes as
 REM -TimeoutSec 30, rather than a second number to defend. It covers
 REM a gpg slow for its own reasons, which is not the case measured
 REM above.
+REM gpg runs under a hidden cmd.exe, which redirects its output and
+REM reads WNP_ANSWER_FILE from its own environment rather than having
+REM the path spliced in. gpg can start a daemon that outlives this
+REM script: keyboxd on windows-latest. Under a Start-Process that
+REM redirected gpg's output itself, keyboxd kept the output pipe of
+REM whoever ran the update, and a caller reading that pipe never
+REM returned. Under the hidden window it does not (#684, measured on
+REM windows-latest). taskkill /t ends gpg along with that cmd.exe.
 REM An empty answer file is not a keyring holding no key, so the two
 REM print different warnings and neither ends the run: --dry-run
 REM reaches its free-space line and exits 0 either way (#327, #336).
@@ -47,7 +55,7 @@ REM each call is checked by a hook in .pre-commit-config.yaml (#448).
 :warn_if_no_pubkeys
 set "WNP_ANSWER_FILE=%TEMP%\pn_pubkeys_%RANDOM%%RANDOM%.txt"
 type nul > "%WNP_ANSWER_FILE%"
-powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $p = Start-Process -FilePath 'gpg' -ArgumentList '--batch','--list-keys','--with-colons' -NoNewWindow -PassThru -RedirectStandardOutput $out -RedirectStandardError $err; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { $p.Kill() }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $q = [char]34; $p = Start-Process -FilePath 'cmd.exe' -ArgumentList ('/d /v:off /c gpg --batch --list-keys --with-colons > ' + $q + '%%WNP_ANSWER_FILE%%.out' + $q + ' 2> ' + $q + '%%WNP_ANSWER_FILE%%.err' + $q) -WindowStyle Hidden -PassThru; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { taskkill.exe /pid $p.Id /t /f }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
 set "WNP_ANSWER="
 set /p WNP_ANSWER=<"%WNP_ANSWER_FILE%"
 del "%WNP_ANSWER_FILE%" >nul 2>&1
