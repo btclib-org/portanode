@@ -86,7 +86,13 @@ macos/bin`, rather than with anything naming the cause.
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
    --all-files`, exit code 0, then `git status --porcelain` empty. Run
    the alert command of the step before the tag here too, so that a fix
-   lands before the release notes do.
+   lands before the release notes do. Dispatch the suite on the platforms
+   the pull request gate does not run, and wait for both runs to pass:
+
+    ```shell
+    gh workflow run os-macos.yml --repo btclib-org/portanode --ref main
+    gh workflow run os-windows.yml --repo btclib-org/portanode --ref main
+    ```
 1. Decide the date, and make the three files say it. `CHANGELOG.md`
    gains `## v<version>`, the tag's own heading, alone on its line,
    above the previous release's. The first line of its body says what

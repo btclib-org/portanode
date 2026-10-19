@@ -285,9 +285,10 @@ maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
 **The suite under `tests/` runs the launchers and their helpers**, with
-`bash` on macOS and Linux and with PowerShell on Windows, and
-`tests.yml` runs it on all three on every pull request. On macOS and
-Linux:
+`bash` on macOS and Linux and with PowerShell on Windows. `tests.yml`
+runs it on Ubuntu on every pull request; `os-macos.yml` and
+`os-windows.yml` run it on macOS and Windows weekly and before a
+release. On macOS and Linux:
 
 ```shell
 bash tests/run.sh
@@ -346,8 +347,8 @@ which is a different answer from a style finding.
 
 **`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
 which the Windows mainnet launcher uses to read a running node's network
-switches. It is in the suite, so `tests.yml` runs it on Windows. It
-starts no process, so `pwsh` also runs it on any system:
+switches. It is in the suite, so `os-windows.yml` runs it. It starts no
+process, so `pwsh` also runs it on any system:
 
 ```shell
 pwsh -NoProfile -File tests/win/node-args.ps1
@@ -410,9 +411,9 @@ the merge.
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
 
-`tests.yml` runs the suite on every pull request, and its `Tests` job
-passes where every platform did. No branch rule names `Tests`, so a red
-one does not hold the merge.
+`tests.yml`'s `tests: every job passed` job passes where every job of
+its run did. No branch rule names it, so a red one does not hold the
+merge. `os-macos.yml` and `os-windows.yml` gate nothing.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a
