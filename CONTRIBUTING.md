@@ -286,11 +286,14 @@ other. Run the gate by hand before committing.
 
 **`shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
 helpers**, which the Alice `-clean` launchers and the mainnet launchers
-use to find a running node. No workflow runs it, so a change to them runs
-it by hand, with `bash`:
+use to find a running node, and
+**`shared/tests/process-running-with-locale.sh` tests them on a datadir
+holding a letter outside ASCII**, with and without a UTF-8 locale. No
+workflow runs either, so a change to them runs both by hand, with `bash`:
 
 ```shell
 bash shared/tests/node-detection.sh
+bash shared/tests/process-running-with-locale.sh
 ```
 
 **What the gate does not reach is running the thing this repository

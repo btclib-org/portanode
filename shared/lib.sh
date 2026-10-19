@@ -202,21 +202,16 @@ _line_selects_network() {
     return 1
 }
 
-# regtest_node_running_on <datadir>: 0 where a running process was started
-# with -datadir=<datadir> and selects regtest, in either order and in any
-# form Core reads as regtest; 1 where none was; 2 where the process list
-# could not be read, which a caller about to delete something treats as 0.
-# The datadir is compared ignoring case and a trailing slash, and as a whole
-# argument, so a node on a directory inside <datadir> does not answer for it.
-#
-# Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
-# toward "running" costs a refusal, the other way a deleted datadir.
-regtest_node_running_on() {
+# _regtest_node_in <locale> <datadir> <process list>: regtest_node_running_on's
+# search of one list, its letters folded to lower case under <locale>: 0
+# where a line holds a regtest node on the datadir, 1 where none does, 2
+# where the folding failed, as tr does under a UTF-8 locale on a byte that
+# is not UTF-8.
+_regtest_node_in() {
     local dir procs line pad
-    dir="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+    dir="$(printf '%s' "$2" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
     dir="${dir%/}"
-    procs="$(_process_args)" || return 2
-    procs="$(printf '%s\n' "$procs" | tr '[:upper:]' '[:lower:]')" || return 2
+    procs="$(printf '%s\n' "$3" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
     while IFS= read -r line; do
         pad=" $line "
         if { _line_has_arg "$pad" "datadir=$dir" \
@@ -226,6 +221,37 @@ regtest_node_running_on() {
         fi
     done <<<"$procs"
     return 1
+}
+
+# regtest_node_running_on <datadir>: 0 where a running process was started
+# with -datadir=<datadir> and selects regtest, in either order and in any
+# form Core reads as regtest; 1 where none was; 2 where the process list
+# could not be read or searched, or ps may not print <datadir> as itself
+# (_ps_shows), which a caller about to delete something treats as 0.
+# The datadir is compared ignoring case and a trailing slash, and as a whole
+# argument, so a node on a directory inside <datadir> does not answer for it.
+#
+# The list is searched twice, whatever the caller's locale, for the reasons
+# process_running_with gives: the first search folds case under the UTF-8
+# locale, where there is one, so "È" matches "è"; the second folds
+# under C, because tr under a UTF-8 locale fails on a byte that is not UTF-8.
+#
+# Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
+# toward "running" costs a refusal, the other way a deleted datadir.
+regtest_node_running_on() {
+    local procs loc first
+    _ps_shows "$1" || return 2
+    procs="$(_process_args)" || return 2
+    loc="$(_utf8_locale)" || loc=C
+    _regtest_node_in "$loc" "$1" "$procs"
+    first=$?
+    [ "$first" -eq 0 ] && return 0
+    _regtest_node_in C "$1" "$procs"
+    case $? in
+        0) return 0 ;;
+        1) [ "$first" -eq 1 ] && return 1 ;;
+    esac
+    return 2
 }
 
 # mainnet_node_running: 0 where a running bitcoin-qt or bitcoind selects no

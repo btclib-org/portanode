@@ -1,9 +1,9 @@
 # shellcheck shell=bash
-# Tests of process_running_with in shared/lib.sh on a string holding a
-# character outside ASCII, with and without a UTF-8 locale in the caller's
-# environment. Run from anywhere, on macOS or Linux:
+# Tests of process_running_with and regtest_node_running_on in shared/lib.sh
+# on a string holding a character outside ASCII, with and without a UTF-8
+# locale in the caller's environment. Run from anywhere, on macOS or Linux:
 #
-#     bash tests/process-running-with-locale.sh
+#     bash shared/tests/process-running-with-locale.sh
 #
 # It starts a stand-in process, a bash whose command line carries a datadir
 # argument, and no node. Exit 0 where every case passes, 1 where one fails.
@@ -14,9 +14,8 @@ set -u
 # through PATH, $0 has no directory, so the directory below would be wrong.
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-REPO="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 # shellcheck source=shared/lib.sh
-. "$REPO/shared/lib.sh"
+. "$SCRIPT_DIR/../lib.sh"
 
 failures=0
 
@@ -67,6 +66,8 @@ no_utf8_locale() {
 
 ARG="-datadir=/portanode-test-$$/Disco è/bitcoin-datadir/regtest_bob"
 ASCII_ARG="-datadir=/portanode-test-$$/Disco/bitcoin-datadir/regtest_bob"
+DIR="${ARG#-datadir=}"
+ASCII_DIR="${ASCII_ARG#-datadir=}"
 
 # The "; :" keeps bash from replacing itself with sleep, which would drop
 # the arguments from the command line.
@@ -97,9 +98,29 @@ if loc="$(_utf8_locale)"; then
     done
     expect 0 "found with no locale variable set whatever the case of a letter outside ASCII" \
         without_locale listing "bitcoind ${ARG/è/È}" process_running_with "$ARG"
+
+    expect 0 "regtest node found with no locale variable set" \
+        without_locale regtest_node_running_on "$DIR"
+    expect 0 "regtest node found under LC_ALL=C" \
+        under C regtest_node_running_on "$DIR"
+    expect 0 "regtest node found under LC_ALL=$loc" \
+        under "$loc" regtest_node_running_on "$DIR"
+    expect 1 "a datadir outside ASCII no node runs on answers 1" \
+        regtest_node_running_on "$DIR-absent"
+    for caller in "$loc" C; do
+        expect 0 "regtest node found under LC_ALL=$caller whatever the case of a letter outside ASCII" \
+            under "$caller" regtest_node_running_on "${DIR/è/È}"
+        expect 0 "regtest node found under LC_ALL=$caller on a line of upper case letters outside ASCII" \
+            under "$caller" listing "bitcoind -regtest ${ARG/è/È}" \
+            regtest_node_running_on "$DIR"
+    done
+    expect 2 "a line holding a byte that is not UTF-8 and a letter of another case answers 2" \
+        under C listing "bitcoind -regtest -uacomment="$'\xff'" ${ARG/è/È}" \
+        regtest_node_running_on "$DIR"
 else
     echo "This machine has no UTF-8 locale."
     expect 2 "a string outside ASCII answers 2" process_running_with "$ARG"
+    expect 2 "a datadir outside ASCII answers 2" regtest_node_running_on "$DIR"
 fi
 
 expect 2 "no UTF-8 locale: a string outside ASCII answers 2" \
@@ -108,6 +129,15 @@ expect 0 "no UTF-8 locale: a string in ASCII is still found" \
     no_utf8_locale process_running_with "$ASCII_ARG"
 expect 1 "no UTF-8 locale: a string in ASCII no process holds answers 1" \
     no_utf8_locale process_running_with "$ASCII_ARG-absent"
+
+expect 2 "no UTF-8 locale: a datadir outside ASCII answers 2" \
+    no_utf8_locale regtest_node_running_on "$DIR"
+expect 0 "no UTF-8 locale: a regtest node on a datadir in ASCII is still found" \
+    no_utf8_locale regtest_node_running_on "$ASCII_DIR"
+expect 1 "no UTF-8 locale: a datadir in ASCII no node runs on answers 1" \
+    no_utf8_locale regtest_node_running_on "$ASCII_DIR-absent"
+expect 2 "a datadir holding a tab answers 2" \
+    regtest_node_running_on "$DIR"$'\t'
 
 expect 2 "a string holding a tab, which ps escapes, answers 2" \
     process_running_with "$ARG"$'\t'
