@@ -83,8 +83,8 @@ with a "binary not found" rather than with anything naming the cause.
 
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
    --all-files`, exit code 0, then `git status --porcelain` empty. Run
-   the alert command of the step before the tag now as well, so that a
-   fix it asks for lands before the release notes do.
+   the alert command of the step before the tag here too, so that a fix
+   lands before the release notes do.
 1. Decide the date, and make the three files say it. `CHANGELOG.md`
    gains `## v<version>`, the tag's own heading, alone on its line,
    above the previous release's. The first line of its body says what
@@ -126,8 +126,7 @@ with a "binary not found" rather than with anything naming the cause.
     dismissed only as [section 10 of the organization
     standard](https://github.com/btclib-org/.github#10-workflows)'s
     *scorecard* entry allows. A call that fails (404, 403) stops the
-    release as an open alert does. Both calls need the `repo` scope that
-    `gh auth login` grants.
+    release as an open alert does.
 1. Tag the merged commit, **signed**, from the primary checkout brought
    forward under `CLAUDE.md`'s *The primary checkout is the maintainer's*
    preconditions — on `main` and clean — plus the ancestry `--ff-only`
