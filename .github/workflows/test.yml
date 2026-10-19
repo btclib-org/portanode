@@ -4,9 +4,9 @@ name: test
 # the suite under tests/ on one image, ubuntu-latest, for the reason
 # section 10 of the organization's standard gives: the plan's ceiling on
 # concurrent jobs makes every further image before a review a cost to every
-# review. CONTRIBUTING.md's last section says how the macOS and Windows
-# halves run, and tests/README.md what the suite covers and how to add a
-# test.
+# review. macOS and Windows run the same suite weekly and before a release,
+# in os-macos.yml and os-windows.yml. tests/README.md says what the suite
+# covers and how to add a test.
 
 on:
   push:

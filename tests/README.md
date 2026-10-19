@@ -19,8 +19,9 @@ case checks, and exits 1 where any case failed or any test file exited
 non-zero.
 
 What the suite does not reach is a launcher starting Bitcoin Core or
-Electrum: no binary is in the tree. CI runs the menus on Ubuntu, from the
-runner's home directory.
+Electrum: no binary is in the tree. On Windows, `os-windows.yml` runs the
+menus from a checkout on `D:`, with Windows on `C:`; on macOS and Linux
+the workflows run them from the runner's home directory.
 
 ## Adding a test
 
