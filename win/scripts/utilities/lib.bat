@@ -23,11 +23,10 @@ REM a gpg slow for its own reasons, which is not the case measured
 REM above.
 REM gpg runs under a hidden cmd.exe, which redirects its output and
 REM reads WNP_ANSWER_FILE from its own environment rather than having
-REM the path spliced in. gpg can start a daemon that outlives this
-REM script: keyboxd on windows-latest. Under a Start-Process that
-REM redirected gpg's output itself, keyboxd kept the output pipe of
-REM whoever ran the update, and a caller reading that pipe never
-REM returned. Under the hidden window it does not (#684, measured on
+REM the path spliced in. gpg can start keyboxd, which outlives this
+REM script. Where Start-Process redirects gpg's output itself, keyboxd
+REM holds the caller's output pipe, and a caller reading it never
+REM returns; under the hidden window it does not (#684, measured on
 REM windows-latest). taskkill /t ends gpg along with that cmd.exe.
 REM An empty answer file is not a keyring holding no key, so the two
 REM print different warnings and neither ends the run: --dry-run
@@ -130,14 +129,14 @@ REM a bad signature leaves 1 and a key not imported leaves 2.
 REM The test is on size rather than existence, an empty file answering
 REM no more than a missing one; no case measured here separates the
 REM two.
-REM A %TEMP% that is merely missing does not reach this line, the
-REM powershell :warn_if_no_pubkeys runs above creating it, nor does an
-REM unset %TEMP%, whose path resolves to the current drive's root, nor
-REM one whose ACL grants the account read and execute alone, an
-REM Administrators entry beside it still granting a group the account
-REM is in full control. What reaches it is a %TEMP% under which
-REM cmd.exe cannot create the file at all -- a drive letter that is
-REM not mapped, a path whose own directory component is a file.
+REM What reaches this line is a %TEMP% under which cmd.exe cannot
+REM create the file at all: one that is missing (#684's runs on
+REM windows-latest leave it missing after :warn_if_no_pubkeys), a
+REM drive letter that is not mapped, a path whose own directory
+REM component is a file. An unset %TEMP%, whose path resolves to the
+REM current drive's root, does not reach it, nor does one whose ACL
+REM grants the account read and execute alone, an Administrators entry
+REM beside it still granting a group the account is in full control.
 REM The message names the absence rather than a cause, for the reason
 REM :warn_if_no_pubkeys's comment gives of its own unknown branch.
 set "STATUS_OK=0"
