@@ -100,8 +100,9 @@ file on the drive.
   `bin/`, `checksums.sha256`, `bitcoin-datadir/bitcoin.conf`, and
   Electrum's own configuration in `electrum-datadir/`.
 - **The ports and sockets the binaries open**: Bitcoin Core's P2P port,
-  its RPC where `bitcoin.conf` enables it, and Electrum's connections to
-  its servers.
+  its RPC where it is on (the regtest Qt launchers pass `-server`, and
+  `bitcoin.conf` sets it on no network), and Electrum's connections to its
+  servers.
 
 ## Trust boundaries
 
@@ -128,9 +129,14 @@ boundary is weaker than claimed:
 - [ISS 660]: the macOS and Linux updaters' `curl` follows a redirect to
   plain HTTP for the index and the probes;
 - [ISS 668]: macOS `update-bitcoin` can install a `Bitcoin-Qt.app` zip
-  that `SHA256SUMS` does not list;
-- [ISS 652], [ISS 653], [ISS 656] and [ISS 657]: the Windows updaters'
-  hash check, download directory, command lookup and checksum lookups.
+  that `SHA256SUMS` does not list.
+
+The Windows updaters refuse a file `Get-FileHash` cannot read, compare
+the hash and path fields of a checksum line whole, and look a name up in
+`SHA256SUMS` by its exact field. They download into a fresh
+`%TEMP%\portanode-<name>.<GUID>` that `mkdir` creates or the update
+stops, and run with `System32` as the current directory, so a `gpg.bat`
+or `powershell.bat` planted in the folder is not run.
 
 **`bin/` and what runs.** `checksums.sha256` records integrity, not
 authenticity (*Limitations, not vulnerabilities*). What it does not yet
@@ -141,25 +147,32 @@ cover is [ISS 658] (the rest of a macOS app bundle) and [ISS 659]
 machines, so it is the perimeter: *The folder is unencrypted, and it is
 portable* says what protects the data on it. `set-permissions` restricts
 the data directories to the owner where the filesystem stores
-permissions, and cannot on exFAT (`README.md`'s *Security Notes*). On
-mainnet, RPC is open to local processes through `server=1` in
-`bitcoin.conf`, with a `.cookie` exFAT cannot protect ([ISS 654]); a
-password added to the tracked `bitcoin.conf` is one commit away from
-being published ([ISS 666]). Bitcoin Core binds RPC to the loopback
-interface unless `rpcbind` and `rpcallowip` both say otherwise.
+permissions, and cannot on exFAT (`README.md`'s *Security Notes*). `bitcoin.conf`
+sets `server=1` on no network, so a mainnet Qt node opens no RPC and
+writes no `.cookie`. The regtest Qt launchers pass `-server`, so their
+RPC is open to local processes, with a `.cookie` exFAT cannot protect.
+Local secrets belong in `bitcoin.local.conf`, which git ignores and
+`bitcoin.conf` includes once its `includeconf` line is uncommented;
+a password added to the tracked `bitcoin.conf` is still one commit away
+from being published. Bitcoin Core binds RPC to the loopback interface
+unless `rpcbind` and `rpcallowip` both say otherwise.
 
 **The launcher and its environment.** The root a launcher resolves
-decides which binaries and which data it uses. `PORTANODE_ROOT` is
-accepted without the check applied otherwise ([ISS 663]). A `-clean`
-launcher deletes regtest data only when it finds no node running on it,
-and Alice's check on macOS and Linux misses some command lines
-([ISS 661]).
+decides which binaries and which data it uses. A set
+`PORTANODE_ROOT` has to pass the probe the walk applies, a `VERSION`
+beside `macos/`, `win/` or `linux/`, or the launcher stops. An Alice
+`-clean` launcher deletes regtest data only when it finds no node
+running on it. On macOS and Linux it reads each argument of a command
+line whole (`regtest_node_running_on` in `shared/lib.sh`).
 
 The mainnet launcher refuses to start while a mainnet node is running.
-Its check skips a node whose command line contains `-testnet`,
-`-regtest` or `-signet`, paths included, so a second node starts and
-fails on the port the first one holds: [ISS 662] on macOS and Linux,
-[ISS 676] on Windows.
+It reads a node's flags as whole arguments, so a path holding
+`-regtest` is not the flag. On macOS and Linux a network flag read as
+true anywhere on the line selects that network, where Bitcoin Core reads
+only the last value, so `-testnet -testnet=0` can hide a mainnet node;
+a path with a space before a flag-shaped word still reads as the flag.
+On Windows the last value wins, as in Core (`node-args.ps1`). Bitcoin
+Core itself refuses a second node on one data directory.
 
 **Electrum and its servers.** The plain `mainnet` launcher uses
 Electrum's own server choice, and `mainnet-local-server-only` talks to a
@@ -203,11 +216,12 @@ to, and what counters each.
   reads `gpg`'s status lines, not its exit code, and counts only distinct
   pinned keys with a good signature (`pgp_verify_or_fail` in
   `shared/utilities/lib.sh`, and `win/scripts/utilities/lib.bat`).
-- **Untrusted search path (CWE-426).** [ISS 656]: the Windows updaters
-  run `gpg` and `powershell` by bare name from the folder root.
+- **Untrusted search path (CWE-426).** The Windows updaters and
+  utilities leave the folder for `System32` before they run `gpg`,
+  `powershell` or another command by bare name.
 - **Insecure temporary file (CWE-377).** The macOS and Linux updaters
-  download into a fresh `mktemp -d` directory; [ISS 653] is the Windows
-  half.
+  download into a fresh `mktemp -d` directory, the Windows ones into a
+  fresh `%TEMP%\portanode-<name>.<GUID>`.
 - **Cleartext transmission (CWE-319).** Every download URL is `https`;
   [ISS 660] is the redirect gap.
 - **Improper neutralization of output (CWE-150).** [ISS 629]: the log
@@ -222,18 +236,8 @@ to, and what counters each.
 [ISS 629]: https://github.com/btclib-org/portanode/issues/629
 [ISS 644]: https://github.com/btclib-org/portanode/issues/644
 [ISS 651]: https://github.com/btclib-org/portanode/issues/651
-[ISS 652]: https://github.com/btclib-org/portanode/issues/652
-[ISS 653]: https://github.com/btclib-org/portanode/issues/653
-[ISS 654]: https://github.com/btclib-org/portanode/issues/654
-[ISS 656]: https://github.com/btclib-org/portanode/issues/656
-[ISS 657]: https://github.com/btclib-org/portanode/issues/657
 [ISS 658]: https://github.com/btclib-org/portanode/issues/658
 [ISS 659]: https://github.com/btclib-org/portanode/issues/659
 [ISS 660]: https://github.com/btclib-org/portanode/issues/660
-[ISS 661]: https://github.com/btclib-org/portanode/issues/661
-[ISS 662]: https://github.com/btclib-org/portanode/issues/662
-[ISS 663]: https://github.com/btclib-org/portanode/issues/663
-[ISS 666]: https://github.com/btclib-org/portanode/issues/666
 [ISS 668]: https://github.com/btclib-org/portanode/issues/668
 [ISS 670]: https://github.com/btclib-org/portanode/issues/670
-[ISS 676]: https://github.com/btclib-org/portanode/issues/676
