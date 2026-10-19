@@ -112,25 +112,27 @@ macos/bin`, rather than with anything naming the cause.
    was pushed straight to `main` is a tag on a commit that was refused.
 1. Check that `VERIFYING.md` names the key that is about to sign. Git
    signs with `user.signingkey`; where it is unset, git signs with the
-   committer identity, and the command prints "parameter not set".
+   committer identity, and the command stops with an error naming `key`.
    The command reads the secret keyring, because a name that two keys
-   share can match a public key this machine cannot sign with. It stops
-   where the setting matches no secret key or more than one. Otherwise it
-   looks for the primary key's fingerprint, spaces aside, in the key list
+   share can match a public key this machine cannot sign with. Where the
+   setting matches no secret key or more than one, it names none.
+   Otherwise it looks for the primary key's fingerprint, spaces aside, in the key list
    of `origin/main`'s `VERIFYING.md`:
 
     ```shell
     key=$(git config user.signingkey)
     primary=$(gpg --with-colons --list-secret-keys "${key:?}" \
-      | awk -F: '$1=="sec"{n++}
-          $1=="fpr"&&n==1&&!g{print $10; g=1} END{exit n!=1}') \
+      | awk -F: '$1=="sec"{n++} $1=="fpr"&&n==1&&f==""{f=$10}
+          END{if(n==1)print f; exit n!=1}') \
       && git fetch origin \
       && git show origin/main:VERIFYING.md | grep '^- primary key:' \
         | tr -d ' ' | grep -qF "${primary:?}" \
       && echo "named" || echo "not named: ${primary:-none}"
     ```
 
-    Where it answers `not named`, change `VERIFYING.md` to name that
+    `not named: none` means that `user.signingkey` matched no secret key or
+    several, so the setting is what changes, not `VERIFYING.md`. Where it
+    answers `not named` with a fingerprint, change `VERIFYING.md` to name that
     primary key and its signing subkey, and land the change as a pull
     request before the tag. A tag signed by a key the file does not
     name is not a release (`VERIFYING.md`, *Who signs the tags*).
