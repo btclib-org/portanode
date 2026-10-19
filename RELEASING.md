@@ -110,15 +110,23 @@ macos/bin`, rather than with anything naming the cause.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
-1. Check that `VERIFYING.md` names the key that is about to sign. The
-   primary key of `git config user.signingkey` must be one of its
-   fingerprints, spaces aside:
+1. Check that `VERIFYING.md` names the key that is about to sign. Git
+   signs with `user.signingkey`; where it is unset, git signs with the
+   committer identity, and the command prints "parameter not set".
+   The command reads the secret keyring, because a name that two keys
+   share can match a public key this machine cannot sign with. It stops
+   where the setting matches no secret key or more than one. Otherwise it
+   looks for the primary key's fingerprint, spaces aside, in the key list
+   of `origin/main`'s `VERIFYING.md`:
 
     ```shell
-    primary=$(gpg --with-colons --list-keys "$(git config user.signingkey)" \
-      | awk -F: '$1=="pub"{p=1} p&&$1=="fpr"{print $10; exit}')
-    tr -d ' ' < VERIFYING.md | grep -qF "${primary:?}" \
-      && echo "named" || echo "not named: ${primary:?}"
+    key=$(git config user.signingkey)
+    primary=$(gpg --with-colons --list-secret-keys "${key:?}" \
+      | awk -F: '$1=="sec"{n++} $1=="fpr"&&n==1&&!g{print $10; g=1} END{exit n!=1}') \
+      && git fetch origin \
+      && git show origin/main:VERIFYING.md | grep '^- primary key:' \
+        | tr -d ' ' | grep -qF "${primary:?}" \
+      && echo "named" || echo "not named: ${primary:-none}"
     ```
 
     Where it answers `not named`, change `VERIFYING.md` to name that
