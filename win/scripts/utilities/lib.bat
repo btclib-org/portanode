@@ -26,8 +26,9 @@ REM reads WNP_ANSWER_FILE from its own environment rather than having
 REM the path spliced in. gpg can start keyboxd, which outlives this
 REM script. Where Start-Process redirects gpg's output itself, keyboxd
 REM holds the caller's output pipe, and a caller reading it never
-REM returns; under the hidden window it does not (#684, measured on
-REM windows-latest). taskkill /t ends gpg along with that cmd.exe.
+REM returns (windows-latest run 39181636990); under the hidden window
+REM it does not (run 39182563899). taskkill /t ends gpg along with
+REM that cmd.exe.
 REM An empty answer file is not a keyring holding no key, so the two
 REM print different warnings and neither ends the run: --dry-run
 REM reaches its free-space line and exits 0 either way (#327, #336).
