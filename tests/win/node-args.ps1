@@ -50,7 +50,7 @@ $mainnet = @(
   "$qt -regtest.port=1",
   "$qt -testnet=+-1",
   "$qt -testnet=0x1",
-  "$qt -chain=main",
+  "$qt -nochain -chain=main",
   "$qt -testnet=0 -chain=main",
   # A switch given twice takes its last value.
   "$qt -testnet -notestnet",

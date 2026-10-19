@@ -86,15 +86,12 @@ exit /b 0
 REM Refuse to start a second mainnet node. A process whose arguments select
 REM another network does not count, which is what leaves a regtest or testnet
 REM node running while mainnet starts. node-args.ps1 beside this file reads
-REM them as Bitcoin Core picks its network, a switch only as a whole argument
-REM and its last value deciding, so a node run from a path holding "-testnet"
+REM them as Bitcoin Core does, so a node run from a path holding "-testnet"
 REM is still a mainnet node (#676).
 REM
-REM Bitcoin Core takes an exclusive lock on the data directory, so a second
-REM node exits by itself with "Cannot obtain a lock on directory"; what this
-REM adds is the message arriving in the window the user is looking at. That is
-REM also why a check that cannot run is not read as a node here, where the
-REM guard above reads it as one: starting a node deletes nothing.
+REM A check that cannot run is not read as a node here, where the guard
+REM above reads it as one: starting a node deletes nothing, and Bitcoin
+REM Core refuses a second node on the same data directory by itself.
 REM
 REM node-args.ps1 is dot-sourced by a relative name from its own directory:
 REM win/scripts/root.ps1 says why.
