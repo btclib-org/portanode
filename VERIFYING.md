@@ -51,11 +51,12 @@ git -C portanode verify-tag --raw v<version> 2>&1 | grep VALIDSIG
 
 The last field of that line is the fingerprint of the primary key. Compare
 it, spaces aside, with the primary key under *Who signs the tags*. The
-first field is the key that made the signature, here the subkey. It is
-`gpg`'s status line for programs, so the language of `gpg`'s messages does
-not change it. `gpg` also warns that the key is not certified with a
-trusted signature until you certify the key yourself; the fingerprint is
-what decides. Without the key imported, `git verify-tag` exits `1`.
+field after `VALIDSIG` is the key that made the signature, here the
+subkey. It is `gpg`'s status line for programs, so the language of `gpg`'s
+messages does not change it. `gpg` also warns that the key is not
+certified with a trusted signature until you certify the key yourself;
+the fingerprint is what decides. Without the key imported,
+`git verify-tag` exits `1`.
 
 Then put the folder at that tag:
 
