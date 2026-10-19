@@ -123,12 +123,11 @@ with a "binary not found" rather than with anything naming the cause.
     ```
 
     Fix the alert and run the command again. A Scorecard alert may be
-    dismissed only in a class that [section 10 of the organization
-    standard](https://github.com/btclib-org/.github#10-workflows) names
-    in its *scorecard* entry, with reason `won't fix`, citing what that
-    entry names for its class. A call that does not answer
-    (404, 403) stops the release as an open alert does. Both calls answer
-    to the `repo` scope of `gh auth login`.
+    dismissed only as [section 10 of the organization
+    standard](https://github.com/btclib-org/.github#10-workflows)'s
+    *scorecard* entry allows. A call that fails (404, 403) stops the
+    release as an open alert does. Both calls need the `repo` scope that
+    `gh auth login` grants.
 1. Tag the merged commit, **signed**, from the primary checkout brought
    forward under `CLAUDE.md`'s *The primary checkout is the maintainer's*
    preconditions — on `main` and clean — plus the ancestry `--ff-only`
