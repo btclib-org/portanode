@@ -13,6 +13,7 @@ cd "$ROOTDIR"
 
 VERSION_OVERRIDE=""
 DRY_RUN=0
+ALLOW_DOWNGRADE=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --version)
@@ -23,8 +24,13 @@ while [ $# -gt 0 ]; do
             DRY_RUN=1
             shift
             ;;
+        --allow-downgrade)
+            ALLOW_DOWNGRADE=1
+            shift
+            ;;
         *)
-            echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" >&2
+            echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" \
+              "[--allow-downgrade]" >&2
             exit 1
             ;;
     esac
@@ -113,7 +119,7 @@ else
     # prints its own diagnostic and this failure is not silent the way
     # ISS 348's grep -c was. It buys a message naming the publisher and
     # the bound, and a fixed exit 1 in place of curl's own status.
-    INDEX_HTML="$(curl -fsSL --max-time 300 -H "User-Agent: PortaNode" \
+    INDEX_HTML="$(curl_https -fsSL --max-time 300 -H "User-Agent: PortaNode" \
       https://download.electrum.org/)" || {
         echo "Failed to fetch the release index from download.electrum.org" \
              "(curl --max-time 300)."
@@ -130,6 +136,13 @@ else
         exit 1
     fi
 fi
+
+CURRENT="$(installed_version \
+  "$BIN_DIR/electrum.AppImage" \
+  "linux/bin/electrum.AppImage" \
+  "$CHECKSUM_FILE")"
+refuse_downgrade "$CURRENT" "$VERSION" "$ALLOW_DOWNGRADE" "Electrum" \
+  || exit 1
 
 # Prevent updates while running. The mounted AppImage's own command line is
 # the primary signal; the mount point it creates
@@ -155,10 +168,6 @@ FILE="electrum-${VERSION}-x86_64.AppImage"
 URL="${BASE_URL}/${FILE}"
 
 if [ "$DRY_RUN" -eq 1 ]; then
-    CURRENT="$(installed_version \
-      "$BIN_DIR/electrum.AppImage" \
-      "linux/bin/electrum.AppImage" \
-      "$CHECKSUM_FILE")"
     echo "--dry-run: nothing will be downloaded, verified or installed."
     echo "Would install Electrum ${VERSION} (currently installed: ${CURRENT})."
     echo "Would fetch: $URL"
@@ -182,7 +191,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     # curl's own failure -- the bound firing, or a host refusing the
     # connection -- otherwise ends the run at this assignment, with the
     # free-space line below unreached.
-    ARCHIVE_LEN="$(curl -fsIL --max-time 30 "$URL" \
+    ARCHIVE_LEN="$(curl_https -fsIL --max-time 30 "$URL" \
       | tr -d '\r' \
       | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
       || ARCHIVE_LEN=""
@@ -210,8 +219,8 @@ TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/portanode-electrum.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 echo "Downloading $URL..."
-curl -fL -o "$TMP_DIR/$FILE" "$URL"
-curl -fL -o "$TMP_DIR/$FILE.asc" "${URL}.asc"
+curl_https -fL -o "$TMP_DIR/$FILE" "$URL"
+curl_https -fL -o "$TMP_DIR/$FILE.asc" "${URL}.asc"
 
 PGP_OK=0
 if ! pgp_verify_or_fail \
