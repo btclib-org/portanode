@@ -110,6 +110,21 @@ macos/bin`, rather than with anything naming the cause.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
+1. Check that `VERIFYING.md` names the key that is about to sign. The
+   primary key of `git config user.signingkey` must be one of its
+   fingerprints, spaces aside:
+
+    ```shell
+    primary=$(gpg --with-colons --list-keys "$(git config user.signingkey)" \
+      | awk -F: '$1=="pub"{p=1} p&&$1=="fpr"{print $10; exit}')
+    tr -d ' ' < VERIFYING.md | grep -qF "${primary:?}" \
+      && echo "named" || echo "not named: ${primary:?}"
+    ```
+
+    Where it answers `not named`, change `VERIFYING.md` to name that
+    primary key and its signing subkey, and land the change as a pull
+    request before the tag. A tag signed by a key the file does not
+    name is not a release (`VERIFYING.md`, *Who signs the tags*).
 1. Read the open alerts and stop while any is open. The command prints
    each open Dependabot and code-scanning alert, and exits `0` only
    where there is none and both calls answered:
