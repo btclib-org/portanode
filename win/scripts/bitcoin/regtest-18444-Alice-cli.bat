@@ -78,8 +78,5 @@ set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
 set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666
-REM start looks for a bare name in the current directory first, so
-REM cmd.exe is named by the full path ComSpec holds: root.bat's
-REM :leave_folder says why.
-start "" "%ComSpec%" /k %BITCOIND_CMD%
-start "" "%ComSpec%" /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"
+start "" cmd /k %BITCOIND_CMD%
+start "" cmd /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"

@@ -185,11 +185,15 @@ exit /b 0
 REM Makes System32 the current directory with pushd, for the caller to
 REM undo with popd before it returns, and returns 1 where it cannot.
 REM cmd.exe looks for a command run by its bare name in the current
-REM directory before PATH, so with the folder there a powershell.bat
-REM placed in it would run in place of PowerShell. A script starts in
-REM the folder more often than not: a .ps1 launcher runs it from its own
-REM directory, and a .bat launcher passes on the directory it was
-REM started in. A caller runs this before its first external command.
+REM directory before PATH. Measured on windows-latest, run 39180182985:
+REM a PowerShell.bat in the current directory ran in place of
+REM PowerShell, from a plain line and from a for /f capture alike, and
+REM with the folder there a tasklist.bat took health-check.bat over, a
+REM batch file run without call never returning to its caller. A script
+REM starts in the folder more often than not: a .ps1 launcher runs it
+REM from its own directory, and a .bat launcher passes on the directory
+REM it was started in. A caller runs this before its first external
+REM command.
 :leave_folder
 pushd "%SystemRoot%\System32" >nul 2>&1
 if /i "%CD%"=="%SystemRoot%\System32" exit /b 0
