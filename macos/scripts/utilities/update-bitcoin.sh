@@ -292,10 +292,10 @@ done
 
 # The bundle's entry is what the checks below and rollback-bitcoin.sh
 # read: tree_hash covers every file and symlink in it. Its executable
-# keeps an entry of its own because verify-binaries.sh checks every
-# path the append-only file names, executable entries recorded by
-# earlier installs included, and reports FAILED for one whose current
-# hash is not recorded.
+# keeps an entry of its own because installed_version reads it, and
+# because verify-binaries.sh checks every path the append-only file
+# names, executable entries recorded by earlier installs included, and
+# reports FAILED for one whose current hash is not recorded.
 update_checksum "$TMP_APP" "macos/bin/Bitcoin-Qt.app" "$VERSION"
 update_checksum \
   "$TMP_APP/Contents/MacOS/Bitcoin-Qt" \

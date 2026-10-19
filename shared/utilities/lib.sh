@@ -111,9 +111,9 @@ tree_hash() {
             "$(wc -l < "$tmp/hashes")" ] || exit 1
           ! grep -qvE '^[0-9a-f]{64}$' "$tmp/hashes" || exit 1
           # In the symlink loop, readlink -n prints the target with no line
-          # end of its own (macOS's adds one only where the target does not
-          # already end in a newline), and the x keeps the target's trailing
-          # newlines, which command substitution would strip.
+          # end added (without -n, macOS's readlink adds one only where the
+          # target does not already end in a newline), and the x keeps the
+          # target's trailing newlines, which command substitution would strip.
           out="$(
             {
               while IFS= read -r -d '' p && IFS= read -r h <&3; do
