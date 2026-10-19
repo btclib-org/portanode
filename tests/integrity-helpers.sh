@@ -164,6 +164,7 @@ fi
 
 ROOTDIR="$T/root"
 mkdir -p "$ROOTDIR/macos/bin"
+echo 0.0.0 > "$ROOTDIR/VERSION"
 : > "$ROOTDIR/macos/checksums.sha256"
 APP="$ROOTDIR/macos/bin/Electrum.app"
 make_bundle "$APP"
@@ -195,6 +196,7 @@ rollback() {
     local name="$1" app="$2" want="$3" what="$4" root rc=0
     root="$T/rollback-$name-$want"
     mkdir -p "$root/macos/bin/backup/$name"
+    echo 0.0.0 > "$root/VERSION"
     : > "$root/macos/checksums.sha256"
     make_bundle "$root/macos/bin/backup/$name/$app"
     ROOTDIR="$root" update_checksum "$root/macos/bin/backup/$name/$app" \
