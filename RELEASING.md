@@ -122,7 +122,8 @@ macos/bin`, rather than with anything naming the cause.
     ```shell
     key=$(git config user.signingkey)
     primary=$(gpg --with-colons --list-secret-keys "${key:?}" \
-      | awk -F: '$1=="sec"{n++} $1=="fpr"&&n==1&&!g{print $10; g=1} END{exit n!=1}') \
+      | awk -F: '$1=="sec"{n++}
+          $1=="fpr"&&n==1&&!g{print $10; g=1} END{exit n!=1}') \
       && git fetch origin \
       && git show origin/main:VERIFYING.md | grep '^- primary key:' \
         | tr -d ' ' | grep -qF "${primary:?}" \
