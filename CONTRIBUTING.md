@@ -286,11 +286,15 @@ other. Run the gate by hand before committing.
 
 **`shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
 helpers**, which the Alice `-clean` launchers and the mainnet launchers
-use to find a running node. No workflow runs it, so a change to them runs
-it by hand, with `bash`:
+use to find a running node, and
+**`shared/tests/process-running-with-locale.sh` tests
+`process_running_with` and `regtest_node_running_on` on a datadir holding
+a letter outside ASCII**, with and without a UTF-8 locale. No
+workflow runs either, so a change to them runs both by hand, with `bash`:
 
 ```shell
 bash shared/tests/node-detection.sh
+bash shared/tests/process-running-with-locale.sh
 ```
 
 **What the gate does not reach is running the thing this repository
@@ -323,6 +327,14 @@ It starts no process, so `pwsh` runs it on any system:
 
 ```shell
 pwsh -NoProfile -File tests/win/node-args.ps1
+```
+
+**`tests/updaters.sh` tests the updaters' downgrade refusal and HTTPS-only
+fetches.** No workflow runs it: run it by hand after changing an updater,
+`refuse_downgrade`, `curl_https` or `compare-versions.ps1`:
+
+```shell
+bash tests/updaters.sh
 ```
 
 `.bat` has Blinter, which installs under uv alone:
