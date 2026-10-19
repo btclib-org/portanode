@@ -332,9 +332,8 @@ REM unset either way, coerces to an empty string in $entry, and
 REM Add-Content still appends an entry whose hash field is empty into
 REM the append-only checksums.sha256. $fh is checked before ".Hash" is
 REM read, so either failure leaves it unset and exits 1 with nothing
-REM appended. :verify_checksum below already fails closed on the same
-REM $null unguarded, because PowerShell binds a $null argument into
-REM String.StartsWith as a false match rather than raising.
+REM appended. :verify_checksum and :installed_version below test the
+REM same way.
 powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $version = $env:VERSION_LABEL; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $file; if (-not $fh) { Write-Host ('Error: could not hash the source of ' + $env:FILEPATH_ENTRY + '; not appending to win/checksums.sha256.'); exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  ' + $env:FILEPATH_ENTRY + '  version=' + $version; $existing = Get-Content -LiteralPath $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -LiteralPath $checksum -Value $entry } }"
 if errorlevel 1 exit /b 1
 exit /b 0
@@ -344,6 +343,9 @@ set "FILEPATH_RAW=%~1"
 set "CHECKPATH_RAW=%~2"
 call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
 call :normalize_entry_path "%CHECKPATH_RAW%" CHECKPATH_ENTRY
+REM A relative FILE is taken against ROOTDIR, not against the current
+REM directory, which the updaters keep outside the folder (#656).
+if not "%FILEPATH_FS:~1,1%"==":" if not "%FILEPATH_FS:~0,1%"=="\" set "FILEPATH_FS=%ROOTDIR%\%FILEPATH_FS%"
 REM Fails CLOSED on a missing file, converging on
 REM shared/utilities/lib.sh's verify_checksum_entry, which returns
 REM non-zero on the same case.
@@ -353,12 +355,21 @@ echo Error: %FILEPATH_REL% not found.
 exit /b 1
 :verify_checksum_found
 if "%CHECKSUM_FILE%"=="" exit /b 1
+call :rootdir_relative "%FILEPATH_FS%" FILEPATH_REL
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 REM "-not" rather than "!" for the reason :update_checksum's comment
 REM above gives. Values reach PowerShell as $env: reads, for the reason
 REM :install_verified's comment below gives.
-powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $path = $env:CHECKPATH_ENTRY; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { exit 1 } $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash.ToLower(); $pathNorm = $path.ToLower(); $lines = Get-Content -LiteralPath $checksum; $found = $false; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($pathNorm)) { $found = $true; break } } if (-not $found) { exit 1 } }"
+REM A file Get-FileHash cannot read is refused by name, as
+REM :update_checksum refuses it (#652). A line matches where its first
+REM field is the hash and its second the entry path, each compared whole,
+REM as shared/utilities/lib.sh's verify_checksum_entry compares them: a
+REM substring test reads a line as naming any path its own text holds
+REM (#657). The path is compared without regard to case, as Windows
+REM resolves one. '\s+' carries one backslash, for the reason
+REM latest-electrum-version.ps1's header gives.
+powershell -NoProfile -Command "& { $path = $env:CHECKPATH_ENTRY; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:FILEPATH_FS; if (-not $fh) { Write-Host ('Error: could not hash ' + $env:FILEPATH_REL + '.'); exit 1 } $found = $false; foreach ($l in (Get-Content -LiteralPath $checksum)) { $w = $l.Trim() -split '\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\','/') -ieq $path) { $found = $true; break } } if (-not $found) { exit 1 } }"
 if errorlevel 1 exit /b 1
 exit /b 0
 
@@ -402,8 +413,10 @@ if not exist "%IV_CHECKSUM%" exit /b 0
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 REM Values reach PowerShell as $env: reads, for the reason
-REM :install_verified's comment above gives.
-for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $env:IV_FILE_FS).Hash.ToLower(); $path = $env:IV_ENTRY_ENTRY.ToLower(); $lines = Get-Content -LiteralPath $env:IV_CHECKSUM; foreach ($l in $lines) { $line = $l.ToLower().Replace('\','/'); if ($line.StartsWith($hash) -and $line.Contains($path)) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
+REM :install_verified's comment above gives. The entry is matched as
+REM :verify_checksum matches it, its '\s+' included, and a file
+REM Get-FileHash cannot read leaves OUTVAR "unknown".
+for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "& { $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:IV_FILE_FS -ErrorAction SilentlyContinue; if (-not $fh) { exit 0 } foreach ($l in (Get-Content -LiteralPath $env:IV_CHECKSUM)) { $w = $l.Trim() -split '\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\','/') -ieq $env:IV_ENTRY_ENTRY) { if ($l -match 'version=(\S+)') { Write-Output $matches[1] } break } } }"`) do set "%IV_OUTVAR%=%%V"
 exit /b 0
 
 REM :rootdir_relative PATH OUTVAR

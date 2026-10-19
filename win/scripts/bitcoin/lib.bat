@@ -138,7 +138,7 @@ exit /b 0
 
 :cli_console
 REM Turns the console it runs in into a bitcoin-cli session for one
-REM launcher: it changes to win\bin, titles the console after the
+REM launcher: it changes to the user's profile, titles the console after the
 REM launcher the first argument names, and defines the btc macro. The
 REM second argument carries the switches that vary between launchers,
 REM the network and a port where one is set; ROOTDIR and DATADIR are
@@ -192,7 +192,13 @@ REM being out of a hosted runner's reach the way ISS 334 found. This
 REM depends on ROOTDIR and DATADIR still being set in the console the
 REM macro runs in: every caller sets both before "start"ing it, and
 REM "start" hands the new console its own copy of that environment.
-cd /d "%ROOTDIR%\win\bin"
+REM
+REM The console starts in the user's profile, not in win\bin: with
+REM win\bin there, a command typed in this console, and doskey below,
+REM would be looked for in the folder first, by the order measured above
+REM (#656). btc does not need it, naming bitcoin-cli.exe by its absolute
+REM path.
+cd /d "%USERPROFILE%"
 title %~1
 doskey btc="%%ROOTDIR%%\win\bin\bitcoin-cli.exe" %~2 -datadir="%%DATADIR%%" $*
 exit /b 0

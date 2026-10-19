@@ -54,7 +54,18 @@ call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
-pushd "%ROOTDIR%" >nul 2>&1
+REM The current directory is System32 rather than the folder, so that a
+REM gpg or a powershell planted at the folder's root does not answer for
+REM the real one: cmd.exe resolves a bare name against the current
+REM directory before PATH, as win/scripts/bitcoin/lib.bat's :cli_console
+REM comment measures (#656). lib.bat's :verify_checksum takes a relative
+REM FILE against ROOTDIR.
+pushd "%SystemRoot%\System32" >nul 2>&1
+if /i not "%CD%"=="%SystemRoot%\System32" (
+    echo Error: cannot change to the Windows System32 directory.
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 set "BIN_DIR=%ROOTDIR%\win\bin"
 set "BACKUP_DIR=%BIN_DIR%\backup\bitcoin"
@@ -214,9 +225,21 @@ REM Download/verify/extract on the local disk (%TEMP%), never on the removable
 REM volume; only the final, verified .exe files are copied onto win\bin.
 REM Created here, after the --dry-run exit above, so a dry run never leaves
 REM an empty directory behind.
-set "TMPDIR=%TEMP%\portanode-bitcoin"
-if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
-mkdir "%TMPDIR%"
+REM The name ends in a random GUID and mkdir refuses a directory that
+REM already exists, so the download lands only in a directory this run
+REM created (#653). TMPDIR is set only once mkdir has succeeded, so
+REM :cleanup never removes a directory this run did not create.
+set "TMPDIR="
+set "TMP_ID="
+for /f "usebackq delims=" %%G in (`powershell -NoProfile -Command "[guid]::NewGuid().ToString('N')"`) do set "TMP_ID=%%G"
+if not defined TMP_ID goto :tmpdir_failed
+mkdir "%TEMP%\portanode-bitcoin.%TMP_ID%" || goto :tmpdir_failed
+set "TMPDIR=%TEMP%\portanode-bitcoin.%TMP_ID%"
+goto :tmpdir_done
+:tmpdir_failed
+echo Error: could not create a new download directory under %%TEMP%%.
+goto :error
+:tmpdir_done
 
 setlocal enabledelayedexpansion
 echo Downloading !URL!...
@@ -245,16 +268,15 @@ powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; tr
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK "%ROOTDIR%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
 
-REM One backslash, not two: cmd.exe passes a backslash through untouched,
-REM and powershell.exe splits its command line by the Windows argument
-REM rules, where a backslash is literal unless it precedes a double
-REM quote. A doubled \\s+ therefore reaches the .NET regex engine as a
-REM literal backslash followed by one or more s, and no SHA256SUMS line
-REM holds a backslash.
+REM A SHA256SUMS line counts where its name field is FILE, whole and in
+REM the same case, in the "<hash>  <name>" or "<hash> *<name>" form
+REM sha256sum writes, and every such line has to agree with the archive.
+REM A pattern match on the whole line would let a "." in FILE match any
+REM character and a longer name holding FILE answer for it (#657).
 REM Built as one physical line -- see :update_checksum in lib.bat (#144).
 REM Values reach PowerShell as $env: reads: see :install_verified in
 REM lib.bat (#578).
-powershell -NoProfile -Command "& { $sum = Get-Content -LiteralPath ($env:TMPDIR + '\SHA256SUMS') | Select-String -Pattern $env:FILE | Select-Object -First 1; if (-not $sum) { Write-Host 'Checksum entry not found.'; exit 1 } $expected = ($sum -split '\s+')[0].ToLower(); $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath ($env:TMPDIR + '\' + $env:FILE)).Hash.ToLower(); if ($expected -ne $actual) { Write-Host 'Checksum failed.'; exit 1 } Write-Host ($env:FILE + ': OK') }" || goto :error
+powershell -NoProfile -Command "& { $want = @(); foreach ($l in (Get-Content -LiteralPath ($env:TMPDIR + '\SHA256SUMS'))) { if ($l -match '^([0-9A-Fa-f]{64}) [ *](.+)$' -and $matches[2] -ceq $env:FILE) { $want += $matches[1] } } if ($want.Count -eq 0) { Write-Host 'Checksum entry not found.'; exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath ($env:TMPDIR + '\' + $env:FILE); if (-not $fh) { Write-Host 'Checksum failed.'; exit 1 } foreach ($h in $want) { if (-not ($h -ieq $fh.Hash)) { Write-Host 'Checksum failed.'; exit 1 } } Write-Host ($env:FILE + ': OK') }" || goto :error
 
 REM Expand-Archive writes a non-terminating error and leaves
 REM powershell.exe exiting 0 -- measured on windows-latest, an archive
@@ -337,7 +359,7 @@ echo Update failed.
 set STATUS=1
 
 :cleanup
-if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
+if defined TMPDIR if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 popd >nul 2>&1
 REM Above endlocal, which discards SCRIPT_DIR: measured on
 REM windows-latest, one line below it the same call answers
