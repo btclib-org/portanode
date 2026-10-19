@@ -100,9 +100,11 @@ file on the drive.
   `bin/`, `checksums.sha256`, `bitcoin-datadir/bitcoin.conf`, and
   Electrum's own configuration in `electrum-datadir/`.
 - **The ports and sockets the binaries open**: Bitcoin Core's P2P port,
-  its RPC where it is on (the regtest Qt launchers pass `-server`, and
-  `bitcoin.conf` sets it on no network), and Electrum's connections to its
-  servers.
+  its RPC where it is on (the regtest Qt launchers pass `-server`, the
+  regtest `-cli` launchers run `bitcoind`, which turns it on itself, and
+  `bitcoin.conf` sets it on no network), Electrum's connections to its
+  servers, and Electrum's daemon RPC socket,
+  `electrum-datadir/daemon_rpc_socket`.
 
 ## Trust boundaries
 
@@ -132,8 +134,9 @@ boundary is weaker than claimed:
   that `SHA256SUMS` does not list.
 
 The Windows updaters refuse a file `Get-FileHash` cannot read, compare
-the hash and path fields of a checksum line whole, and look a name up in
-`SHA256SUMS` by its exact field. They download into a fresh
+the hash and path fields of a checksum line whole, and
+`update-bitcoin.bat` looks a name up in `SHA256SUMS` by its exact field.
+They download into a fresh
 `%TEMP%\portanode-<name>.<GUID>` that `mkdir` creates or the update
 stops, and run with `System32` as the current directory, so a `gpg.bat`
 or `powershell.bat` planted in the folder is not run.
@@ -147,10 +150,12 @@ cover is [ISS 658] (the rest of a macOS app bundle) and [ISS 659]
 machines, so it is the perimeter: *The folder is unencrypted, and it is
 portable* says what protects the data on it. `set-permissions` restricts
 the data directories to the owner where the filesystem stores
-permissions, and cannot on exFAT (`README.md`'s *Security Notes*). `bitcoin.conf`
-sets `server=1` on no network, so a mainnet Qt node opens no RPC and
-writes no `.cookie`. The regtest Qt launchers pass `-server`, so their
-RPC is open to local processes, with a `.cookie` exFAT cannot protect.
+permissions, and cannot on exFAT (`README.md`'s *Security Notes*).
+`bitcoin.conf` sets `server=1` on no network, so a mainnet Qt node opens
+no RPC and writes no `.cookie`. The regtest Qt launchers pass `-server`
+and the regtest `-cli` launchers run `bitcoind`, which turns RPC on and
+writes a `.cookie` itself, so on regtest RPC is open to local processes,
+with a `.cookie` exFAT cannot protect.
 Local secrets belong in `bitcoin.local.conf`, which git ignores and
 `bitcoin.conf` includes once its `includeconf` line is uncommented;
 a password added to the tracked `bitcoin.conf` is still one commit away
