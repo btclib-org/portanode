@@ -2,8 +2,8 @@
 
 The suite runs the launchers and their helpers on the machine in front of
 it, with nothing to install: `bash` on macOS and Linux, PowerShell on
-Windows. `.github/workflows/tests.yml` runs it on every pull request, on
-Linux, macOS and Windows.
+Windows. `CONTRIBUTING.md`'s last section says which workflows run it,
+on which platforms and when.
 
 ```shell
 bash tests/run.sh
@@ -19,9 +19,9 @@ case checks, and exits 1 where any case failed or any test file exited
 non-zero.
 
 What the suite does not reach is a launcher starting Bitcoin Core or
-Electrum: no binary is in the tree. On Windows, CI runs the menus from a
-checkout on `D:`, with Windows on `C:`; on macOS and Linux it runs them
-from the runner's home directory.
+Electrum: no binary is in the tree. On Windows, `os-windows.yml` runs the
+menus from a checkout on `D:`, with Windows on `C:`; on macOS and Linux
+the workflows run them from the runner's home directory.
 
 ## Adding a test
 

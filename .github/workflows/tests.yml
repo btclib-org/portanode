@@ -1,10 +1,12 @@
 ---
 name: tests
 
-# the suite under tests/, on each platform the launchers are for:
-# tests/run.sh on Linux and macOS, tests/run.ps1 on Windows under both
-# PowerShell editions. tests/README.md says what it covers and how to add a
-# test.
+# the suite under tests/ on one image, ubuntu-latest, for the reason
+# section 10 of the organization's standard gives: the plan's ceiling on
+# concurrent jobs makes every further image before a review a cost to every
+# review. macOS and Windows run the same suite weekly and before a release,
+# in os-macos.yml and os-windows.yml. tests/README.md says what the suite
+# covers and how to add a test.
 
 on:
   push:
@@ -23,65 +25,60 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  posix:
-    name: Tests (${{ matrix.os }})
+  suite:
+    name: Run the suite on Ubuntu
     if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # /bin/bash, which on macOS is the bash a .command starts with
       - name: Run the suite
         run: /bin/bash tests/run.sh
 
-  windows:
-    name: Tests (windows-latest, ${{ matrix.shell }})
-    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        # PowerShell 7 and Windows PowerShell 5.1, which win/scripts/root.ps1
-        # says differ in how they run a script by its path
-        shell: [pwsh, powershell]
-    runs-on: windows-latest
-    timeout-minutes: 10
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      # started from pwsh, a step's shell taking no expression
-      - name: Run the suite
-        shell: pwsh
-        env:
-          POWERSHELL: ${{ matrix.shell }}
-        run: |
-          & $env:POWERSHELL -NoProfile -ExecutionPolicy Bypass -File .\tests\run.ps1
-          exit $LASTEXITCODE
-
-  tests:
-    # the one context for a branch rule to name: a matrix job's names change
-    # with its matrix, this one's does not. It passes where every job above
-    # did. lint.yml's header says why the rule follows a green run rather
-    # than landing with the workflow
-    name: Tests
-    if: ${{ always() && !github.event.pull_request.draft && github.event.action != 'closed' }}
-    needs: [posix, windows]
+  # the context a branch rule names: section 10's "The aggregate job, and
+  # the required check" is the rule, and btclib-benchmarks' test.yml
+  # (5dc5889) the model this follows. Nothing calls this workflow, so the
+  # job reads its run's job listing rather than `needs`.
+  # lint.yml's header says why the rule follows a green run rather than
+  # landing with the workflow
+  tests-passed:
+    name: "tests: every job passed"
+    # orders this job last, and hands the step below suite's own result
+    needs: [suite]
+    # not always(): a run its concurrency group cancelled would fail here.
+    # The draft flag is not part of this condition: a skipped required check
+    # reads as passing, so the first step fails on it instead
+    if: ${{ !cancelled() && github.event.action != 'closed' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read # asks the API for this run's own job list
     steps:
-      - name: Check that every platform passed
-        env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
+      - name: Fail while this pull request is a draft
+        if: github.event.pull_request.draft
         run: |
-          echo "$RESULTS"
-          for result in $RESULTS; do
-            [ "$result" = success ] || exit 1
-          done
+          echo "::error::this pull request is a draft"
+          exit 1
+      # the script is btclib-org/.github's, at main, so no copy is kept
+      # here: it waits for a lagging listing and refuses an empty one
+      - name: Check out the check script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: btclib-org/.github
+          ref: main
+          path: btclib-org-github
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      # suite's row is the `name:` that job declares
+      - name: Fail unless every other job of this run succeeded
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUITE_RESULT: ${{ needs.suite.result }}
+        run: >-
+          python3 btclib-org-github/.github/scripts/check_run_jobs.py
+          suite "${SUITE_RESULT}"
+          --row "suite=Run the suite on Ubuntu"
