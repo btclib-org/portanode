@@ -203,10 +203,10 @@ _line_selects_network() {
 }
 
 # _regtest_node_in <locale> <datadir> <process list>: regtest_node_running_on's
-# search of one list, its letters folded to lower case under <locale>: 0
-# where a line holds a regtest node on the datadir, 1 where none does, 2
-# where the folding failed, as tr does under a UTF-8 locale on a byte that
-# is not UTF-8.
+# search of one list, its letters folded to lower case by tr under <locale>:
+# 0 where a line holds a regtest node on the datadir, 1 where none does, 2
+# where tr failed, as BSD tr does under a UTF-8 locale on a byte that is not
+# UTF-8.
 _regtest_node_in() {
     local dir procs line pad
     dir="$(printf '%s' "$2" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
@@ -223,6 +223,27 @@ _regtest_node_in() {
     return 1
 }
 
+# _regtest_node_by_grep <locale> <datadir> <process list>: the same search
+# for a datadir holding a letter outside ASCII, with grep finding the
+# datadir whatever its case, under <locale>. GNU tr folds only ASCII letters
+# there, so "È" stays "È" and _regtest_node_in misses an "è" node. Each
+# line grep finds is folded under C, with the text grep matched, and read as
+# _regtest_node_in reads it.
+_regtest_node_by_grep() {
+    local dir="${2%/}" line found pad
+    while IFS= read -r line; do
+        pad=" $(printf '%s' "$line" | LC_ALL=C tr '[:upper:]' '[:lower:]') "
+        while IFS= read -r found; do
+            found="$(printf '%s' "$found" | LC_ALL=C tr '[:upper:]' '[:lower:]')"
+            if { _line_has_arg "$pad" "$found" || _line_has_arg "$pad" "$found/"; } \
+                && _line_selects_network "$pad" regtest regtest; then
+                return 0
+            fi
+        done < <(LC_ALL="$1" grep -a -o -i -F -e "datadir=$dir" <<<"$line" 2>/dev/null)
+    done < <(LC_ALL="$1" grep -a -i -F -e "datadir=$dir" <<<"$3" 2>/dev/null)
+    return 1
+}
+
 # regtest_node_running_on <datadir>: 0 where a running process was started
 # with -datadir=<datadir> and selects regtest, in either order and in any
 # form Core reads as regtest; 1 where none was; 2 where the process list
@@ -231,10 +252,13 @@ _regtest_node_in() {
 # The datadir is compared ignoring case and a trailing slash, and as a whole
 # argument, so a node on a directory inside <datadir> does not answer for it.
 #
-# The list is searched twice, whatever the caller's locale, for the reasons
-# process_running_with gives: the first search folds case under the UTF-8
-# locale, where there is one, so "È" matches "è"; the second folds
-# under C, because tr under a UTF-8 locale fails on a byte that is not UTF-8.
+# The list is searched under the UTF-8 locale, where there is one, and under
+# C, whatever the caller's locale, for the reasons process_running_with
+# gives. Each search folds case with tr, which BSD tr does for a letter
+# outside ASCII under a UTF-8 locale and GNU tr does not. Where those find
+# no node and the datadir holds such a letter, grep under the UTF-8 locale
+# searches again: GNU grep folds its case. BSD grep stops at a byte that is
+# not UTF-8, but there tr fails and the answer is 2.
 #
 # Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
 # toward "running" costs a refusal, the other way a deleted datadir.
@@ -249,8 +273,13 @@ regtest_node_running_on() {
     _regtest_node_in C "$1" "$procs"
     case $? in
         0) return 0 ;;
-        1) [ "$first" -eq 1 ] && return 1 ;;
+        1) ;;
+        *) first=2 ;;
     esac
+    if ! (LC_ALL=C; case $1 in *[!\ -~]*) exit 1 ;; esac); then
+        _regtest_node_by_grep "$loc" "$1" "$procs" && return 0
+    fi
+    [ "$first" -eq 1 ] && return 1
     return 2
 }
 

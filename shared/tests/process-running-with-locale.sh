@@ -46,6 +46,13 @@ under() {
     LC_ALL="$loc" "$@"
 }
 
+# not_1 <command> [argument...]: 0 where the command answers 0 or 2, 1
+# where it answers 1. A guard may refuse where it cannot tell, never deny.
+not_1() {
+    "$@"
+    [ $? -ne 1 ]
+}
+
 # listing <lines> <command> [argument...]: runs the command with <lines> as
 # the process list.
 listing() {
@@ -114,9 +121,14 @@ if loc="$(_utf8_locale)"; then
             under "$caller" listing "bitcoind -regtest ${ARG/è/È}" \
             regtest_node_running_on "$DIR"
     done
-    expect 2 "a line holding a byte that is not UTF-8 and a letter of another case answers 2" \
-        under C listing "bitcoind -regtest -uacomment="$'\xff'" ${ARG/è/È}" \
-        regtest_node_running_on "$DIR"
+    for caller in "$loc" C; do
+        expect 0 "regtest node found under LC_ALL=$caller on a line holding a byte that is not UTF-8" \
+            under "$caller" listing "bitcoind -regtest -uacomment="$'\xff'" $ARG" \
+            regtest_node_running_on "$DIR"
+        expect 0 "a line holding a byte that is not UTF-8 and a letter of another case is found or refused under LC_ALL=$caller, never denied" \
+            under "$caller" listing "bitcoind -regtest -uacomment="$'\xff'" ${ARG/è/È}" \
+            not_1 regtest_node_running_on "$DIR"
+    done
 else
     echo "This machine has no UTF-8 locale."
     expect 2 "a string outside ASCII answers 2" process_running_with "$ARG"
