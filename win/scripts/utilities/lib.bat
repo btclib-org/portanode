@@ -21,6 +21,14 @@ REM archive-size request in the same --dry-run block passes as
 REM -TimeoutSec 30, rather than a second number to defend. It covers
 REM a gpg slow for its own reasons, which is not the case measured
 REM above.
+REM gpg runs under a hidden cmd.exe, which redirects its output and
+REM reads WNP_ANSWER_FILE from its own environment rather than having
+REM the path spliced in. gpg can start keyboxd, which outlives this
+REM script. Where Start-Process redirects gpg's output itself, keyboxd
+REM holds the caller's output pipe, and a caller reading it never
+REM returns (windows-latest run 39181636990); under the hidden window
+REM it does not (run 39182563899). taskkill /t ends gpg along with
+REM that cmd.exe.
 REM An empty answer file is not a keyring holding no key, so the two
 REM print different warnings and neither ends the run: --dry-run
 REM reaches its free-space line and exits 0 either way (#327, #336).
@@ -47,7 +55,7 @@ REM each call is checked by a hook in .pre-commit-config.yaml (#448).
 :warn_if_no_pubkeys
 set "WNP_ANSWER_FILE=%TEMP%\pn_pubkeys_%RANDOM%%RANDOM%.txt"
 type nul > "%WNP_ANSWER_FILE%"
-powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $p = Start-Process -FilePath 'gpg' -ArgumentList '--batch','--list-keys','--with-colons' -NoNewWindow -PassThru -RedirectStandardOutput $out -RedirectStandardError $err; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { $p.Kill() }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $q = [char]34; $p = Start-Process -FilePath 'cmd.exe' -ArgumentList ('/d /v:off /c gpg --batch --list-keys --with-colons > ' + $q + '%%WNP_ANSWER_FILE%%.out' + $q + ' 2> ' + $q + '%%WNP_ANSWER_FILE%%.err' + $q) -WindowStyle Hidden -PassThru; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { taskkill.exe /pid $p.Id /t /f }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
 set "WNP_ANSWER="
 set /p WNP_ANSWER=<"%WNP_ANSWER_FILE%"
 del "%WNP_ANSWER_FILE%" >nul 2>&1
@@ -122,14 +130,15 @@ REM a bad signature leaves 1 and a key not imported leaves 2.
 REM The test is on size rather than existence, an empty file answering
 REM no more than a missing one; no case measured here separates the
 REM two.
-REM A %TEMP% that is merely missing does not reach this line, the
-REM powershell :warn_if_no_pubkeys runs above creating it, nor does an
-REM unset %TEMP%, whose path resolves to the current drive's root, nor
-REM one whose ACL grants the account read and execute alone, an
-REM Administrators entry beside it still granting a group the account
-REM is in full control. What reaches it is a %TEMP% under which
-REM cmd.exe cannot create the file at all -- a drive letter that is
-REM not mapped, a path whose own directory component is a file.
+REM What reaches this line is a %TEMP% under which cmd.exe cannot
+REM create the file at all: one that is missing (windows-latest runs
+REM 39182563899 and 39182668674 leave it missing after
+REM :warn_if_no_pubkeys), a drive letter that is not mapped, a path
+REM whose own directory component is a file.
+REM An unset %TEMP%, whose path resolves to the
+REM current drive's root, does not reach it, nor does one whose ACL
+REM grants the account read and execute alone, an Administrators entry
+REM beside it still granting a group the account is in full control.
 REM The message names the absence rather than a cause, for the reason
 REM :warn_if_no_pubkeys's comment gives of its own unknown branch.
 set "STATUS_OK=0"
