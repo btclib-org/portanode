@@ -41,23 +41,21 @@ git -C portanode tag --sort=-v:refname
 git -C portanode verify-tag v<version>
 ```
 
-The second command lists the tags, newest first. The third exits
-`0` and prints, among other lines:
+The second command lists the tags, newest first. The third exits `0` on
+a good signature. To read which key signed, print the status line `gpg`
+writes for it:
 
-<!-- gpg prints this line whole, so it is not wrapped -->
-<!-- markdownlint-disable line-length -->
-
-```text
-gpg: Good signature from "Ferdinando M. Ametrano <ferdinando@ametrano.net>" [unknown]
-Primary key fingerprint: 91D9 67D0 8A2F 3646 A0C4  2ED0 07B5 59B7 1373 BF5D
+```shell
+git -C portanode verify-tag --raw v<version> 2>&1 | grep VALIDSIG
 ```
 
-<!-- markdownlint-enable line-length -->
-
-Compare that fingerprint with the one under *Who signs the tags*. `gpg`
-also prints `WARNING: This key is not certified with a trusted
-signature!` until you certify the key yourself; the fingerprint is what
-decides. Without the key imported, `git verify-tag` exits `1`.
+The last field of that line is the fingerprint of the primary key. Compare
+it, spaces aside, with the primary key under *Who signs the tags*. The
+first field is the key that made the signature, here the subkey. It is
+`gpg`'s status line for programs, so the language of `gpg`'s messages does
+not change it. `gpg` also warns that the key is not certified with a
+trusted signature until you certify the key yourself; the fingerprint is
+what decides. Without the key imported, `git verify-tag` exits `1`.
 
 Then put the folder at that tag:
 

@@ -258,7 +258,7 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
 - **Mainnet**: `Electrum-Launcher.*`'s menu runs `mainnet` or
   `mainnet-local-server-only`.
     - `mainnet` leaves the choice of server to Electrum, which by default
-      connects to about ten public servers. The one it picks as its
+      connects to several public servers. The one it picks as its
       history server learns every address of your wallet, as Electrum's
       own description of its `oneserver` setting says, and every
       transaction you broadcast goes through it. Every server it
