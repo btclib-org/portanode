@@ -297,16 +297,27 @@ bash tests/run.sh
 how a test is added. **A major change adds or updates tests there**:
 one that gives a launcher or a helper a new behaviour, or corrects one.
 
-**Two test files sit outside the suite's directories, and no workflow
-runs them**, so a change to what they test runs them by hand, with
-`bash`. `shared/tests/node-detection.sh` tests `shared/lib.sh`'s
-node-detection helpers, which the Alice `-clean` launchers and the
-mainnet launchers use to find a running node. `tests/resolve-root.sh`
-tests `resolve_root` and the `.sh` and `.command` scripts that call it:
+**These test files sit outside the suite's directories, and no workflow
+runs them**, so a change to what one of them tests runs it by hand, with
+`bash`:
+
+- `shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
+  helpers, which the Alice `-clean` launchers and the mainnet launchers
+  use to find a running node;
+- `shared/tests/process-running-with-locale.sh` tests
+  `process_running_with` and `regtest_node_running_on` on a datadir
+  holding a letter outside ASCII, with and without a UTF-8 locale;
+- `tests/resolve-root.sh` tests `resolve_root` and the `.sh` and
+  `.command` scripts that call it;
+- `tests/updaters.sh` tests the updaters' downgrade refusal and
+  HTTPS-only fetches, and runs after a change to an updater,
+  `refuse_downgrade`, `curl_https` or `compare-versions.ps1`.
 
 ```shell
 bash shared/tests/node-detection.sh
+bash shared/tests/process-running-with-locale.sh
 bash tests/resolve-root.sh
+bash tests/updaters.sh
 ```
 
 **What neither the gate nor the tests reach is a launcher starting

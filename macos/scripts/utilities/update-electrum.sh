@@ -12,6 +12,7 @@ ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
 
 VERSION_OVERRIDE=""
 DRY_RUN=0
+ALLOW_DOWNGRADE=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --version)
@@ -22,8 +23,13 @@ while [ $# -gt 0 ]; do
             DRY_RUN=1
             shift
             ;;
+        --allow-downgrade)
+            ALLOW_DOWNGRADE=1
+            shift
+            ;;
         *)
-            echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" >&2
+            echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" \
+              "[--allow-downgrade]" >&2
             exit 1
             ;;
     esac
@@ -93,7 +99,7 @@ else
     # prints its own diagnostic and this failure is not silent the way
     # ISS 348's grep -c was. It buys a message naming the publisher and
     # the bound, and a fixed exit 1 in place of curl's own status.
-    INDEX_HTML="$(curl -fsSL --max-time 300 -H "User-Agent: PortaNode" \
+    INDEX_HTML="$(curl_https -fsSL --max-time 300 -H "User-Agent: PortaNode" \
       https://download.electrum.org/)" || {
         echo "Failed to fetch the release index from download.electrum.org" \
              "(curl --max-time 300)."
@@ -111,16 +117,19 @@ else
     fi
 fi
 
+CURRENT="$(installed_version \
+  "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+  "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+  "$ROOTDIR/macos/checksums.sha256")"
+refuse_downgrade "$CURRENT" "$VERSION" "$ALLOW_DOWNGRADE" "Electrum" \
+  || exit 1
+
 BASE_URL="https://download.electrum.org/${VERSION}"
 URL="${BASE_URL}/electrum-${VERSION}.dmg"
 OUT_FILE="electrum-${VERSION}.dmg"
 SIG_FILE="${OUT_FILE}.asc"
 
 if [ "$DRY_RUN" -eq 1 ]; then
-    CURRENT="$(installed_version \
-      "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-      "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-      "$ROOTDIR/macos/checksums.sha256")"
     echo "--dry-run: nothing will be downloaded, verified or installed."
     echo "Would install Electrum ${VERSION} (currently installed: ${CURRENT})."
     echo "Would fetch: $URL"
@@ -144,7 +153,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     # curl's own failure -- the bound firing, or a host refusing the
     # connection -- otherwise ends the run at this assignment, with the
     # free-space line below unreached.
-    ARCHIVE_LEN="$(curl -fsIL --max-time 30 "$URL" \
+    ARCHIVE_LEN="$(curl_https -fsIL --max-time 30 "$URL" \
       | tr -d '\r' \
       | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
       || ARCHIVE_LEN=""
@@ -166,8 +175,8 @@ fi
 
 mkdir -p "$TMP_DIR"
 echo "Downloading $URL..."
-curl -fL -o "$TMP_DIR/$OUT_FILE" "$URL"
-curl -fL -o "$TMP_DIR/$SIG_FILE" "${URL}.asc"
+curl_https -fL -o "$TMP_DIR/$OUT_FILE" "$URL"
+curl_https -fL -o "$TMP_DIR/$SIG_FILE" "${URL}.asc"
 
 PGP_OK=0
 if ! pgp_verify_or_fail \
