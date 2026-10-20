@@ -33,8 +33,7 @@ name: script-security
 # prints the lines to add or to remove.
 #
 # Its job's name is a required context, which REPOSITORY.md's "What gates
-# a merge" records; it was named only once a run was green, for the
-# reason lint.yml's header gives.
+# a merge" records.
 
 on:
   push:
