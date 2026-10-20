@@ -240,12 +240,11 @@ to, and what counters each.
   script as a hook of the lint gate, which `lint.yml` runs on every pull
   request (`CONTRIBUTING.md`'s last section). The required `Script security`
   check runs a security analysis on the `.bat` and `.ps1` halves
-  ([ISS 644]).
+  (`script-security.yml`; `REPOSITORY.md`'s *What gates a merge*).
 - **Secrets in the tree.** `detect-secrets` runs as a hook of the lint
   gate, against `.secrets.baseline`.
 
 [ISS 629]: https://github.com/btclib-org/portanode/issues/629
-[ISS 644]: https://github.com/btclib-org/portanode/issues/644
 [ISS 658]: https://github.com/btclib-org/portanode/issues/658
 [ISS 659]: https://github.com/btclib-org/portanode/issues/659
 [ISS 668]: https://github.com/btclib-org/portanode/issues/668
