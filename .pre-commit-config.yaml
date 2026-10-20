@@ -57,6 +57,15 @@
 # Run it by hand, as above; reconsider it when it reads a `^`
 # continuation.
 #
+# The security rules of both tools run in CI all the same, in
+# .github/workflows/script-security.yml, and the costs above do not
+# stand in the way of that job. It runs Blinter unmodified and this tree
+# conveys none of it, and the AGPL "affirms your unlimited permission to
+# run the unmodified Program"; both tools are pinned to a hash, so a new
+# release runs only once a commit names it. Blinter's security findings
+# that are no defect are listed in .github/blinter-accepted.tsv rather
+# than marked in the scripts, and the job's header says what else fails it.
+#
 # Skip a hook with SKIP=<id>.
 ci:
   # a bot committing to a branch is at odds with a setup where no

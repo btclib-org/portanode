@@ -381,7 +381,8 @@ and default setup has simply not been turned on for it.
 which is the code-quality feature's state and not CodeQL's — the two
 endpoints cover different features and do not corroborate each other.
 What reads the launchers instead is `shellcheck`, in
-`.pre-commit-config.yaml`'s own hooks.
+`.pre-commit-config.yaml`'s own hooks, and the security rules
+`script-security.yml` runs over the `.bat` and `.ps1` ones.
 
 ## Plan-gated settings
 
@@ -407,9 +408,10 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 
 [GitHub's own table](https://docs.github.com/en/actions/reference/limits)
 turns that answer into a number, twenty concurrent jobs on the free plan,
-shared across every repository of the organization. `lint.yml` and
-`claude-review.yml` are what a pull request here starts, with `links.yml`
-added where the path its trigger names is touched.
+shared across every repository of the organization. `lint.yml`,
+`script-security.yml` and `claude-review.yml` are what a pull request
+here starts, with `links.yml` added where the path its trigger names is
+touched.
 
 ## Pages, which this repository does not use
 

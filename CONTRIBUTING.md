@@ -307,10 +307,11 @@ launcher on a macOS, a Windows and a Linux machine, from a volume that
 is not the boot disk — which is the case the paths in these scripts
 exist for, and the one a checkout on an internal disk never exercises.
 
-**The `.bat` and `.ps1` halves are read by the generic hooks and by no
-parser.** PowerShell's is PSScriptAnalyzer, and
-`.pre-commit-config.yaml`'s header says why it is not a hook here; run it
-by hand, against a `pwsh` that carries the module:
+**The `.bat` and `.ps1` halves are read by the generic hooks, and by
+`script-security.yml` for security findings alone** (*What gates a
+merge*, below). PowerShell's parser is PSScriptAnalyzer, and
+`.pre-commit-config.yaml`'s header says why it is not a hook here; run
+all of its rules by hand, against a `pwsh` that carries the module:
 
 ```shell
 pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
@@ -392,6 +393,12 @@ the merge.
 `REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
+
+**`script-security.yml` runs the security rules of PSScriptAnalyzer and
+Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
+its header says what fails it. A Blinter finding it reports is fixed
+or, where it is no defect, added to `.github/blinter-accepted.tsv` as the
+line the job prints.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a
