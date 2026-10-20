@@ -238,8 +238,9 @@ to, and what counters each.
   monitors print `debug.log` lines to the terminal unfiltered.
 - **Shell defects.** `shellcheck` reads every `.sh` and `.command`
   script as a hook of the lint gate, which `lint.yml` runs on every pull
-  request (`CONTRIBUTING.md`'s last section). No required check runs a
-  security analysis on the `.bat` and `.ps1` halves ([ISS 644]).
+  request (`CONTRIBUTING.md`'s last section). The required `Script security`
+  check runs a security analysis on the `.bat` and `.ps1` halves
+  ([ISS 644]).
 - **Secrets in the tree.** `detect-secrets` runs as a hook of the lint
   gate, against `.secrets.baseline`.
 
