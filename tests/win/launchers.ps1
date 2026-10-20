@@ -1,6 +1,6 @@
 # The launchers at the root, as Windows runs them: each opens its menu and
-# leaves it on 0 or an empty line. No entry is chosen, so nothing here needs a
-# binary under win\bin.
+# leaves it on 0. No entry is chosen, so nothing here needs a binary under
+# win\bin.
 
 $repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 Push-Location -LiteralPath (Join-Path $PSScriptRoot '..')

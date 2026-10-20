@@ -86,10 +86,10 @@ macos/bin`, rather than with anything naming the cause.
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
    --all-files`, exit code 0, then `git status --porcelain` empty. Run
    the alert command of the step before the tag here too, so that a fix
-   lands before the release notes do. CI runs the suite on Ubuntu only,
-   so run it by hand on the other two platforms, each exiting 0:
-   `/bin/bash tests/run.sh` on a Mac, and `tests\run.ps1` on Windows
-   under both `pwsh` and `powershell`, as `tests/README.md` shows.
+   lands before the release notes do. Run the suite by hand where CI
+   does not, which `CONTRIBUTING.md`'s last section names, each run
+   exiting 0: `/bin/bash tests/run.sh` on a Mac, and `tests\run.ps1` on
+   Windows under both `pwsh` and `powershell`, as `tests/README.md` shows.
 
 1. Decide the date, and make the three files say it. `CHANGELOG.md`
    gains `## v<version>`, the tag's own heading, alone on its line,
