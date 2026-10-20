@@ -64,10 +64,7 @@
 # run the unmodified Program"; both tools are pinned to a hash, so a new
 # release runs only once a commit names it. Blinter's security findings
 # that are no defect are listed in .github/blinter-accepted.tsv rather
-# than marked in the scripts, and the job refuses a LINT:IGNORE
-# directive in any of them, and any byte neither printable ASCII nor
-# ASCII whitespace, through which Blinter could read one, and any CR
-# not followed by LF, at which Blinter ends a line the job does not.
+# than marked in the scripts, and the job's header says what else fails it.
 #
 # Skip a hook with SKIP=<id>.
 ci:
