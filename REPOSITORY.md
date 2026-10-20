@@ -298,6 +298,9 @@ git grep -n -E '^ +[a-z-]+: write' -- .github/workflows/
 `scorecard.yml` grants `id-token: write` to publish the score,
 `security-events: write` to upload its findings to code scanning, and
 `actions: read` for the workflow-run history its Packaging check reads.
+`test.yml`'s `test: every job passed` job adds `actions: read`, a read
+scope the command above does not list, to list its own run's jobs, which
+is what it judges.
 The lint hooks fix a checkout that is thrown away, and lychee only reads
 one. The value is a repository setting that stops following the
 organization default once it is set, so lowering the default here would
@@ -409,9 +412,9 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 [GitHub's own table](https://docs.github.com/en/actions/reference/limits)
 turns that answer into a number, twenty concurrent jobs on the free plan,
 shared across every repository of the organization. `lint.yml`,
-`script-security.yml` and `claude-review.yml` are what a pull request
-here starts, with `links.yml` added where the path its trigger names is
-touched.
+`script-security.yml`, `test.yml` and `claude-review.yml` are what a pull
+request here starts, with `links.yml` added where the path its trigger
+names is touched.
 
 ## Pages, which this repository does not use
 

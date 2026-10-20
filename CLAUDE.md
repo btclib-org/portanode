@@ -310,9 +310,10 @@ Do not use Fable unless explicitly instructed.
 
 ## How to verify
 
-The lint gate, and what it does not reach, are `CONTRIBUTING.md`'s last
-section. Nothing here runs a launcher, so a change to one is verified by
-running it — on the platform it is for, from a volume that is not the
+The lint gate and the suite under `tests/`, and what they do not reach,
+are `CONTRIBUTING.md`'s last section. Nothing here starts what a
+launcher launches, so a change to that is verified by running the
+launcher — on the platform it is for, from a volume that is not the
 boot disk — and a session that could not do that says so rather than
 leaving it to be assumed.
 
