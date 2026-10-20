@@ -407,20 +407,21 @@ gh api repos/btclib-org/portanode/branches/main/protection \
   --jq 'has("required_status_checks")'
 ```
 
-That answers `true`: a red `Lint`, `Dependency review` or `Sign-off` stops
-the merge.
+That answers `true`: a red `Lint`, `Dependency review`, `Sign-off`,
+`Script security` or `test: every job passed` stops the merge.
 `REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
 
 **`script-security.yml` runs the security rules of PSScriptAnalyzer and
 Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
-its header says what fails it. A Blinter finding it reports is fixed
+its header says what fails it. Its `Script security` job is a required
+check. A Blinter finding it reports is fixed
 or, where it is no defect, added to `.github/blinter-accepted.tsv` as the
 line the job prints.
 
 `test.yml`'s `test: every job passed` job passes where every job of
-its run did. No branch rule names it, so a red one does not hold the
+its run did, and the branch rule names it, so a red one holds the
 merge.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing

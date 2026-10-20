@@ -32,8 +32,8 @@ name: script-security
 # is kept equal to the findings of the tree it sits in, and the job
 # prints the lines to add or to remove.
 #
-# Its job's name becomes a required context only once a run is green, for
-# the reason lint.yml's header gives.
+# Its job's name is a required context, which REPOSITORY.md's "What gates
+# a merge" records.
 
 on:
   push:
