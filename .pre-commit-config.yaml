@@ -567,10 +567,9 @@ repos:
   # get right -- claude-review.yml holds a credential -- and it is the
   # one an author is least able to see by reading.
   # The auditor persona runs on every commit, this tree being at zero
-  # under it: the two grants claude-review.yml's calling job declares
-  # were the findings it had, and both now carry the comment it asked
-  # for. A new one here is a comment this tree owes, not advice to weigh
-  # separately from the gate.
+  # under it. A finding fails it, and is answered by a fix, a narrower
+  # grant, a reason on the grant's own line, or an inline decline with its
+  # reason beside it.
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: fa412071e4f5d44d44f9e365f4676f9df92456a2 # frozen: v1.30.1
     hooks:
