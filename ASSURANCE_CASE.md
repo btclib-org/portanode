@@ -13,7 +13,7 @@ the open issue.
 - **A launcher runs the folder's own binaries on the folder's own data.**
   It resolves the root from its own location, and runs Bitcoin Core or
   Electrum from the platform's `bin/` with a data directory under the
-  root (`CLAUDE.md`'s *What is in the tree, and what is not*).
+  root, as `README.md`'s *Detailed Setup* describes.
 - **An update installs only what its publisher signed.** The updaters
   refuse a download whose PGP signatures do not satisfy
   `keys/*.fingerprints`, as `README.md`'s *PGP verification fails closed*

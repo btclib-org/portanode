@@ -70,8 +70,7 @@ restrict() {
 # macOS synthesises a fixed mode for exFAT and FAT32 rather than storing
 # one it was asked to set: every file and directory on such a volume reads
 # u=rwx,go= regardless of what chmod requested, so the calls above ran and
-# changed nothing on disk (measured on an exFAT image, see CLAUDE.md's
-# "The bit decides nothing on the volume this is built for"). On a volume
+# changed nothing on disk, as measured on an exFAT image. On a volume
 # that does store a mode, the filesystem's name says nothing about what
 # the chmod did, so the restricted sentence is printed on the mode read
 # back off the directory and on the chmod's exit status rather than on

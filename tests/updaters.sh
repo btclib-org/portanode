@@ -12,7 +12,7 @@
 # Exits 1 where any check fails.
 #
 # Run by bash rather than executed, so it carries no shebang and no
-# executable bit (CLAUDE.md has where the bit is set).
+# executable bit.
 set -uo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found

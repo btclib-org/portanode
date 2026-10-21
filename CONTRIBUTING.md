@@ -237,7 +237,24 @@ settings and why they are what they are.
 [roadmap]: https://github.com/btclib-org/.github/blob/main/ROADMAP.md
 [good-first]: https://github.com/search?q=org%3Abtclib-org+label%3A%22good+first+issue%22+is%3Aopen&type=issues
 
+## Worktrees
+
+Run `git fetch origin` in the primary checkout, then check that
+`git status --porcelain` is empty and `git branch --show-current` is
+`main`. Run `git pull --ff-only` only when both checks pass, then verify
+`git rev-parse HEAD origin/main` prints the same sha twice. Create a separate
+worktree for each task with `git worktree add <path> origin/main -b <branch>`,
+and remove it with `git worktree remove <path>` when done. Keep the primary
+checkout clean and on `main`; do not switch branches or stash there. Hooks can
+fix files in place, and the local `main` and `refs/stash` are shared by all
+worktrees.
+
 ## This repository in particular
+
+There is no `.python-version` because the tracked tree has no Python source
+and no gate depends on a repository-selected Python interpreter. The Python
+used to create hook environments is managed by pre-commit; pin a version here
+if a project source file or gate becomes interpreter-sensitive.
 
 Everything above is the same file in every repository of the
 organization; everything below is this one's, and the comparison stops at
@@ -365,9 +382,8 @@ uvx blinter . --no-config --summary
 It exits non-zero here, and `.pre-commit-config.yaml`'s header says why
 that is not a hook: not one of the findings the rules that set its exit
 code produce here is a defect, and the header carries what suppressing
-one would cost. Read what it reports before believing it, and take the
-file with `git archive` rather than with `git show` — `CLAUDE.md`'s
-bullet on these files says why.
+one would cost. Read what it reports before believing it, and inspect
+the file from `git archive`, which applies the checkout attributes.
 
 **`E010` is one rule code covering two different shapes of a
 `^`-continued `for /f`, and only one of them is the false positive the

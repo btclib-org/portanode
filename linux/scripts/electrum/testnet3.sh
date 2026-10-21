@@ -70,11 +70,8 @@ if [ ! -r /dev/fuse ] || [ ! -w /dev/fuse ]; then
     echo "Loading the kernel's fuse module and granting access to it both need"
     echo "privilege; --appimage-extract-and-run needs none, unpacking the"
     echo "AppImage to a temporary directory and running it from there:"
-    # Absolute: CLAUDE.md's ROOTDIR convention turns on the use, and
-    # this line is printed for use outside this process rather than
-    # consumed by it. Rendered relative it would not merely orient a
-    # reader worse, it would not run. It is still built from ROOTDIR
-    # rather than written down.
+    # Its absolute path is built from ROOTDIR for use outside this process.
+    # A relative path would fail when pasted into the user's shell.
     printf '  %q --appimage-extract-and-run' "$ELECTRUM_APPIMAGE"
     printf ' %q' "${ELECTRUM_ARGS[@]}"
     printf '\n'
@@ -168,13 +165,9 @@ PYEOF
         exit 1
         ;;
     2)
-        # Absolute where the message above names electrum-datadir
-        # relative: CLAUDE.md's ROOTDIR convention turns on the use, and
-        # this message's subject is the path's own length. The relative
-        # form fits any sockaddr_un, so rendering it would report that a
-        # path is too long by naming one that is not, and the remedy the
-        # sentence gives -- a mount point with a shorter path -- would
-        # have nothing left to act on.
+        # The warning reports the path's length, so it must print the
+        # absolute path. A relative path would fit sockaddr_un and make
+        # the warning false.
         echo "Note: a unix domain socket address cannot hold a path as long" \
              "as ${ROOTDIR}/electrum-datadir/daemon_rpc_socket, so whether" \
              "that filesystem supports one was not tested. Electrum's daemon" \

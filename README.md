@@ -70,8 +70,7 @@ and Ubuntu it has to run under, not on a single default:
   platforms that read it do not fail identically on that account: macOS
   synthesises the execute bit as always-on regardless of `chmod`,
   measured by mounting an exFAT image and running a script whose mode
-  denies it (`CLAUDE.md`'s *What will otherwise waste a session* has
-  the commands), while Ubuntu's own exFAT driver instead computes a mode
+  denies it, while Ubuntu's own exFAT driver instead computes a mode
   from the mount's own `fmask`, which defaults to the mounting
   process's umask (#484): an `fmask` clearing the owner's execute bit
   makes the script fail. That is one mask away from the guarantee
@@ -461,7 +460,7 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Bitcoin Core**: Check `bitcoin-cli --version`.
 - **Electrum**: Check `electrum --version`.
 - Compatible with macOS 10.15+ and Windows 10+; the Linux measurements
-  cited in this file and in `CLAUDE.md` were taken on Ubuntu 24.04
+  cited in this file were taken on Ubuntu 24.04
   (GitHub Actions' `ubuntu-latest`). Test on your setup.
 
 ## Contributing
