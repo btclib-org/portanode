@@ -18,13 +18,12 @@ name: claude-review
 # review of type COMMENT, an opinion for the author to weigh; a review
 # that gated a merge would make a model's judgement a branch rule.
 #
-# REPOSITORY.md's main-self-merge rule holds a pull request until
-# somebody other than its author approves it, or its bypass actor merges
-# it. A review of type COMMENT is not an approval, so this workflow is
-# not a route to it. What holds a merge is that approval and the
-# required status checks REPOSITORY.md names, and this review is
-# neither. What it buys is the reading the approver weighs before
-# approving.
+# REPOSITORY.md's main-self-merge rule says who may let a pull request
+# land. A review of type COMMENT is not an approval, so this workflow is
+# not a route to it. What holds a merge is the approval that rule asks
+# for and the required status checks REPOSITORY.md names, and this
+# review is neither. What it buys is the reading the approver weighs
+# before approving.
 #
 # One calling job reaches both of the callee's jobs, and each of those
 # declines the events that are not its own, so the job below carries no
