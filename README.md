@@ -8,19 +8,21 @@ OpenSSF makes of it. Nothing here is a Python package and there is no
 -- that one earns its line in the long description an index renders and
 in the copy an unpacked sdist carries, neither of which this tree has.
 Inside the second the gates come in the order that section lists them --
-pre-commit.ci, then the lint workflow -- and the sentinels follow in the
-order section 10's calendar schedules them, which is the order and not
-the instants: the day and the hour a sentinel owns are that section's
-and are not restated here. Which sentinels this tree carries is section
-10's record rather than a choice made here, the badge and the workflow
-being one membership. This tree carries `links`, which every repository
-carries, and `scorecard`, by the maintainer's decision in
-btclib-org/portanode#639, which also adds the tree to the record. The
+pre-commit.ci, then the lint workflow, then the test workflow -- and the
+sentinels follow in the order section 10's calendar schedules them,
+which is the order and not the instants: the day and the hour a sentinel
+owns are that section's and are not restated here. Which sentinels this
+tree carries is section 10's record rather than a choice made here, the
+badge and the workflow being one membership. This tree carries `links`,
+which every repository carries, and `scorecard`, by the maintainer's
+decision in btclib-org/portanode#639, which also adds the tree to the
+record. The
 Scorecard badge opens the third group, before the Best Practices and
 Baseline badges of this tree's bestpractices.dev registration. One badge
 per line keeps a change to one line and every line inside MD013. -->
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
 [![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml?query=branch%3Amain)
+[![test workflow status](https://github.com/btclib-org/portanode/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/test.yml?query=branch%3Amain)
 [![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/links.yml?query=branch%3Amain)
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/btclib-org/portanode/badge)](https://scorecard.dev/viewer/?uri=github.com/btclib-org/portanode)
@@ -312,9 +314,9 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   no public key, so `gpg` can validate only against a key already in the
   local keyring. For Electrum a missing key — not a missing signature — is
   the usual cause of a validation failure; for Bitcoin Core it is a pin
-  file that lists no key yet, below. To bypass (installs UNAUTHENTICATED
-  binaries — not recommended), set `PORTANODE_ALLOW_UNVERIFIED=1` in the
-  environment.
+  file that lists no key yet, below. Nothing skips the check: where it
+  fails, fix what the error names — install `gpg`, import the key, or pin
+  the signers you trust — and run the update again.
     - **Bitcoin Core signing keys**: obtain builder keys from
       [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys),
       import the ones you trust with `gpg --import`, and list their
@@ -540,10 +542,6 @@ something that *is* a vulnerability is the organization's, shown on
   key you imported is the publisher's. Verify a fingerprint against the
   publisher's own site before importing, which is what *Updating
   Binaries* above asks.
-- **`PORTANODE_ALLOW_UNVERIFIED=1` installs unauthenticated binaries**,
-  and it is documented rather than removed because the alternative is
-  somebody working around the check in a way nobody can see. Setting it
-  is a decision, and it is not a defect in the script that obeyed it.
 - **`checksums.sha256` is integrity and not authenticity.** It detects a
   binary that changed under you; it says nothing about where the binary
   came from, that being what the PGP step decides. A checksum entry is

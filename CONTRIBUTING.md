@@ -284,33 +284,61 @@ shares: `git -C <worktree> rev-parse --git-path hooks` answers with the
 maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
-**`shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
-helpers**, which the Alice `-clean` launchers and the mainnet launchers
-use to find a running node, and
-**`shared/tests/process-running-with-locale.sh` tests
-`process_running_with` and `regtest_node_running_on` on a datadir holding
-a letter outside ASCII**, with and without a UTF-8 locale. No
-workflow runs either, so a change to them runs both by hand, with `bash`:
+**The suite under `tests/` runs the launchers and their helpers**, with
+`bash` on macOS and Linux and with PowerShell on Windows. CI runs it on
+Ubuntu only: `test.yml`, on every pull request. The macOS and Windows
+halves run by hand, `tests/run.sh` under the `/bin/bash` 3.2 macOS ships
+and `tests/run.ps1` under PowerShell, until a workflow runs them. On
+macOS and Linux:
+
+```shell
+bash tests/run.sh
+```
+
+`tests/README.md` has the Windows command, what the suite covers, and
+how a test is added. **A major change adds or updates tests there**:
+one that gives a launcher or a helper a new behaviour, or corrects one.
+
+**These test files sit outside the suite's directories, and no workflow
+runs them**, so a change to what one of them tests runs it by hand, with
+`bash`:
+
+- `shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
+  helpers, which the Alice `-clean` launchers and the mainnet launchers
+  use to find a running node;
+- `shared/tests/process-running-with-locale.sh` tests
+  `process_running_with` and `regtest_node_running_on` on a datadir
+  holding a letter outside ASCII, with and without a UTF-8 locale;
+- `tests/resolve-root.sh` tests `resolve_root` and the `.sh` and
+  `.command` scripts that call it;
+- `tests/updaters.sh` tests the updaters' downgrade refusal and
+  HTTPS-only fetches, and runs after a change to an updater,
+  `refuse_downgrade`, `curl_https` or `compare-versions.ps1`.
 
 ```shell
 bash shared/tests/node-detection.sh
 bash shared/tests/process-running-with-locale.sh
+bash tests/resolve-root.sh
+bash tests/updaters.sh
 ```
 
-**What the gate does not reach is running the thing this repository
-ships.** The hooks read prose, configuration and, through `shellcheck`,
-the `.sh` and `.command` launchers themselves — `shellcheck` reads a
-launcher by its shebang rather than by directory, so `linux/scripts/`'s
-own `.sh` files are in scope already and reaching them added no hook —
-but nothing here runs one. So what stands in for a suite is running the
-launcher on a macOS, a Windows and a Linux machine, from a volume that
-is not the boot disk — which is the case the paths in these scripts
-exist for, and the one a checkout on an internal disk never exercises.
+**What neither the gate nor the tests reach is a launcher starting
+what it launches.** The hooks read prose, configuration and, through
+`shellcheck`, the `.sh` and `.command` launchers themselves —
+`shellcheck` reads a launcher by its shebang rather than by directory,
+so `linux/scripts/`'s own `.sh` files are in scope already and reaching
+them added no hook. The suite runs a launcher's menu and leaves it, no
+binary being in the tree. So a change to what a launcher starts is
+verified by running it on a macOS, a Windows and a Linux machine, from a
+volume that is not the boot disk — which is the case the paths in these
+scripts exist for, and the one a checkout on an internal disk never
+exercises.
 
-**The `.bat` and `.ps1` halves are read by the generic hooks and by no
-parser.** PowerShell's is PSScriptAnalyzer, and
-`.pre-commit-config.yaml`'s header says why it is not a hook here; run it
-by hand, against a `pwsh` that carries the module:
+**The `.bat` and `.ps1` halves are read by the generic hooks, and by
+`script-security.yml` for security findings alone** (*What gates a
+merge*, below). PowerShell's parser is PSScriptAnalyzer, and
+`.pre-commit-config.yaml`'s header says why it is not a hook here; run
+all of its rules by hand, against a `pwsh` that carries the module:
 
 ```shell
 pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
@@ -321,19 +349,11 @@ which is a different answer from a style finding.
 
 **`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
 which the Windows mainnet launcher uses to read a running node's network
-switches. No workflow runs it: run it by hand after changing that file.
-It starts no process, so `pwsh` runs it on any system:
+switches. It is in the suite, so `tests/run.ps1` runs it. It starts no
+process, so `pwsh` also runs it on any system:
 
 ```shell
 pwsh -NoProfile -File tests/win/node-args.ps1
-```
-
-**`tests/updaters.sh` tests the updaters' downgrade refusal and HTTPS-only
-fetches.** No workflow runs it: run it by hand after changing an updater,
-`refuse_downgrade`, `curl_https` or `compare-versions.ps1`:
-
-```shell
-bash tests/updaters.sh
 ```
 
 `.bat` has Blinter, which installs under uv alone:
@@ -387,11 +407,22 @@ gh api repos/btclib-org/portanode/branches/main/protection \
   --jq 'has("required_status_checks")'
 ```
 
-That answers `true`: a red `Lint`, `Dependency review` or `Sign-off` stops
-the merge.
+That answers `true`: a red `Lint`, `Dependency review`, `Sign-off`,
+`Script security` or `test: every job passed` stops the merge.
 `REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
+
+**`script-security.yml` runs the security rules of PSScriptAnalyzer and
+Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
+its header says what fails it. Its `Script security` job is a required
+check. A Blinter finding it reports is fixed
+or, where it is no defect, added to `.github/blinter-accepted.tsv` as the
+line the job prints.
+
+`test.yml`'s `test: every job passed` job passes where every job of
+its run did, and the branch rule names it, so a red one holds the
+merge.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a

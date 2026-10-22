@@ -178,9 +178,10 @@ git worktree remove --force <scratchpad>/wt-<tracker>-<issue>-<repo>-<role>
   a `.ps1` change being read for correctness without ever being parsed.
   `Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser` once
   `pwsh` is there.
-- **`blinter` does not gate, and its exit code is non-zero on the clean
-  tree.** Capture `V=$(uvx blinter --version)` once and run every half of
-  a comparison as `uvx --from "blinter==$V"`, stderr dropped (its `utf_8`
+- **`blinter`'s security rules run in CI, in `script-security.yml`, and
+  its exit code is non-zero on the clean tree.** Capture
+  `V=$(uvx blinter --version)` once and run every half of a comparison
+  as `uvx --from "blinter==$V"`, stderr dropped (its `utf_8`
   encoding notices move under unrelated edits). Judge a diff by the set
   of line numbers per file and rule code, not by counts. Lines blinter
   reads as embedded script — which can include plain batch lines after a
@@ -309,9 +310,10 @@ Do not use Fable unless explicitly instructed.
 
 ## How to verify
 
-The lint gate, and what it does not reach, are `CONTRIBUTING.md`'s last
-section. Nothing here runs a launcher, so a change to one is verified by
-running it — on the platform it is for, from a volume that is not the
+The lint gate and the suite under `tests/`, and what they do not reach,
+are `CONTRIBUTING.md`'s last section. Nothing here starts what a
+launcher launches, so a change to that is verified by running the
+launcher — on the platform it is for, from a volume that is not the
 boot disk — and a session that could not do that says so rather than
 leaving it to be assumed.
 

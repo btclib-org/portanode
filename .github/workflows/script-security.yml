@@ -1,0 +1,188 @@
+---
+name: script-security
+
+# the security rules of PSScriptAnalyzer and Blinter, over every tracked
+# .ps1 and .bat script: the hooks lint.yml runs read these files as text,
+# and .pre-commit-config.yaml's header says why neither tool is a hook.
+#
+# A security finding fails the job; a style finding does not. For
+# PowerShell the rules are ScriptSecurity, the settings preset the module
+# ships, and three security rules the preset leaves out:
+# PSAvoidUsingInvokeExpression, PSAvoidUsingBrokenHashAlgorithms and
+# PSAvoidUsingAllowUnencryptedAuthentication. A file PowerShell cannot
+# parse fails too, since nothing in it was read. For batch the rules are
+# Blinter's SEC rules, and the job fails as well where Blinter read a
+# number of files other than the number git tracks, or where a tracked
+# .bat or .cmd file holds a LINT:IGNORE directive, which would silence a
+# finding without an entry in the list below. It fails too on a byte in
+# those files that is neither printable ASCII nor ASCII whitespace:
+# Blinter upper-cases a line with Python before it looks for the
+# directive, which turns a dotless i into I, and git grep folds ASCII
+# only, so ASCII text is what lets the two read the same directive. It
+# fails on a CR not followed by LF as well: Blinter ends a line at a lone
+# CR and sed below does not, so the two would number lines differently
+# and a finding's key could take another line's text. Both tools' other
+# rules stay by hand, as CONTRIBUTING.md's last section says.
+#
+# Blinter's SEC rules fire on lines that .pre-commit-config.yaml's header
+# calls no defect. .github/blinter-accepted.tsv records each one by rule
+# code, file and the text of the line, not its number, so an edit
+# elsewhere in the file does not move it. A finding the file does not
+# hold fails the job, and so does an entry no finding matches: the file
+# is kept equal to the findings of the tree it sits in, and the job
+# prints the lines to add or to remove.
+#
+# Its job's name is a required context, which REPOSITORY.md's "What gates
+# a merge" records.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # closed for the reason lint.yml gives: the event joins this pull
+    # request's concurrency group and cancels a run still in it
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+  workflow_dispatch:
+
+# least privilege for the GITHUB_TOKEN: the job reads the checkout and
+# writes nothing
+permissions:
+  contents: read
+
+concurrency:
+  # named literally and keyed as lint.yml's group is, for the reasons its
+  # comment gives
+  group: script-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  script-security:
+    # the name is the context a required check names; lint.yml's job says
+    # why renaming it cannot be done in a pull request once a rule names it
+    name: Script security
+    # a draft and a closed pull request decline as lint.yml's jobs do
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    # two downloads and two analyses: a job past this is hung
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # caching off: the install below is two wheels
+      - name: Install uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: false
+
+      # blinter and its one dependency, each pinned to the hash of the wheel
+      # PyPI serves. uvx would take the version and ignore a hash, so the
+      # install goes into a venv of its own. The Python range is blinter's
+      # requires-python
+      - name: Install Blinter
+        run: |
+          printf '%s --hash=sha256:%s\n' \
+            blinter==1.1.42 \
+            84301cdecce17e1ed3ef0fe6d04c8f324321f955710594bfbc5376e09865c635 \
+            charset-normalizer==3.5.2 \
+            b6b751274acb69d77b3323d6b7dbaa3c7fdfc1eb829b7eb61d262f32e1af9685 \
+            > "$RUNNER_TEMP/blinter-requirements.txt"
+          uv venv --quiet --python '>=3.11,<3.16' "$RUNNER_TEMP/blinter"
+          uv pip install --quiet --python "$RUNNER_TEMP/blinter" \
+            --require-hashes --only-binary :all: \
+            --requirement "$RUNNER_TEMP/blinter-requirements.txt"
+
+      # blinter exits non-zero on any finding of any rule, so its exit code
+      # says nothing here. What says it ran is its count of the files it
+      # read, set against the files git tracks
+      - name: Check the .bat scripts with Blinter's security rules
+        run: |
+          t="$RUNNER_TEMP"
+          rc=0
+          LC_ALL=C git grep -n -E -e '[^[:print:][:space:]]' -e $'\r.' \
+            -- '*.bat' '*.cmd' || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            echo "::error::a byte neither printable ASCII nor whitespace, or a CR without LF"
+            exit 1
+          elif [ "$rc" -ne 1 ]; then
+            exit "$rc"
+          fi
+          rc=0
+          git grep -n -i 'LINT:IGNORE' -- '*.bat' '*.cmd' || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            echo "::error::a LINT:IGNORE directive; .github/blinter-accepted.tsv holds exceptions"
+            exit 1
+          elif [ "$rc" -ne 1 ]; then
+            exit "$rc"
+          fi
+          "$t/blinter/bin/blinter" . --no-config --format json \
+            --output "$t/blinter.json" || true
+          tracked=$(git ls-files '*.bat' '*.cmd' | wc -l)
+          processed=$(jq '.summary.files_processed' "$t/blinter.json")
+          if [ "$processed" -ne "$tracked" ]; then
+            echo "::error::blinter read $processed files where git tracks $tracked"
+            exit 1
+          fi
+          jq -r '.issues[] | select(.code | startswith("SEC"))
+            | [.code, .file, .line] | @tsv' "$t/blinter.json" |
+            while IFS=$'\t' read -r code file line; do
+              text=$(sed -n "${line}p" "$file" | tr -d '\r' |
+                sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+              printf '%s\t%s\t%s\n' "$code" "$file" "$text"
+            done | LC_ALL=C sort > "$t/found.tsv"
+          sed '/^#/d' .github/blinter-accepted.tsv | LC_ALL=C sort > "$t/accepted.tsv"
+          LC_ALL=C comm -13 "$t/accepted.tsv" "$t/found.tsv" > "$t/new.tsv"
+          LC_ALL=C comm -23 "$t/accepted.tsv" "$t/found.tsv" > "$t/gone.tsv"
+          echo "$(wc -l < "$t/found.tsv") security findings in $processed files"
+          status=0
+          if [ -s "$t/new.tsv" ]; then
+            echo "::error::findings .github/blinter-accepted.tsv does not hold"
+            cat "$t/new.tsv"
+            status=1
+          fi
+          if [ -s "$t/gone.tsv" ]; then
+            echo "::error::entries of .github/blinter-accepted.tsv no finding matches"
+            cat "$t/gone.tsv"
+            status=1
+          fi
+          exit "$status"
+
+      # the module as its release publishes it, pinned to the hash of the
+      # package. pwsh is the runner's own
+      - name: Install PSScriptAnalyzer
+        run: |
+          pkg="$RUNNER_TEMP/PSScriptAnalyzer.nupkg"
+          curl --fail --silent --show-error --location --output "$pkg" \
+            https://github.com/PowerShell/PSScriptAnalyzer/releases/download/1.25.0/PSScriptAnalyzer.1.25.0.nupkg
+          echo "14e634c828eb98efb9f40b2918ba90f139ed5eccdf663a2a747736d996995d60  $pkg" |
+            sha256sum --check --strict
+          unzip -q "$pkg" -d "$RUNNER_TEMP/PSScriptAnalyzer"
+
+      # one file at a time, from git's list, so that every tracked script is
+      # read and a parse error names its file
+      - name: Check the .ps1 scripts with PSScriptAnalyzer's security rules
+        shell: pwsh
+        run: |
+          Import-Module "$env:RUNNER_TEMP/PSScriptAnalyzer/PSScriptAnalyzer.psd1"
+          $module = Get-Module PSScriptAnalyzer
+          $version = $module.Version
+          # the preset read from the module, so its list stays the module's,
+          # with the header's three rules added
+          $settings = Import-PowerShellDataFile `
+            (Join-Path $module.ModuleBase 'Settings/ScriptSecurity.psd1')
+          $settings.IncludeRules += @(
+            'PSAvoidUsingInvokeExpression'
+            'PSAvoidUsingBrokenHashAlgorithms'
+            'PSAvoidUsingAllowUnencryptedAuthentication'
+          )
+          "PowerShell $($PSVersionTable.PSVersion), PSScriptAnalyzer $version"
+          $files = @(git ls-files '*.ps1' '*.psm1' '*.psd1')
+          $found = @(foreach ($f in $files) {
+            Invoke-ScriptAnalyzer -Path $f -Settings $settings |
+              ForEach-Object { "::error file=$f,line=$($_.Line)::$($_.RuleName): $($_.Message)" }
+          })
+          "$($found.Count) security findings in $($files.Count) files"
+          $found
+          if ($found.Count -gt 0) { exit 1 }

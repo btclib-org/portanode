@@ -201,8 +201,7 @@ if %errorlevel%==0 (
     call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
     call "%SCRIPT_DIR%lib.bat" :preview_pinned_keys "%ROOTDIR%\keys\bitcoin-core.fingerprints" "keys\bitcoin-core.fingerprints" "the update"
 ) else (
-    echo gpg: not found -- verification would fail closed unless
-    echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
+    echo gpg: not found -- verification would fail closed.
 )
 set ARCHIVE_LEN=
 REM Built as one physical line -- see win/scripts/utilities/lib.bat's
@@ -269,7 +268,6 @@ goto :error
 setlocal enabledelayedexpansion
 echo Downloading !URL!...
 endlocal
-set PGP_OK=0
 REM Built as one physical line each -- see :update_checksum in lib.bat
 REM (#144): a caret split across one of these blocks' open quote was a
 REM literal character, not a continuation, so the goto :error guard that
@@ -290,7 +288,7 @@ powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; tr
 powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\SHA256SUMS') -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:CHECKSUM_SIG_URL -OutFile ($env:TMPDIR + '\SHA256SUMS.asc') -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
-call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" PGP_OK "%ROOTDIR%\keys\bitcoin-core.fingerprints"
+call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" "%ROOTDIR%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
 
 REM A SHA256SUMS line counts where its name field is FILE, whole and in
@@ -348,18 +346,13 @@ goto :error
 REM The entries are hashed from the files extracted from the archive
 REM checked above, and the loop below checks the installed copies
 REM against them.
-if "%PGP_OK%"=="1" (
-  for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call "%SCRIPT_DIR%lib.bat" :update_checksum "%TMPDIR%\bitcoin-%VERSION%\bin\%%E.exe" "win/bin/%%E.exe" "%VERSION%"
-) else (
-  echo Warning: PGP signature^(s^) not verified; skipping checksum update.
-)
+for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call "%SCRIPT_DIR%lib.bat" :update_checksum "%TMPDIR%\bitcoin-%VERSION%\bin\%%E.exe" "win/bin/%%E.exe" "%VERSION%"
 
 REM Flat rather than the "if ... ( )" this replaced: VERR is set inside
 REM the loop and tested after it, which one block would read as VERR
 REM stood when cmd.exe parsed the block. The loop itself keeps its own
 REM parentheses, "if errorlevel 1" being a test made when the line runs
 REM rather than an expansion made when it is parsed.
-if not "%PGP_OK%"=="1" goto :post_install_done
 echo Verifying installed binaries against checksums.sha256...
 set "VERR=0"
 for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do (
@@ -371,7 +364,6 @@ if "%VERR%"=="1" (
   goto :error
 )
 echo All Bitcoin binaries verified.
-:post_install_done
 
 setlocal enabledelayedexpansion
 echo Bitcoin Core updated to !VERSION!

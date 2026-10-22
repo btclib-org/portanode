@@ -42,8 +42,9 @@ gh api repos/btclib-org/portanode --jq '.default_branch'
 # main
 ```
 
-**`lint.yml` runs on every pull request, and a red `Lint`, `Dependency
-review` or `Sign-off` job stops the merge:**
+**`lint.yml`, `script-security.yml` and `test.yml` run on every pull
+request, and a red `Lint`, `Dependency review`, `Sign-off`, `Script
+security` or `test: every job passed` job stops the merge:**
 
 ```shell
 gh api repos/btclib-org/portanode/branches/main/protection \
@@ -53,13 +54,20 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 ```json
 {"checks":[{"app_id":15368,"context":"Lint"},
            {"app_id":15368,"context":"Dependency review"},
-           {"app_id":15368,"context":"Sign-off"}],
- "contexts":["Lint","Dependency review","Sign-off"],"strict":false}
+           {"app_id":15368,"context":"Sign-off"},
+           {"app_id":15368,"context":"Script security"},
+           {"app_id":15368,"context":"test: every job passed"}],
+ "contexts":["Lint","Dependency review","Sign-off","Script security",
+             "test: every job passed"],"strict":false}
 ```
 
-names the contexts `Lint`, `Dependency review` and `Sign-off` — the jobs'
-names, `lint.yml` saying why a name is the context and why renaming it cannot
-be done in a pull request afterwards — as required status checks.
+names the contexts `Lint`, `Dependency review`, `Sign-off`, `Script security`
+and `test: every job passed` — the jobs' names, `lint.yml` saying why a name
+is the context and why renaming it cannot be done in a pull request
+afterwards — as required status checks. The first three are `lint.yml`'s
+jobs, `Script security` is `script-security.yml`'s job, and `test: every job
+passed` is `test.yml`'s aggregate job, which passes where every job of its
+run did.
 
 **The requirement lives in classic branch protection, not in a ruleset
 rule.** None of the rulesets below carries a `required_status_checks`
@@ -71,7 +79,8 @@ gh api repos/btclib-org/portanode/rules/branches/main \
 ```
 
 lists only `main-integrity`'s rules and `main-self-merge`'s;
-`Lint`, `Dependency review` and `Sign-off` are required through the older
+`Lint`, `Dependency review`, `Sign-off`, `Script security` and `test: every
+job passed` are required through the older
 `branches/main/protection` endpoint, which this repository keeps active
 alongside the rulesets rather than folding into one of them.
 
@@ -83,8 +92,9 @@ reason][s11-branch].
 first reports the internet's weather and the second an opinion, and neither is a
 thing to hold a merge on.
 
-What holds a pull request is the review, `Lint`, `Dependency review` and
-`Sign-off`; what holds every commit that reaches `main` is `main-integrity`.
+What holds a pull request is the review, `Lint`, `Dependency review`,
+`Sign-off`, `Script security` and `test: every job passed`; what holds
+every commit that reaches `main` is `main-integrity`.
 
 ## Rulesets
 
@@ -298,6 +308,9 @@ git grep -n -E '^ +[a-z-]+: write' -- .github/workflows/
 `scorecard.yml` grants `id-token: write` to publish the score,
 `security-events: write` to upload its findings to code scanning, and
 `actions: read` for the workflow-run history its Packaging check reads.
+`test.yml`'s `test: every job passed` job adds `actions: read`, a read
+scope the command above does not list, to list its own run's jobs, which
+is what it judges.
 The lint hooks fix a checkout that is thrown away, and lychee only reads
 one. The value is a repository setting that stops following the
 organization default once it is set, so lowering the default here would
@@ -381,7 +394,8 @@ and default setup has simply not been turned on for it.
 which is the code-quality feature's state and not CodeQL's — the two
 endpoints cover different features and do not corroborate each other.
 What reads the launchers instead is `shellcheck`, in
-`.pre-commit-config.yaml`'s own hooks.
+`.pre-commit-config.yaml`'s own hooks, and the security rules
+`script-security.yml` runs over the `.bat` and `.ps1` ones.
 
 ## Plan-gated settings
 
@@ -407,9 +421,10 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 
 [GitHub's own table](https://docs.github.com/en/actions/reference/limits)
 turns that answer into a number, twenty concurrent jobs on the free plan,
-shared across every repository of the organization. `lint.yml` and
-`claude-review.yml` are what a pull request here starts, with `links.yml`
-added where the path its trigger names is touched.
+shared across every repository of the organization. `lint.yml`,
+`script-security.yml`, `test.yml` and `claude-review.yml` are what a pull
+request here starts, with `links.yml` added where the path its trigger
+names is touched.
 
 ## Pages, which this repository does not use
 

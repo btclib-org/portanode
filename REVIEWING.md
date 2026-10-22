@@ -605,6 +605,9 @@ because that document, and not this one, is where the rule lives.
   no parameter, none of the three reaching a root;
   `win/scripts/bitcoin/node-args.ps1` and its test,
   `tests/win/node-args.ps1`, read command lines and reach no root either;
+  `tests/lib.ps1` and `tests/run.ps1` take no root;
+  `tests/win/launchers.ps1` and `tests/win/resolve-root.ps1` hold the
+  checkout's root in `$repo`, a test's path that no launcher consumes;
   and `win/scripts/root.ps1` is the walk itself, its `$StartDir` naming where
   the search begins rather than what it finds. The assignment pattern
   carries PowerShell's `$name = value` beside `NAME=value`, so a `.ps1`
@@ -646,10 +649,10 @@ because that document, and not this one, is where the rule lives.
     names the subject on one platform; whether the other platforms have
     it, and whether they needed the same change, is the reading.
 - **Does verification still fail closed?** An update script installs
-  nothing whose PGP signature did not verify, `PORTANODE_ALLOW_UNVERIFIED`
-  being the one documented way past it. A diff that turns a verification
-  failure into a warning, or that installs before verifying rather than
-  after, is a blocking finding whatever else it does.
+  nothing whose PGP signature did not verify. A diff that turns a
+  verification failure into a warning, that adds a way past it, or that
+  installs before verifying rather than after, is a blocking finding
+  whatever else it does.
 - **Do the `.bat` files still end their lines with CRLF?** `.gitattributes`
   checks them out that way because cmd.exe reads a `.bat` line by line,
   and `.pre-commit-config.yaml` excludes them from the line-ending fixer
@@ -661,7 +664,7 @@ because that document, and not this one, is where the rule lives.
       | xargs -I{} sh -c 'grep -qU "$(printf "\r")" {} || echo {}'
     ```
 
-- **Were the launchers run?** `CONTRIBUTING.md`'s last section says no
-  gate reaches them and what stands in for one. A review of a launcher
-  change that ran nothing says so, in those words, rather than leaving it
-  to be assumed.
+- **Were the launchers run?** `CONTRIBUTING.md`'s last section says what
+  the suite under `tests/` reaches, what it does not, and what stands in
+  for that. A review of a launcher change that ran nothing says so, in
+  those words, rather than leaving it to be assumed.

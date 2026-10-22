@@ -139,8 +139,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
         preview_pinned_keys "$ROOTDIR/keys/electrum.fingerprints" \
           "keys/electrum.fingerprints" "the download"
     else
-        echo "gpg: not found -- verification would fail closed unless" \
-             "PORTANODE_ALLOW_UNVERIFIED=1 is set."
+        echo "gpg: not found -- verification would fail closed."
     fi
     # --max-time 30, the bound latest-bitcoin-version.ps1 passes as
     # -TimeoutSec 30 on its own archive HEAD probe: a host that accepts
@@ -178,12 +177,10 @@ echo "Downloading $URL..."
 curl_https -fL -o "$TMP_DIR/$OUT_FILE" "$URL"
 curl_https -fL -o "$TMP_DIR/$SIG_FILE" "${URL}.asc"
 
-PGP_OK=0
 if ! pgp_verify_or_fail \
   "$TMP_DIR/$SIG_FILE" \
   "$TMP_DIR/$OUT_FILE" \
   "Electrum" \
-  PGP_OK \
   "$ROOTDIR/keys/electrum.fingerprints"; then
     exit 1
 fi
@@ -215,23 +212,19 @@ hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
 if [ "$install_rc" -ne 0 ]; then
     exit 1
 fi
-if [ "$PGP_OK" -eq 1 ]; then
-    update_checksum \
-      "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-      "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-      "$VERSION"
-    echo "Verifying installed Electrum against checksums.sha256..."
-    if ! verify_checksum_entry \
-        "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-        "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-        "$ROOTDIR/macos/checksums.sha256" "Electrum"; then
-        echo "Error: post-install verification failed (filesystem corruption?)."
-        exit 1
-    fi
-    echo "Electrum verified."
-else
-    echo "Warning: PGP signature(s) not verified; skipping checksum update."
+update_checksum \
+  "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+  "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+  "$VERSION"
+echo "Verifying installed Electrum against checksums.sha256..."
+if ! verify_checksum_entry \
+    "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+    "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+    "$ROOTDIR/macos/checksums.sha256" "Electrum"; then
+    echo "Error: post-install verification failed (filesystem corruption?)."
+    exit 1
 fi
+echo "Electrum verified."
 
 cleanup
 trap - EXIT

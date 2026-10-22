@@ -5,12 +5,10 @@ name: lint
 # second list of the same tools: a commit and CI then enforce one thing,
 # and a hook added to that file needs no edit here.
 #
-# It is the whole of what a merge here can be gated on. No workflow runs
-# a test suite, and there is no documentation build in this tree, so the
-# hooks are the only answer a workflow can produce about the checkout.
-# CONTRIBUTING.md's last section says what they leave uncovered -- running
-# a launcher on the platform it is for, which no runner does -- and which
-# tests are run by hand.
+# The suite is test.yml's, the security rules over the Windows scripts
+# are script-security.yml's, and there is no documentation build in this
+# tree. CONTRIBUTING.md's last section says what the hooks and the suite
+# leave uncovered, and which tests are run by hand.
 #
 # A job's name becomes a required context, and that is a
 # second step rather than part of this one: a required context nothing
@@ -106,7 +104,7 @@ jobs:
       # uv is the only prerequisite here as everywhere, and this is the
       # step that supplies it
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
 
       # the cache key needs the runner image, not only the OS: a
       # pre-commit environment built on one image is not always usable on
@@ -224,7 +222,7 @@ jobs:
       # caching off: the job installs no dependency, so a cache has nothing
       # to hold
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           enable-cache: false
 

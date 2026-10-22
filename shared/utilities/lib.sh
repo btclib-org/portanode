@@ -217,39 +217,23 @@ pinned_fingerprints() {
     return 0
 }
 
-# pgp_verify_or_fail SIG_FILE DATA_FILE LABEL OUT_VAR FPR_FILE
+# pgp_verify_or_fail SIG_FILE DATA_FILE LABEL FPR_FILE
 #
 # Verifies DATA_FILE against the detached SIG_FILE. FAILS CLOSED: returns
 # non-zero (so the caller aborts the install) unless SIG_FILE carries good
 # signatures from as many distinct keys pinned in FPR_FILE as its
 # min-signatures asks for (pinned_fingerprints reads the file). A file that
 # pins no key refuses.
-# On success sets OUT_VAR to 1 (the caller uses it to gate checksum recording).
-#
-# Set PORTANODE_ALLOW_UNVERIFIED=1 to bypass verification entirely (installs
-# unauthenticated binaries — NOT recommended, intended only as an escape hatch).
 pgp_verify_or_fail() {
     local sig_file="$1"
     local data_file="$2"
     local label="$3"
-    local out_var="$4"
-    local fpr_file="${5:-}"
-
-    if [ -n "$out_var" ]; then
-        printf -v "$out_var" '%s' 0
-    fi
-
-    if [ "${PORTANODE_ALLOW_UNVERIFIED:-0}" = "1" ]; then
-        echo "Warning: PORTANODE_ALLOW_UNVERIFIED=1 set; skipping PGP" \
-             "verification of ${label}. Installing UNAUTHENTICATED binaries."
-        return 0
-    fi
+    local fpr_file="${4:-}"
 
     if ! command -v gpg >/dev/null 2>&1; then
         echo "Error: gpg not found; cannot verify ${label}."
         echo "Install gpg (e.g. 'brew install gnupg') and import the signing" \
-             "key, or set PORTANODE_ALLOW_UNVERIFIED=1 to bypass (NOT" \
-             "recommended)."
+             "key."
         return 1
     fi
 
@@ -320,8 +304,7 @@ pgp_verify_or_fail() {
     if ! grep -q '^\[GNUPG:\] GOODSIG' "$status_file"; then
         echo "Error: no valid PGP signature on ${label}" \
              "(is the signer's key imported?)."
-        echo "Import the signing key, or set PORTANODE_ALLOW_UNVERIFIED=1 to" \
-             "bypass (NOT recommended)."
+        echo "Import the signing key."
         rm -f "$status_file"
         return 1
     fi
@@ -408,9 +391,6 @@ pgp_verify_or_fail() {
          "${fpr_name}; ${min_sigs} required."
 
     rm -f "$status_file"
-    if [ -n "$out_var" ]; then
-        printf -v "$out_var" '%s' 1
-    fi
     return 0
 }
 
@@ -589,16 +569,14 @@ preview_pinned_keys() {
     local _pk_name="$2"
     local _pk_what="$3"
     local _pk_pins _pk_min _pk_fpr _pk_n _pk_found=0
-    local _pk_unless="unless PORTANODE_ALLOW_UNVERIFIED=1 is set."
     if ! pinned_fingerprints "$_pk_file" _pk_pins _pk_min; then
         echo "gpg: found, but ${_pk_name} was not accepted as a list of" \
-             "pinned fingerprints -- verification would refuse ${_pk_what}" \
-             "${_pk_unless}"
+             "pinned fingerprints -- verification would refuse ${_pk_what}."
         return 0
     fi
     if [ -z "$_pk_pins" ]; then
         echo "gpg: found, but ${_pk_name} pins no key -- verification would" \
-             "refuse ${_pk_what} ${_pk_unless}"
+             "refuse ${_pk_what}."
         return 0
     fi
     _pk_pins="$(printf '%s\n' "$_pk_pins" | tr 'abcdef' 'ABCDEF' \
@@ -607,7 +585,7 @@ preview_pinned_keys() {
     if [ "${#_pk_min}" -gt 9 ] || [ "$_pk_n" -lt "$_pk_min" ]; then
         echo "gpg: found, but ${_pk_name} pins ${_pk_n} key(s), fewer than" \
              "the ${_pk_min} signatures it asks for -- verification would" \
-             "refuse ${_pk_what} ${_pk_unless}"
+             "refuse ${_pk_what}."
         return 0
     fi
     while IFS= read -r _pk_fpr; do
@@ -624,7 +602,7 @@ preview_pinned_keys() {
     if [ "$_pk_found" -lt "$_pk_min" ]; then
         echo "Only ${_pk_found} pinned key(s) in the local keyring, fewer" \
              "than the ${_pk_min} signatures asked for -- verification" \
-             "would fail closed ${_pk_unless}"
+             "would fail closed."
     fi
     return 0
 }
