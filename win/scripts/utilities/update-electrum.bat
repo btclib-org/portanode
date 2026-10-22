@@ -166,8 +166,7 @@ if %errorlevel%==0 (
     call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
     call "%SCRIPT_DIR%lib.bat" :preview_pinned_keys "%ROOTDIR%\keys\electrum.fingerprints" "keys\electrum.fingerprints" "the download"
 ) else (
-    echo gpg: not found -- verification would fail closed unless
-    echo PORTANODE_ALLOW_UNVERIFIED=1 is set.
+    echo gpg: not found -- verification would fail closed.
 )
 set ARCHIVE_LEN=
 REM Built as one physical line -- see :update_checksum in lib.bat
@@ -230,7 +229,6 @@ goto :error
 setlocal enabledelayedexpansion
 echo Downloading !URL!...
 endlocal
-set PGP_OK=0
 REM Built as one physical line each -- see :update_checksum in lib.bat
 REM (#144): a caret split across one of these blocks' open quote was a
 REM literal character, not a continuation, so the goto :error guard that
@@ -251,7 +249,7 @@ REM lib.bat (#578).
 powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri ($env:URL + '.asc') -OutFile ($env:TMPDIR + '\' + $env:SIG_FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
-call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" PGP_OK "%ROOTDIR%\keys\electrum.fingerprints"
+call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" "%ROOTDIR%\keys\electrum.fingerprints"
 if errorlevel 1 goto :error
 
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
@@ -271,18 +269,14 @@ if errorlevel 1 (
     goto :error
 )
 
-if "%PGP_OK%"=="1" (
-  call "%SCRIPT_DIR%lib.bat" :update_checksum "%TMPDIR%\%FILE%" "win/bin/electrum.exe" "%VERSION%"
-  echo Verifying installed Electrum against checksums.sha256...
-  call "%SCRIPT_DIR%lib.bat" :verify_checksum "win/bin/electrum.exe" "win/bin/electrum.exe"
-  if errorlevel 1 (
-    echo Error: post-install verification failed ^(filesystem corruption?^).
-    goto :error
-  )
-  echo Electrum verified.
-) else (
-  echo Warning: PGP signature^(s^) not verified; skipping checksum update.
+call "%SCRIPT_DIR%lib.bat" :update_checksum "%TMPDIR%\%FILE%" "win/bin/electrum.exe" "%VERSION%"
+echo Verifying installed Electrum against checksums.sha256...
+call "%SCRIPT_DIR%lib.bat" :verify_checksum "win/bin/electrum.exe" "win/bin/electrum.exe"
+if errorlevel 1 (
+  echo Error: post-install verification failed ^(filesystem corruption?^).
+  goto :error
 )
+echo Electrum verified.
 
 setlocal enabledelayedexpansion
 echo Electrum updated to !VERSION!

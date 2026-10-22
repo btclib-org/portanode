@@ -182,14 +182,12 @@ if [ "$DRY_RUN" -eq 1 ]; then
           || PUBKEYS=0
         echo "gpg: found, ${PUBKEYS} public key(s) in the local keyring."
         if [ "$PUBKEYS" -eq 0 ]; then
-            echo "Warning: with none imported, verification would fail closed" \
-                 "unless PORTANODE_ALLOW_UNVERIFIED=1 is set."
+            echo "Warning: with none imported, verification would fail closed."
         fi
         preview_pinned_keys "$ROOTDIR/keys/bitcoin-core.fingerprints" \
           "keys/bitcoin-core.fingerprints" "the update"
     else
-        echo "gpg: not found -- verification would fail closed unless" \
-             "PORTANODE_ALLOW_UNVERIFIED=1 is set."
+        echo "gpg: not found -- verification would fail closed."
     fi
     # --max-time 30, the bound latest-bitcoin-version.ps1 passes as
     # -TimeoutSec 30 on its own archive HEAD probe: a host that accepts
@@ -244,13 +242,11 @@ echo "Downloading ${CLI_ARCHIVE} (for CLI tools)..."
 curl_https -fL -o "$TMP_DIR/$CLI_ARCHIVE" \
   "https://bitcoincore.org/bin/bitcoin-core-${VERSION}/${CLI_ARCHIVE}"
 
-# Verify (fails closed; set PORTANODE_ALLOW_UNVERIFIED=1 to bypass)
-UPDATE_CHECKSUMS=0
+# Verify (fails closed)
 if ! pgp_verify_or_fail \
   "$TMP_DIR/SHA256SUMS.asc" \
   "$TMP_DIR/SHA256SUMS" \
   "SHA256SUMS" \
-  UPDATE_CHECKSUMS \
   "$ROOTDIR/keys/bitcoin-core.fingerprints"; then
     exit 1
 fi
@@ -303,17 +299,13 @@ for b in $BIN_NAMES; do
     fi
 done
 
-if [ $UPDATE_CHECKSUMS -eq 1 ]; then
-    update_checksum \
-      "$TMP_APP/Contents/MacOS/Bitcoin-Qt" \
-      "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
-      "$VERSION"
-    for b in $BIN_NAMES; do
-        update_checksum "$TMP_BIN_DIR/$b" "macos/bin/$b" "$VERSION"
-    done
-else
-    echo "Warning: PGP signature(s) not verified; skipping checksum update."
-fi
+update_checksum \
+  "$TMP_APP/Contents/MacOS/Bitcoin-Qt" \
+  "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+  "$VERSION"
+for b in $BIN_NAMES; do
+    update_checksum "$TMP_BIN_DIR/$b" "macos/bin/$b" "$VERSION"
+done
 
 # Replace binaries. Everything below copies from the APFS temp dir onto the
 # (possibly exFAT) install dir via install_verified, which re-reads and retries
@@ -347,24 +339,21 @@ trap - EXIT
 
 # Final integrity gate: re-read the installed binaries and confirm they match
 # the (PGP-verified) hashes just recorded. Catches corruption that happens after
-# the verified copy. Only when checksums were updated (i.e. PGP verified); with
-# PORTANODE_ALLOW_UNVERIFIED set, install_verified already checked the copy.
-if [ "$UPDATE_CHECKSUMS" -eq 1 ]; then
-    echo "Verifying installed binaries against checksums.sha256..."
-    vfail=0
-    verify_checksum_entry \
-      "$APP_DIR/${APP_NAME}/Contents/MacOS/Bitcoin-Qt" \
-      "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
-      "$ROOTDIR/macos/checksums.sha256" "Bitcoin-Qt" || vfail=1
-    for b in $BIN_NAMES; do
-        verify_checksum_entry "$APP_DIR/$b" "macos/bin/$b" \
-          "$ROOTDIR/macos/checksums.sha256" "$b" || vfail=1
-    done
-    if [ "$vfail" -ne 0 ]; then
-        echo "Error: post-install verification failed (filesystem corruption?)."
-        exit 1
-    fi
-    echo "All Bitcoin binaries verified."
+# the verified copy.
+echo "Verifying installed binaries against checksums.sha256..."
+vfail=0
+verify_checksum_entry \
+  "$APP_DIR/${APP_NAME}/Contents/MacOS/Bitcoin-Qt" \
+  "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+  "$ROOTDIR/macos/checksums.sha256" "Bitcoin-Qt" || vfail=1
+for b in $BIN_NAMES; do
+    verify_checksum_entry "$APP_DIR/$b" "macos/bin/$b" \
+      "$ROOTDIR/macos/checksums.sha256" "$b" || vfail=1
+done
+if [ "$vfail" -ne 0 ]; then
+    echo "Error: post-install verification failed (filesystem corruption?)."
+    exit 1
 fi
+echo "All Bitcoin binaries verified."
 
 echo "Bitcoin Core updated to $VERSION (Bitcoin-Qt.app + CLI tools)"

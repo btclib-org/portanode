@@ -177,8 +177,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
         preview_pinned_keys "$ROOTDIR/keys/electrum.fingerprints" \
           "keys/electrum.fingerprints" "the download"
     else
-        echo "gpg: not found -- verification would fail closed unless" \
-             "PORTANODE_ALLOW_UNVERIFIED=1 is set."
+        echo "gpg: not found -- verification would fail closed."
     fi
     # --max-time 30, the bound latest-bitcoin-version.ps1 passes as
     # -TimeoutSec 30 on its own archive HEAD probe: a host that accepts
@@ -222,12 +221,10 @@ echo "Downloading $URL..."
 curl_https -fL -o "$TMP_DIR/$FILE" "$URL"
 curl_https -fL -o "$TMP_DIR/$FILE.asc" "${URL}.asc"
 
-PGP_OK=0
 if ! pgp_verify_or_fail \
   "$TMP_DIR/$FILE.asc" \
   "$TMP_DIR/$FILE" \
   "Electrum" \
-  PGP_OK \
   "$ROOTDIR/keys/electrum.fingerprints"; then
     exit 1
 fi
@@ -243,24 +240,20 @@ if ! install_verified "$TMP_DIR/$FILE" "$BIN_DIR/electrum.AppImage"; then
 fi
 chmod +x "$BIN_DIR/electrum.AppImage"
 
-if [ "$PGP_OK" -eq 1 ]; then
-    update_checksum \
-      "$BIN_DIR/electrum.AppImage" \
-      "linux/bin/electrum.AppImage" \
-      "$VERSION" \
-      "$CHECKSUM_FILE"
-    echo "Verifying installed Electrum against checksums.sha256..."
-    if ! verify_checksum_entry \
-        "$BIN_DIR/electrum.AppImage" \
-        "linux/bin/electrum.AppImage" \
-        "$CHECKSUM_FILE" "Electrum"; then
-        echo "Error: post-install verification failed (filesystem corruption?)."
-        exit 1
-    fi
-    echo "Electrum verified."
-else
-    echo "Warning: PGP signature(s) not verified; skipping checksum update."
+update_checksum \
+  "$BIN_DIR/electrum.AppImage" \
+  "linux/bin/electrum.AppImage" \
+  "$VERSION" \
+  "$CHECKSUM_FILE"
+echo "Verifying installed Electrum against checksums.sha256..."
+if ! verify_checksum_entry \
+    "$BIN_DIR/electrum.AppImage" \
+    "linux/bin/electrum.AppImage" \
+    "$CHECKSUM_FILE" "Electrum"; then
+    echo "Error: post-install verification failed (filesystem corruption?)."
+    exit 1
 fi
+echo "Electrum verified."
 
 # Cleanup
 rm -rf "$TMP_DIR"
