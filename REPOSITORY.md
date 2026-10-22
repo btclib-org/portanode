@@ -167,9 +167,10 @@ holds the merge until somebody resolves it.
 asks again when a commit's author is not a recognised account.
 
 **`require_last_push_approval` is off**, as it is in every package tree.
-Were it on, every pull request a session pushes to with the maintainer's
-account would need a third person's approval. What it guards against, an
-admin approving their own push, an admin can do anyway by changing the
+Were it on, the maintainer could not approve a pull request his account
+pushed to last, so another author's pull request completed in place
+would need a third person's approval. It guards against an admin
+approving their own push, which an admin can do anyway by changing the
 ruleset. The maintainer decided it on
 [ISS 665](https://github.com/btclib-org/portanode/issues/665). This reads
 it back:
