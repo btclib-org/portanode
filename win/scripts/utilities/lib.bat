@@ -391,7 +391,7 @@ REM FILE's current hash, or "unknown". It never fails the caller. Its
 REM answer is a --dry-run plan's "currently installed" line, a
 REM rollback's version lines, and what compare-versions.ps1 compares
 REM before an update: "unknown" there
-REM means nothing is refused.
+REM means no version is refused as older.
 :installed_version
 set "IV_FILE_RAW=%~1"
 set "IV_ENTRY_RAW=%~2"

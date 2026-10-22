@@ -5,8 +5,7 @@
 # file name, so only digits and dots are let through.
 #
 # update-bitcoin.bat and update-electrum.bat refuse to install a version unless
-# this script prints OK or --allow-downgrade is passed, so a run that prints
-# nothing refuses too. The rule, and why it exists, is refuse_downgrade's in
+# this script prints OK, so a run that prints nothing refuses too. The rule, and why it exists, is refuse_downgrade's in
 # shared/utilities/lib.sh. "unknown" is :installed_version's answer where
 # nothing is recorded. The answer is on stdout because the caller reads it
 # through a for /f: latest-bitcoin-version.ps1's header says why.

@@ -532,7 +532,7 @@ verify_checksum_entry() {
 # --dry-run plan's "currently installed" line, a rollback's version lines,
 # and what refuse_downgrade compares before an update. Echoes "unknown"
 # rather than failing where the file is missing or its hash unrecorded, and
-# refuse_downgrade refuses nothing on "unknown".
+# refuse_downgrade refuses no well-formed version as older on "unknown".
 installed_version() {
     local file="$1"
     local entry_path="$2"
