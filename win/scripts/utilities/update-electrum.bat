@@ -127,14 +127,18 @@ set "SIG_FILE=%FILE%.asc"
 set "BASE_URL=https://download.electrum.org/%VERSION%/"
 set "URL=%BASE_URL%%FILE%"
 call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
-if "%ALLOW_DOWNGRADE%"=="1" goto :downgrade_checked
 set VERDICT=
 REM compare-versions.ps1's header has the rule. Run from its own
 REM directory by a relative name: win/scripts/root.ps1 says why.
 for /f "usebackq delims=" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^
-  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\compare-versions.ps1 -Installed $env:CURRENT -Requested $env:VERSION; exit $LASTEXITCODE"`) do set VERDICT=%%R
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\compare-versions.ps1 -Installed $env:CURRENT -Requested $env:VERSION -Allow $env:ALLOW_DOWNGRADE; exit $LASTEXITCODE"`) do set VERDICT=%%R
 if "%VERDICT%"=="OK" goto :downgrade_checked
 setlocal enabledelayedexpansion
+if "!VERDICT!"=="MALFORMED" (
+    echo Refusing to install Electrum !VERSION!: a version is digits and dots.
+    endlocal
+    goto :error
+)
 if "!VERDICT!"=="OLDER" (
     echo Refusing to install Electrum !VERSION!: it is older than the installed !CURRENT!.
 ) else (

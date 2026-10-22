@@ -111,17 +111,36 @@ install_verified() {
 # ARCHIVE entries and checks them with whichever of shasum or sha256sum is
 # on PATH, the run-time pick tree_hash's comment above explains. The
 # sha256sum branch is not dead: a Linux install without shasum runs it.
+#
+# A line is an ARCHIVE's entry where it is 64 hex digits, a space, a space
+# or "*", and a file-name field equal to ARCHIVE as a whole string. Each
+# ARCHIVE needs exactly one entry, or the call refuses before hashing
+# anything: the check passes on the entries it finds, so a name matched as
+# a substring, or a name left without an entry, would let one listed
+# archive pass for another that SUMS_FILE does not list.
 verify_sha256sums() {
     local tmp_dir="$1"
     local sums_file="$2"
     shift 2
     local filtered="${sums_file}.filtered"
-    local -a grep_args=()
-    local name
+    local name count
+    : > "$tmp_dir/$filtered" || return 1
     for name in "$@"; do
-        grep_args+=(-e "$name")
+        # ENVIRON rather than -v: awk reads escape sequences in a -v value.
+        count="$(_vs_name="$name" _vs_out="$tmp_dir/$filtered" awk '
+            length($0) > 66 && substr($0, 1, 64) !~ /[^0-9A-Fa-f]/ &&
+            substr($0, 65, 1) == " " && substr($0, 66, 1) ~ /^[ *]$/ &&
+            substr($0, 67) == ENVIRON["_vs_name"] {
+                n++
+                print >> ENVIRON["_vs_out"]
+            }
+            END { print n + 0 }' "$tmp_dir/$sums_file")" || count=""
+        if [ "$count" != 1 ]; then
+            echo "Error: ${sums_file} holds ${count:-an unreadable number of}" \
+                 "entries for ${name}; exactly 1 is required."
+            return 1
+        fi
     done
-    grep -F "${grep_args[@]}" "$tmp_dir/$sums_file" > "$tmp_dir/$filtered"
     if command -v shasum >/dev/null 2>&1; then
         (cd "$tmp_dir" && shasum -a 256 -c "$filtered")
     elif command -v sha256sum >/dev/null 2>&1; then
@@ -778,10 +797,12 @@ curl_https() {
 # old release still carries valid signatures, so without this an index
 # listing only old releases rolls an install back to one with known
 # vulnerabilities. INSTALLED is installed_version's answer, whose
-# "unknown" leaves nothing to compare with. A version that is not digits
-# and dots cannot be ordered, and is refused the same way. Equal versions
-# pass: reinstalling a release is not a downgrade. ALLOW is 1 where the
-# user passed --allow-downgrade, which skips the comparison.
+# "unknown" leaves nothing to compare with. Equal versions pass:
+# reinstalling a release is not a downgrade. ALLOW is 1 where the user
+# passed --allow-downgrade, which skips the comparison.
+# A REQUESTED that is not digits and dots is refused before any of that,
+# whatever INSTALLED and ALLOW are: it is built into a URL and a file name,
+# and a path separator or a space in it would reach both.
 # win/scripts/utilities/compare-versions.ps1 holds the same rule for
 # Windows.
 refuse_downgrade() {
@@ -793,10 +814,15 @@ refuse_downgrade() {
     local why="" i n x y
     local -a a=() b=()
 
+    if ! [[ "$requested" =~ $re ]]; then
+        echo "Refusing to install $name $requested: a version is digits" \
+             "and dots."
+        return 1
+    fi
     if [ "$allow" = "1" ] || [ "$installed" = "unknown" ]; then
         return 0
     fi
-    if ! [[ "$installed" =~ $re ]] || ! [[ "$requested" =~ $re ]]; then
+    if ! [[ "$installed" =~ $re ]]; then
         why="it cannot be compared with the installed $installed"
     else
         IFS=. read -r -a a <<< "$installed"
