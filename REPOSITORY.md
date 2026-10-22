@@ -140,13 +140,13 @@ repository][s11-branch].
 **`main-self-merge` has one bypass actor**: the maintainer, user
 `fametrano` (3296421), in `pull_request` mode. That mode excuses him from
 the rule while he merges a pull request and at no other time, so a direct
-push to `main` stays refused. The maintainer decided on 2026-10-22 to
-keep it, with `require_last_push_approval` on. `README.md` carries the
-OpenSSF Best Practices badge, and [section 11 of the
-standard][s11-branch] allows no bypass in such a tree, so the bypass is
-the maintainer's decision and not what the standard asks for. For
-everyone else a pull request lands only once somebody other than its
-author has approved it. btclib-org/.github's
+push to `main` stays refused. The maintainer re-added it on 2026-10-22,
+and it stays until he says it goes (btclib-org/.github#1740). `README.md`
+carries the OpenSSF Best Practices badge, and [section 11 of the
+standard][s11-branch] allows no bypass in such a tree. That rule is
+unchanged; the bypass is held against it. For everyone else a pull
+request lands only once somebody other than its author has approved it.
+btclib-org/.github's
 [`GOVERNANCE.md`][governance], *How a decision is made*, says what is
 done in an emergency. This reads the bypass actors back:
 
