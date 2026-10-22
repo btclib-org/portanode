@@ -109,8 +109,8 @@ gh api repos/btclib-org/portanode/rulesets --jq '.[].id' | xargs -I{} \
 
 - `main-integrity`, on `refs/heads/main`: required linear history, no
   force push, no deletion. No bypass actor.
-- `main-self-merge`, on `refs/heads/main`: one `pull_request` rule. One
-  bypass actor, in `pull_request` mode.
+- `main-self-merge`, on `refs/heads/main`: one `pull_request` rule. No
+  bypass actor.
 - `tag-integrity`, on `refs/tags/v*`: required signatures. No bypass
   actor.
 
@@ -137,22 +137,17 @@ Classic protection's own copy of the rule is off, as it is in every
 ruleset over `main`: [the standard states that value for every
 repository][s11-branch].
 
-**`main-self-merge` has one bypass actor**: the maintainer, user
-`fametrano` (3296421), in `pull_request` mode. That mode excuses him from
-the rule while he merges a pull request and at no other time, so a direct
-push to `main` stays refused. The maintainer re-added it on 2026-10-22,
-and it stays until he says it goes (btclib-org/.github#1740). `README.md`
-carries the OpenSSF Best Practices badge, and [section 11 of the
-standard][s11-branch] allows no bypass in such a tree. That rule is
-unchanged; the bypass is held against it. For everyone else a pull
-request lands only once somebody other than its author has approved it.
-btclib-org/.github's
+**`main-self-merge` has no bypass actor**, because `README.md` carries
+the OpenSSF Best Practices badge, and [section 11 of the
+standard][s11-branch] allows no bypass in such a tree. So a pull request
+lands only once somebody other than its author has approved it, the
+maintainer's own included. btclib-org/.github's
 [`GOVERNANCE.md`][governance], *How a decision is made*, says what is
 done in an emergency. This reads the bypass actors back:
 
 ```shell
 gh api repos/btclib-org/portanode/rulesets/20736361 --jq '.bypass_actors'
-# [{"actor_id":3296421,"actor_type":"User","bypass_mode":"pull_request"}]
+# []
 ```
 
 The rule's own parameters carry more than the approval count, and each is
@@ -171,13 +166,11 @@ holds the merge until somebody resolves it.
 `require_extra_approval_for_unattributed_changes` is on, which is what
 asks again when a commit's author is not a recognised account.
 
-**`require_last_push_approval` is on**, so the one required approval must
-come from somebody other than whoever pushed last. Off, an admin who
-pushes a commit to another person's pull request and then approves it
-would supply the approval for their own change, and
-`dismiss_stale_reviews_on_push` would not stop it, because the approval
-comes after the push. That path is inferred from GitHub's documented
-behaviour and was not tested. The maintainer decided it on
+**`require_last_push_approval` is off**, as it is in every package tree.
+Were it on, every pull request a session pushes to with the maintainer's
+account would need a third person's approval. What it guards against, an
+admin approving their own push, an admin can do anyway by changing the
+ruleset. The maintainer decided it on
 [ISS 665](https://github.com/btclib-org/portanode/issues/665). This reads
 it back:
 
@@ -185,7 +178,7 @@ it back:
 gh api repos/btclib-org/portanode/rulesets/20736361 \
   --jq '.rules[] | select(.type=="pull_request")
     | .parameters.require_last_push_approval'
-# true
+# false
 ```
 
 **`tag-integrity` carries no `deletion` or `non_fast_forward` rule**, and
