@@ -162,8 +162,8 @@ macos/bin`, rather than with anything naming the cause.
     *scorecard* entry allows. A call that fails (404, 403) stops the
     release as an open alert does.
 1. Tag the merged commit, **signed**, from the primary checkout after
-   confirming it is clean and on `main`. The `--ff-only` merge ensures
-   the fetched tip is an ancestor. Chained with `&&`, so a refusal on
+   confirming it is clean and on `main`. The `--ff-only` merge refuses
+   a merge that is not a fast-forward. Chained with `&&`, so a refusal on
    either of the first two commands stops the sequence before signing or
    pushing a tag on whatever commit `HEAD` was left at:
 

@@ -653,6 +653,11 @@ because that document, and not this one, is where the rule lives.
   verification failure into a warning, that adds a way past it, or that
   installs before verifying rather than after, is a blocking finding
   whatever else it does.
+- **Does the executable bit mark only POSIX shell entry points?** POSIX
+  shell launchers are executable; sourced libraries and test helpers are
+  not. Batch and PowerShell scripts run under their own interpreters. Read
+  the modes from the reviewed tree with `git ls-tree -r <sha>`, rather than
+  from the working index.
 - **Do the `.bat` files still end their lines with CRLF?** `.gitattributes`
   checks them out that way because cmd.exe reads a `.bat` line by line,
   and `.pre-commit-config.yaml` excludes them from the line-ending fixer
