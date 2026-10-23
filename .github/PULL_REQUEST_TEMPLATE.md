@@ -15,10 +15,13 @@
 
 ## Checks
 
-<!-- CI runs all of this and rejects the pull request if any of it fails:
-     the point of running it locally is not to wait for CI to say so. -->
+<!-- CI runs the gate below, as CONTRIBUTING.md gives it, and rejects the
+     pull request if it fails: the point of running it locally is not to
+     wait for CI to say so. -->
 
 - [ ] the lint gate is clean: `uvx pre-commit run --all-files`
+- [ ] I have read and understood every line of this change, and can
+      answer a review of it without the model
 
 ## Anything the reviewer should know
 
