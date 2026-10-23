@@ -155,7 +155,7 @@ repos:
         # above need no such exclusion: both preserve the line ending
         # they find, which is why only this one is named
         exclude: \.bat$
-      # The executable bit belongs to entry-point scripts; libraries and
+      # The executable bit belongs to POSIX shell entry points; libraries and
       # test helpers are read or sourced, not run directly.
       # Every lib.sh is excluded because it is sourced rather than run,
       # and a bit on any of them would say a thing about the file that
