@@ -45,4 +45,37 @@ check "a process list that cannot be read answers 2" \
     same 2 "$(status_of process_running_with "$MARKER")"
 unset -f ps
 
+# A line that is not UTF-8 can hide a string outside ASCII from both
+# searches, so process_running_with answers 2 there, never 1. It answers 1
+# for a string in ASCII, which the C search reads on any line.
+BAD=$'\xff'
+ARG="-datadir=/x/Disco è/b"
+
+# listed_status <locale> <lines> <string>: the answer for a process list of
+# <lines>, with <locale> in the caller's environment.
+listed_status() {
+    LISTED="$2"
+    # shellcheck disable=SC2329 # process_running_with calls it
+    _process_args() { printf '%s\n' "$LISTED"; }
+    LC_ALL="$1" process_running_with "$3"
+    echo $?
+}
+
+# answers_not_1 <status>: 0 where <status> is 0 or 2.
+# shellcheck disable=SC2329 # check calls it
+answers_not_1() {
+    [ "$1" -ne 1 ]
+}
+
+UTF8="$(_utf8_locale)" || UTF8=C
+for caller in C "$UTF8"; do
+    check "under LC_ALL=$caller a line holding a byte that is not UTF-8 and a datadir in another case is found or refused, never denied" \
+        answers_not_1 "$(listed_status "$caller" "bitcoind -uacomment=${BAD} -datadir=/x/Disco È/b" "$ARG")"
+    check "under LC_ALL=$caller a string in ASCII no line holds answers 1 on a line holding a byte that is not UTF-8" \
+        same 1 "$(listed_status "$caller" "bitcoind -uacomment=${BAD} -datadir=/x/Disco/b" "-datadir=/x/other")"
+done
+
+check "a string holding a byte that is not UTF-8 answers 2" \
+    same 2 "$(status_of process_running_with "$MARKER$BAD")"
+
 finish
