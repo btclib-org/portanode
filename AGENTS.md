@@ -1,15 +1,20 @@
 # Agent guidance
 
-Read `README.md` for user-facing behavior, `CONTRIBUTING.md` for project
-and organization rules and gates, `REVIEWING.md` for review expectations,
-including launcher path and executable-bit criteria, `ASSURANCE_CASE.md`
-for security claims, and `VERIFYING.md` for release verification.
+Follow `CONTRIBUTING.md` for project and organization rules, local
+gates, and worktree commands. Read `README.md` for user-facing behavior,
+`REVIEWING.md` for review expectations, including launcher path and
+executable-bit criteria, `REPOSITORY.md` before changing workflows or
+settings, `ASSURANCE_CASE.md` for security claims, and `VERIFYING.md` for
+release verification.
 
-Use a separate worktree for each concurrent task, based on `origin/main`.
-Keep the primary checkout clean and on `main`; `CONTRIBUTING.md` gives the
-worktree commands.
+Keep the primary checkout clean and on `main`; use a separate worktree
+for each task, following the setup and cleanup commands in
+`CONTRIBUTING.md`.
 
-Choose the least capable model that can handle the task reliably. Increase
-reasoning capacity when the change is ambiguous, security-sensitive, or
-affects decisions shared across platforms. Apply this criterion regardless
-of provider; do not select by product or version name.
+Choose the least capable model that can reliably complete the task: use
+a fast model for straightforward execution, a reasoning-focused model
+for multi-step work, and the most capable available model for difficult
+or ambiguous problems. Increase capability if progress stalls. Use the
+most capable model for a change to what a launcher decides: a
+verification path, a rollback, or a choice two platforms must make the
+same way.
