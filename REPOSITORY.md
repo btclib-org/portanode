@@ -166,6 +166,22 @@ holds the merge until somebody resolves it.
 `require_extra_approval_for_unattributed_changes` is on, which is what
 asks again when a commit's author is not a recognised account.
 
+**`require_last_push_approval` is off**, as it is in every package tree.
+Were it on, the maintainer could not approve a pull request his account
+pushed to last, so another author's pull request completed in place
+would need a third person's approval. It guards against an admin
+approving their own push, which an admin can do anyway by changing the
+ruleset. The maintainer decided it on
+[ISS 665](https://github.com/btclib-org/portanode/issues/665). This reads
+it back:
+
+```shell
+gh api repos/btclib-org/portanode/rulesets/20736361 \
+  --jq '.rules[] | select(.type=="pull_request")
+    | .parameters.require_last_push_approval'
+# false
+```
+
 **`tag-integrity` carries no `deletion` or `non_fast_forward` rule**, and
 that is deliberate rather than an omission: a release that failed
 half-way is recovered by deleting the tag and re-cutting it, which either
