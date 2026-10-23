@@ -90,7 +90,8 @@ reason][s11-branch].
 
 `links.yml` and `claude-review.yml` are not part of the required checks: the
 first reports the internet's weather and the second an opinion, and neither is a
-thing to hold a merge on.
+thing to hold a merge on. `codeql.yml` is not one either, and `scorecard.yml`
+is not a check on a pull request at all.
 
 What holds a pull request is the review, `Lint`, `Dependency review`,
 `Sign-off`, `Script security` and `test: every job passed`; what holds
@@ -296,8 +297,9 @@ gh api repos/btclib-org/portanode/actions/permissions/workflow \
 ```
 
 answers `read` and `false`, and that is the floor every workflow here
-starts from. `claude-review.yml` and `scorecard.yml` raise it, each on
-the job that calls a reusable workflow of `btclib-org/.github`:
+starts from. `claude-review.yml`, `codeql.yml` and `scorecard.yml` raise
+it, each on the job that calls a reusable workflow of
+`btclib-org/.github`:
 
 ```shell
 git grep -n -E '^ +[a-z-]+: write' -- .github/workflows/
@@ -305,8 +307,11 @@ git grep -n -E '^ +[a-z-]+: write' -- .github/workflows/
 
 `claude-review.yml` grants `pull-requests: write` to post a comment and
 `id-token: write` for the OIDC token the action mints at startup.
-`scorecard.yml` grants `id-token: write` to publish the score,
-`security-events: write` to upload its findings to code scanning, and
+`codeql.yml` grants `security-events: write` to upload the analysis to
+code scanning, and `actions: read` to its analysis job and to its
+`codeql: every job passed` job, for run metadata and for the listing of
+its own run's jobs. `scorecard.yml` grants `id-token: write` to publish the
+score, `security-events: write` to upload its findings, and
 `actions: read` for the workflow-run history its Packaging check reads.
 `test.yml`'s `test: every job passed` job adds `actions: read`, a read
 scope the command above does not list, to list its own run's jobs, which
@@ -385,17 +390,22 @@ only a preference but the fallback if it does.
 
 [pvr]: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
 
-CodeQL's default setup is not configured, and
-`code-scanning/default-setup` is the endpoint that answers for why:
-`actions` is the only language it lists, so what CodeQL would analyse
-here is this repository's own workflow files, not its launcher scripts,
-and default setup has simply not been turned on for it.
+CodeQL's default setup is not configured, because `codeql.yml` is the
+analysis: code scanning as a file, as section 10 of the standard asks of
+the trees its `codeql` entry names, which names this one. It calls the
+organization's `reusable-codeql.yml` over `actions` alone.
+`code-scanning/default-setup` lists `actions` as the only language this
+repository holds, so what CodeQL reads here is its own workflow files,
+not its launcher scripts. What reads the launchers instead is
+`shellcheck`, in `.pre-commit-config.yaml`'s own hooks, and the security
+rules `script-security.yml` runs over the `.bat` and `.ps1` ones.
 `code-quality/setup` answers with an empty `languages` list of its own,
 which is the code-quality feature's state and not CodeQL's — the two
 endpoints cover different features and do not corroborate each other.
-What reads the launchers instead is `shellcheck`, in
-`.pre-commit-config.yaml`'s own hooks, and the security rules
-`script-security.yml` runs over the `.bat` and `.ps1` ones.
+
+`codeql.yml` is why the OpenSSF Scorecard's SAST check can score: that
+check reads a code-scanning check run on the commits of merged pull
+requests, and `script-security.yml` uploads none.
 
 ## Plan-gated settings
 
@@ -422,8 +432,8 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 [GitHub's own table](https://docs.github.com/en/actions/reference/limits)
 turns that answer into a number, twenty concurrent jobs on the free plan,
 shared across every repository of the organization. `lint.yml`,
-`script-security.yml`, `test.yml` and `claude-review.yml` are what a pull
-request here starts, with `links.yml` added where the path its trigger
+`script-security.yml`, `test.yml`, `codeql.yml` and `claude-review.yml`
+are what a pull request here starts, with `links.yml` added where the path its trigger
 names is touched.
 
 ## Pages, which this repository does not use

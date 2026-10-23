@@ -433,6 +433,13 @@ opinion for you to weigh. Neither belongs in a branch rule.
 `verified-signatures.yml` reports after each push to `main` whether every
 commit pushed is `verified`; [the standard's *Signatures*][s-sigs] has the rule.
 
+`codeql.yml` runs CodeQL over the workflow files on every pull request,
+every push to `main` and weekly, which is the code-scanning analysis the
+Scorecard's SAST check reads off a merged pull request. Its `codeql:
+every job passed` job reports and is not a required check; a CodeQL
+alert is fixed, or dismissed only as section 10 of the organization
+standard's *scorecard* entry allows.
+
 `scorecard.yml` runs the OpenSSF Scorecard after each push to `main` and
 weekly, and publishes the score the `README.md` badge shows. It does not
 run on a pull request.
