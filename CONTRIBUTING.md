@@ -464,7 +464,7 @@ force push, no deletion — is a ruleset with no bypass actor.
 `REPOSITORY.md` reads all of it back from the endpoint rather than
 restating it.
 
-### Conventions kept from the former `CLAUDE.md`
+### Conventions and measurements the tree relies on
 
 - **A path is relative to `ROOTDIR` where the launcher itself consumes
   it, and absolute where it is printed for use outside that process.**
