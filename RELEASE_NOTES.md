@@ -17,6 +17,31 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
+## v2026.10.23
+
+**`PORTANODE_ALLOW_UNVERIFIED` no longer exists.** An update whose PGP
+check fails stops, and nothing skips the check. Remove the variable from a
+shell profile or from the Windows user variables, then fix what the error
+names: install `gpg`, import the key, or pin the signers you trust.
+
+**An update refuses a version older than the installed one.** Pass
+`--allow-downgrade` to install it. A `--version` that is not digits and dots
+is refused whatever else is passed.
+
+**On macOS, the first rollback after upgrading is refused.** The checksum
+entries recorded before this release cover the executable only, and the
+rollbacks now check the whole app bundle. Rollbacks work from the second
+update on.
+
+**Mainnet, testnet3 and testnet4 Qt nodes no longer open RPC.** To run
+`bitcoin-cli` or an Electrum server against one, set `server=1` under that
+network's section of `bitcoin-datadir/bitcoin.conf`. Until then
+`health-check` prints `Bitcoin sync: unknown` for a mainnet Qt node.
+
+**A `PORTANODE_ROOT` that is not a PortaNode folder stops the launcher.** It
+must hold `VERSION` and one of `macos/`, `win/` or `linux/`. Unset the
+variable, or point it at the folder, if a launcher now stops naming it.
+
 ## v2026.10.17
 
 **A Bitcoin Core update is refused until you pin the builders you
