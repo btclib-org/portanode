@@ -1,0 +1,108 @@
+---
+name: codeql
+
+# CodeQL over this repository's own workflow files, `actions` being the
+# one language it holds source for: the launchers are shell, batch and
+# PowerShell, which CodeQL does not read, and script-security.yml and the
+# shellcheck hook are what read them. The analysis is btclib-org/.github's
+# reusable-codeql.yml, called at @main (section 10 of its README.md).
+#
+# The OpenSSF Scorecard's SAST check is the reason this exists: it asks
+# whether a code-scanning analysis ran on the commits of merged pull
+# requests, so an analysis reaching a commit only after its merge scores
+# against this repository however clean it is. scorecard.yml submits the
+# result, and
+#
+#     curl -s https://api.scorecard.dev/projects/github.com/btclib-org/portanode \
+#       | jq '.checks[] | select(.name == "SAST")'
+#
+# is what answers it for the day it is read. Nothing requires this
+# workflow's checks: REPOSITORY.md's "What gates a merge" is where that is
+# decided.
+#
+# The three triggers answer what the other two cannot: the push scans the
+# commit a merge creates, the schedule scans an unchanged tree against a
+# query pack that moved, and the pull request scans a branch while a
+# finding is still cheap to answer. No path filter on any of them. The
+# schedule is section 10's calendar in btclib-org/.github, and not this
+# file's to restate.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # closed for the reason lint.yml gives: the event joins this pull
+    # request's concurrency group and cancels a run still in it
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+  schedule:
+    - cron: "28 4 * * 0"
+  workflow_dispatch:
+
+# least privilege for the GITHUB_TOKEN: the analysis job below is the only
+# one that writes anything
+permissions:
+  contents: read
+
+concurrency:
+  # named literally and keyed on the pull request's number where there is
+  # one, as lint.yml's group is: for a closed, merged pull request
+  # github.ref is the base branch's ref, which is the push trigger's own
+  # group, so a group built from it would let the closed run cancel the
+  # analysis of the merge commit
+  group: codeql-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    uses: btclib-org/.github/.github/workflows/reusable-codeql.yml@main
+    with:
+      # CodeQL fails a language it finds no source for, so the list names
+      # the one this tree holds
+      languages: '["actions"]'
+    # a caller's permissions: block bounds the called workflow and refuses
+    # rather than trims, so every scope its job declares is named here
+    permissions:
+      security-events: write # the SARIF upload
+      contents: read
+      actions: read # run metadata, inert while this repository is public
+
+  # one context for a branch rule to name, in place of job names that
+  # move: the matrix the called workflow runs produces one row per
+  # language, under a name this job's own id prefixes ("analyze / Analyze
+  # actions"). Nothing calls this workflow, so the job reads its run's job
+  # listing rather than `needs`, as test.yml's aggregate does
+  codeql-passed:
+    name: "codeql: every job passed"
+    needs: [analyze]
+    # not always(): a run its concurrency group cancelled would fail here.
+    # The draft flag is not part of this condition: a skipped required
+    # check reads as passing, so the first step fails on it instead
+    if: ${{ !cancelled() && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read # asks the API for this run's own job list
+    steps:
+      - name: Fail while this pull request is a draft
+        if: github.event.pull_request.draft
+        run: |
+          echo "::error::this pull request is a draft"
+          exit 1
+      # the script is btclib-org/.github's, at main, so no copy is kept
+      # here: it waits for a lagging listing and refuses an empty one
+      - name: Check out the check script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: btclib-org/.github
+          ref: main
+          path: btclib-org-github
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - name: Fail unless every other job of this run succeeded
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ANALYZE_RESULT: ${{ needs.analyze.result }}
+        run: >-
+          python3 btclib-org-github/.github/scripts/check_run_jobs.py
+          analyze "${ANALYZE_RESULT}"
