@@ -145,9 +145,10 @@ stops, and run with `System32` as the current directory, so a `gpg.bat`
 or `powershell.bat` planted in the folder is not run.
 
 **`bin/` and what runs.** `checksums.sha256` records integrity, not
-authenticity (*Limitations, not vulnerabilities*). What it does not yet
-cover is [ISS 658] (the rest of a macOS app bundle) and [ISS 659]
-(symlinks in `tree_hash`).
+authenticity (*Limitations, not vulnerabilities*). On macOS an app
+bundle is recorded and checked whole, by `tree_hash`, which hashes
+symlinks too, and `verify_sha256sums` takes a `SHA256SUMS` line only
+where its name field equals the name looked for.
 
 **The drive and the machine.** The drive is meant to move between
 machines, so it is the perimeter: *The folder is unencrypted, and it is
@@ -243,7 +244,5 @@ to, and what counters each.
   gate, against `.secrets.baseline`.
 
 [ISS 629]: https://github.com/btclib-org/portanode/issues/629
-[ISS 658]: https://github.com/btclib-org/portanode/issues/658
-[ISS 659]: https://github.com/btclib-org/portanode/issues/659
 [ISS 670]: https://github.com/btclib-org/portanode/issues/670
 [ISS 695]: https://github.com/btclib-org/portanode/issues/695
