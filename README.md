@@ -302,7 +302,10 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   `linux/scripts/utilities/rollback-bitcoin.sh` and
   `linux/scripts/utilities/rollback-electrum.sh` on Linux, if an update
   causes issues. Rollback needs the backup an update created, so it is
-  only available after one has run.
+  only available after one has run. On macOS, the first rollback after
+  upgrading to the whole-bundle checks is refused, because the entries
+  recorded before them cover the executable only; rollbacks work from the
+  second update on.
 - Validate setup with `./macos/scripts/utilities/validate-setup.sh`,
   `win/scripts/utilities/validate-setup.bat`, or
   `linux/scripts/utilities/validate-setup.sh` after updating, and test

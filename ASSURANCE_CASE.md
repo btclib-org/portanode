@@ -60,7 +60,6 @@ for more.
 not vulnerabilities*:
 
 - a key imported into your own keyring that is not the publisher's;
-- an update installed with verification switched off;
 - the data on a drive that is lost or stolen;
 - the corruption risk Bitcoin Core warns of on exFAT under macOS;
 - launchers that are not signed or notarized, so the operating system
@@ -126,15 +125,16 @@ only once its signatures verify against the keys `keys/*.fingerprints`
 pins, Bitcoin Core asking for several builders and Electrum for its
 release key (`README.md`'s *Updating Binaries*). Which key is the
 publisher's is yours to establish, as *Limitations, not
-vulnerabilities* says, and so is the decision to switch verification
-off ([ISS 670] is to remove that switch).
+vulnerabilities* says.
 
 The updaters refuse a version that is not digits and dots, and one older
 than the installed one unless `--allow-downgrade` is passed
 (`refuse_downgrade` in `shared/utilities/lib.sh`, and
 `win/scripts/utilities/compare-versions.ps1`). On macOS and Linux they
 fetch through `curl_https`, which allows HTTPS only on the request and on
-every redirect (`--proto '=https' --proto-redir '=https'`).
+every redirect (`--proto '=https' --proto-redir '=https'`), and
+`update-bitcoin.sh` takes a `SHA256SUMS` entry only where its name field
+equals the file's name, exactly once (`verify_sha256sums`).
 
 The Windows updaters refuse a file `Get-FileHash` cannot read, compare
 the hash and path fields of a checksum line whole, and
@@ -147,8 +147,7 @@ or `powershell.bat` planted in the folder is not run.
 **`bin/` and what runs.** `checksums.sha256` records integrity, not
 authenticity (*Limitations, not vulnerabilities*). On macOS an app
 bundle is recorded and checked whole, by `tree_hash`, which hashes
-symlinks too, and `verify_sha256sums` takes a `SHA256SUMS` line only
-where its name field equals the name looked for.
+symlinks too.
 
 **The drive and the machine.** The drive is meant to move between
 machines, so it is the perimeter: *The folder is unencrypted, and it is
@@ -244,5 +243,4 @@ to, and what counters each.
   gate, against `.secrets.baseline`.
 
 [ISS 629]: https://github.com/btclib-org/portanode/issues/629
-[ISS 670]: https://github.com/btclib-org/portanode/issues/670
 [ISS 695]: https://github.com/btclib-org/portanode/issues/695
