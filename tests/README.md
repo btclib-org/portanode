@@ -36,6 +36,9 @@ The runners pick up every file in those directories.
 `tests/sh/resolve-root.sh` and `tests/win/resolve-root.ps1` are the model
 to copy.
 
+A new `tests/win/` file that starts `cmd.exe` is added to `$needsCmd` in
+`test.yml`.
+
 A file under `tests/sh/` carries the guard the `run-by-path-guard` hook
 asks of every `.sh`, and neither a shebang nor the executable bit: it is
 run by `bash`, never started by its path.

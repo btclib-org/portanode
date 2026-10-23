@@ -308,10 +308,13 @@ other. Run the gate by hand before committing.
 
 **The suite under `tests/` runs the launchers and their helpers**, with
 `bash` on macOS and Linux and with PowerShell on Windows. CI runs it on
-Ubuntu only: `test.yml`, on every pull request. The macOS and Windows
-halves run by hand, `tests/run.sh` under the `/bin/bash` 3.2 macOS ships
-and `tests/run.ps1` under PowerShell, until a workflow runs them. On
-macOS and Linux:
+Ubuntu only: `test.yml`, on every pull request. There `tests/run.sh` runs,
+and so does every file of `tests/win/` that starts no `cmd.exe`, under
+the runner's `pwsh`; the files that do start it are named in the step
+of `test.yml` that runs the others. The macOS and Windows halves run by
+hand, `tests/run.sh` under the `/bin/bash` 3.2 macOS ships and
+`tests/run.ps1` under PowerShell, until a workflow runs them. On macOS and
+Linux:
 
 ```shell
 bash tests/run.sh
@@ -376,7 +379,7 @@ which is a different answer from a style finding.
 **`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
 which the Windows mainnet launcher uses to read a running node's network
 switches. It is in the suite, so `tests/run.ps1` runs it. It starts no
-process, so `pwsh` also runs it on any system:
+process, so `pwsh` also runs it on any system, CI's included:
 
 ```shell
 pwsh -NoProfile -File tests/win/node-args.ps1
