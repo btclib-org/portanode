@@ -8,7 +8,7 @@ review is not about.
 This is the reviewer's half of [CONTRIBUTING.md](./CONTRIBUTING.md),
 which is the author's. It does not restate the rules a review cites —
 most are in the organization's standard, the rest in that file, in
-REPOSITORY.md and in CLAUDE.md — and a finding names the line that
+REPOSITORY.md and in AGENTS.md — and a finding names the line that
 states them rather than a copy kept here.
 
 **This file is the same in every repository of the organization**, and
@@ -79,8 +79,7 @@ directions:
    child, the author answers it twice and resolves it once.
 1. **The tree at that sha**, checked out and gated. `gh pr checkout <N>`,
    and whatever this repository's `CONTRIBUTING.md` says builds its
-   environment; `CLAUDE.md` has where a checkout may be made and where it
-   may not.
+   environment; `CONTRIBUTING.md` has the worktree procedure.
 
 Read the whole diff before writing the first comment. A comment on line
 5 that line 60 answers costs the author a reply and the reviewer their
@@ -503,14 +502,14 @@ because that document, and not this one, is where the rule lives.
 - **Is every path a launcher itself consumes relative to `ROOTDIR`?**
   The folder is mounted at a different point on every machine it is
   plugged into, so an absolute path is a launcher that works on the
-  machine it was written on and nowhere else. `CLAUDE.md` states the
-  convention; what a diff introduced is
+  machine it was written on and nowhere else. `CONTRIBUTING.md`'s
+  last section states the convention; what a diff introduced is
   `git diff | grep -n '^+.*[=" ]/[A-Za-z]'`, read rather than counted.
   That grep reads a literal absolute path. A message interpolating a
   variable built as `$ROOTDIR/...` prints one too, and matches neither
   in the message nor in the assignment, so that half is read rather than
   grepped. What the reading decides is the path's use: a path printed for
-  use outside the launcher's own process is `CLAUDE.md`'s carve-out rather
+  use outside the launcher's own process is that convention's carve-out rather
   than this defect. The carve-out covers `$ROOTDIR` alone, the block of
   resolved locations a Bitcoin launcher opens with, a message whose
   subject is how long a path is, and the command an Electrum launcher
