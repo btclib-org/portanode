@@ -463,3 +463,78 @@ holds every commit that reaches `main` — linear history, no
 force push, no deletion — is a ruleset with no bypass actor.
 `REPOSITORY.md` reads all of it back from the endpoint rather than
 restating it.
+
+### Conventions kept from the former `CLAUDE.md`
+
+- **A path is relative to `ROOTDIR` where the launcher itself consumes
+  it, and absolute where it is printed for use outside that process.**
+  The use decides, not the form and not the length. A path passed as an
+  argument is one the launcher consumes. A message interpolating a
+  variable built as `$ROOTDIR/...` names an absolute path as surely as a
+  literal one does. Printed for use outside covers a reader orienting
+  themselves on the machine in front of them and a command pasted into a
+  shell alike: `$ROOTDIR` alone, the resolved locations a Bitcoin
+  launcher's opening block reports, a message whose subject is how long a
+  path is — which rendered relative would name one short enough to fit
+  whatever refused it — and the command an Electrum launcher prints in
+  place of its own. That last is where the ground shows plainly: rendered
+  relative the line does not orient a reader worse, it does not run. The
+  absolute form costs a line that holds only on the machine that printed
+  it, the folder mounting somewhere else on the next one, so a reader
+  pasting one into a bug report hands over a path nobody else has. A path
+  outside the folder entirely — a system binary, a user's keyring — is
+  outside the rule rather than an exception to it.
+- **A commit subject is one physical line, however long.** The
+  eighty-column wrap is for files in the tree, and applying it to a
+  subject produces a wrapped one. `%s` conceals the result: it takes
+  everything up to the first blank line and joins it, so `%s`, `git log
+  --oneline` and any `grep` over either report a whole sentence where the
+  subject is broken. The squash takes the first physical line, appends
+  `(#N)` and moves the remainder into the body. The first line of `%B`
+  shows the subject as it will land:
+
+  ```shell
+  git show -s --format=%B <sha> | head -1
+  ```
+
+- **The executable bit decides nothing on the volume this is built for.**
+  macOS synthesises a mode for exFAT rather than storing one: a file
+  written there reads `rwx------` whatever `chmod` was asked for, and a
+  script runs regardless. `README.md`'s *Choosing a filesystem* and
+  `macos/scripts/utilities/set-permissions.sh` cite this measurement,
+  made on an exFAT image:
+
+  ```shell
+  d=$(mktemp -d)
+  hdiutil create -size 20m -fs ExFAT -volname T -o "$d/t.dmg"
+  hdiutil attach "$d/t.dmg"
+  printf '#!/bin/bash\necho hi\n' > /Volumes/T/u.sh
+  chmod 644 /Volumes/T/u.sh && ls -l /Volumes/T/u.sh && /Volumes/T/u.sh
+  ```
+
+  It exits 0 and prints `hi` under `-rwx------`. The mode in the index
+  matters for the other cases: a clone or an unpacked source archive on
+  APFS, where GitHub's zipball carries the index mode through `unzip`.
+  Detach the image afterwards with `hdiutil detach /Volumes/T`.
+- **`pwsh` is installable.** `brew install powershell` on macOS provides
+  it, and `Install-Module -Name PSScriptAnalyzer -Force -Scope
+  CurrentUser` adds the module once `pwsh` is there. With both,
+  `[System.Management.Automation.Language.Parser]::ParseFile` and
+  PSScriptAnalyzer run for real: a positive control against the
+  unmodified tree first, then a clean run against the change, rather than
+  a `.ps1` change read for correctness without being parsed.
+- **Blinter is compared by version and by line numbers.** Capture the
+  version once and run both halves of a comparison under it, stderr
+  dropped because its `utf_8` encoding notices move under unrelated
+  edits:
+
+  ```shell
+  V=$(uvx blinter --version 2>/dev/null | sed -E 's/^v?([0-9.]+).*/\1/')
+  uvx --from "blinter==$V" blinter . --no-config --summary 2>/dev/null
+  ```
+
+  Judge a diff by the set of line numbers per file and rule code, not by
+  counts. Lines blinter reads as embedded script, which can include plain
+  batch lines after a `$name =` match, get no per-line checks:
+  `blinter.parsing.embedded._detect_embedded_script_blocks` returns the
+  set.
