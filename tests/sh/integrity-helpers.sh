@@ -23,6 +23,7 @@ skip() { echo "ok - SKIP: $1"; }
 
 # run_expect WANT COMMAND...: WANT is "ok" for exit status 0 and "refused"
 # for any other; the command's output is printed where the case fails.
+# shellcheck disable=SC2329 # run through check, as "$@"
 run_expect() {
     local want="$1" rc=0
     shift
@@ -90,6 +91,7 @@ make_bundle() {
     ln -s ../Resources/lib.py "$1/Contents/MacOS/lib.py"
 }
 
+# shellcheck disable=SC2329 # run through check, as "$@"
 differs() { [ "$1" != "$2" ]; }
 
 B="$T/tree/X.app"
@@ -134,6 +136,7 @@ if [ "$(id -u)" -eq 0 ]; then
     skip "tree_hash refuses an unreadable file (root reads it anyway)"
 else
     chmod 000 "$B/Contents/Resources/other.py"
+    # shellcheck disable=SC2329 # run through check, as "$@"
     unreadable() { local h rc=0; h="$(tree_hash "$1")" || rc=$?; \
         [ "$rc" -ne 0 ] && [ -z "$h" ]; }
     expect ok "tree_hash prints nothing and fails on an unreadable file" \
@@ -141,6 +144,7 @@ else
     # Under the updaters' set -euo pipefail, with each bash at hand (macOS's
     # /bin/bash is 3.2): the refusal leaves no temporary directory, and
     # stderr holds shasum's or sha256sum's refusal and nothing else.
+    # shellcheck disable=SC2329 # run through check, as "$@"
     cleans_up() {
         local sh="$1" td out rc=0
         td="$(mktemp -d "$T/tmpdir.XXXXXX")"
