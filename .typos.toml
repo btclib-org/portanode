@@ -20,7 +20,10 @@
 # What each costs is asked in the tree rather than recorded here:
 #
 #   git grep -nwi -e fpr -e bre
-# skips the 40-hex fingerprints in backticks, which typos would rewrite
+#
+# extend-ignore-re skips the spaced 40-hex fingerprints in backticks,
+# such as VERIFYING.md's, whose hex typos would otherwise rewrite
+# (`2DBE` to `2BE`)
 [default]
 extend-ignore-re = ["`[0-9A-F]{4}(  ? ?[0-9A-F]{4}){9}`"]
 
