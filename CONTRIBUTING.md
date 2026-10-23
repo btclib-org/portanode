@@ -378,6 +378,19 @@ process, so `pwsh` also runs it on any system:
 pwsh -NoProfile -File tests/win/node-args.ps1
 ```
 
+**`tests/sh/updater-input.sh` and `tests/win/updater-input.ps1` feed the
+updaters malformed `SHA256SUMS`, signature output and version strings**,
+and expect each refused with nothing installed. They stand in for a fuzzer
+([ISS 646](https://github.com/btclib-org/portanode/issues/646)). The shell
+one runs the macOS and Linux updaters in a copy of the tree with
+a real throwaway key, and is skipped without `gpg`; the PowerShell one runs the
+PowerShell inside the `.bat` files, read from them, and runs on any system
+with `pwsh`. It is in the suite, so `tests/run.ps1` runs it:
+
+```shell
+pwsh -NoProfile -File tests/win/updater-input.ps1
+```
+
 `.bat` has Blinter, which installs under uv alone:
 
 ```shell

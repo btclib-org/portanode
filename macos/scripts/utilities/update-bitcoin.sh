@@ -90,10 +90,12 @@ else
              "(curl --max-time 300)."
         exit 1
     }
+    # grep exits 1 where no line is left, which under pipefail would end the
+    # run before the message below that names the publisher.
     CANDIDATES="$(
       echo "$INDEX_HTML" \
         | sed -nE 's/.*href="bitcoin-core-([0-9]+\.[0-9]+(\.[0-9]+)?)\/".*/\1/p' \
-        | grep -vE '^0\.' \
+        | { grep -vE '^0\.' || true; } \
         | sort -t. -k1,1nr -k2,2nr -k3,3nr
     )"
     VERSION=""

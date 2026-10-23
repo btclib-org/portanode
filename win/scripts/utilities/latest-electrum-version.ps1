@@ -29,7 +29,8 @@ try {
     exit 1
 }
 
-$version = [regex]::Matches($index, 'href="(\d+\.\d+\.\d+)/"') |
+# [0-9] and not \d, which .NET also reads as a digit of any script.
+$version = [regex]::Matches($index, 'href="([0-9]+\.[0-9]+\.[0-9]+)/"') |
     ForEach-Object { $_.Groups[1].Value } |
     Sort-Object -Unique -Descending -Property { [version]$_ } |
     Select-Object -First 1

@@ -81,11 +81,14 @@ Can be used if an update fails.
   validation failure, and how key pinning works.
 - Backups are stored in `macos/bin/backup/`; rollbacks depend on these.
 - Update scripts refuse a version older than the installed one, or one
-  they cannot compare with it, whether the publisher's index or
-  `--version` names it: an old release still carries valid signatures.
-  `--allow-downgrade` installs it anyway.
+  whose installed version is not digits and dots, whether the publisher's
+  index or `--version` names it: an old release still carries valid
+  signatures. `--allow-downgrade` installs it anyway.
   The installed version is the one `macos/checksums.sha256` records for
-  the installed binary's hash; where it records none, nothing is refused.
+  the installed binary's hash; where it records none, no version is
+  refused as older.
+  A `--version` that is not digits and dots is refused whatever else is
+  passed, since it is built into a URL and a file name.
 - `macos/checksums.sha256` is append-only: a new verified hash is added with
   `version=<x>`, and an entry already present is left as it is rather than
   being added again.

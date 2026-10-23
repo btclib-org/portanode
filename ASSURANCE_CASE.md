@@ -127,14 +127,10 @@ pins, Bitcoin Core asking for several builders and Electrum for its
 release key (`README.md`'s *Updating Binaries*). Which key is the
 publisher's is yours to establish, as *Limitations, not
 vulnerabilities* says, and so is the decision to switch verification
-off ([ISS 670] is to remove that switch). Open issues where this
-boundary is weaker than claimed:
+off ([ISS 670] is to remove that switch).
 
-- [ISS 668]: macOS `update-bitcoin` can install a `Bitcoin-Qt.app` zip
-  that `SHA256SUMS` does not list.
-
-The updaters refuse a version older than the installed one, or one that
-is not digits and dots, unless `--allow-downgrade` is passed
+The updaters refuse a version that is not digits and dots, and one older
+than the installed one unless `--allow-downgrade` is passed
 (`refuse_downgrade` in `shared/utilities/lib.sh`, and
 `win/scripts/utilities/compare-versions.ps1`). On macOS and Linux they
 fetch through `curl_https`, which allows HTTPS only on the request and on
@@ -249,6 +245,5 @@ to, and what counters each.
 [ISS 629]: https://github.com/btclib-org/portanode/issues/629
 [ISS 658]: https://github.com/btclib-org/portanode/issues/658
 [ISS 659]: https://github.com/btclib-org/portanode/issues/659
-[ISS 668]: https://github.com/btclib-org/portanode/issues/668
 [ISS 670]: https://github.com/btclib-org/portanode/issues/670
 [ISS 695]: https://github.com/btclib-org/portanode/issues/695
