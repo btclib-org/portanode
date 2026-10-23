@@ -22,8 +22,8 @@ this file names that key.
 The tags up to `v2026.10.17` were signed with an earlier key. The
 maintainer revoked it on 2026-10-19 as superseded:
 
-- primary key: `91D9 67D0 8A2F 3646 A0C4  2ED0 07B5 59B7 1373 BF5D`
-- subkey: `B115 1204 0C6E 86D7 B5E0  3DD1 4D71 ED3A 9A8E DFC5`
+- revoked primary key: `91D9 67D0 8A2F 3646 A0C4  2ED0 07B5 59B7 1373 BF5D`
+- revoked subkey: `B115 1204 0C6E 86D7 B5E0  3DD1 4D71 ED3A 9A8E DFC5`
 
 *A tag signed by the revoked key* says what you see for such a tag.
 
@@ -74,6 +74,18 @@ Then put the folder at that tag:
 git -C portanode checkout v<version>
 ```
 
+To move to a later release, fetch the tags, and verify the new one before
+checking it out:
+
+```shell
+git -C portanode fetch --tags origin
+git -C portanode verify-tag v<version>
+```
+
+GitHub checks the same signature against the keys on the maintainer's
+account. That is GitHub's word; `git verify-tag` against the key you
+checked is your own.
+
 ### A tag signed by the revoked key
 
 For `v2026.10.17` and the tags before it, `git verify-tag` exits `1`:
@@ -99,18 +111,6 @@ gh api repos/btclib-org/portanode/git/tags/"$sha" \
 ```
 
 `verified_at` is GitHub's own date.
-
-To move to a later release, fetch the tags, and verify the new one before
-checking it out:
-
-```shell
-git -C portanode fetch --tags origin
-git -C portanode verify-tag v<version>
-```
-
-GitHub checks the same signature against the keys on the maintainer's
-account. That is GitHub's word; `git verify-tag` against the key you
-checked is your own.
 
 ## What the signature does not cover
 
