@@ -37,6 +37,27 @@ jobs:
           persist-credentials: false
       - name: Run the suite
         run: /bin/bash tests/run.sh
+      # Runs each file of tests/win/ as tests/run.ps1 does, except those in
+      # $needsCmd, which start cmd.exe and run under tests/run.ps1 on Windows.
+      - name: Run the PowerShell tests that do not need cmd.exe
+        shell: pwsh
+        working-directory: tests/win
+        run: |
+          $needsCmd = 'launchers.ps1', 'resolve-root.ps1'
+          $failed = @()
+          foreach ($file in Get-ChildItem -Filter '*.ps1' | Sort-Object Name) {
+            if ($needsCmd -contains $file.Name) { continue }
+            Write-Output "# win/$($file.Name)"
+            $out = & pwsh -NoProfile -File ('./' + $file.Name) 2>&1
+            $status = $LASTEXITCODE
+            $out
+            if ($status -ne 0 -or ($out -match '^not ok ')) { $failed += $file.Name }
+          }
+          if ($failed.Count -gt 0) {
+            Write-Output "Failed: $($failed -join ' ')"
+            exit 1
+          }
+          Write-Output 'Every test file passed.'
 
   # the context a branch rule names: section 10's "The aggregate job, and
   # the required check" is the rule, and btclib-benchmarks' test.yml
