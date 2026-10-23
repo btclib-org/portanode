@@ -10,25 +10,35 @@ maintainer released.
 The tags are signed with the OpenPGP key of the maintainer,
 [`fametrano`](https://github.com/fametrano), Ferdinando Ametrano:
 
-- primary key: `91D9 67D0 8A2F 3646 A0C4  2ED0 07B5 59B7 1373 BF5D`
-- the subkey that signed the tags so far:
-  `B115 1204 0C6E 86D7 B5E0  3DD1 4D71 ED3A 9A8E DFC5`
+- primary key: `FFCF 3A68 D839 0BED 5EFF  EF7F 35DC D452 3E9E 1B1E`
+- the subkey that signs the tags:
+  `49E5 2319 B377 848A 737E  2DBE 2279 DA8B C269 4720`
 
 A tag signed by any other key is not a release of this repository until
 this file names that key.
 
+### The revoked key
+
+The tags up to `v2026.10.17` were signed with an earlier key. The
+maintainer revoked it on 2026-10-19 as superseded:
+
+- primary key: `91D9 67D0 8A2F 3646 A0C4  2ED0 07B5 59B7 1373 BF5D`
+- subkey: `B115 1204 0C6E 86D7 B5E0  3DD1 4D71 ED3A 9A8E DFC5`
+
+*Checking a tag* says what you see for such a tag.
+
 ## Getting the key
 
 The key is published on the maintainer's GitHub account. Import it, then
-check that its fingerprint is the primary key above:
+check that its fingerprint is the current primary key above:
 
 ```shell
 curl -fsSL https://github.com/fametrano.gpg | gpg --import
-gpg --fingerprint 91D967D08A2F3646A0C42ED007B559B71373BF5D
+gpg --fingerprint FFCF3A68D8390BED5EFFEF7F35DCD4523E9E1B1E
 ```
 
-That address also serves the maintainer's other keys. Only the one named
-above signs the tags.
+That address serves the revoked key as well, so that the older tags can
+be checked.
 
 ## Checking a tag
 
@@ -42,8 +52,8 @@ git -C portanode verify-tag v<version>
 ```
 
 The second command lists the tags, newest first. The third exits `0` on
-a good signature. To read which key signed, print the status line `gpg`
-writes for it:
+a good signature by the current key. To read which key signed, print the
+status line `gpg` writes for it:
 
 ```shell
 git -C portanode verify-tag --raw v<version> 2>&1 | grep VALIDSIG
@@ -63,6 +73,32 @@ Then put the folder at that tag:
 ```shell
 git -C portanode checkout v<version>
 ```
+
+### A tag signed by the revoked key
+
+For `v2026.10.17` and the tags before it, `git verify-tag` exits `1`
+and `gpg` warns that the key has been revoked, because `gpg` does not
+trust a revoked key. The signature itself can still be good. Read the
+status lines:
+
+```shell
+git -C portanode verify-tag --raw v<version> 2>&1 | grep -E 'REVKEYSIG|VALIDSIG'
+```
+
+`REVKEYSIG` says the signature is good and the key is revoked. On
+`VALIDSIG`, the first fingerprint must be the revoked subkey and the last
+field the revoked primary key, both under *The revoked key*. The date
+after the first fingerprint is when the signer says the signature was made.
+It must be before 2026-10-19. A date from the signer is not proof, so also
+read what GitHub recorded when the tag was pushed:
+
+```shell
+sha=$(git -C portanode rev-parse v<version>)
+gh api repos/btclib-org/portanode/git/tags/"$sha" \
+  --jq '.verification | {verified, reason, verified_at}'
+```
+
+`verified_at` is GitHub's own date.
 
 To move to a later release, fetch the tags, and verify the new one before
 checking it out:

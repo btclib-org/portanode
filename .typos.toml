@@ -5,9 +5,9 @@
 # .pre-commit-config.yaml instead of here, and the asymmetry is that
 # difference and not a preference.
 #
-# Every entry below is an identifier the launcher scripts and their
-# prose already use, so writing it differently would mean renaming a
-# variable or misquoting a manual page. What each is:
+# Every entry below is a word the tree already uses, so writing it
+# differently would mean renaming a variable, misquoting a manual page
+# or altering a fingerprint. What each is:
 #
 #   fpr    gpg's own record name for a fingerprint. `gpg --with-colons`
 #          prints one field per line keyed by a short name, `fpr` being
@@ -16,10 +16,13 @@
 #   bre    POSIX basic regular expressions, as opposed to the extended
 #          ones grep -E reads. The comments that name it are recording
 #          that BSD grep on macOS does not take GNU's `\|` alternation
+#   dbe    hex digits inside the signing subkey's fingerprint in
+#          VERIFYING.md (`2DBE`), which typos would rewrite to `BE`
 #
 # What each costs is asked in the tree rather than recorded here:
 #
-#   git grep -nwi -e fpr -e bre
+#   git grep -nwi -e fpr -e bre -e dbe
 [default.extend-words]
 fpr = "fpr"
 bre = "bre"
+dbe = "dbe"
