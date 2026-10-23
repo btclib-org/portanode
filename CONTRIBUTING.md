@@ -360,10 +360,18 @@ scripts exist for, and the one a checkout on an internal disk never
 exercises.
 
 **The `.bat` and `.ps1` halves are read by the generic hooks, and by
-`script-security.yml` for security findings alone** (*What gates a
-merge*, below). PowerShell's parser is PSScriptAnalyzer, and
-`.pre-commit-config.yaml`'s header says why it is not a hook here; run
-all of its rules by hand, against a `pwsh` that carries the module:
+`script-security.yml` for security findings, and for Blinter's Error
+findings too** (*What gates a merge*, below). The same job refuses, in a
+`.bat` or `.cmd`, a byte that is neither printable ASCII nor ASCII
+whitespace and a CR not followed by LF, and the reason is the tree's own.
+Nothing else here refuses an invisible, bidirectional or look-alike
+character in a batch file, and cmd.exe reads a non-ASCII byte by the
+console code page. `mixed-line-ending` excludes `.bat`, so a lone CR is
+otherwise unchecked: cmd.exe drops it, while a reviewer's terminal or diff
+shows a line break that is not there. PowerShell's parser is
+PSScriptAnalyzer, and `.pre-commit-config.yaml`'s header says why it is
+not a hook here; run all of its rules by hand, against a `pwsh` that
+carries the module:
 
 ```shell
 pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
@@ -454,8 +462,8 @@ is off.
 Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
 its header says what fails it. Its `Script security` job is a required
 check. A Blinter finding it reports is fixed
-or, where it is no defect, added to `.github/blinter-accepted.tsv` as the
-line the job prints.
+or, where it is no defect, recorded in `.github/blinter-baseline.json` by
+the command the job prints.
 
 `test.yml`'s `test: every job passed` job passes where every job of
 its run did, and the branch rule names it, so a red one holds the
@@ -547,6 +555,16 @@ restating it.
   ```shell
   V=$(uvx blinter --version 2>/dev/null | sed -E 's/^v?([0-9.]+).*/\1/')
   uvx --from "blinter==$V" blinter . --no-config --summary 2>/dev/null
+  ```
+
+  The job's own reading is the baseline's, with `.github/blinter.ini`
+  limiting Blinter to its Error and Security rules. It exits 0 on a tree
+  whose findings the baseline holds, and names a finding it does not hold
+  and an entry no finding matches:
+
+  ```shell
+  uvx --from "blinter==$V" blinter . --config .github/blinter.ini \
+    --baseline .github/blinter-baseline.json
   ```
 
   Judge a diff by the set of line numbers per file and rule code, not by
