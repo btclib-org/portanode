@@ -112,13 +112,9 @@ PLEOF
         exit 1
         ;;
     2)
-        # Absolute where the message above names electrum-datadir
-        # relative: CLAUDE.md's ROOTDIR convention turns on the use, and
-        # this message's subject is the path's own length. The relative
-        # form fits any sockaddr_un, so rendering it would report that a
-        # path is too long by naming one that is not, and the remedy the
-        # sentence gives -- a mount point with a shorter path -- would
-        # have nothing left to act on.
+        # The warning reports the path's length, so it must print the
+        # absolute path. A relative path would fit sockaddr_un and make
+        # the warning false.
         echo "Note: a unix domain socket address cannot hold a path as long" \
              "as ${ROOTDIR}/electrum-datadir/daemon_rpc_socket, so whether" \
              "that filesystem supports one was not tested. Electrum's daemon" \

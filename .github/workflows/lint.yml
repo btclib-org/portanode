@@ -117,10 +117,8 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/pre-commit
-          # the hook config alone, where a repository with a project
-          # hashes .python-version beside it: every environment
-          # pre-commit builds is named by a rev this file pins, and
-          # CLAUDE.md says why there is no .python-version here to hash
+          # the hook config alone: every environment pre-commit builds
+          # is named by a revision pinned here
           key: >-
             pre-commit-${{ runner.os }}-${{ steps.image.outputs.os }}-${{
             hashFiles('.pre-commit-config.yaml') }}

@@ -1,9 +1,8 @@
 # Repository configuration
 
 Read this before changing a branch rule, a repository setting or a
-workflow; editing a launcher does not need it. `CLAUDE.md` points here
-rather than carrying it, so that a session fixing a script does not hold
-it in context.
+workflow; editing a launcher does not need it. Keeping this material
+here lets a session fixing a script skip repository settings.
 
 The branch rules and the repository settings live *outside* the
 repository. What is recorded is the settings the organization standard

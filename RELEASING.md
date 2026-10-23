@@ -161,12 +161,11 @@ macos/bin`, rather than with anything naming the cause.
     standard](https://github.com/btclib-org/.github#10-workflows)'s
     *scorecard* entry allows. A call that fails (404, 403) stops the
     release as an open alert does.
-1. Tag the merged commit, **signed**, from the primary checkout brought
-   forward under `CLAUDE.md`'s *The primary checkout is the maintainer's*
-   preconditions — on `main` and clean — plus the ancestry `--ff-only`
-   itself requires. Chained with `&&`, so a refusal on either of the
-   first two commands stops the sequence rather than signing and pushing
-   a tag on whatever commit `HEAD` was left at:
+1. Tag the merged commit, **signed**, from the primary checkout after
+   confirming it is clean and on `main`. The `--ff-only` merge refuses
+   a merge that is not a fast-forward. Chained with `&&`, so a refusal on
+   either of the first two commands stops the sequence before signing or
+   pushing a tag on whatever commit `HEAD` was left at:
 
     ```shell
     git fetch origin && git merge --ff-only origin/main && \

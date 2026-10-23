@@ -42,8 +42,7 @@ debug_list_dir() {
     # where a message would otherwise print an absolute path, which is
     # not every message here that names one: verify_binaries prints
     # locals that are relative already, and install_verified's source is
-    # a temporary extraction directory outside the folder, a path
-    # CLAUDE.md's ROOTDIR convention does not reach -- so neither is
+    # a temporary extraction directory outside the folder, so neither is
     # stripped.
     echo "Debug: ${dir#"$ROOTDIR"/} contents: $entries"
 }
@@ -631,10 +630,10 @@ _verify_binaries_trim() {
 # "Binaries verified." where every entry matches. Where PREFIX/* has no
 # entry at all after filtering, returns 0 and prints "Nothing to
 # verify" instead of "Binaries verified.": a fresh clone's
-# linux/checksums.sha256 ships with no entries, and CLAUDE.md's own "a
-# fresh clone launches nothing until the updaters have run" makes that
-# the expected state there, not a failure -- which keeps an empty
-# checksum file from reading as success over nothing checked.
+# linux/checksums.sha256 ships with no entries, and no binary is installed
+# until the updaters run, so this is expected rather than a failure --
+# which keeps an empty checksum file from reading as success over nothing
+# checked.
 #
 # Indexed arrays, not an associative one: macOS ships bash 3.2, and this
 # function serves linux/scripts/utilities/verify-binaries.sh through the
