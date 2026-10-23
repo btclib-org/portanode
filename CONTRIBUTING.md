@@ -334,9 +334,6 @@ runs them**, so a change to what one of them tests runs it by hand, with
 - `shared/tests/process-running-with-locale.sh` tests
   `process_running_with` and `regtest_node_running_on` on a datadir
   holding a letter outside ASCII, with and without a UTF-8 locale;
-- `tests/integrity-helpers.sh` tests `shared/utilities/lib.sh`'s checksum
-  helpers (`verify_sha256sums`, `tree_hash`, `verify_checksum_entry`)
-  and the macOS rollbacks and `verify-binaries.sh` that use them;
 - `tests/resolve-root.sh` tests `resolve_root` and the `.sh` and
   `.command` scripts that call it;
 - `tests/updaters.sh` tests the updaters' downgrade refusal and
@@ -346,7 +343,6 @@ runs them**, so a change to what one of them tests runs it by hand, with
 ```shell
 bash shared/tests/node-detection.sh
 bash shared/tests/process-running-with-locale.sh
-bash tests/integrity-helpers.sh
 bash tests/resolve-root.sh
 bash tests/updaters.sh
 ```
