@@ -25,7 +25,7 @@ maintainer revoked it on 2026-10-19 as superseded:
 - primary key: `91D9 67D0 8A2F 3646 A0C4  2ED0 07B5 59B7 1373 BF5D`
 - subkey: `B115 1204 0C6E 86D7 B5E0  3DD1 4D71 ED3A 9A8E DFC5`
 
-*Checking a tag* says what you see for such a tag.
+*A tag signed by the revoked key* says what you see for such a tag.
 
 ## Getting the key
 
@@ -76,10 +76,10 @@ git -C portanode checkout v<version>
 
 ### A tag signed by the revoked key
 
-For `v2026.10.17` and the tags before it, `git verify-tag` exits `1`
-and `gpg` warns that the key has been revoked, because `gpg` does not
-trust a revoked key. The signature itself can still be good. Read the
-status lines:
+For `v2026.10.17` and the tags before it, `git verify-tag` exits `1`:
+`gpg` warns that the key has been revoked, and git does not count a
+revoked key's signature as good. The signature itself can still be good.
+Read the status lines:
 
 ```shell
 git -C portanode verify-tag --raw v<version> 2>&1 | grep -E 'REVKEYSIG|VALIDSIG'
