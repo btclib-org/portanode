@@ -1,9 +1,10 @@
 ---
 name: script-security
 
-# the security rules of PSScriptAnalyzer and Blinter, over every tracked
-# .ps1 and .bat script: the hooks lint.yml runs read these files as text,
-# and .pre-commit-config.yaml's header says why neither tool is a hook.
+# the security rules of PSScriptAnalyzer and the Error and Security rules
+# of Blinter, over every tracked .ps1 and .bat script: the hooks lint.yml
+# runs read these files as text, and .pre-commit-config.yaml's header says
+# why neither tool is a hook.
 #
 # A security finding fails the job; a style finding does not. For
 # PowerShell the rules are ScriptSecurity, the settings preset the module
@@ -20,21 +21,22 @@ name: script-security
 #
 # It fails too on a byte in those files that is neither printable ASCII nor
 # ASCII whitespace, and on a CR not followed by LF. These two checks are
-# the tree's own and Blinter does not stand behind them. Nothing else here
+# the tree's own. They are not Blinter workarounds. Nothing else here
 # refuses an invisible, bidirectional or look-alike character in a batch
 # file, and cmd.exe reads a non-ASCII byte by the console code page. A lone
 # CR escapes mixed-line-ending, which excludes .bat: cmd.exe drops it, while
 # a reviewer's terminal or diff shows a line break that is not there.
 #
 # Blinter's Error and Security rules fire on lines that
-# .pre-commit-config.yaml's header calls no defect, and they are the rules
-# that set Blinter's exit code. .github/blinter-baseline.json records each
-# one by rule code, file and the text of the line, not its number, so an
-# edit elsewhere in the file does not move it, and .github/blinter.ini
-# limits Blinter to those two severities. Blinter fails on a finding the
-# baseline does not hold, and on an entry no finding matches: the file is
-# kept equal to the findings of the tree it sits in, and the job prints the
-# command that rewrites it.
+# .pre-commit-config.yaml's header calls no defect.
+# .github/blinter-baseline.json records each one by rule code, file and the
+# text of the line, not its number, so an edit elsewhere in the file does
+# not move it, and .github/blinter.ini limits Blinter to those two
+# severities. Blinter fails on a finding the baseline does not hold, and on
+# an entry no finding matches. Blinter skips an entry whose file it did not
+# read, so the job fails on an entry whose file git does not track as well.
+# The file is kept equal to the findings of the tree it sits in, and the
+# job prints the command that rewrites it.
 #
 # Its job's name is a required context, which REPOSITORY.md's "What gates
 # a merge" records.
@@ -101,8 +103,9 @@ jobs:
       # blinter exits non-zero on a finding of its Error or Security rules
       # the baseline does not hold, and on a baseline entry no finding
       # matches. What says it ran is its count of the files it read, set
-      # against the files git tracks
-      - name: Check the .bat scripts with Blinter's security rules
+      # against the files git tracks. It leaves alone an entry whose file
+      # it did not read, so the entries' files are set against git's too
+      - name: Check the .bat scripts with Blinter's Error and Security rules
         run: |
           t="$RUNNER_TEMP"
           rc=0
@@ -128,8 +131,18 @@ jobs:
             --format json --output "$t/blinter.json" || rc=$?
           tracked=$(git ls-files '*.bat' '*.cmd' | wc -l)
           processed=$(jq '.summary.files_processed' "$t/blinter.json")
-          if [ "$processed" -ne "$tracked" ]; then
+          if ! [ "$processed" -eq "$tracked" ]; then
             echo "::error::blinter read $processed files where git tracks $tracked"
+            exit 1
+          fi
+          jq -r '.[].file | sub("^\\.\\./"; "")' .github/blinter-baseline.json |
+            LC_ALL=C sort -u > "$t/listed"
+          git ls-files '*.bat' '*.cmd' | LC_ALL=C sort > "$t/tracked"
+          LC_ALL=C comm -23 "$t/listed" "$t/tracked" > "$t/gone"
+          if [ -s "$t/gone" ]; then
+            echo "::error::baseline entries for files git does not track"
+            cat "$t/gone"
+            echo "remove them from .github/blinter-baseline.json"
             exit 1
           fi
           jq -r '.summary
