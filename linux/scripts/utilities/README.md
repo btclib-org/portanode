@@ -92,6 +92,15 @@ Can be used if an update fails.
   missing key rather than a missing signature is the usual cause of a
   validation failure, and how key pinning works.
 - Backups are stored in `linux/bin/backup/`; rollbacks depend on these.
+- Update scripts refuse a version older than the installed one, or one
+  whose installed version is not digits and dots, whether the publisher's
+  index or `--version` names it: an old release still carries valid
+  signatures. `--allow-downgrade` installs it anyway.
+  The installed version is the one `linux/checksums.sha256` records for
+  the installed binary's hash; where it records none, no version is
+  refused as older.
+  A `--version` that is not digits and dots is refused whatever else is
+  passed, since it is built into a URL and a file name.
 - `linux/checksums.sha256` is append-only: a new verified hash is added
   with `version=<x>`, and an entry already present is left as it is
   rather than being added again.

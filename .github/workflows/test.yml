@@ -1,0 +1,84 @@
+---
+name: test
+
+# the suite under tests/ on one image, ubuntu-latest, for the reason
+# section 10 of the organization's standard gives: the plan's ceiling on
+# concurrent jobs makes every further image before a review a cost to every
+# review. CONTRIBUTING.md's last section says how the macOS and Windows
+# halves run, and tests/README.md what the suite covers and how to add a
+# test.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # closed too, for the reason lint.yml gives at the same line
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # keyed as lint.yml's group is, and for its reasons
+  group: test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite:
+    name: Run the suite on Ubuntu
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run the suite
+        run: /bin/bash tests/run.sh
+
+  # the context a branch rule names: section 10's "The aggregate job, and
+  # the required check" is the rule, and btclib-benchmarks' test.yml
+  # (5dc5889) the model this follows. Nothing calls this workflow, so the
+  # job reads its run's job listing rather than `needs`.
+  # lint.yml's header says why the rule follows a green run rather than
+  # landing with the workflow
+  test-passed:
+    name: "test: every job passed"
+    # orders this job last, and hands the step below suite's own result
+    needs: [suite]
+    # not always(): a run its concurrency group cancelled would fail here.
+    # The draft flag is not part of this condition: a skipped required check
+    # reads as passing, so the first step fails on it instead
+    if: ${{ !cancelled() && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read # asks the API for this run's own job list
+    steps:
+      - name: Fail while this pull request is a draft
+        if: github.event.pull_request.draft
+        run: |
+          echo "::error::this pull request is a draft"
+          exit 1
+      # the script is btclib-org/.github's, at main, so no copy is kept
+      # here: it waits for a lagging listing and refuses an empty one
+      - name: Check out the check script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: btclib-org/.github
+          ref: main
+          path: btclib-org-github
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      # suite's row is the `name:` that job declares
+      - name: Fail unless every other job of this run succeeded
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUITE_RESULT: ${{ needs.suite.result }}
+        run: >-
+          python3 btclib-org-github/.github/scripts/check_run_jobs.py
+          suite "${SUITE_RESULT}"
+          --row "suite=Run the suite on Ubuntu"

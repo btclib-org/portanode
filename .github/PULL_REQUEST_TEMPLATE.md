@@ -6,11 +6,12 @@
 
 ## How it was verified
 
-<!-- The command you ran and what it answered. No workflow runs a test
-     suite: CONTRIBUTING.md's last section names the tests run by hand,
-     and what stands in for the rest is running the launcher on a macOS,
-     a Windows and a Linux machine, from a volume that is not the boot
-     disk, which is the case the launcher's own paths exist for. -->
+<!-- The command you ran and what it answered. test.yml runs the suite
+     under tests/, and CONTRIBUTING.md's last section names the tests
+     still run by hand. None of them starts what a launcher launches: a
+     change to that is verified by running the launcher on a macOS, a
+     Windows and a Linux machine, from a volume that is not the boot
+     disk. -->
 
 ## Checks
 

@@ -15,6 +15,7 @@ if errorlevel 1 (
 
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"
+set "ALLOW_DOWNGRADE=0"
 :parse_args
 if "%~1"=="" goto :args_done
 if "%~1"=="--version" (
@@ -28,7 +29,12 @@ if "%~1"=="--dry-run" (
     shift
     goto :parse_args
 )
-echo Usage: %~nx0 [--version ^<v^>] [--dry-run]
+if "%~1"=="--allow-downgrade" (
+    set "ALLOW_DOWNGRADE=1"
+    shift
+    goto :parse_args
+)
+echo Usage: %~nx0 [--version ^<v^>] [--dry-run] [--allow-downgrade]
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
@@ -120,18 +126,39 @@ set "FILE=electrum-%VERSION%.exe"
 set "SIG_FILE=%FILE%.asc"
 set "BASE_URL=https://download.electrum.org/%VERSION%/"
 set "URL=%BASE_URL%%FILE%"
+call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
+set VERDICT=
+REM compare-versions.ps1's header has the rule. Run from its own
+REM directory by a relative name: win/scripts/root.ps1 says why.
+for /f "usebackq delims=" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\compare-versions.ps1 -Installed $env:CURRENT -Requested $env:VERSION -Allow $env:ALLOW_DOWNGRADE; exit $LASTEXITCODE"`) do set VERDICT=%%R
+if "%VERDICT%"=="OK" goto :downgrade_checked
+setlocal enabledelayedexpansion
+if "!VERDICT!"=="MALFORMED" (
+    echo Refusing to install Electrum !VERSION!: a version is digits and dots.
+    endlocal
+    goto :error
+)
+if "!VERDICT!"=="OLDER" (
+    echo Refusing to install Electrum !VERSION!: it is older than the installed !CURRENT!.
+) else (
+    echo Refusing to install Electrum !VERSION!: it cannot be compared with the installed !CURRENT!.
+)
+endlocal
+echo Run again with --allow-downgrade to install it anyway.
+goto :error
+:downgrade_checked
 
 REM Flat rather than the one "if ... ( )" this replaced, for the reason
-REM the scrape above is flat: CURRENT, ARCHIVE_LEN, ARCHIVE_MB and
-REM FREE_GB are each set and read here, and inside one block cmd.exe
-REM would read all four as they stood when it parsed the block. The
+REM the scrape above is flat: ARCHIVE_LEN, ARCHIVE_MB and FREE_GB are
+REM each set and read here, and inside one block cmd.exe would read
+REM all three as they stood when it parsed the block. The
 REM errorlevel of the "where gpg" below is the same case (#383), and
 REM the one that decides whether a preview reports gpg as present:
 REM measured on windows-latest, "%errorlevel%" read at top level after
 REM two commands in turn answers for each of them, where inside a block
 REM it answers for whatever ran before the block was parsed.
 if not "%DRY_RUN%"=="1" goto :dry_run_done
-call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
 echo --dry-run: nothing will be downloaded, verified or installed.
 setlocal enabledelayedexpansion
 echo Would install Electrum !VERSION! ^(currently installed: !CURRENT!^).

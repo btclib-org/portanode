@@ -86,7 +86,11 @@ macos/bin`, rather than with anything naming the cause.
 1. Gate the tree and make sure it is clean: `uvx pre-commit run
    --all-files`, exit code 0, then `git status --porcelain` empty. Run
    the alert command of the step before the tag here too, so that a fix
-   lands before the release notes do.
+   lands before the release notes do. Run the suite by hand where CI
+   does not, which `CONTRIBUTING.md`'s last section names, each run
+   exiting 0: `/bin/bash tests/run.sh` on a Mac, and `tests\run.ps1` on
+   Windows under both `pwsh` and `powershell`, as `tests/README.md` shows.
+
 1. Decide the date, and make the three files say it. `CHANGELOG.md`
    gains `## v<version>`, the tag's own heading, alone on its line,
    above the previous release's. The first line of its body says what
@@ -110,6 +114,34 @@ macos/bin`, rather than with anything naming the cause.
 1. Land that as a pull request like any other. `main` takes nothing else:
    `main-integrity` has no bypass actor, so a tag cut on a commit that
    was pushed straight to `main` is a tag on a commit that was refused.
+1. Check that `VERIFYING.md` names the key that is about to sign. Git
+   signs with `user.signingkey`; where it is unset, git signs with the
+   committer identity, and the command prints an error naming `key`, then
+   `not named: none`.
+   The command reads the secret keyring, because a name that two keys
+   share can match a public key this machine cannot sign with. Where the
+   setting matches no secret key or more than one, it names none.
+   Otherwise it looks for the primary key's fingerprint, spaces aside, in
+   the key list of `origin/main`'s `VERIFYING.md`:
+
+    ```shell
+    key=$(git config user.signingkey)
+    primary=$(gpg --with-colons --list-secret-keys "${key:?}" \
+      | awk -F: '$1=="sec"{n++} $1=="fpr"&&n==1&&f==""{f=$10}
+          END{if(n==1)print f; exit n!=1}') \
+      && git fetch origin \
+      && git show origin/main:VERIFYING.md | grep '^- primary key:' \
+        | tr -d ' ' | grep -qF "${primary:?}" \
+      && echo "named" || echo "not named: ${primary:-none}"
+    ```
+
+    `not named: none` means that `user.signingkey` is unset, or matched no
+    secret key or several, so the setting is what changes, not
+    `VERIFYING.md`. Where it
+    answers `not named` with a fingerprint, change `VERIFYING.md` to name that
+    primary key and its signing subkey, and land the change as a pull
+    request before the tag. A tag signed by a key the file does not
+    name is not a release (`VERIFYING.md`, *Who signs the tags*).
 1. Read the open alerts and stop while any is open. The command prints
    each open Dependabot and code-scanning alert, and exits `0` only
    where there is none and both calls answered:
@@ -129,12 +161,11 @@ macos/bin`, rather than with anything naming the cause.
     standard](https://github.com/btclib-org/.github#10-workflows)'s
     *scorecard* entry allows. A call that fails (404, 403) stops the
     release as an open alert does.
-1. Tag the merged commit, **signed**, from the primary checkout brought
-   forward under `CLAUDE.md`'s *The primary checkout is the maintainer's*
-   preconditions — on `main` and clean — plus the ancestry `--ff-only`
-   itself requires. Chained with `&&`, so a refusal on either of the
-   first two commands stops the sequence rather than signing and pushing
-   a tag on whatever commit `HEAD` was left at:
+1. Tag the merged commit, **signed**, from the primary checkout after
+   confirming it is clean and on `main`. The `--ff-only` merge refuses
+   a merge that is not a fast-forward. Chained with `&&`, so a refusal on
+   either of the first two commands stops the sequence before signing or
+   pushing a tag on whatever commit `HEAD` was left at:
 
     ```shell
     git fetch origin && git merge --ff-only origin/main && \

@@ -387,8 +387,11 @@ exit /b 0
 
 REM :installed_version FILE ENTRY_PATH CHECKSUM_FILE OUTVAR
 REM Sets OUTVAR to the "version=" label of the checksum entry matching
-REM FILE's current hash, or "unknown". For a --dry-run plan's "currently
-REM installed" line; never fails the caller, only reports.
+REM FILE's current hash, or "unknown". It never fails the caller. Its
+REM answer is a --dry-run plan's "currently installed" line, a
+REM rollback's version lines, and what compare-versions.ps1 compares
+REM before an update: "unknown" there
+REM means no version is refused as older.
 :installed_version
 set "IV_FILE_RAW=%~1"
 set "IV_ENTRY_RAW=%~2"
@@ -413,8 +416,7 @@ REM PATH with the ROOTDIR prefix removed, for a message: the folder is
 REM mounted at a different point on every machine it is plugged into, so a
 REM message quoting the mount point tells the reader where this run
 REM happened rather than which file in the folder is meant. A path outside
-REM the folder carries no such prefix and comes back unchanged, being a
-REM path CLAUDE.md's ROOTDIR convention does not reach.
+REM the folder carries no such prefix and comes back unchanged.
 REM "call set" is what expands ROOTDIR inside the pattern: cmd reads the
 REM percent signs of "%PATH:%ROOTDIR%\=%" as three pairs and substitutes
 REM nothing, where the second parse a "call" adds sees one pair around an

@@ -8,19 +8,21 @@ OpenSSF makes of it. Nothing here is a Python package and there is no
 -- that one earns its line in the long description an index renders and
 in the copy an unpacked sdist carries, neither of which this tree has.
 Inside the second the gates come in the order that section lists them --
-pre-commit.ci, then the lint workflow -- and the sentinels follow in the
-order section 10's calendar schedules them, which is the order and not
-the instants: the day and the hour a sentinel owns are that section's
-and are not restated here. Which sentinels this tree carries is section
-10's record rather than a choice made here, the badge and the workflow
-being one membership. This tree carries `links`, which every repository
-carries, and `scorecard`, by the maintainer's decision in
-btclib-org/portanode#639, which also adds the tree to the record. The
+pre-commit.ci, then the lint workflow, then the test workflow -- and the
+sentinels follow in the order section 10's calendar schedules them,
+which is the order and not the instants: the day and the hour a sentinel
+owns are that section's and are not restated here. Which sentinels this
+tree carries is section 10's record rather than a choice made here, the
+badge and the workflow being one membership. This tree carries `links`,
+which every repository carries, and `scorecard`, by the maintainer's
+decision in btclib-org/portanode#639, which also adds the tree to the
+record. The
 Scorecard badge opens the third group, before the Best Practices and
 Baseline badges of this tree's bestpractices.dev registration. One badge
 per line keeps a change to one line and every line inside MD013. -->
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
 [![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml?query=branch%3Amain)
+[![test workflow status](https://github.com/btclib-org/portanode/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/test.yml?query=branch%3Amain)
 [![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/links.yml?query=branch%3Amain)
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/btclib-org/portanode/badge)](https://scorecard.dev/viewer/?uri=github.com/btclib-org/portanode)
@@ -68,8 +70,7 @@ and Ubuntu it has to run under, not on a single default:
   platforms that read it do not fail identically on that account: macOS
   synthesises the execute bit as always-on regardless of `chmod`,
   measured by mounting an exFAT image and running a script whose mode
-  denies it (`CLAUDE.md`'s *What will otherwise waste a session* has
-  the commands), while Ubuntu's own exFAT driver instead computes a mode
+  denies it, while Ubuntu's own exFAT driver instead computes a mode
   from the mount's own `fmask`, which defaults to the mounting
   process's umask (#484): an `fmask` clearing the owner's execute bit
   makes the script fail. That is one mask away from the guarantee
@@ -153,6 +154,9 @@ or unzip the ZIP of `main` the repository page offers. Both keep the
 executable bit the launchers carry in the repository, which is what
 *Prerequisites*' **Permissions** bullet above is about; a folder that
 reached the disk any other way is under *Troubleshooting*.
+
+Each release has a signed tag. [`VERIFYING.md`](./VERIFYING.md) shows
+how to check it in a clone before running anything from it.
 
 Where on the disk it sits is free. A launcher walks up from its own
 location to the directory holding `VERSION` beside `macos/`, `win/` or
@@ -253,7 +257,20 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
 ### Electrum
 
 - **Mainnet**: `Electrum-Launcher.*`'s menu runs `mainnet` or
-  `mainnet-local-server-only` (connects to local server).
+  `mainnet-local-server-only`.
+    - `mainnet` leaves the choice of server to Electrum, which by default
+      connects to several public servers. The one it picks as its
+      history server learns every address of your wallet, as Electrum's
+      own description of its `oneserver` setting says, and every
+      transaction you broadcast goes through it. Every server it
+      connects to sees the IP address you connect from. Network settings
+      you change in Electrum are kept in `electrum-datadir/`, which both
+      mainnet entries share.
+    - `mainnet-local-server-only` passes `--oneserver` and
+      `--server localhost:50002:s`, so Electrum connects to an Electrum
+      server on this machine and to no other. Use it where your
+      addresses must stay private. Nothing in this folder installs or
+      starts that server.
 - **Testnet3**: `Electrum-Launcher.*`'s menu runs `testnet3`.
 - **Testnet4**: `Electrum-Launcher.*`'s menu runs `testnet4`.
 - **Regtest**: `Electrum-Launcher.*`'s menu runs `regtest`.
@@ -443,7 +460,7 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
 - **Bitcoin Core**: Check `bitcoin-cli --version`.
 - **Electrum**: Check `electrum --version`.
 - Compatible with macOS 10.15+ and Windows 10+; the Linux measurements
-  cited in this file and in `CLAUDE.md` were taken on Ubuntu 24.04
+  cited in this file were taken on Ubuntu 24.04
   (GitHub Actions' `ubuntu-latest`). Test on your setup.
 
 ## Contributing
@@ -462,6 +479,9 @@ list, and it is the only list.
 
 ## Security Notes
 
+- **Threat model**: [`ASSURANCE_CASE.md`](./ASSURANCE_CASE.md) names what
+  is defended and against whom, where input enters, and how each threat
+  is countered or why it is accepted.
 - **Binary Integrity**: Verify binaries with
   `macos/scripts/utilities/verify-binaries.sh` (macOS),
   `win/scripts/utilities/verify-binaries.bat` (Windows), or

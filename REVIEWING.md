@@ -8,7 +8,7 @@ review is not about.
 This is the reviewer's half of [CONTRIBUTING.md](./CONTRIBUTING.md),
 which is the author's. It does not restate the rules a review cites —
 most are in the organization's standard, the rest in that file, in
-REPOSITORY.md and in CLAUDE.md — and a finding names the line that
+REPOSITORY.md and in AGENTS.md — and a finding names the line that
 states them rather than a copy kept here.
 
 **This file is the same in every repository of the organization**, and
@@ -79,8 +79,7 @@ directions:
    child, the author answers it twice and resolves it once.
 1. **The tree at that sha**, checked out and gated. `gh pr checkout <N>`,
    and whatever this repository's `CONTRIBUTING.md` says builds its
-   environment; `CLAUDE.md` has where a checkout may be made and where it
-   may not.
+   environment; `CONTRIBUTING.md` has the worktree procedure.
 
 Read the whole diff before writing the first comment. A comment on line
 5 that line 60 answers costs the author a reply and the reviewer their
@@ -503,14 +502,14 @@ because that document, and not this one, is where the rule lives.
 - **Is every path a launcher itself consumes relative to `ROOTDIR`?**
   The folder is mounted at a different point on every machine it is
   plugged into, so an absolute path is a launcher that works on the
-  machine it was written on and nowhere else. `CLAUDE.md` states the
-  convention; what a diff introduced is
+  machine it was written on and nowhere else. `CONTRIBUTING.md`'s
+  last section states the convention; what a diff introduced is
   `git diff | grep -n '^+.*[=" ]/[A-Za-z]'`, read rather than counted.
   That grep reads a literal absolute path. A message interpolating a
   variable built as `$ROOTDIR/...` prints one too, and matches neither
   in the message nor in the assignment, so that half is read rather than
   grepped. What the reading decides is the path's use: a path printed for
-  use outside the launcher's own process is `CLAUDE.md`'s carve-out rather
+  use outside the launcher's own process is that convention's carve-out rather
   than this defect. The carve-out covers `$ROOTDIR` alone, the block of
   resolved locations a Bitcoin launcher opens with, a message whose
   subject is how long a path is, and the command an Electrum launcher
@@ -600,10 +599,14 @@ because that document, and not this one, is where the rule lives.
   `monitor-bitcoin-log.ps1` and `verify-binaries.ps1` take `$RootDir`
   from the `.bat` that calls them; `free-space-gb.ps1` and
   `filesystem-type.ps1` take `$Path`, and `set-datadir-acl.ps1` takes an
-  `$Account` beside its own; `latest-bitcoin-version.ps1` and
-  `latest-electrum-version.ps1` take no parameter and reach no root;
+  `$Account` beside its own; `compare-versions.ps1` takes two versions,
+  and `latest-bitcoin-version.ps1` and `latest-electrum-version.ps1` take
+  no parameter, none of the three reaching a root;
   `win/scripts/bitcoin/node-args.ps1` and its test,
   `tests/win/node-args.ps1`, read command lines and reach no root either;
+  `tests/lib.ps1` and `tests/run.ps1` take no root;
+  `tests/win/launchers.ps1` and `tests/win/resolve-root.ps1` hold the
+  checkout's root in `$repo`, a test's path that no launcher consumes;
   and `win/scripts/root.ps1` is the walk itself, its `$StartDir` naming where
   the search begins rather than what it finds. The assignment pattern
   carries PowerShell's `$name = value` beside `NAME=value`, so a `.ps1`
@@ -649,6 +652,11 @@ because that document, and not this one, is where the rule lives.
   verification failure into a warning, that adds a way past it, or that
   installs before verifying rather than after, is a blocking finding
   whatever else it does.
+- **Does the executable bit mark only POSIX shell entry points?** POSIX
+  shell launchers are executable; sourced libraries and test helpers are
+  not. Batch and PowerShell scripts run under their own interpreters. Read
+  the modes from the reviewed tree with `git ls-tree -r <sha>`, rather than
+  from the working index.
 - **Do the `.bat` files still end their lines with CRLF?** `.gitattributes`
   checks them out that way because cmd.exe reads a `.bat` line by line,
   and `.pre-commit-config.yaml` excludes them from the line-ending fixer
@@ -660,7 +668,7 @@ because that document, and not this one, is where the rule lives.
       | xargs -I{} sh -c 'grep -qU "$(printf "\r")" {} || echo {}'
     ```
 
-- **Were the launchers run?** `CONTRIBUTING.md`'s last section says no
-  gate reaches them and what stands in for one. A review of a launcher
-  change that ran nothing says so, in those words, rather than leaving it
-  to be assumed.
+- **Were the launchers run?** `CONTRIBUTING.md`'s last section says what
+  the suite under `tests/` reaches, what it does not, and what stands in
+  for that. A review of a launcher change that ran nothing says so, in
+  those words, rather than leaving it to be assumed.

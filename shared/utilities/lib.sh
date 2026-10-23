@@ -42,8 +42,7 @@ debug_list_dir() {
     # where a message would otherwise print an absolute path, which is
     # not every message here that names one: verify_binaries prints
     # locals that are relative already, and install_verified's source is
-    # a temporary extraction directory outside the folder, a path
-    # CLAUDE.md's ROOTDIR convention does not reach -- so neither is
+    # a temporary extraction directory outside the folder, so neither is
     # stripped.
     echo "Debug: ${dir#"$ROOTDIR"/} contents: $entries"
 }
@@ -575,10 +574,11 @@ verify_checksum_entry() {
 }
 
 # installed_version FILE ENTRY_PATH [CHECKSUM_FILE] — the "version=" label of
-# the checksums.sha256 entry matching FILE's current hash, for a --dry-run
-# plan's "currently installed" line. Echoes "unknown" rather than failing:
-# nothing here gates an install, so a missing file or an unrecorded hash is
-# reported, not an error.
+# the checksums.sha256 entry matching FILE's current hash. Its answer is a
+# --dry-run plan's "currently installed" line, a rollback's version lines,
+# and what refuse_downgrade compares before an update. Echoes "unknown"
+# rather than failing where the file is missing or its hash unrecorded, and
+# refuse_downgrade refuses no well-formed version as older on "unknown".
 installed_version() {
     local file="$1"
     local entry_path="$2"
@@ -697,10 +697,10 @@ _verify_binaries_trim() {
 # "Binaries verified." where every entry matches. Where PREFIX/* has no
 # entry at all after filtering, returns 0 and prints "Nothing to
 # verify" instead of "Binaries verified.": a fresh clone's
-# linux/checksums.sha256 ships with no entries, and CLAUDE.md's own "a
-# fresh clone launches nothing until the updaters have run" makes that
-# the expected state there, not a failure -- which keeps an empty
-# checksum file from reading as success over nothing checked.
+# linux/checksums.sha256 ships with no entries, and no binary is installed
+# until the updaters run, so this is expected rather than a failure --
+# which keeps an empty checksum file from reading as success over nothing
+# checked.
 #
 # Indexed arrays, not an associative one: macOS ships bash 3.2, and this
 # function serves linux/scripts/utilities/verify-binaries.sh through the
@@ -828,4 +828,78 @@ verify_binaries() {
     fi
 
     echo "Binaries verified."
+}
+
+# curl_https ARGS... -- curl, refusing every protocol but HTTPS on the
+# request and on every redirect -L follows. The updaters call it in place
+# of curl: the files they fetch are checked by PGP, but the index that
+# picks the version, and the probes that test it, are not.
+curl_https() {
+    curl --proto '=https' --proto-redir '=https' "$@"
+}
+
+# refuse_downgrade INSTALLED REQUESTED ALLOW NAME
+#
+# Returns 1, with a message, where REQUESTED is older than INSTALLED. An
+# old release still carries valid signatures, so without this an index
+# listing only old releases rolls an install back to one with known
+# vulnerabilities. INSTALLED is installed_version's answer, whose
+# "unknown" leaves nothing to compare with. Equal versions pass:
+# reinstalling a release is not a downgrade. ALLOW is 1 where the user
+# passed --allow-downgrade, which skips the comparison.
+# A REQUESTED that is not digits and dots is refused before any of that,
+# whatever INSTALLED and ALLOW are: it is built into a URL and a file name,
+# and a path separator or a space in it would reach both.
+# win/scripts/utilities/compare-versions.ps1 holds the same rule for
+# Windows.
+refuse_downgrade() {
+    local installed="$1"
+    local requested="$2"
+    local allow="$3"
+    local name="$4"
+    local re='^[0-9]+(\.[0-9]+)*$'
+    local why="" i n x y
+    local -a a=() b=()
+
+    if ! [[ "$requested" =~ $re ]]; then
+        echo "Refusing to install $name $requested: a version is digits" \
+             "and dots."
+        return 1
+    fi
+    if [ "$allow" = "1" ] || [ "$installed" = "unknown" ]; then
+        return 0
+    fi
+    if ! [[ "$installed" =~ $re ]]; then
+        why="it cannot be compared with the installed $installed"
+    else
+        IFS=. read -r -a a <<< "$installed"
+        IFS=. read -r -a b <<< "$requested"
+        n="${#a[@]}"
+        if [ "${#b[@]}" -gt "$n" ]; then
+            n="${#b[@]}"
+        fi
+        for ((i = 0; i < n; i++)); do
+            # Compared as strings, leading zeros stripped, the longer being
+            # the larger: no component overflows, where $((...)) wraps past
+            # 64 bits.
+            x="${a[i]:-0}"
+            x="${x#"${x%%[!0]*}"}"
+            y="${b[i]:-0}"
+            y="${y#"${y%%[!0]*}"}"
+            if [ "${#y}" -gt "${#x}" ] \
+              || { [ "${#y}" -eq "${#x}" ] && [[ "$y" > "$x" ]]; }; then
+                return 0
+            fi
+            if [ "${#y}" -lt "${#x}" ] || [[ "$y" < "$x" ]]; then
+                why="it is older than the installed $installed"
+                break
+            fi
+        done
+    fi
+    if [ -z "$why" ]; then
+        return 0
+    fi
+    echo "Refusing to install $name $requested: $why."
+    echo "Run again with --allow-downgrade to install it anyway."
+    return 1
 }

@@ -188,8 +188,7 @@ report_default_acl() {
 #
 # So on exFAT the execute bit survives the masks measured above and a
 # mount option defeats it, where macOS synthesises rwx------ whatever
-# chmod asked (CLAUDE.md's "The bit decides nothing on the volume this is
-# built for"). Neither platform's behaviour follows the volume: the next
+# chmod asked. Neither platform's behaviour follows the volume: the next
 # machine mounts it with its own options, which is why the closing line
 # below names encryption and physical control rather than a mode.
 #

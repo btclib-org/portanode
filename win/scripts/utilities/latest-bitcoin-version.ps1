@@ -30,7 +30,9 @@ try {
     exit 1
 }
 
-$versions = [regex]::Matches($index, 'bitcoin-core-(\d+\.\d+(?:\.\d+)?)/') |
+# [0-9] and not \d, which .NET also reads as a digit of any script, and the
+# directory name closed by a slash and a quote, as update-bitcoin.sh reads it.
+$versions = [regex]::Matches($index, 'href="bitcoin-core-([0-9]+\.[0-9]+(?:\.[0-9]+)?)/"') |
     ForEach-Object { $_.Groups[1].Value } |
     Where-Object { $_ -notmatch '^0\.' } |
     Sort-Object -Unique -Descending -Property { [version]$_ }

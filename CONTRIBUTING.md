@@ -237,11 +237,33 @@ settings and why they are what they are.
 [roadmap]: https://github.com/btclib-org/.github/blob/main/ROADMAP.md
 [good-first]: https://github.com/search?q=org%3Abtclib-org+label%3A%22good+first+issue%22+is%3Aopen&type=issues
 
+## Worktrees
+
+Run `git fetch origin` in the primary checkout, then check that
+`git status --porcelain` is empty and `git branch --show-current` is
+`main`. Run `git pull --ff-only` only when both checks pass, then verify
+`git rev-parse HEAD origin/main` prints the same sha twice. Create a separate
+worktree for each task with
+`git worktree add <path> origin/main -b <branch>`. After committing,
+remove it with `git worktree remove <path>`. If initialized submodules
+make that fail,
+check for uncommitted, untracked, and ignored files in the worktree and
+its initialized submodules. Preserve anything needed before retrying with
+`git worktree remove --force <path>`; it can delete those files. Keep the
+primary checkout clean and on `main`; do not
+switch branches or stash there. Hooks can fix files in place, and the local
+`main` and `refs/stash` are shared by all worktrees.
+
 ## This repository in particular
 
 Everything above is the same file in every repository of the
 organization; everything below is this one's, and the comparison stops at
 this heading.
+
+There is no `.python-version` because the tracked tree has no Python source
+and no gate depends on a repository-selected Python interpreter. The Python
+used to create hook environments is managed by pre-commit; pin a version here
+if a project source file or gate becomes interpreter-sensitive.
 
 ### The environment and the gates
 
@@ -284,37 +306,65 @@ shares: `git -C <worktree> rev-parse --git-path hooks` answers with the
 maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
-**`shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
-helpers**, which the Alice `-clean` launchers and the mainnet launchers
-use to find a running node. No workflow runs it, so a change to them runs
-it by hand, with `bash`:
+**The suite under `tests/` runs the launchers and their helpers**, with
+`bash` on macOS and Linux and with PowerShell on Windows. CI runs it on
+Ubuntu only: `test.yml`, on every pull request. The macOS and Windows
+halves run by hand, `tests/run.sh` under the `/bin/bash` 3.2 macOS ships
+and `tests/run.ps1` under PowerShell, until a workflow runs them. On
+macOS and Linux:
+
+```shell
+bash tests/run.sh
+```
+
+`tests/README.md` has the Windows command, what the suite covers, and
+how a test is added. **A major change adds or updates tests there**:
+one that gives a launcher or a helper a new behaviour, or corrects one.
+
+**These test files sit outside the suite's directories, and no workflow
+runs them**, so a change to what one of them tests runs it by hand, with
+`bash`:
+
+- `shared/tests/node-detection.sh` tests `shared/lib.sh`'s node-detection
+  helpers, which the Alice `-clean` launchers and the mainnet launchers
+  use to find a running node;
+- `shared/tests/process-running-with-locale.sh` tests
+  `process_running_with` and `regtest_node_running_on` on a datadir
+  holding a letter outside ASCII, with and without a UTF-8 locale;
+- `tests/integrity-helpers.sh` tests `shared/utilities/lib.sh`'s checksum
+  helpers (`verify_sha256sums`, `tree_hash`, `verify_checksum_entry`)
+  and the macOS rollbacks and `verify-binaries.sh` that use them;
+- `tests/resolve-root.sh` tests `resolve_root` and the `.sh` and
+  `.command` scripts that call it;
+- `tests/updaters.sh` tests the updaters' downgrade refusal and
+  HTTPS-only fetches, and runs after a change to an updater,
+  `refuse_downgrade`, `curl_https` or `compare-versions.ps1`.
 
 ```shell
 bash shared/tests/node-detection.sh
-```
-
-**What the gate does not reach is running the thing this repository
-ships.** The hooks read prose, configuration and, through `shellcheck`,
-the `.sh` and `.command` launchers themselves — `shellcheck` reads a
-launcher by its shebang rather than by directory, so `linux/scripts/`'s
-own `.sh` files are in scope already and reaching them added no hook —
-but nothing here runs one. So what stands in for a suite is running the
-launcher on a macOS, a Windows and a Linux machine, from a volume that
-is not the boot disk — which is the case the paths in these scripts
-exist for, and the one a checkout on an internal disk never exercises.
-
-**`tests/integrity-helpers.sh` tests `shared/utilities/lib.sh`'s checksum
-helpers** and the macOS rollbacks and `verify-binaries.sh` that use them.
-No workflow runs it, so a change to them runs it by hand, with `bash`:
-
-```shell
+bash shared/tests/process-running-with-locale.sh
 bash tests/integrity-helpers.sh
+bash tests/resolve-root.sh
+bash tests/updaters.sh
 ```
 
-**The `.bat` and `.ps1` halves are read by the generic hooks and by no
-parser.** PowerShell's is PSScriptAnalyzer, and
-`.pre-commit-config.yaml`'s header says why it is not a hook here; run it
-by hand, against a `pwsh` that carries the module:
+**What neither the gate nor the tests reach is a launcher starting
+what it launches.** The hooks read prose, configuration and, through
+`shellcheck`, the `.sh` and `.command` launchers themselves —
+`shellcheck` reads a launcher by its shebang rather than by directory,
+so `linux/scripts/`'s own `.sh` files are in scope already and reaching
+them added no hook. The suite runs a launcher's menu and leaves it, no
+binary being in the tree. So a change to what a launcher starts is
+verified by running it on a macOS, a Windows and a Linux machine, from a
+volume that is not the boot disk — which is the case the paths in these
+scripts exist for, and the one a checkout on an internal disk never
+exercises.
+
+**The `.bat` and `.ps1` halves are read by the generic hooks, and by
+`script-security.yml` for security findings alone** (*What gates a
+merge*, below). PowerShell's parser is PSScriptAnalyzer, and
+`.pre-commit-config.yaml`'s header says why it is not a hook here; run
+all of its rules by hand, against a `pwsh` that carries the module:
 
 ```shell
 pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
@@ -325,11 +375,24 @@ which is a different answer from a style finding.
 
 **`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
 which the Windows mainnet launcher uses to read a running node's network
-switches. No workflow runs it: run it by hand after changing that file.
-It starts no process, so `pwsh` runs it on any system:
+switches. It is in the suite, so `tests/run.ps1` runs it. It starts no
+process, so `pwsh` also runs it on any system:
 
 ```shell
 pwsh -NoProfile -File tests/win/node-args.ps1
+```
+
+**`tests/sh/updater-input.sh` and `tests/win/updater-input.ps1` feed the
+updaters malformed `SHA256SUMS`, signature output and version strings**,
+and expect each refused with nothing installed. They stand in for a fuzzer
+([ISS 646](https://github.com/btclib-org/portanode/issues/646)). The shell
+one runs the macOS and Linux updaters in a copy of the tree with
+a real throwaway key, and is skipped without `gpg`; the PowerShell one runs the
+PowerShell inside the `.bat` files, read from them, and runs on any system
+with `pwsh`. It is in the suite, so `tests/run.ps1` runs it:
+
+```shell
+pwsh -NoProfile -File tests/win/updater-input.ps1
 ```
 
 `.bat` has Blinter, which installs under uv alone:
@@ -341,9 +404,8 @@ uvx blinter . --no-config --summary
 It exits non-zero here, and `.pre-commit-config.yaml`'s header says why
 that is not a hook: not one of the findings the rules that set its exit
 code produce here is a defect, and the header carries what suppressing
-one would cost. Read what it reports before believing it, and take the
-file with `git archive` rather than with `git show` — `CLAUDE.md`'s
-bullet on these files says why.
+one would cost. Read what it reports before believing it, and inspect
+the file from `git archive`, which applies the checkout attributes.
 
 **`E010` is one rule code covering two different shapes of a
 `^`-continued `for /f`, and only one of them is the false positive the
@@ -383,11 +445,22 @@ gh api repos/btclib-org/portanode/branches/main/protection \
   --jq 'has("required_status_checks")'
 ```
 
-That answers `true`: a red `Lint`, `Dependency review` or `Sign-off` stops
-the merge.
+That answers `true`: a red `Lint`, `Dependency review`, `Sign-off`,
+`Script security` or `test: every job passed` stops the merge.
 `REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
+
+**`script-security.yml` runs the security rules of PSScriptAnalyzer and
+Blinter over the `.ps1` and `.bat` scripts on every pull request**, and
+its header says what fails it. Its `Script security` job is a required
+check. A Blinter finding it reports is fixed
+or, where it is no defect, added to `.github/blinter-accepted.tsv` as the
+line the job prints.
+
+`test.yml`'s `test: every job passed` job passes where every job of
+its run did, and the branch rule names it, so a red one holds the
+merge.
 
 **`links.yml` and `claude-review.yml` only report, and must go on doing
 so.** The first is weekly and reads every link in the markdown, where a
@@ -407,3 +480,78 @@ holds every commit that reaches `main` — linear history, no
 force push, no deletion — is a ruleset with no bypass actor.
 `REPOSITORY.md` reads all of it back from the endpoint rather than
 restating it.
+
+### Conventions and measurements the tree relies on
+
+- **A path is relative to `ROOTDIR` where the launcher itself consumes
+  it, and absolute where it is printed for use outside that process.**
+  The use decides, not the form and not the length. A path passed as an
+  argument is one the launcher consumes. A message interpolating a
+  variable built as `$ROOTDIR/...` names an absolute path as surely as a
+  literal one does. Printed for use outside covers a reader orienting
+  themselves on the machine in front of them and a command pasted into a
+  shell alike: `$ROOTDIR` alone, the resolved locations a Bitcoin
+  launcher's opening block reports, a message whose subject is how long a
+  path is — which rendered relative would name one short enough to fit
+  whatever refused it — and the command an Electrum launcher prints in
+  place of its own. That last is where the ground shows plainly: rendered
+  relative the line does not orient a reader worse, it does not run. The
+  absolute form costs a line that holds only on the machine that printed
+  it, the folder mounting somewhere else on the next one, so a reader
+  pasting one into a bug report hands over a path nobody else has. A path
+  outside the folder entirely — a system binary, a user's keyring — is
+  outside the rule rather than an exception to it.
+- **A commit subject is one physical line, however long.** The
+  eighty-column wrap is for files in the tree, and applying it to a
+  subject produces a wrapped one. `%s` conceals the result: it takes
+  everything up to the first blank line and joins it, so `%s`, `git log
+  --oneline` and any `grep` over either report a whole sentence where the
+  subject is broken. The squash takes the first physical line, appends
+  `(#N)` and moves the remainder into the body. The first line of `%B`
+  shows the subject as it will land:
+
+  ```shell
+  git show -s --format=%B <sha> | head -1
+  ```
+
+- **The executable bit decides nothing on the volume this is built for.**
+  macOS synthesises a mode for exFAT rather than storing one: a file
+  written there reads `rwx------` whatever `chmod` was asked for, and a
+  script runs regardless. `README.md`'s *Choosing a filesystem* and
+  `macos/scripts/utilities/set-permissions.sh` cite this measurement,
+  made on an exFAT image:
+
+  ```shell
+  d=$(mktemp -d)
+  hdiutil create -size 20m -fs ExFAT -volname T -o "$d/t.dmg"
+  hdiutil attach "$d/t.dmg"
+  printf '#!/bin/bash\necho hi\n' > /Volumes/T/u.sh
+  chmod 644 /Volumes/T/u.sh && ls -l /Volumes/T/u.sh && /Volumes/T/u.sh
+  ```
+
+  It exits 0 and prints `hi` under `-rwx------`. The mode in the index
+  matters for the other cases: a clone or an unpacked source archive on
+  APFS, where GitHub's zipball carries the index mode through `unzip`.
+  Detach the image afterwards with `hdiutil detach /Volumes/T`.
+- **`pwsh` is installable.** `brew install powershell` on macOS provides
+  it, and `Install-Module -Name PSScriptAnalyzer -Force -Scope
+  CurrentUser` adds the module once `pwsh` is there. With both,
+  `[System.Management.Automation.Language.Parser]::ParseFile` and
+  PSScriptAnalyzer run for real: a positive control against the
+  unmodified tree first, then a clean run against the change, rather than
+  a `.ps1` change read for correctness without being parsed.
+- **Blinter is compared by version and by line numbers.** Capture the
+  version once and run both halves of a comparison under it, stderr
+  dropped because its `utf_8` encoding notices move under unrelated
+  edits:
+
+  ```shell
+  V=$(uvx blinter --version 2>/dev/null | sed -E 's/^v?([0-9.]+).*/\1/')
+  uvx --from "blinter==$V" blinter . --no-config --summary 2>/dev/null
+  ```
+
+  Judge a diff by the set of line numbers per file and rule code, not by
+  counts. Lines blinter reads as embedded script, which can include plain
+  batch lines after a `$name =` match, get no per-line checks:
+  `blinter.parsing.embedded._detect_embedded_script_blocks` returns the
+  set.

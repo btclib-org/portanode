@@ -36,6 +36,7 @@ if errorlevel 1 (
 
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"
+set "ALLOW_DOWNGRADE=0"
 :parse_args
 if "%~1"=="" goto :args_done
 if "%~1"=="--version" (
@@ -49,7 +50,12 @@ if "%~1"=="--dry-run" (
     shift
     goto :parse_args
 )
-echo Usage: %~nx0 [--version ^<v^>] [--dry-run]
+if "%~1"=="--allow-downgrade" (
+    set "ALLOW_DOWNGRADE=1"
+    shift
+    goto :parse_args
+)
+echo Usage: %~nx0 [--version ^<v^>] [--dry-run] [--allow-downgrade]
 call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
@@ -131,6 +137,32 @@ set "URL=%BASE_URL%%FILE%"
 set "CHECKSUM_URL=%BASE_URL%SHA256SUMS"
 set "CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc"
 set "CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256"
+call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENT
+set VERDICT=
+REM compare-versions.ps1's header has the rule. Run from its own
+REM directory by a relative name: win/scripts/root.ps1 says why.
+for /f "usebackq delims=" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^
+  -Command "Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\compare-versions.ps1 -Installed $env:CURRENT -Requested $env:VERSION -Allow $env:ALLOW_DOWNGRADE; exit $LASTEXITCODE"`) do set VERDICT=%%R
+if "%VERDICT%"=="OK" goto :downgrade_checked
+setlocal enabledelayedexpansion
+if "!VERDICT!"=="MALFORMED" (
+    echo Refusing to install Bitcoin Core !VERSION!: a version is digits and dots.
+    endlocal
+    popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
+if "!VERDICT!"=="OLDER" (
+    echo Refusing to install Bitcoin Core !VERSION!: it is older than the installed !CURRENT!.
+) else (
+    echo Refusing to install Bitcoin Core !VERSION!: it cannot be compared with the installed !CURRENT!.
+)
+endlocal
+echo Run again with --allow-downgrade to install it anyway.
+popd >nul 2>&1
+call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+exit /b 1
+:downgrade_checked
 
 set STATUS=0
 
@@ -154,16 +186,15 @@ if %errorlevel%==0 (
 )
 
 REM Flat rather than the one "if ... ( )" this replaced, for the reason
-REM the scrape above is flat: CURRENT, ARCHIVE_LEN, ARCHIVE_MB and
-REM FREE_GB are each set and read here, and inside one block cmd.exe
-REM would read all four as they stood when it parsed the block. The
+REM the scrape above is flat: ARCHIVE_LEN, ARCHIVE_MB and FREE_GB are
+REM each set and read here, and inside one block cmd.exe would read
+REM all three as they stood when it parsed the block. The
 REM errorlevel of the "where gpg" below is the same case (#383), and
 REM the one that decides whether a preview reports gpg as present:
 REM measured on windows-latest, "%errorlevel%" read at top level after
 REM two commands in turn answers for each of them, where inside a block
 REM it answers for whatever ran before the block was parsed.
 if not "%DRY_RUN%"=="1" goto :dry_run_done
-call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENT
 echo --dry-run: nothing will be downloaded, verified or installed.
 setlocal enabledelayedexpansion
 echo Would install Bitcoin Core !VERSION! ^(currently installed: !CURRENT!^).
