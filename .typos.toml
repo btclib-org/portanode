@@ -5,9 +5,9 @@
 # .pre-commit-config.yaml instead of here, and the asymmetry is that
 # difference and not a preference.
 #
-# Every entry below is an identifier the launcher scripts and their
-# prose already use, so writing it differently would mean renaming a
-# variable or misquoting a manual page. What each is:
+# Every extend-words entry below is an identifier the launcher scripts
+# and their prose already use, so writing it differently would mean
+# renaming a variable or misquoting a manual page. What each is:
 #
 #   fpr    gpg's own record name for a fingerprint. `gpg --with-colons`
 #          prints one field per line keyed by a short name, `fpr` being
@@ -20,6 +20,12 @@
 # What each costs is asked in the tree rather than recorded here:
 #
 #   git grep -nwi -e fpr -e bre
+#
+# extend-ignore-re skips a 40-hex fingerprint in backticks, spaced as gpg
+# prints it: typos would rewrite VERIFYING.md's 2DBE to 2BE.
+[default]
+extend-ignore-re = ["`[0-9A-F]{4}(  ? ?[0-9A-F]{4}){9}`"]
+
 [default.extend-words]
 fpr = "fpr"
 bre = "bre"
