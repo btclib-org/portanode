@@ -301,6 +301,13 @@ for b in $BIN_NAMES; do
     fi
 done
 
+# The bundle's entry is what the checks below and rollback-bitcoin.sh
+# read: tree_hash covers every file and symlink in it. Its executable
+# keeps an entry of its own because installed_version reads it, and
+# because verify-binaries.sh checks every path the append-only file
+# names, executable entries recorded by earlier installs included, and
+# reports FAILED for one whose current hash is not recorded.
+update_checksum "$TMP_APP" "macos/bin/Bitcoin-Qt.app" "$VERSION"
 update_checksum \
   "$TMP_APP/Contents/MacOS/Bitcoin-Qt" \
   "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
@@ -344,10 +351,8 @@ trap - EXIT
 # the verified copy.
 echo "Verifying installed binaries against checksums.sha256..."
 vfail=0
-verify_checksum_entry \
-  "$APP_DIR/${APP_NAME}/Contents/MacOS/Bitcoin-Qt" \
-  "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
-  "$ROOTDIR/macos/checksums.sha256" "Bitcoin-Qt" || vfail=1
+verify_checksum_entry "$APP_DIR/${APP_NAME}" "macos/bin/${APP_NAME}" \
+  "$ROOTDIR/macos/checksums.sha256" "${APP_NAME}" || vfail=1
 for b in $BIN_NAMES; do
     verify_checksum_entry "$APP_DIR/$b" "macos/bin/$b" \
       "$ROOTDIR/macos/checksums.sha256" "$b" || vfail=1

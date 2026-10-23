@@ -53,15 +53,19 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     if [ -d "$BACKUP_DIR/Electrum.app" ]; then
         CHECKSUM_FILE="$ROOTDIR/macos/checksums.sha256"
         BACKUP_BIN="$BACKUP_DIR/Electrum.app/Contents/MacOS/run_electrum"
+        # The whole bundle is checked, for the reason rollback-bitcoin.sh
+        # gives beside its own check.
         rc=0
         verify_checksum_entry \
-          "$BACKUP_BIN" \
-          "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+          "$BACKUP_DIR/Electrum.app" \
+          "macos/bin/Electrum.app" \
           "$CHECKSUM_FILE" \
-          "backup binary" || rc=$?
+          "backup" || rc=$?
         if [ "$rc" -ne 0 ]; then
             if [ "$rc" -eq 1 ]; then
-                echo "Error: backup binary checksum not recognized."
+                echo "Error: the backup's checksum is not recognized: no" \
+                     "macos/bin/Electrum.app entry in" \
+                     "macos/checksums.sha256 matches it."
             fi
             exit 1
         fi
