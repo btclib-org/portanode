@@ -32,6 +32,19 @@ expect() {
     fi
 }
 
+# expect_either <status> <status> <description> <command> [argument...]: as
+# expect, but passes on either status.
+expect_either() {
+    local want1="$1" want2="$2" what="$3" got
+    shift 3
+    ("$@")
+    got=$?
+    if [ "$got" -ne "$want1" ] && [ "$got" -ne "$want2" ]; then
+        echo "FAIL: $what (wanted $want1 or $want2, got $got)"
+        failures=$((failures + 1))
+    fi
+}
+
 # without_locale <command> [argument...]: runs the command with no locale
 # variable set.
 without_locale() {
@@ -94,7 +107,7 @@ if loc="$(_utf8_locale)"; then
     expect 0 "found under LC_ALL=C" under C process_running_with "$ARG"
     expect 0 "found under LC_ALL=$loc" under "$loc" process_running_with "$ARG"
     expect 1 "a string outside ASCII no process holds answers 1" \
-        process_running_with "$ARG-absent"
+        listing "bitcoind $ARG" process_running_with "$ARG-absent"
     expect 0 "found under LC_ALL=$loc on a line holding a byte that is not UTF-8" \
         under "$loc" listing "bitcoind -uacomment="$'\xff'" $ARG" \
         process_running_with "$ARG"
@@ -149,6 +162,11 @@ if loc="$(_utf8_locale)"; then
             under "$caller" listing "bitcoind -regtest -uacomment="$'\xff'" ${ARG/è/È}" \
             not_1 regtest_node_running_on "$DIR"
     done
+    for caller in "$loc" C; do
+        expect_either 0 2 "not missed under LC_ALL=$caller in another case on a line holding a byte that is not UTF-8" \
+            under "$caller" listing "bitcoind -uacomment="$'\xff'" ${ARG/è/È}" \
+            process_running_with "$ARG"
+    done
 else
     echo "This machine has no UTF-8 locale."
     expect 2 "a string outside ASCII answers 2" process_running_with "$ARG"
@@ -161,6 +179,9 @@ expect 0 "no UTF-8 locale: a string in ASCII is still found" \
     no_utf8_locale process_running_with "$ASCII_ARG"
 expect 1 "no UTF-8 locale: a string in ASCII no process holds answers 1" \
     no_utf8_locale process_running_with "$ASCII_ARG-absent"
+expect 1 "a string in ASCII no process holds answers 1 on a line holding a byte that is not UTF-8" \
+    listing "bitcoind -uacomment="$'\xff'" $ASCII_ARG" \
+    process_running_with "$ASCII_ARG-absent"
 
 expect 2 "no UTF-8 locale: a datadir outside ASCII answers 2" \
     no_utf8_locale regtest_node_running_on "$DIR"
