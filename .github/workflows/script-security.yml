@@ -1,36 +1,42 @@
 ---
 name: script-security
 
-# the security rules of PSScriptAnalyzer and Blinter, over every tracked
-# .ps1 and .bat script: the hooks lint.yml runs read these files as text,
-# and .pre-commit-config.yaml's header says why neither tool is a hook.
+# the security rules of PSScriptAnalyzer and the Error and Security rules
+# of Blinter, over every tracked .ps1 and .bat script: the hooks lint.yml
+# runs read these files as text, and .pre-commit-config.yaml's header says
+# why neither tool is a hook.
 #
 # A security finding fails the job; a style finding does not. For
 # PowerShell the rules are ScriptSecurity, the settings preset the module
 # ships, and three security rules the preset leaves out:
 # PSAvoidUsingInvokeExpression, PSAvoidUsingBrokenHashAlgorithms and
 # PSAvoidUsingAllowUnencryptedAuthentication. A file PowerShell cannot
-# parse fails too, since nothing in it was read. For batch the rules are
-# Blinter's SEC rules, and the job fails as well where Blinter read a
-# number of files other than the number git tracks, or where a tracked
-# .bat or .cmd file holds a LINT:IGNORE directive, which would silence a
-# finding without an entry in the list below. It fails too on a byte in
-# those files that is neither printable ASCII nor ASCII whitespace:
-# Blinter upper-cases a line with Python before it looks for the
-# directive, which turns a dotless i into I, and git grep folds ASCII
-# only, so ASCII text is what lets the two read the same directive. It
-# fails on a CR not followed by LF as well: Blinter ends a line at a lone
-# CR and sed below does not, so the two would number lines differently
-# and a finding's key could take another line's text. Both tools' other
-# rules stay by hand, as CONTRIBUTING.md's last section says.
+# parse fails too, since nothing in it was read. For batch a finding of
+# Blinter's Error or Security rules fails the job where the baseline below
+# does not hold it, and the job fails as well where Blinter read a number
+# of files other than the number git tracks, or where a tracked .bat or
+# .cmd file holds a LINT:IGNORE directive, which would silence a finding
+# without an entry in the baseline. Both tools' other rules stay by hand,
+# as CONTRIBUTING.md's last section says.
 #
-# Blinter's SEC rules fire on lines that .pre-commit-config.yaml's header
-# calls no defect. .github/blinter-accepted.tsv records each one by rule
-# code, file and the text of the line, not its number, so an edit
-# elsewhere in the file does not move it. A finding the file does not
-# hold fails the job, and so does an entry no finding matches: the file
-# is kept equal to the findings of the tree it sits in, and the job
-# prints the lines to add or to remove.
+# It fails too on a byte in those files that is neither printable ASCII nor
+# ASCII whitespace, and on a CR not followed by LF. These two checks are
+# the tree's own. They are not Blinter workarounds. Nothing else here
+# refuses an invisible, bidirectional or look-alike character in a batch
+# file, and cmd.exe reads a non-ASCII byte by the console code page. A lone
+# CR escapes mixed-line-ending, which excludes .bat: cmd.exe drops it, while
+# a reviewer's terminal or diff shows a line break that is not there.
+#
+# Blinter's Error and Security rules fire on lines that
+# .pre-commit-config.yaml's header calls no defect.
+# .github/blinter-baseline.json records each one by rule code, file and the
+# text of the line, not its number, so an edit elsewhere in the file does
+# not move it, and .github/blinter.ini limits Blinter to those two
+# severities. Blinter fails on a finding the baseline does not hold, and on
+# an entry no finding matches. Blinter skips an entry whose file it did not
+# read, so the job fails on an entry whose file git does not track as well.
+# The file is kept equal to the findings of the tree it sits in, and the
+# job prints the command that rewrites it.
 #
 # Its job's name is a required context, which REPOSITORY.md's "What gates
 # a merge" records.
@@ -84,8 +90,8 @@ jobs:
       - name: Install Blinter
         run: |
           printf '%s --hash=sha256:%s\n' \
-            blinter==1.1.42 \
-            84301cdecce17e1ed3ef0fe6d04c8f324321f955710594bfbc5376e09865c635 \
+            blinter==1.1.47 \
+            5fede89916e331d5dd2287b65cd08a5b1205495ff279aee872149d5ff9f1e64e \
             charset-normalizer==3.5.2 \
             b6b751274acb69d77b3323d6b7dbaa3c7fdfc1eb829b7eb61d262f32e1af9685 \
             > "$RUNNER_TEMP/blinter-requirements.txt"
@@ -94,10 +100,12 @@ jobs:
             --require-hashes --only-binary :all: \
             --requirement "$RUNNER_TEMP/blinter-requirements.txt"
 
-      # blinter exits non-zero on any finding of any rule, so its exit code
-      # says nothing here. What says it ran is its count of the files it
-      # read, set against the files git tracks
-      - name: Check the .bat scripts with Blinter's security rules
+      # blinter exits non-zero on a finding of its Error or Security rules
+      # the baseline does not hold, and on a baseline entry no finding
+      # matches. What says it ran is its count of the files it read, set
+      # against the files git tracks. It leaves alone an entry whose file
+      # it did not read, so the entries' files are set against git's too
+      - name: Check the .bat scripts with Blinter's Error and Security rules
         run: |
           t="$RUNNER_TEMP"
           rc=0
@@ -112,42 +120,44 @@ jobs:
           rc=0
           git grep -n -i 'LINT:IGNORE' -- '*.bat' '*.cmd' || rc=$?
           if [ "$rc" -eq 0 ]; then
-            echo "::error::a LINT:IGNORE directive; .github/blinter-accepted.tsv holds exceptions"
+            echo "::error::a LINT:IGNORE directive; .github/blinter-baseline.json holds exceptions"
             exit 1
           elif [ "$rc" -ne 1 ]; then
             exit "$rc"
           fi
-          "$t/blinter/bin/blinter" . --no-config --format json \
-            --output "$t/blinter.json" || true
+          rc=0
+          "$t/blinter/bin/blinter" . --config .github/blinter.ini \
+            --baseline .github/blinter-baseline.json \
+            --format json --output "$t/blinter.json" || rc=$?
           tracked=$(git ls-files '*.bat' '*.cmd' | wc -l)
           processed=$(jq '.summary.files_processed' "$t/blinter.json")
-          if [ "$processed" -ne "$tracked" ]; then
+          if ! [ "$processed" -eq "$tracked" ]; then
             echo "::error::blinter read $processed files where git tracks $tracked"
             exit 1
           fi
-          jq -r '.issues[] | select(.code | startswith("SEC"))
-            | [.code, .file, .line] | @tsv' "$t/blinter.json" |
-            while IFS=$'\t' read -r code file line; do
-              text=$(sed -n "${line}p" "$file" | tr -d '\r' |
-                sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
-              printf '%s\t%s\t%s\n' "$code" "$file" "$text"
-            done | LC_ALL=C sort > "$t/found.tsv"
-          sed '/^#/d' .github/blinter-accepted.tsv | LC_ALL=C sort > "$t/accepted.tsv"
-          LC_ALL=C comm -13 "$t/accepted.tsv" "$t/found.tsv" > "$t/new.tsv"
-          LC_ALL=C comm -23 "$t/accepted.tsv" "$t/found.tsv" > "$t/gone.tsv"
-          echo "$(wc -l < "$t/found.tsv") security findings in $processed files"
-          status=0
-          if [ -s "$t/new.tsv" ]; then
-            echo "::error::findings .github/blinter-accepted.tsv does not hold"
-            cat "$t/new.tsv"
-            status=1
+          jq -r '.[].file | sub("^\\.\\./"; "")' .github/blinter-baseline.json |
+            LC_ALL=C sort -u > "$t/listed"
+          git ls-files '*.bat' '*.cmd' | LC_ALL=C sort > "$t/tracked"
+          LC_ALL=C comm -23 "$t/listed" "$t/tracked" > "$t/gone"
+          if [ -s "$t/gone" ]; then
+            echo "::error::baseline entries for files git does not track"
+            cat "$t/gone"
+            echo "remove them from .github/blinter-baseline.json"
+            exit 1
           fi
-          if [ -s "$t/gone.tsv" ]; then
-            echo "::error::entries of .github/blinter-accepted.tsv no finding matches"
-            cat "$t/gone.tsv"
-            status=1
+          jq -r '.summary
+            | "\(.baselined_issues) findings in the baseline, in \(.files_processed) files"' \
+            "$t/blinter.json"
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::findings the baseline does not hold, or entries no finding matches"
+            jq -r '.issues[] | "\(.file):\(.line): \(.code) \(.name)"' "$t/blinter.json"
+            jq -r '.stale_baseline_entries[]
+              | "no finding: \(.code) \(.file): \(.text)"' "$t/blinter.json"
+            echo "to accept them, run the pinned blinter in the repository root:"
+            echo "  blinter . --config .github/blinter.ini \\"
+            echo "    --baseline .github/blinter-baseline.json --update-baseline"
+            exit 1
           fi
-          exit "$status"
 
       # the module as its release publishes it, pinned to the hash of the
       # package. pwsh is the runner's own
