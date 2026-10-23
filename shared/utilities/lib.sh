@@ -630,10 +630,10 @@ _verify_binaries_trim() {
 # "Binaries verified." where every entry matches. Where PREFIX/* has no
 # entry at all after filtering, returns 0 and prints "Nothing to
 # verify" instead of "Binaries verified.": a fresh clone's
-# linux/checksums.sha256 ships with no entries on a fresh clone; binaries
-# are not installed until the updaters run, so this is expected rather
-# than a failure -- which keeps an empty
-# checksum file from reading as success over nothing checked.
+# linux/checksums.sha256 ships with no entries, and no binary is installed
+# until the updaters run, so this is expected rather than a failure --
+# which keeps an empty checksum file from reading as success over nothing
+# checked.
 #
 # Indexed arrays, not an associative one: macOS ships bash 3.2, and this
 # function serves linux/scripts/utilities/verify-binaries.sh through the
