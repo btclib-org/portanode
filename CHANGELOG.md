@@ -13,6 +13,89 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
+## v2026.10.25
+
+An update refuses a downgrade and a download it cannot verify, and the
+launchers read a running node's flags as whole arguments.
+
+### An update refuses a version older than the installed one
+
+The updaters stop where the index or `--version` names a version older than
+the installed one, or where the installed one is not digits and dots
+(closes #651). `--allow-downgrade` installs it anyway.
+
+### The macOS and Linux updaters fetch over HTTPS only
+
+A redirect from HTTPS to plain HTTP is refused too (closes #660).
+
+### An update that cannot be verified stops
+
+`PORTANODE_ALLOW_UNVERIFIED` is removed on macOS, Linux and Windows: a failed
+PGP check stops the update, and checksums are always recorded and checked
+after the install (closes #670).
+
+### The updaters refuse malformed downloads
+
+macOS and Linux need exactly one `SHA256SUMS` line naming the archive, and a
+`--version` that is not digits and dots is refused before it reaches a URL.
+`update-bitcoin.sh` says so when the index has no version left (closes #715).
+
+### A macOS app bundle is checked whole
+
+`tree_hash` covers symlinks, and the updaters record and check `Bitcoin-Qt.app`
+and `Electrum.app` as whole bundles (closes #658, closes #659, closes #668).
+The first macOS rollback after upgrading is refused; later ones work.
+
+### The Windows updaters run outside the folder
+
+They run from System32, so a `gpg.bat` in the folder is not run. They download
+into a fresh `%TEMP%` directory, refuse an unreadable file and match checksum
+fields whole (closes #652, closes #653, closes #656, closes #657).
+
+### A piped `update-*.bat` on Windows returns
+
+The keyring probe runs `gpg` in a hidden window, so `keyboxd` no longer holds
+the caller's pipe open (closes #684).
+
+### Windows scripts leave the folder before a bare-name command
+
+The rollbacks and utilities run from System32 (issue #672), and the mainnet
+check reads a node's flags as whole arguments, as Core does (closes #676).
+
+### macOS and Linux read a node's flags as whole arguments
+
+The Alice `-clean` launchers refuse to delete a running node's datadir however
+its flags are ordered, and a path holding `-testnet` no longer hides a mainnet
+node (closes #661, #662).
+
+### A running node on a non-ASCII datadir is found in any locale
+
+The `-clean` guards ran `ps` in the caller's locale, which hid such a node and
+let the launcher delete its datadir (closes #674).
+
+### Mainnet Qt opens no RPC
+
+`bitcoin.conf` sets `server=1` on no network, and the regtest Qt launchers pass
+`-server` (closes #654). An ignored `bitcoin.local.conf` can hold secrets
+(closes #666).
+
+### A `PORTANODE_ROOT` that is not a PortaNode folder stops the launcher
+
+It must hold `VERSION` and one of `macos/`, `win/` or `linux/`; otherwise the
+launcher stops with a message naming the variable (closes #663).
+
+### Release verification and the threat model are documented
+
+`VERIFYING.md` shows how to check a tag and names the signing key;
+`ASSURANCE_CASE.md` states the threat model. `README.md` links both and says
+what the plain Electrum mainnet launcher reveals (closes #641, #642, #667).
+
+### `VERIFYING.md` names the current signing key and the revoked one
+
+New tags are signed by a new key, which the file names. The key behind
+`v2026.10.17` and the tags before it was revoked on 2026-10-19, so
+`git verify-tag` exits 1 for them; the file says how to check them (closes #724).
+
 ## v2026.10.17
 
 An update counts good signatures from distinct pinned keys, and a
