@@ -18,6 +18,16 @@
 # the version sort picks a modern release.
 $ErrorActionPreference = 'Stop'
 
+# Windows PowerShell 5.1 takes its protocols from ServicePointManager. At 0,
+# SystemDefault, the operating system chooses, offering TLS 1.2 or later on
+# Windows 10 and 11, and an explicit value would drop what it offers. Any other
+# value gets TLS 1.2 ORed in and keeps what it held. PowerShell 7's HttpClient
+# does not read this setting.
+if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) {
+    [Net.ServicePointManager]::SecurityProtocol =
+        [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+}
+
 # -TimeoutSec 300: the bound update-bitcoin.sh puts on this same index fetch,
 # sized against the 135 s bitcoincore.org was measured answering it in (ISS
 # 354), and its comment carries the reasoning. The candidate probe below keeps

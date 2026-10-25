@@ -173,6 +173,9 @@ if %errorlevel%==0 (
     echo gpg: not found -- verification would fail closed.
 )
 set ARCHIVE_LEN=
+REM Every powershell line below that fetches makes sure TLS 1.2 is offered
+REM first, as latest-bitcoin-version.ps1 explains (#728).
+REM
 REM Built as one physical line -- see :update_checksum in lib.bat
 REM (#144) on why a caret split across an open quote is not a
 REM continuation.
@@ -183,7 +186,7 @@ REM answers at its leisure holds --dry-run open for as long as the
 REM host chooses, and --dry-run is the side-effect-free preview.
 REM Values reach PowerShell as $env: reads: see :install_verified in
 REM lib.bat (#578).
-for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { try { (Invoke-WebRequest -Uri $env:URL -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
+for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; try { (Invoke-WebRequest -Uri $env:URL -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }"`) do set "ARCHIVE_LEN=%%L"
 if not defined ARCHIVE_LEN goto :archive_size_unknown
 REM ARCHIVE_MB is set /a's own output, so it carries no character the
 REM echo below has to be protected from.
@@ -250,8 +253,8 @@ REM the helper it calls. Write-Host sends it to stdout, so a run that
 REM fails this way still writes nothing to stderr.
 REM Values reach PowerShell as $env: reads: see :install_verified in
 REM lib.bat (#578).
-powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
-powershell -NoProfile -Command "& { $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri ($env:URL + '.asc') -OutFile ($env:TMPDIR + '\' + $env:SIG_FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -NoProfile -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
+powershell -NoProfile -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri ($env:URL + '.asc') -OutFile ($env:TMPDIR + '\' + $env:SIG_FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
 call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" "%ROOTDIR%\keys\electrum.fingerprints"
 if errorlevel 1 goto :error

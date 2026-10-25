@@ -300,11 +300,6 @@
     "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
-    "code": "E047",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for /f \"usebackq delims=\" %%L in (`powershell -NoProfile -Command \"& { try { (Invoke-WebRequest -Uri $env:URL -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }\"`) do set \"ARCHIVE_LEN=%%L\""
-  },
-  {
     "code": "SEC009",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
@@ -338,11 +333,6 @@
     "code": "E010",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
-  },
-  {
-    "code": "E047",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "for /f \"usebackq delims=\" %%L in (`powershell -NoProfile -Command \"& { try { (Invoke-WebRequest -Uri $env:URL -Method Head -UseBasicParsing -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }\"`) do set \"ARCHIVE_LEN=%%L\""
   },
   {
     "code": "SEC009",

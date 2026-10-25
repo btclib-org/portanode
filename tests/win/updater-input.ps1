@@ -1,7 +1,8 @@
 # What the Windows updaters download and what they are told, fed to them
 # malformed: a version string, the release index, SHA256SUMS and gpg's status
 # output. Each is refused. tests/sh/updater-input.sh has the shell half and
-# says why these cases stand in for a fuzzer.
+# says why these cases stand in for a fuzzer. The protocols each fetch asks
+# for are checked too: TLS 1.2 is offered, and SystemDefault is left alone.
 #
 # The parsers that live inside update-bitcoin.bat and lib.bat are PowerShell
 # in a batch string, so the test reads that text from the file and runs it:
@@ -56,6 +57,7 @@ $env:PORTANODE_TEST_INDEX = ''
 function Invoke-WebRequest {
   [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '')]
   param()
+  $env:PORTANODE_TEST_PROTOCOLS += [string][int][Net.ServicePointManager]::SecurityProtocol + ' '
   if ($args -contains 'Head') { return $null }
   [pscustomobject]@{ Content = $env:PORTANODE_TEST_INDEX }
 }
@@ -97,22 +99,86 @@ Test-Same 'latest-electrum-version.ps1 prints no version for an index of malform
 $electrumOut = Get-Latest 'latest-electrum-version.ps1' '<a href="99999999999999999999.0.0/">x</a>'
 Test-Same 'latest-electrum-version.ps1 prints no version for one too large for [version]' `
   $true ($electrumOut -eq '' -or $electrumOut -eq 'threw')
+
+# --- TLS 1.2 before the first request ------------------------------------------
+# Each request is made with the protocols .NET holds at that moment. From TLS
+# 1.1 alone, which no .NET default is, a script has to leave TLS 1.2 in the
+# setting without removing TLS 1.1. From 0, SystemDefault, where the operating
+# system chooses, it has to leave 0.
+$tls11 = [int][Net.SecurityProtocolType]::Tls11
+$tls12 = [int][Net.SecurityProtocolType]::Tls12
+# The protocols the stub saw at each request of $Script, over $Index, the
+# setting having been $Start before it ran.
+function Get-SeenProtocol {
+  param([string]$Script, [string]$Index, [int]$Start)
+  $env:PORTANODE_TEST_INDEX = $Index
+  $env:PORTANODE_TEST_PROTOCOLS = ''
+  [Net.ServicePointManager]::SecurityProtocol = $Start
+  $null = & (Join-Path $utilities $Script)
+  @($env:PORTANODE_TEST_PROTOCOLS.Split(' ', [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { [int]$_ })
+}
+# True where there were at least $Least requests and every one saw $Want.
+function Test-SeenProtocol {
+  param([int[]]$Seen, [int]$Least, [int]$Want)
+  ($Seen.Count -ge $Least) -and -not ($Seen | Where-Object { $_ -ne $Want })
+}
+$bitcoinIndex = '<a href="bitcoin-core-29.0/">x</a>'
+$electrumIndex = '<a href="4.6.0/">x</a>'
+Test-Same 'latest-bitcoin-version.ps1 adds TLS 1.2 to TLS 1.1 before its index and probe requests' $true `
+  (Test-SeenProtocol -Seen (Get-SeenProtocol -Script 'latest-bitcoin-version.ps1' -Index $bitcoinIndex -Start $tls11) -Least 2 -Want ($tls11 + $tls12))
+Test-Same 'latest-electrum-version.ps1 adds TLS 1.2 to TLS 1.1 before its index request' $true `
+  (Test-SeenProtocol -Seen (Get-SeenProtocol -Script 'latest-electrum-version.ps1' -Index $electrumIndex -Start $tls11) -Least 1 -Want ($tls11 + $tls12))
+Test-Same 'latest-bitcoin-version.ps1 leaves SystemDefault alone' $true `
+  (Test-SeenProtocol -Seen (Get-SeenProtocol -Script 'latest-bitcoin-version.ps1' -Index $bitcoinIndex -Start 0) -Least 2 -Want 0)
+Test-Same 'latest-electrum-version.ps1 leaves SystemDefault alone' $true `
+  (Test-SeenProtocol -Seen (Get-SeenProtocol -Script 'latest-electrum-version.ps1' -Index $electrumIndex -Start 0) -Least 1 -Want 0)
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::SystemDefault
 Remove-Item Function:\Invoke-WebRequest
-Remove-Item Env:PORTANODE_TEST_INDEX
+Remove-Item Env:PORTANODE_TEST_INDEX, Env:PORTANODE_TEST_PROTOCOLS
 
 # --- the PowerShell inside a batch file --------------------------------------
-# The text of the one powershell -Command argument on the line of $Batch that
-# holds $Marker. Where this is not Windows, the backslash that joins a path is
+# The text of each powershell -Command argument on the lines of $Batch that
+# hold $Marker. Where this is not Windows, the backslash that joins a path is
 # a slash.
+function Get-BatchPowerShellEach {
+  param([string]$Batch, [string]$Marker)
+  foreach ($line in (Get-Content -LiteralPath (Join-Path $utilities $Batch) |
+      Where-Object { $_.Contains($Marker) -and $_.Contains('-Command "') })) {
+    $start = $line.IndexOf('-Command "') + 10
+    $text = $line.Substring($start, $line.LastIndexOf('"') - $start)
+    if (-not $windows) { $text = $text.Replace("'\", "'/") }
+    $text
+  }
+}
+# The first of them.
 function Get-BatchPowerShell {
   param([string]$Batch, [string]$Marker)
-  $line = Get-Content -LiteralPath (Join-Path $utilities $Batch) |
-    Where-Object { $_.Contains($Marker) -and $_.Contains('-Command "') } |
-    Select-Object -First 1
-  $start = $line.IndexOf('-Command "') + 10
-  $text = $line.Substring($start, $line.LastIndexOf('"') - $start)
-  if (-not $windows) { $text = $text.Replace("'\", "'/") }
-  $text
+  Get-BatchPowerShellEach $Batch $Marker | Select-Object -First 1
+}
+
+# --- TLS 1.2 in the batch files -------------------------------------------------
+# Each powershell line of an updater that fetches runs here with the real text,
+# Invoke-WebRequest being a function that prints the protocols .NET holds when
+# it is called, after the line has started from TLS 1.1 alone and from
+# SystemDefault. The stub has no double quote, which Windows PowerShell 5.1
+# drops from a command line.
+function Get-Stub {
+  param([int]$Start)
+  'function Invoke-WebRequest { param() Write-Host (''PROTOCOLS='' + [int][Net.ServicePointManager]::SecurityProtocol) }; ' +
+    "[Net.ServicePointManager]::SecurityProtocol = $Start; "
+}
+foreach ($batch in 'update-bitcoin.bat', 'update-electrum.bat') {
+  $texts = @(Get-BatchPowerShellEach $batch 'Invoke-WebRequest -Uri')
+  $n = 0
+  foreach ($text in $texts) {
+    $n++
+    foreach ($case in @(@('TLS 1.1', $tls11, ($tls11 + $tls12)), @('SystemDefault', 0, 0))) {
+      $out = @(& $exe -NoProfile -Command ((Get-Stub $case[1]) + $text) 2>&1) -join ' '
+      $seen = if ($out -match 'PROTOCOLS=(\d+)') { [int]$Matches[1] } else { -1 }
+      Test-Same "$batch fetch $n from $($case[0]) sees $($case[2])" $case[2] ([string]$seen)
+    }
+  }
+  Test-Same "$batch has the fetches this test reads" $true ($texts.Count -ge 3)
 }
 
 # --- SHA256SUMS ---------------------------------------------------------------

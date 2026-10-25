@@ -17,6 +17,12 @@
 # 4.5.8 after 4.10.0.
 $ErrorActionPreference = 'Stop'
 
+# Makes sure TLS 1.2 is offered, as latest-bitcoin-version.ps1 explains.
+if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) {
+    [Net.ServicePointManager]::SecurityProtocol =
+        [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+}
+
 # -TimeoutSec 300: the bound latest-bitcoin-version.ps1 explains, and the one
 # update-electrum.sh puts on this same index fetch. download.electrum.org has
 # not been measured slow; the bound is applied here too rather than left below
