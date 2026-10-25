@@ -1,23 +1,24 @@
 ---
 name: script-security
 
-# the security rules of PSScriptAnalyzer and the Error and Security rules
-# of Blinter, over every tracked .ps1 and .bat script: the hooks lint.yml
-# runs read these files as text, and .pre-commit-config.yaml's header says
-# why neither tool is a hook.
+# the security rules of PSScriptAnalyzer and the Error, Security and
+# Warning rules of Blinter that .github/blinter.ini does not disable, over
+# every tracked .ps1 and .bat script: the hooks lint.yml runs read these
+# files as text, and .pre-commit-config.yaml's header says why neither tool
+# is a hook.
 #
-# A security finding fails the job; a style finding does not. For
-# PowerShell the rules are ScriptSecurity, the settings preset the module
-# ships, and three security rules the preset leaves out:
-# PSAvoidUsingInvokeExpression, PSAvoidUsingBrokenHashAlgorithms and
+# A finding of any other rule does not fail the job. For PowerShell the
+# rules are ScriptSecurity, the settings preset the module ships, and three
+# security rules the preset leaves out: PSAvoidUsingInvokeExpression,
+# PSAvoidUsingBrokenHashAlgorithms and
 # PSAvoidUsingAllowUnencryptedAuthentication. A file PowerShell cannot
 # parse fails too, since nothing in it was read. For batch a finding of
-# Blinter's Error or Security rules fails the job where the baseline below
-# does not hold it, and the job fails as well where Blinter read a number
-# of files other than the number git tracks, or where a tracked .bat or
-# .cmd file holds a LINT:IGNORE directive, which would silence a finding
-# without an entry in the baseline. Both tools' other rules stay by hand,
-# as CONTRIBUTING.md's last section says.
+# those Blinter rules fails the job where the baseline below does not hold
+# it, and the job fails as well where Blinter read a number of files other
+# than the number git tracks, or where a tracked .bat or .cmd file holds a
+# LINT:IGNORE directive, which would silence a finding without an entry in
+# the baseline. Both tools' other rules stay by hand, as CONTRIBUTING.md's
+# last section says.
 #
 # It fails too on a byte in those files that is neither printable ASCII nor
 # ASCII whitespace, and on a CR not followed by LF. These two checks are
@@ -27,16 +28,24 @@ name: script-security
 # CR escapes mixed-line-ending, which excludes .bat: cmd.exe drops it, while
 # a reviewer's terminal or diff shows a line break that is not there.
 #
-# Blinter's Error and Security rules fire on lines that
-# .pre-commit-config.yaml's header calls no defect.
-# .github/blinter-baseline.json records each one by rule code, file and the
-# text of the line, not its number, so an edit elsewhere in the file does
-# not move it, and .github/blinter.ini limits Blinter to those two
-# severities. Blinter fails on a finding the baseline does not hold, and on
-# an entry no finding matches. Blinter skips an entry whose file it did not
-# read, so the job fails on an entry whose file git does not track as well.
-# The file is kept equal to the findings of the tree it sits in, and the
-# job prints the command that rewrites it.
+# A Blinter finding that is no defect is accepted. .pre-commit-config.yaml's
+# header says why for the Error and Security rules, and
+# .github/blinter-reasons.md for the Warning rules, one section per rule.
+# .github/blinter-baseline.json records each accepted finding by rule code,
+# file and the text of the line, not its number, so an edit elsewhere in
+# the file does not move it. .github/blinter.ini limits Blinter to those
+# three severities, and lists the Warning rules it does not run yet (#729).
+# Blinter fails on a finding the baseline does not hold, and on an entry no
+# finding matches. Blinter skips an entry whose file it did not read, so the
+# job fails on an entry whose file git does not track as well. The file is
+# kept equal to the findings of the tree it sits in, and the job prints the
+# command that rewrites it.
+#
+# The job fails on a Warning rule the baseline accepts with no section in
+# .github/blinter-reasons.md, and on a section for a rule the baseline does
+# not accept. Blinter's report leaves out a finding the baseline holds,
+# and the baseline records no severity, so the job reads each rule's
+# severity from a second run without the baseline.
 #
 # Its job's name is a required context, which REPOSITORY.md's "What gates
 # a merge" records.
@@ -100,13 +109,16 @@ jobs:
             --require-hashes --only-binary :all: \
             --requirement "$RUNNER_TEMP/blinter-requirements.txt"
 
-      # blinter exits non-zero on a finding of its Error or Security rules
-      # the baseline does not hold, and on a baseline entry no finding
-      # matches. What says it ran is its count of the files it read, set
-      # against the files git tracks. It leaves alone an entry whose file
-      # it did not read, so the entries' files are set against git's too
-      - name: Check the .bat scripts with Blinter's Error and Security rules
+      # blinter exits non-zero on a finding of the rules .github/blinter.ini
+      # runs that the baseline does not hold, and on a baseline entry no
+      # finding matches. What says it ran is its count of the files it read,
+      # set against the files git tracks. It leaves alone an entry whose
+      # file it did not read, so the entries' files are set against git's
+      # too. The accepted rules are then set against the reasons file's
+      # sections, as the header says
+      - name: Check the .bat scripts with the Blinter rules .github/blinter.ini runs
         run: |
+          set -o pipefail
           t="$RUNNER_TEMP"
           rc=0
           LC_ALL=C git grep -n -E -e '[^[:print:][:space:]]' -e $'\r.' \
@@ -158,6 +170,25 @@ jobs:
             echo "    --baseline .github/blinter-baseline.json --update-baseline"
             exit 1
           fi
+          "$t/blinter/bin/blinter" . --config .github/blinter.ini \
+            --fail-on none --format json --output "$t/unbaselined.json"
+          jq -r '.issues[] | select(.severity == "Warning") | .code' \
+            "$t/unbaselined.json" | LC_ALL=C sort -u > "$t/warning"
+          jq -r '.[].code' .github/blinter-baseline.json |
+            LC_ALL=C sort -u > "$t/accepted"
+          sed -n -E 's/^## ([A-Z]+[0-9]+)( .*)?$/\1/p' .github/blinter-reasons.md |
+            LC_ALL=C sort -u > "$t/reasoned"
+          LC_ALL=C comm -12 "$t/warning" "$t/accepted" |
+            LC_ALL=C comm -23 - "$t/reasoned" > "$t/unreasoned"
+          LC_ALL=C comm -23 "$t/reasoned" "$t/accepted" > "$t/unaccepted"
+          if [ -s "$t/unreasoned" ] || [ -s "$t/unaccepted" ]; then
+            echo "::error::.github/blinter-reasons.md and the baseline name different rules"
+            sed 's/$/: accepted, with no section/' "$t/unreasoned"
+            sed 's/$/: a section, with no accepted finding/' "$t/unaccepted"
+            exit 1
+          fi
+          echo "a section in .github/blinter-reasons.md for each accepted Warning rule:"
+          LC_ALL=C comm -12 "$t/warning" "$t/accepted" | paste -s -d ' ' -
 
       # the module as its release publishes it, pinned to the hash of the
       # package. pwsh is the runner's own
