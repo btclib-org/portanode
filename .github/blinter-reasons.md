@@ -80,6 +80,14 @@ commands, and no script here reads it there:
 - a `goto :eof` that follows one of these commands is the return of a
   `lib.bat` or `root.bat` called with no label, and every call names one.
 
+## W033 Command execution may be ambiguous
+
+Blinter reads a `call` target as running up to the first space or colon.
+A quoted target that holds neither keeps its closing quote, and so seems
+to end without an extension. Every accepted `W033` calls a quoted path that ends
+in `.bat`, or `"%SCRIPT%"` in a root `.bat` launcher, which sets `SCRIPT`
+to the `.bat` path of a menu entry.
+
 ## W052 SHIFT inside parenthesized block
 
 A `shift` inside a block leaves `%1` in that block as it was. Each block
