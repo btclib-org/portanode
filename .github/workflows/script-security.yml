@@ -2,10 +2,9 @@
 name: script-security
 
 # the security rules of PSScriptAnalyzer and the Error, Security and
-# Warning rules of Blinter that .github/blinter.ini does not disable, over
-# every tracked .ps1 and .bat script: the hooks lint.yml runs read these
-# files as text, and .pre-commit-config.yaml's header says why neither tool
-# is a hook.
+# Warning rules of Blinter, over every tracked .ps1 and .bat script: the
+# hooks lint.yml runs read these files as text, and .pre-commit-config.yaml's
+# header says why neither tool is a hook.
 #
 # A finding of any other rule does not fail the job. For PowerShell the
 # rules are ScriptSecurity, the settings preset the module ships, and three
@@ -34,7 +33,7 @@ name: script-security
 # .github/blinter-baseline.json records each accepted finding by rule code,
 # file and the text of the line, not its number, so an edit elsewhere in
 # the file does not move it. .github/blinter.ini limits Blinter to those
-# three severities, and lists the Warning rules it does not run yet (#729).
+# three severities.
 # Blinter fails on a finding the baseline does not hold, and on an entry no
 # finding matches. Blinter skips an entry whose file it did not read, so the
 # job fails on an entry whose file git does not track as well. The file is
