@@ -47,7 +47,16 @@ REM command, where a "'" in it would end the string early.
 REM Built as one physical line -- see :update_checksum in
 REM win/scripts/utilities/lib.bat (#144) on why a caret split across a
 REM powershell -Command block's open quote is not a continuation.
+REM Its status is not 0 where PowerShell did not start, and is 0 where
+REM a file could not be removed: measured on windows-latest with a
+REM Thumbs.db held open by another process.
 powershell -NoProfile -Command "& { $root = $env:ROOTDIR; $skip = @('bitcoin-datadir','electrum-datadir'); $paths = (Get-ChildItem -LiteralPath $root -Force -ErrorAction SilentlyContinue | Where-Object { $skip -notcontains $_.Name }).FullName; if ($paths) { Get-ChildItem -LiteralPath $paths -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq 'ehthumbs.db' -or $_.Name -eq 'Thumbs.db' -or $_.Name -like '*.stackdump' } | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue } } }"
+if errorlevel 1 (
+    echo Error: PowerShell did not run the cleanup.
+    popd >nul 2>&1
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 echo Cleanup complete.
 popd >nul 2>&1

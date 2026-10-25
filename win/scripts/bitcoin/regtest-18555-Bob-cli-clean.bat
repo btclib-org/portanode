@@ -51,6 +51,11 @@ if errorlevel 1 (
     exit /b 1
 )
 mkdir "%ROOTDIR%\bitcoin-datadir\regtest_bob"
+if errorlevel 1 (
+    echo Error: could not create "bitcoin-datadir\regtest_bob".
+    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    exit /b 1
+)
 
 set "DATADIR=%ROOTDIR%\bitcoin-datadir\regtest_bob"
 set "NETDIR=%DATADIR%\regtest"

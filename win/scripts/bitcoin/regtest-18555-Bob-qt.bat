@@ -40,6 +40,11 @@ if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
 
 if not exist "%ROOTDIR%\bitcoin-datadir\regtest_bob\" (
     mkdir "%ROOTDIR%\bitcoin-datadir\regtest_bob"
+    if errorlevel 1 (
+        echo Error: could not create "bitcoin-datadir\regtest_bob".
+        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+        exit /b 1
+    )
 )
 
 REM Bitcoin Core's regtest RPC port defaults to 18443 regardless of -port, so

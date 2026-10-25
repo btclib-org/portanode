@@ -40,6 +40,11 @@ if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
 
 if not exist "%ROOTDIR%\bitcoin-datadir\regtest_carol\" (
     mkdir "%ROOTDIR%\bitcoin-datadir\regtest_carol"
+    if errorlevel 1 (
+        echo Error: could not create "bitcoin-datadir\regtest_carol".
+        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+        exit /b 1
+    )
 )
 
 
