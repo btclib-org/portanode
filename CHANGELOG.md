@@ -13,7 +13,7 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
-## v2026.10.23
+## v2026.10.25
 
 An update refuses a downgrade and a download it cannot verify, and the
 launchers read a running node's flags as whole arguments.
@@ -89,6 +89,12 @@ launcher stops with a message naming the variable (closes #663).
 `VERIFYING.md` shows how to check a tag and names the signing key;
 `ASSURANCE_CASE.md` states the threat model. `README.md` links both and says
 what the plain Electrum mainnet launcher reveals (closes #641, #642, #667).
+
+### `VERIFYING.md` names the current signing key and the revoked one
+
+New tags are signed by a new key, which the file names. The key behind
+`v2026.10.17` and the tags before it was revoked on 2026-10-19, so
+`git verify-tag` exits 1 for them; the file says how to check them (closes #724).
 
 ## v2026.10.17
 

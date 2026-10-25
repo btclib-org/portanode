@@ -17,7 +17,7 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
-## v2026.10.23
+## v2026.10.25
 
 **`PORTANODE_ALLOW_UNVERIFIED` no longer exists.** An update whose PGP
 check fails stops, and nothing skips the check. Remove the variable from a
@@ -41,6 +41,11 @@ network's section of `bitcoin-datadir/bitcoin.conf`. Until then
 **A `PORTANODE_ROOT` that is not a PortaNode folder stops the launcher.** It
 must hold `VERSION` and one of `macos/`, `win/` or `linux/`. Unset the
 variable, or point it at the folder, if a launcher now stops naming it.
+
+**New tags are signed by a new key.** Import it and check its fingerprint as
+`VERIFYING.md` says before running `git verify-tag`. For `v2026.10.17` and
+the tags before it, `git verify-tag` exits 1, because their key is revoked;
+`VERIFYING.md` says how to check them.
 
 ## v2026.10.17
 
