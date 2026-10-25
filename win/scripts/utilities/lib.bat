@@ -111,9 +111,9 @@ set "STATUS_FILE=%TEMP%\pgp_status_%RANDOM%%RANDOM%.txt"
 gpg --status-fd 1 --verify "%SIG_FILE%" "%DATA_FILE%" 1> "%STATUS_FILE%" 2>nul
 
 REM A status file that is absent or empty is gpg's answer lost rather
-REM than a signature refused, and the findstr below cannot separate
-REM the two: measured on windows-latest, it exits 1 on a file that is
-REM not there exactly as it does on one holding no GOODSIG.
+REM than a signature refused, and the searches below cannot separate
+REM the two: where cmd.exe cannot open the file, a search answers the 1
+REM that "cmd /d /c exit 1" set, as it does on a file holding no GOODSIG.
 REM The exit code of the line above separates them the wrong way
 REM round, so it is not read at all: a redirection cmd.exe cannot open
 REM leaves errorlevel 0, which is what a good signature leaves, where
@@ -141,7 +141,14 @@ if "%STATUS_OK%"=="0" (
     exit /b 1
 )
 
-findstr /c:"[GNUPG:] BADSIG" "%STATUS_FILE%" >nul 2>&1
+REM Each search below reads the status file from standard input and follows
+REM "cmd /d /c exit 1", for the reason win/scripts/electrum/lib.bat gives.
+REM %TEMP% follows the account name, so the file can sit under a letter
+REM outside the ANSI code page. Measured on windows-latest, with gpg 2.4.9
+REM writing the file under such a folder, cmd.exe opens it and findstr finds
+REM GOODSIG in it.
+cmd /d /c exit 1
+findstr /c:"[GNUPG:] BADSIG" < "%STATUS_FILE%" >nul 2>&1
 if %errorlevel%==0 (
     echo Error: BAD PGP signature on %LABEL%.
     del "%STATUS_FILE%" >nul 2>&1
@@ -179,7 +186,8 @@ REM merely not a signature is one of them -- the shape a download
 REM answering 200 with an error page leaves -- so advice to check
 REM presence and readability would send that reader to confirm two
 REM things already true.
-findstr /c:"[GNUPG:] NEWSIG" "%STATUS_FILE%" >nul 2>&1
+cmd /d /c exit 1
+findstr /c:"[GNUPG:] NEWSIG" < "%STATUS_FILE%" >nul 2>&1
 if not %errorlevel%==0 (
     echo Error: gpg found no PGP signature to check on %LABEL%.
     echo Check the signature file and the file it signs.
@@ -187,7 +195,8 @@ if not %errorlevel%==0 (
     exit /b 1
 )
 
-findstr /c:"[GNUPG:] GOODSIG" "%STATUS_FILE%" >nul 2>&1
+cmd /d /c exit 1
+findstr /c:"[GNUPG:] GOODSIG" < "%STATUS_FILE%" >nul 2>&1
 if not %errorlevel%==0 (
     echo Error: no valid PGP signature on %LABEL% ^(is the signer's key imported?^).
     echo Import the signing key.

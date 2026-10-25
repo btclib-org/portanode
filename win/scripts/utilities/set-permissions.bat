@@ -213,9 +213,9 @@ REM the one it does -- the search answered 1 on the first and 0 on the
 REM second.
 REM
 REM The readback runs a control before it runs the search, because the
-REM search is one whose informative answer is a miss: findstr answers 1
-REM where the string is absent and also 1 where it could not read the
-REM file, which win/scripts/electrum/lib.bat records for the same reason.
+REM search is one whose informative answer is a miss: a search that did not
+REM read the file answers 1, as one that read it and did not find the string
+REM does, which win/scripts/electrum/lib.bat records for the same reason.
 REM Measured on windows-latest: the ACE search answers 0 where the ACE is
 REM there and 1 against a file that is absent, a file that is empty, and
 REM a real file the string is missing from alike -- three states behind
@@ -285,14 +285,30 @@ if defined NO_ACL (
 )
 setlocal enabledelayedexpansion
 set "ACL_FILE=!TEMP!\pn_acl_%RANDOM%%RANDOM%.txt"
+REM Each search below reads the report from standard input and, where it gives
+REM the answer, follows "cmd /d /c exit 1", for the reason
+REM win/scripts/electrum/lib.bat gives. TEMP follows the account name, so the
+REM report can sit under a letter outside the ANSI code page. Measured on
+REM windows-latest with TEMP under such a folder, cmd.exe opens the report and
+REM each search reads it. The last search is two steps, the first writing to a
+REM second file, because a redirection cmd.exe cannot open at the head of a
+REM pipe ends the batch file, measured on windows-latest.
+REM
+REM The search strings are not read by that route: the search for TARGET
+REM answers 1 for a folder named in CJK letters, which
+REM https://github.com/btclib-org/portanode/issues/743 tracks.
 icacls "!TARGET!" > "!ACL_FILE!" 2>nul
-findstr /i /c:"!TARGET!" "!ACL_FILE!" >nul 2>&1
+cmd /d /c exit 1
+findstr /i /c:"!TARGET!" < "!ACL_FILE!" >nul 2>&1
 set "READ_RC=!errorlevel!"
-findstr /i /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" "!ACL_FILE!" >nul 2>&1
+cmd /d /c exit 1
+findstr /i /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" < "!ACL_FILE!" >nul 2>&1
 set "ACE_RC=!errorlevel!"
-findstr /i /v /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" "!ACL_FILE!" | findstr /c:":(" >nul 2>&1
+findstr /i /v /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" < "!ACL_FILE!" > "!ACL_FILE!.rest" 2>nul
+cmd /d /c exit 1
+findstr /c:":(" < "!ACL_FILE!.rest" >nul 2>&1
 set "OTHER_RC=!errorlevel!"
-del "!ACL_FILE!" >nul 2>&1
+del "!ACL_FILE!" "!ACL_FILE!.rest" >nul 2>&1
 if not "!READ_RC!"=="0" (
     echo Warning: %REL% is on %FS_NAME%, but its ACL could not be read
     echo back, so whether the restriction is in force is not established.

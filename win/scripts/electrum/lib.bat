@@ -39,22 +39,40 @@ REM one is a wallet written somewhere nobody was told about.
 setlocal
 set "ELECTRUM_EXE=%~1"
 REM The control, and it runs first because the search below is one whose
-REM informative answer is a miss. findstr answers 1 where the string is
-REM absent and also 1 where it could not open the file at all -- measured on
-REM windows-latest against a path that does not exist and against a
-REM directory, each printing FINDSTR: Cannot open and exiting 1, not 2. So a
-REM miss on is_portable says the datum is absent only once something the
-REM file certainly holds has been found in it. run_electrum is the frozen
-REM main script's own entry name and reads out of both builds of 4.8.1.
+REM informative answer is a miss: a search that did not read the file answers
+REM 1, as one that read it and did not find the string does. So a miss on
+REM is_portable says the datum is absent only once something the file
+REM certainly holds has been found in it. run_electrum is the frozen main
+REM script's own entry name and reads out of both builds of 4.8.1.
+REM
+REM How every search of a file in the Windows scripts reads it, said once.
+REM Each reads the file from standard input, findstr ... < file. Measured on
+REM windows-latest, findstr cannot open a file named on its command line where
+REM the path holds a letter outside the ANSI code page, such as U+0142 or a CJK
+REM letter, whatever chcp says, and answers 1 as for a missing file. cmd.exe
+REM opens a redirected file itself, and reads the same file under every path
+REM measured. A redirection cmd.exe cannot open leaves the errorlevel as it was,
+REM which would read as a found string after a zero, so each search whose answer
+REM is read follows "cmd /d /c exit 1", which sets the answer an unread file
+REM gives. A line of 131071 bytes or more, before its line end, makes findstr
+REM print "FINDSTR: Line N is too long." on standard error and can make it miss
+REM a string in that line; a shorter line does not, and a file named on the
+REM command line is searched whole. Both searches find the same strings in both
+REM builds of 4.8.1. The length of a file's longest line is the Maximum that
+REM PowerShell 7 prints for this, with F the file:
+REM   (Get-Content -Raw -Encoding Latin1 $F)-split"`n"|measure Length -Max
+REM It prints 12599 for electrum-4.8.1-portable.exe.
 REM
 REM Both searches run with System32 as the current directory, and their
 REM answers are read once it is changed back: root.bat's :leave_folder
 REM says why.
 call "%LIB_DIR%..\root.bat" :leave_folder
 if errorlevel 1 exit /b 1
-findstr /m /c:"run_electrum" "%ELECTRUM_EXE%" >nul
+cmd /d /c exit 1
+findstr /m /c:"run_electrum" < "%ELECTRUM_EXE%" >nul
 set "CONTROL_RC=%ERRORLEVEL%"
-findstr /m /c:"is_portable" "%ELECTRUM_EXE%" >nul
+cmd /d /c exit 1
+findstr /m /c:"is_portable" < "%ELECTRUM_EXE%" >nul
 set "PORTABLE_RC=%ERRORLEVEL%"
 popd >nul 2>&1
 if not "%CONTROL_RC%"=="0" (

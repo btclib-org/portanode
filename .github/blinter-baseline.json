@@ -1382,12 +1382,12 @@
   {
     "code": "W011",
     "file": "../win/scripts/electrum/lib.bat",
-    "text": "findstr /m /c:\"is_portable\" \"%ELECTRUM_EXE%\" >nul"
+    "text": "findstr /m /c:\"is_portable\" < \"%ELECTRUM_EXE%\" >nul"
   },
   {
     "code": "W011",
     "file": "../win/scripts/electrum/lib.bat",
-    "text": "findstr /m /c:\"run_electrum\" \"%ELECTRUM_EXE%\" >nul"
+    "text": "findstr /m /c:\"run_electrum\" < \"%ELECTRUM_EXE%\" >nul"
   },
   {
     "code": "W028",
@@ -2077,17 +2077,17 @@
   {
     "code": "W011",
     "file": "../win/scripts/utilities/lib.bat",
-    "text": "findstr /c:\"[GNUPG:] BADSIG\" \"%STATUS_FILE%\" >nul 2>&1"
+    "text": "findstr /c:\"[GNUPG:] BADSIG\" < \"%STATUS_FILE%\" >nul 2>&1"
   },
   {
     "code": "W011",
     "file": "../win/scripts/utilities/lib.bat",
-    "text": "findstr /c:\"[GNUPG:] GOODSIG\" \"%STATUS_FILE%\" >nul 2>&1"
+    "text": "findstr /c:\"[GNUPG:] GOODSIG\" < \"%STATUS_FILE%\" >nul 2>&1"
   },
   {
     "code": "W011",
     "file": "../win/scripts/utilities/lib.bat",
-    "text": "findstr /c:\"[GNUPG:] NEWSIG\" \"%STATUS_FILE%\" >nul 2>&1"
+    "text": "findstr /c:\"[GNUPG:] NEWSIG\" < \"%STATUS_FILE%\" >nul 2>&1"
   },
   {
     "code": "W022",
@@ -2757,17 +2757,22 @@
   {
     "code": "W011",
     "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "findstr /i /c:\"!TARGET!\" \"!ACL_FILE!\" >nul 2>&1"
+    "text": "findstr /c:\":(\" < \"!ACL_FILE!.rest\" >nul 2>&1"
   },
   {
     "code": "W011",
     "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "findstr /i /c:\"!USERDOMAIN!\\!USERNAME!:(OI)(CI)(F)\" \"!ACL_FILE!\" >nul 2>&1"
+    "text": "findstr /i /c:\"!TARGET!\" < \"!ACL_FILE!\" >nul 2>&1"
   },
   {
     "code": "W011",
     "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "findstr /i /v /c:\"!USERDOMAIN!\\!USERNAME!:(OI)(CI)(F)\" \"!ACL_FILE!\" | findstr /c:\":(\" >nul 2>&1"
+    "text": "findstr /i /c:\"!USERDOMAIN!\\!USERNAME!:(OI)(CI)(F)\" < \"!ACL_FILE!\" >nul 2>&1"
+  },
+  {
+    "code": "W011",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "findstr /i /v /c:\"!USERDOMAIN!\\!USERNAME!:(OI)(CI)(F)\" < \"!ACL_FILE!\" > \"!ACL_FILE!.rest\" 2>nul"
   },
   {
     "code": "W028",
@@ -3697,7 +3702,7 @@
   {
     "code": "E006",
     "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "\"%ROOTDIR%\\bitcoin-datadir\\bitcoin.conf\" >nul 2>&1"
+    "text": "< \"%ROOTDIR%\\bitcoin-datadir\\bitcoin.conf\" >nul 2>&1"
   },
   {
     "code": "E006",

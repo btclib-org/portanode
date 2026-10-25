@@ -67,10 +67,17 @@ REM tab at any of the three positions is as active to Core as a
 REM space; measured to survive this tree's own
 REM whitespace hooks unchanged and to reach findstr unchanged
 REM through cmd.exe's quoted-argument parsing, on windows-latest.
+REM
+REM The file is read from standard input and the search follows "cmd /d /c
+REM exit 1", for the reason win/scripts/electrum/lib.bat gives. The PortaNode
+REM folder can sit under a letter outside the ANSI code page. Measured on
+REM windows-latest, cmd.exe opens such a file and the same search finds the
+REM same lines in it.
 set PRUNED=0
 if exist "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" (
+    cmd /d /c exit 1
     findstr /R /I /C:"^[ 	]*prune[ 	]*=[ 	]*[1-9]" ^
-      "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" >nul 2>&1
+      < "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" >nul 2>&1
     if not errorlevel 1 set PRUNED=1
 )
 
