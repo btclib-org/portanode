@@ -70,7 +70,10 @@ if ! rm -rf "${DATADIR}"; then
     echo "Error: could not delete ${DATADIR#"$ROOTDIR"/}."
     exit 1
 fi
-mkdir -p "${DATADIR}"
+mkdir -p "${DATADIR}" || {
+    echo "Error: could not create ${DATADIR#"$ROOTDIR"/}"
+    exit 1
+}
 
 NETDIR="${DATADIR}/regtest"
 BLOCKCHAINDIR="${NETDIR}/blocks"

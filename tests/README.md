@@ -36,6 +36,10 @@ The runners pick up every file in those directories.
 `tests/sh/resolve-root.sh` and `tests/win/resolve-root.ps1` are the model
 to copy.
 
+`tests/sh/regtest-datadir.sh` checks that all 16 Bob and Carol Linux/macOS
+regtest launchers stop with an error when the data directory cannot be
+created, before a Bitcoin Core binary starts.
+
 A new `tests/win/` file that starts `cmd.exe` is added to `$needsCmd` in
 `test.yml`.
 
