@@ -662,6 +662,11 @@
   {
     "code": "W033",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
     "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
@@ -767,6 +772,11 @@
   {
     "code": "W033",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
     "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
@@ -803,6 +813,11 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
   },
   {
     "code": "W033",
@@ -897,6 +912,11 @@
   {
     "code": "W033",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
     "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
@@ -963,6 +983,11 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
   },
   {
     "code": "W033",
@@ -1097,6 +1122,11 @@
   {
     "code": "W033",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
     "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
@@ -1133,6 +1163,11 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
   },
   {
     "code": "W033",
@@ -1213,6 +1248,11 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
   },
   {
     "code": "W033",
@@ -1702,7 +1742,17 @@
   {
     "code": "W033",
     "file": "../win/scripts/utilities/clean-artifacts.bat",
+    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/utilities/clean-artifacts.bat",
     "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
+  },
+  {
+    "code": "W061",
+    "file": "../win/scripts/utilities/clean-artifacts.bat",
+    "text": "popd >nul 2>&1"
   },
   {
     "code": "W061",
@@ -1915,9 +1965,84 @@
     "text": "powershell -NoProfile -Command \"& { $src = $env:INS_SRC; $dest = $env:INS_DEST; $name = Split-Path -Leaf $dest; $want = Get-FileHash -Algorithm SHA256 -LiteralPath $src; if (-not $want) { Write-Host ('Error: cannot hash the source of ' + $name + '.'); exit 1 } foreach ($i in 1..5) { try { Copy-Item -LiteralPath $src -Destination $dest -Force -ErrorAction Stop } catch { Write-Host ('Error: copying ' + $name + ' failed: ' + $_.Exception.Message); exit 1 } $got = Get-FileHash -Algorithm SHA256 -LiteralPath $dest -ErrorAction SilentlyContinue; if ($got -and $got.Hash -eq $want.Hash) { exit 0 } Write-Host ('Warning: ' + $name + ' corrupted on write (attempt ' + $i + '/5); retrying...') } Write-Host ('Error: ' + $name + ' still corrupt after 5 attempts.'); Write-Host 'The destination filesystem may be unreliable.'; exit 1 }\""
   },
   {
+    "code": "W002",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%WNP_ANSWER_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "powershell -NoProfile -Command \"& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $q = [char]34; $p = Start-Process -FilePath 'cmd.exe' -ArgumentList ('/d /v:off /c gpg --batch --list-keys --with-colons > ' + $q + '%%WNP_ANSWER_FILE%%.out' + $q + ' 2> ' + $q + '%%WNP_ANSWER_FILE%%.err' + $q) -WindowStyle Hidden -PassThru; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { taskkill.exe /pid $p.Id /t /f }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }\" >nul 2>&1"
+  },
+  {
+    "code": "W003",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "powershell -NoProfile -Command \"& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $q = [char]34; $p = Start-Process -FilePath 'cmd.exe' -ArgumentList ('/d /v:off /c gpg --batch --list-keys --with-colons > ' + $q + '%%WNP_ANSWER_FILE%%.out' + $q + ' 2> ' + $q + '%%WNP_ANSWER_FILE%%.err' + $q) -WindowStyle Hidden -PassThru; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { taskkill.exe /pid $p.Id /t /f }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }\" >nul 2>&1"
+  },
+  {
     "code": "W022",
     "file": "../win/scripts/utilities/lib.bat",
     "text": "@echo off"
+  },
+  {
+    "code": "W025",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W025",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W025",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W025",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W025",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
+  },
+  {
+    "code": "W025",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "del \"%STATUS_FILE%\" >nul 2>&1"
   },
   {
     "code": "W028",
@@ -2710,9 +2835,34 @@
     "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
-    "code": "W004",
+    "code": "W002",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "goto :parse_args"
+    "text": "powershell -NoProfile -Command \"& { $want = @(); foreach ($l in (Get-Content -LiteralPath ($env:TMPDIR + '\\SHA256SUMS'))) { if ($l -match '^([0-9A-Fa-f]{64}) [ *](.+)$' -and $matches[2] -ceq $env:FILE) { $want += $matches[1] } } if ($want.Count -eq 0) { Write-Host 'Checksum entry not found.'; exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath ($env:TMPDIR + '\\' + $env:FILE); if (-not $fh) { Write-Host 'Checksum failed.'; exit 1 } foreach ($h in $want) { if (-not ($h -ieq $fh.Hash)) { Write-Host 'Checksum failed.'; exit 1 } } Write-Host ($env:FILE + ': OK') }\" || goto :error"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\\SHA256SUMS') -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
+    "code": "W002",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
+    "code": "W003",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -Command \"& { $want = @(); foreach ($l in (Get-Content -LiteralPath ($env:TMPDIR + '\\SHA256SUMS'))) { if ($l -match '^([0-9A-Fa-f]{64}) [ *](.+)$' -and $matches[2] -ceq $env:FILE) { $want += $matches[1] } } if ($want.Count -eq 0) { Write-Host 'Checksum entry not found.'; exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath ($env:TMPDIR + '\\' + $env:FILE); if (-not $fh) { Write-Host 'Checksum failed.'; exit 1 } foreach ($h in $want) { if (-not ($h -ieq $fh.Hash)) { Write-Host 'Checksum failed.'; exit 1 } } Write-Host ($env:FILE + ': OK') }\" || goto :error"
+  },
+  {
+    "code": "W003",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\\SHA256SUMS') -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
+    "code": "W003",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "W004",
@@ -2723,6 +2873,16 @@
     "code": "W004",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "goto :parse_args"
+  },
+  {
+    "code": "W004",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "goto :parse_args"
+  },
+  {
+    "code": "W025",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "mkdir \"%TEMP%\\portanode-bitcoin.%TMP_ID%\" || goto :tmpdir_failed"
   },
   {
     "code": "W028",
@@ -3105,9 +3265,14 @@
     "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
-    "code": "W004",
+    "code": "W002",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "goto :parse_args"
+    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
+    "code": "W003",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "W004",
@@ -3118,6 +3283,16 @@
     "code": "W004",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "goto :parse_args"
+  },
+  {
+    "code": "W004",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "goto :parse_args"
+  },
+  {
+    "code": "W025",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "mkdir \"%TEMP%\\portanode-electrum.%TMP_ID%\" || goto :tmpdir_failed"
   },
   {
     "code": "W028",

@@ -42,6 +42,28 @@ Each accepted `W001` has one of these shapes:
   the reason `W068` gives. With those `for /f` lines joined, Blinter
   reports no `W001` on either.
 
+## W002 Missing ERRORLEVEL check
+
+Blinter looks for `errorlevel` or `if not` on the command's line and the
+three lines after it. Each accepted `W002` has one of these shapes:
+
+- **A `powershell` line ends in `|| goto :error`.** These are downloads
+  in `update-bitcoin.bat` and `update-electrum.bat`, and the checksum
+  test in `update-bitcoin.bat`.
+- **`:warn_if_no_pubkeys` in `win\scripts\utilities\lib.bat` reads
+  its answer from a file.** The file is emptied before `powershell`
+  runs, and the label warns where the answer is empty.
+- **A `del` removes a temporary file under `%TEMP%`.** These are in
+  `win\scripts\utilities\lib.bat`, and their output goes to `nul`. A
+  failed `del` leaves the file behind and changes nothing the label
+  returns.
+
+## W003 Operation without error handling
+
+Blinter makes the test `W002` describes on `powershell` and on other
+external commands. Every accepted `W003` is on a `powershell` line of
+the first two shapes `W002` lists.
+
 ## W004 Potential infinite loop
 
 Blinter reports a `goto` back to an earlier label unless a `set /a` or a
@@ -63,6 +85,17 @@ Blinter reads a `!name!` anywhere in a file as a use of delayed
 expansion, comments included. The only `!name!` in
 `win\scripts\utilities\lib.bat` is in a `REM` comment. The file opens no
 scope of its own, since its labels run in their caller's.
+
+## W025 Missing error handling
+
+Blinter looks for `errorlevel`, or for `if` and a space, on the command's
+line and the two lines after it. Each accepted `W025` has one of these shapes:
+
+- **A `mkdir` of the download directory ends in
+  `|| goto :tmpdir_failed`.** These are in `update-bitcoin.bat` and
+  `update-electrum.bat`.
+- **A `del` removes a temporary file under `%TEMP%`,** for the reason
+  `W002` gives.
 
 ## W028 Errorlevel handling difference between .bat/.cmd
 

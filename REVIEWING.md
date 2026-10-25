@@ -605,9 +605,8 @@ because that document, and not this one, is where the rule lives.
   `win/scripts/bitcoin/node-args.ps1` and its test,
   `tests/win/node-args.ps1`, read command lines and reach no root either;
   `tests/lib.ps1` and `tests/run.ps1` take no root;
-  `tests/win/launchers.ps1`, `tests/win/resolve-root.ps1`,
-  `tests/win/updater-input.ps1` and `tests/win/usage.ps1` hold the
-  checkout's root in `$repo`, a test's path that no launcher consumes;
+  the other files of `tests/win/` hold the checkout's root in `$repo`, a
+  test's path that no launcher consumes;
   and `win/scripts/root.ps1` is the walk itself, its `$StartDir` naming where
   the search begins rather than what it finds. The assignment pattern
   carries PowerShell's `$name = value` beside `NAME=value`, so a `.ps1`

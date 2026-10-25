@@ -48,6 +48,11 @@ if not exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
 
 if not exist "%ROOTDIR%\bitcoin-datadir\regtest_bob\" (
     mkdir "%ROOTDIR%\bitcoin-datadir\regtest_bob"
+    if errorlevel 1 (
+        echo Error: could not create "bitcoin-datadir\regtest_bob".
+        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+        exit /b 1
+    )
 )
 
 REM Measured on windows-latest: see regtest-18444-Alice-cli.bat for why a
