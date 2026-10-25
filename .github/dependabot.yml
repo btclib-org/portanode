@@ -62,3 +62,6 @@ updates:
         patterns: ["*"]
     cooldown:
       default-days: 7
+      # the exclude section 11 of btclib-org/.github's README.md gives
+      # for its own tags
+      exclude: ["btclib-org/.github/*"]

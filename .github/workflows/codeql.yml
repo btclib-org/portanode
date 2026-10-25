@@ -5,7 +5,8 @@ name: codeql
 # one language it holds source for: the launchers are shell, batch and
 # PowerShell, which CodeQL does not read, and script-security.yml and the
 # shellcheck hook are what read them. The analysis is btclib-org/.github's
-# reusable-codeql.yml, called at @main (section 10 of its README.md).
+# reusable-codeql.yml, called at a tagged commit (section 10 of
+# btclib-org/.github's README.md).
 #
 # The OpenSSF Scorecard's SAST check is the reason this exists: it asks
 # whether a code-scanning analysis ran on the commits of merged pull
@@ -54,7 +55,7 @@ concurrency:
 
 jobs:
   analyze:
-    uses: btclib-org/.github/.github/workflows/reusable-codeql.yml@main
+    uses: btclib-org/.github/.github/workflows/reusable-codeql.yml@0f5684ab3d7bf310b0d7a2e4dd91a03522f75d67 # v2026.10.25
     with:
       # CodeQL fails a language it finds no source for, so the list names
       # the one this tree holds
