@@ -20,18 +20,18 @@ set "ALLOW_DOWNGRADE=0"
 if "%~1"=="" goto :args_done
 if "%~1"=="--version" (
     set "VERSION_OVERRIDE=%~2"
-    shift
-    shift
+    shift /1
+    shift /1
     goto :parse_args
 )
 if "%~1"=="--dry-run" (
     set "DRY_RUN=1"
-    shift
+    shift /1
     goto :parse_args
 )
 if "%~1"=="--allow-downgrade" (
     set "ALLOW_DOWNGRADE=1"
-    shift
+    shift /1
     goto :parse_args
 )
 echo Usage: %~nx0 [--version ^<v^>] [--dry-run] [--allow-downgrade]

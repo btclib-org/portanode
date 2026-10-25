@@ -43,7 +43,7 @@ jobs:
         shell: pwsh
         working-directory: tests/win
         run: |
-          $needsCmd = 'launchers.ps1', 'resolve-root.ps1'
+          $needsCmd = 'launchers.ps1', 'resolve-root.ps1', 'usage.ps1'
           $failed = @()
           foreach ($file in Get-ChildItem -Filter '*.ps1' | Sort-Object Name) {
             if ($needsCmd -contains $file.Name) { continue }

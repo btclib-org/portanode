@@ -1015,6 +1015,71 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "echo Bitcoin running: maybe ^(%BTC_METHOD%^)"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "echo Bitcoin running: yes ^(%BTC_METHOD%: !BTC_CLI_SHOWN!^)"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "echo Bitcoin running: yes ^(%BTC_METHOD%^)"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "echo Electrum running: yes ^(%ELECTRUM_METHOD%^)"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if \"%BTC_RUNNING%\"==\"0\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if \"%BTC_RUNNING%\"==\"0\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if \"%BTC_RUNNING%\"==\"1\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if \"%BTC_RUNNING%\"==\"2\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if \"%ELECTRUM_RUNNING%\"==\"0\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if \"%ELECTRUM_RUNNING%\"==\"1\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if /i \"%BTC_METHOD%\"==\"bitcoin-cli\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if defined BTC_CLI call \"%SCRIPT_DIR%lib.bat\" :rootdir_relative \"%BTC_BIN%\" BTC_CLI_SHOWN"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if exist \"%BTC_BIN%\" set \"BTC_CLI=%BTC_BIN%\""
+  },
+  {
     "code": "E006",
     "file": "../win/scripts/utilities/lib.bat",
     "text": "REM Written flat (no %var% set-and-read inside a ( ) block) because a"
@@ -1060,6 +1125,11 @@
     "text": "powershell -NoProfile -Command \"& { $src = $env:INS_SRC; $dest = $env:INS_DEST; $name = Split-Path -Leaf $dest; $want = Get-FileHash -Algorithm SHA256 -LiteralPath $src; if (-not $want) { Write-Host ('Error: cannot hash the source of ' + $name + '.'); exit 1 } foreach ($i in 1..5) { try { Copy-Item -LiteralPath $src -Destination $dest -Force -ErrorAction Stop } catch { Write-Host ('Error: copying ' + $name + ' failed: ' + $_.Exception.Message); exit 1 } $got = Get-FileHash -Algorithm SHA256 -LiteralPath $dest -ErrorAction SilentlyContinue; if ($got -and $got.Hash -eq $want.Hash) { exit 0 } Write-Host ('Warning: ' + $name + ' corrupted on write (attempt ' + $i + '/5); retrying...') } Write-Host ('Error: ' + $name + ' still corrupt after 5 attempts.'); Write-Host 'The destination filesystem may be unreliable.'; exit 1 }\""
   },
   {
+    "code": "W022",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "@echo off"
+  },
+  {
     "code": "W028",
     "file": "../win/scripts/utilities/lib.bat",
     "text": "set \"ACTION=%~1\""
@@ -1078,6 +1148,11 @@
     "code": "W028",
     "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "W052",
+    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
+    "text": "shift /1"
   },
   {
     "code": "E006",
@@ -1130,6 +1205,11 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
+    "code": "W052",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "shift /1"
+  },
+  {
     "code": "E006",
     "file": "../win/scripts/utilities/rollback-electrum.bat",
     "text": "REM *expanded* value of \"%ROOTDIR%\" exactly as it would from one"
@@ -1178,6 +1258,11 @@
     "code": "W028",
     "file": "../win/scripts/utilities/rollback-electrum.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "W052",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "shift /1"
   },
   {
     "code": "E006",
@@ -1238,6 +1323,56 @@
     "code": "W028",
     "file": "../win/scripts/utilities/set-permissions.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "echo %REL% is on %FS_NAME%: permissions restricted to"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "echo Warning: %REL% is on %FS_NAME% and !TARGET! itself now"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "echo Warning: %REL% is on %FS_NAME% and grants"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "echo Warning: %REL% is on %FS_NAME%, but !TARGET! does not"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "echo Warning: %REL% is on %FS_NAME%, but its ACL could not be read"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "echo Warning: %REL% is on %FS_NAME%, which does not store ACLs. The"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "if /i \"%FS_NAME%\"==\"FAT\" set \"NO_ACL=1\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "if /i \"%FS_NAME%\"==\"FAT32\" set \"NO_ACL=1\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "if /i \"%FS_NAME%\"==\"exFAT\" set \"NO_ACL=1\""
+  },
+  {
+    "code": "W071",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "set \"ACL_FILE=!TEMP!\\pn_acl_%RANDOM%%RANDOM%.txt\""
   },
   {
     "code": "E001",
@@ -1335,6 +1470,171 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
+    "code": "W052",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "shift /1"
+  },
+  {
+    "code": "W052",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "shift /1"
+  },
+  {
+    "code": "W052",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "shift /1"
+  },
+  {
+    "code": "W052",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "shift /1"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%BIN_DIR%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%CHECKSUM_FILE%\" CURRENT"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\SHA256SUMS.asc\" \"%TMPDIR%\\SHA256SUMS\" \"SHA256SUMS\" \"%ROOTDIR%\\keys\\bitcoin-core.fingerprints\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "echo Archive size: %ARCHIVE_MB% MB ^(downloaded to local temp"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "endlocal & exit /b %STATUS%"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "endlocal & exit /b %STATUS%"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\bitcoin-%VERSION%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%VERSION%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\bitcoin-%VERSION%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%VERSION%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "for %%F in (\"%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe\") do ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "for %%F in (\"%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe\") do ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if \"%VERDICT%\"==\"OK\" goto :downgrade_checked"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if \"%VERDICT%\"==\"OK\" goto :downgrade_checked"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if \"%VERR%\"==\"1\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if \"%VERSION%\"==\"INDEX_UNREACHABLE\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if \"%VERSION%\"==\"PROBE_TIMEOUT\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if defined TMPDIR if exist \"%TMPDIR%\" rmdir /s /q \"%TMPDIR%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if not exist \"%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if not exist \"%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "mkdir \"%TEMP%\\portanode-bitcoin.%TMP_ID%\" || goto :tmpdir_failed"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"CHECKSUM_URL=%BASE_URL%SHA256SUMS\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"FILE=bitcoin-%VERSION%-win64.zip\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"TMPDIR=%TEMP%\\portanode-bitcoin.%TMP_ID%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"URL=%BASE_URL%%FILE%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"URL=%BASE_URL%%FILE%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set /a \"ARCHIVE_MB=%ARCHIVE_LEN%/1024/1024\""
+  },
+  {
+    "code": "W071",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if %errorlevel%==0 ("
+  },
+  {
+    "code": "W071",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if %errorlevel%==0 ("
+  },
+  {
+    "code": "W071",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "if %errorlevel%==0 ("
+  },
+  {
     "code": "E001",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "if errorlevel 1 ("
@@ -1420,6 +1720,151 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
+    "code": "W052",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "shift /1"
+  },
+  {
+    "code": "W052",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "shift /1"
+  },
+  {
+    "code": "W052",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "shift /1"
+  },
+  {
+    "code": "W052",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "shift /1"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :install_verified \"%TMPDIR%\\%FILE%\" \"%BIN_DIR%\\electrum.exe\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :install_verified \"%TMPDIR%\\%FILE%\" \"%BIN_DIR%\\electrum.exe\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\%FILE%\" \"win/bin/electrum.exe\" \"%VERSION%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\%FILE%\" \"win/bin/electrum.exe\" \"%VERSION%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\%FILE%\" \"win/bin/electrum.exe\" \"%VERSION%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "echo Archive size: %ARCHIVE_MB% MB ^(downloaded to local temp"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "endlocal & exit /b %STATUS%"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "if \"%VERDICT%\"==\"OK\" goto :downgrade_checked"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "if \"%VERDICT%\"==\"OK\" goto :downgrade_checked"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "if \"%VERSION%\"==\"INDEX_UNREACHABLE\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "if defined TMPDIR if exist \"%TMPDIR%\" rmdir /s /q \"%TMPDIR%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "if not exist \"%TMPDIR%\\%FILE%\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "if not exist \"%TMPDIR%\\%FILE%\" ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "mkdir \"%TEMP%\\portanode-electrum.%TMP_ID%\" || goto :tmpdir_failed"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"BASE_URL=https://download.electrum.org/%VERSION%/\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"FILE=electrum-%VERSION%.exe\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"SIG_FILE=%FILE%.asc\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"TMPDIR=%TEMP%\\portanode-electrum.%TMP_ID%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"URL=%BASE_URL%%FILE%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"URL=%BASE_URL%%FILE%\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set /a \"ARCHIVE_MB=%ARCHIVE_LEN%/1024/1024\""
+  },
+  {
+    "code": "W071",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "if %errorlevel%==0 ("
+  },
+  {
     "code": "E001",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "if \"%PRUNED%\"==\"0\" if %FREE_GB% lss 700 ("
@@ -1463,6 +1908,21 @@
     "code": "W028",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "echo Disk free space: %FREE_GB% GB"
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "if \"%PRUNED%\"==\"0\" if %FREE_GB% lss 700 ("
+  },
+  {
+    "code": "W068",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "if %FREE_GB% lss 100 ("
   },
   {
     "code": "E006",

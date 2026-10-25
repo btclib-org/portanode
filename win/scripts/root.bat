@@ -1,7 +1,7 @@
 @echo off
 set "ACTION=%~1"
 if "%ACTION%"=="" goto :eof
-shift
+shift /1
 goto %ACTION%
 
 REM Every caller reaches this label with delayed expansion off, and

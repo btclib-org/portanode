@@ -18,13 +18,10 @@ REM a message quoting the mount point tells the reader where this run
 REM happened rather than which directory in the folder is meant.
 REM ROOTDIR is not among the arguments: a label reads it from the
 REM caller's environment, so a caller resolves it before the call.
-REM
-REM LIB_DIR is this file's directory, read before the shift below, which
-REM moves %0 along with the arguments.
 set "ACTION=%~1"
 set "LIB_DIR=%~dp0"
 if "%ACTION%"=="" goto :eof
-shift
+shift /1
 goto %ACTION%
 
 :require_datadir_free

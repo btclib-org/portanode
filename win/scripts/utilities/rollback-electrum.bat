@@ -24,7 +24,7 @@ set "DRY_RUN=0"
 if "%~1"=="" goto :args_done
 if "%~1"=="--dry-run" (
     set "DRY_RUN=1"
-    shift
+    shift /1
     goto :parse_args
 )
 echo Usage: %~nx0 [--dry-run]
