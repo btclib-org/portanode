@@ -57,8 +57,11 @@ REM is read follows "cmd /d /c exit 1", which sets the answer an unread file
 REM gives. A line of 131071 bytes or more, before its line end, makes findstr
 REM print "FINDSTR: Line N is too long." on standard error and can make it miss
 REM a string in that line; a shorter line does not, and a file named on the
-REM command line is searched whole. The longest line of either build of 4.8.1
-REM is 12599 bytes, and both searches find the same strings in both builds.
+REM command line is searched whole. Both searches find the same strings in both
+REM builds of 4.8.1. The length of a file's longest line is the Maximum that
+REM PowerShell 7 prints for this, with F the file:
+REM   (Get-Content -Raw -Encoding Latin1 $F)-split"`n"|measure Length -Max
+REM It prints 12599 for electrum-4.8.1-portable.exe.
 REM
 REM Both searches run with System32 as the current directory, and their
 REM answers are read once it is changed back: root.bat's :leave_folder
