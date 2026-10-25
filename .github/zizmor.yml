@@ -1,8 +1,0 @@
----
-rules:
-  # claude-review.yml's call into btclib-org/.github is at @main until its
-  # own pull request pins it; every other call is at a commit
-  unpinned-uses:
-    config:
-      policies:
-        "btclib-org/.github/*": ref-pin
