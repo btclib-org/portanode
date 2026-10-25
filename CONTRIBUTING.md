@@ -361,9 +361,9 @@ exercises.
 
 **The `.bat` and `.ps1` halves are read by the generic hooks, and by
 `script-security.yml` for security findings, and for Blinter's Error
-findings too** (*What gates a merge*, below). The same job refuses a
-non-ASCII byte and a lone CR in a `.bat` or `.cmd`; its header says why.
-PowerShell's parser is
+findings and some of its Warning findings too** (*What gates a merge*,
+below). The same job refuses a non-ASCII byte and a lone CR in a `.bat`
+or `.cmd`; its header says why. PowerShell's parser is
 PSScriptAnalyzer, and `.pre-commit-config.yaml`'s header says why it is
 not a hook here; run all of its rules by hand, against a `pwsh` that
 carries the module:
@@ -419,20 +419,6 @@ continuation, and cmd.exe genuinely loses the loop's `do`. Which shape a
 given `E010` names is read from where the caret sits relative to the
 backquotes, not from the code.
 
-**`W036` reads a `for /f`'s file set as a data file with a header row
-whenever it holds the substring `file` and the loop passes no `skip=`.** A
-file set backquoted under `usebackq` is a command rather than a path, and
-blinter recognises one — until the command carries a parenthesis of its
-own, the operand being taken to the first `)` rather than to the one that
-balances the opener, which leaves the closing backquote outside it. Every
-`W036` here is that shape: a capture of a PowerShell command holding
-`(Invoke-WebRequest ...)`, whose `-NoProfile` supplies the substring. No
-file is read, and the `skip=1` the finding recommends would discard the
-first line of the child's answer. Whether a given `W036` has a data file
-under it is read from what sits between `in (` and the balancing `)`, not
-from the rule code and not from `usebackq`, whose double-quoted file set is
-a path the loop really reads.
-
 ### What gates a merge, and what only reports
 
 **`lint.yml` runs the gate above on every pull request**, with `uvx
@@ -455,11 +441,13 @@ branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
 
 **`script-security.yml` runs the security rules of PSScriptAnalyzer and
-the Error and Security rules of Blinter over the `.ps1` and `.bat` scripts
-on every pull request**, and its header says what fails it. Its `Script
-security` job is a required check. A Blinter finding it reports is fixed or,
-where it is no defect, recorded in `.github/blinter-baseline.json` by
-the command the job prints.
+Blinter's Error and Security rules and the Warning rules
+`.github/blinter.ini` does not disable, over the `.ps1` and `.bat` scripts
+on every pull request**, and its header says what fails it. Its
+`Script security` job is a required check. A Blinter finding it reports is
+fixed or, where it is no defect, recorded in `.github/blinter-baseline.json`
+by the command the job prints. For a Warning rule,
+`.github/blinter-reasons.md` says why its findings are no defect.
 
 `test.yml`'s `test: every job passed` job passes where every job of
 its run did, and the branch rule names it, so a red one holds the
@@ -562,11 +550,10 @@ restating it.
 
   The job reads with the Blinter that `script-security.yml` pins, so set
   `V` to the pin to match it, and with the baseline and
-  `.github/blinter.ini`, which limits Blinter to its Error and Security
-  rules. That run exits 0 on a tree whose findings the baseline holds, and
-  names a finding it does not hold and an entry no finding matches. The
-  job also fails on an entry whose file git does not track, which Blinter
-  leaves alone:
+  `.github/blinter.ini`, which says which rules Blinter runs. That run
+  exits 0 on a tree whose findings the baseline holds, and names a finding
+  it does not hold and an entry no finding matches. The job checks more
+  than this run does, as its header says:
 
   ```shell
   uvx --from "blinter==$V" blinter . --config .github/blinter.ini \

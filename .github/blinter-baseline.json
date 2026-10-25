@@ -1,8 +1,33 @@
 [
   {
+    "code": "E006",
+    "file": "../Bitcoin-Launcher.bat",
+    "text": "echo Bitcoin Launcher \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../Bitcoin-Launcher.bat",
+    "text": "set \"SCRIPT=%ROOTDIR%\\%SCRIPT_REL%\""
+  },
+  {
     "code": "E042",
     "file": "../Bitcoin-Launcher.bat",
     "text": "if errorlevel 1 echo Command failed (exit %errorlevel%)."
+  },
+  {
+    "code": "W028",
+    "file": "../Bitcoin-Launcher.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../Electrum-Launcher.bat",
+    "text": "echo Electrum Launcher \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../Electrum-Launcher.bat",
+    "text": "set \"SCRIPT=%ROOTDIR%\\%SCRIPT_REL%\""
   },
   {
     "code": "E042",
@@ -10,9 +35,64 @@
     "text": "if errorlevel 1 echo Command failed (exit %errorlevel%)."
   },
   {
+    "code": "W028",
+    "file": "../Electrum-Launcher.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../Utilities-Launcher.bat",
+    "text": "echo Utilities Launcher \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../Utilities-Launcher.bat",
+    "text": "set \"SCRIPT=%ROOTDIR%\\%SCRIPT_REL%\""
+  },
+  {
     "code": "E042",
     "file": "../Utilities-Launcher.bat",
     "text": "if errorlevel 1 echo Command failed (exit %errorlevel%)."
+  },
+  {
+    "code": "W028",
+    "file": "../Utilities-Launcher.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "REM     call \"%SCRIPT_DIR%lib.bat\" :label [arguments]"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "REM \"%ROOTDIR%\" and \"%DATADIR%\" -- doubled below to \"%%ROOTDIR%%\" and"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "REM \"%ROOTDIR%\" and \"%DATADIR%\" -- doubled below to \"%%ROOTDIR%%\" and"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "REM \"%ROOTDIR%\" and \"%DATADIR%\" rather than either resolved path, so"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "REM \"%ROOTDIR%\" and \"%DATADIR%\" rather than either resolved path, so"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "set \"NODE_DATADIR=%ROOTDIR%\\%NODE_DATADIR_REL%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "set \"WIPE_DIR=%ROOTDIR%\\%WIPE_DIR_REL%\""
   },
   {
     "code": "SEC009",
@@ -30,6 +110,61 @@
     "text": "title %~1"
   },
   {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "set \"ACTION=%~1\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" -uacomment=%~n0 ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-cli.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoind.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
+    "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
+  },
+  {
     "code": "SEC002",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
     "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
@@ -55,6 +190,46 @@
     "text": "set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1"
   },
   {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
+    "text": "REM %ROOTDIR% and %DATADIR% below are each now inside their own quote"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-cli.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoind.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
+    "text": "rem rmdir \"%ROOTDIR%\\bitcoin-datadir\\regtest\" /s /q"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
+    "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
+  },
+  {
     "code": "SEC002",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
     "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
@@ -78,6 +253,96 @@
     "code": "SEC002",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
     "text": "set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
+    "text": "rem rmdir \"%ROOTDIR%\\bitcoin-datadir\\regtest\" /s /q"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-cli.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoind.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
+    "text": "mkdir \"%ROOTDIR%\\bitcoin-datadir\\regtest_bob\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\\regtest_bob\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
+    "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
   },
   {
     "code": "SEC002",
@@ -103,6 +368,46 @@
     "code": "SEC002",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
     "text": "set BITCOIND_CMD=%BITCOIND_CMD% -regtest -port=18555 -rpcport=18554 -rpcallowip=127.0.0.1"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "if not exist \"%ROOTDIR%\\bitcoin-datadir\\regtest_bob\\\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-cli.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoind.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "mkdir \"%ROOTDIR%\\bitcoin-datadir\\regtest_bob\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\\regtest_bob\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
   },
   {
     "code": "E036",
@@ -133,6 +438,71 @@
     "code": "SEC002",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
     "text": "set BITCOIND_CMD=%BITCOIND_CMD% -regtest -port=18555 -rpcport=18554 -rpcallowip=127.0.0.1"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
+    "text": "mkdir \"%ROOTDIR%\\bitcoin-datadir\\regtest_bob\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\\regtest_bob\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
+    "text": "if not exist \"%ROOTDIR%\\bitcoin-datadir\\regtest_bob\\\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
+    "text": "mkdir \"%ROOTDIR%\\bitcoin-datadir\\regtest_bob\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\\regtest_bob\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ^"
   },
   {
     "code": "E036",
@@ -140,6 +510,41 @@
     "text": "REM Creates data directory if not exists."
   },
   {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-cli.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoind.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
+    "text": "mkdir \"%ROOTDIR%\\bitcoin-datadir\\regtest_carol\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\\regtest_carol\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
+    "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
+  },
+  {
     "code": "SEC002",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
     "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
@@ -163,6 +568,46 @@
     "code": "SEC002",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
     "text": "set BITCOIND_CMD=%BITCOIND_CMD% -regtest -port=18666 -rpcport=18665 -rpcallowip=127.0.0.1"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "if not exist \"%ROOTDIR%\\bitcoin-datadir\\regtest_carol\\\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-cli.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoind.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "mkdir \"%ROOTDIR%\\bitcoin-datadir\\regtest_carol\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\\regtest_carol\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "set BITCOIND_CMD=\"%ROOTDIR%\\win\\bin\\bitcoind.exe\" -uacomment=%~n0"
   },
   {
     "code": "E036",
@@ -193,11 +638,291 @@
     "code": "SEC002",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
     "text": "set BITCOIND_CMD=%BITCOIND_CMD% -regtest -port=18666 -rpcport=18665 -rpcallowip=127.0.0.1"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
+    "text": "mkdir \"%ROOTDIR%\\bitcoin-datadir\\regtest_carol\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\\regtest_carol\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
+    "text": "if not exist \"%ROOTDIR%\\bitcoin-datadir\\regtest_carol\\\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
+    "text": "mkdir \"%ROOTDIR%\\bitcoin-datadir\\regtest_carol\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\\regtest_carol\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ^"
   },
   {
     "code": "E036",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
     "text": "REM Creates data directory if not exists."
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/testnet3-18333-qt.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/testnet3-18333-qt.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/testnet3-18333-qt.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/testnet3-18333-qt.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" -uacomment=%~n0 ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/testnet3-18333-qt.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
+    "text": "set \"DATADIR=%ROOTDIR%\\bitcoin-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" -uacomment=%~n0 ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/lib.bat",
+    "text": "REM     call \"%SCRIPT_DIR%lib.bat\" :label [arguments]"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/electrum/lib.bat",
+    "text": "set \"ACTION=%~1\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
+    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\electrum.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\electrum.exe\" --dir \"%ROOTDIR%\\electrum-datadir\" ^"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\electrum.exe\" --dir \"%ROOTDIR%\\electrum-datadir\" ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet.bat",
+    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\electrum.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\electrum.exe\" --dir \"%ROOTDIR%\\electrum-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/mainnet.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\electrum.exe\" --dir \"%ROOTDIR%\\electrum-datadir\""
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/electrum/mainnet.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/regtest.bat",
+    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/regtest.bat",
+    "text": "--dir \"%ROOTDIR%\\electrum-datadir\" ^"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/regtest.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/regtest.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\electrum.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/regtest.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\electrum.exe\" ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/electrum/regtest.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet3.bat",
+    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet3.bat",
+    "text": "--dir \"%ROOTDIR%\\electrum-datadir\" --testnet"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet3.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet3.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\electrum.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet3.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\electrum.exe\" ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/electrum/testnet3.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet4.bat",
+    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet4.bat",
+    "text": "--dir \"%ROOTDIR%\\electrum-datadir\" --testnet4"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet4.bat",
+    "text": "echo ROOTDIR is \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet4.bat",
+    "text": "if not exist \"%ROOTDIR%\\win\\bin\\electrum.exe\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/electrum/testnet4.bat",
+    "text": "start \"\" \"%ROOTDIR%\\win\\bin\\electrum.exe\" ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/electrum/testnet4.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
     "code": "E005",
@@ -210,9 +935,54 @@
     "text": "REM .bat runs it as \"cmd.exe /c <that .bat>\", and that console closes the"
   },
   {
+    "code": "E006",
+    "file": "../win/scripts/root.bat",
+    "text": "echo PORTANODE_ROOT is set to \"%PORTANODE_ROOT%\", which is not a PortaNode folder: it holds no VERSION beside macos\\, win\\ or linux\\. Unset PORTANODE_ROOT, or set it to the folder. 1>&2"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/root.bat",
+    "text": "set \"ROOTDIR=%PORTANODE_ROOT%\""
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/root.bat",
+    "text": "set \"ACTION=%~1\""
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/clean-artifacts.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
     "code": "E001",
     "file": "../win/scripts/utilities/health-check.bat",
     "text": "if defined ELECTRUM_METHOD ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "for /f \"usebackq delims=\" %%P in (\"!ROOTDIR!\\bitcoin-datadir\\bitcoind.pid\") do set PID=%%P"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if exist \"!ROOTDIR!\\bitcoin-datadir\\.cookie\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "if exist \"!ROOTDIR!\\bitcoin-datadir\\bitcoind.pid\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "set \"BTC_BIN=%ROOTDIR%\\win\\bin\\bitcoin-cli.exe\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "set \"MOUNT_PATH=%ROOTDIR%\""
   },
   {
     "code": "E010",
@@ -240,6 +1010,41 @@
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
+    "code": "W028",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "REM Written flat (no %var% set-and-read inside a ( ) block) because a"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "REM on, the pass that would substitute a \"!VAR!\" strips an"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "echo Error: %FILEPATH_REL% not found."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "if \"%CHECKSUM_FILE%\"==\"\" exit /b 0"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "if \"%CHECKSUM_FILE%\"==\"\" exit /b 1"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "if not exist \"%IV_FILE_FS%\" exit /b 0"
+  },
+  {
     "code": "E021",
     "file": "../win/scripts/utilities/lib.bat",
     "text": "REM percent signs of \"%PATH:%ROOTDIR%\\=%\" as three pairs and substitutes"
@@ -255,9 +1060,144 @@
     "text": "powershell -NoProfile -Command \"& { $src = $env:INS_SRC; $dest = $env:INS_DEST; $name = Split-Path -Leaf $dest; $want = Get-FileHash -Algorithm SHA256 -LiteralPath $src; if (-not $want) { Write-Host ('Error: cannot hash the source of ' + $name + '.'); exit 1 } foreach ($i in 1..5) { try { Copy-Item -LiteralPath $src -Destination $dest -Force -ErrorAction Stop } catch { Write-Host ('Error: copying ' + $name + ' failed: ' + $_.Exception.Message); exit 1 } $got = Get-FileHash -Algorithm SHA256 -LiteralPath $dest -ErrorAction SilentlyContinue; if ($got -and $got.Hash -eq $want.Hash) { exit 0 } Write-Host ('Warning: ' + $name + ' corrupted on write (attempt ' + $i + '/5); retrying...') } Write-Host ('Error: ' + $name + ' still corrupt after 5 attempts.'); Write-Host 'The destination filesystem may be unreliable.'; exit 1 }\""
   },
   {
+    "code": "W028",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "set \"ACTION=%~1\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
+    "text": "set \"LOG_FILE=%ROOTDIR%\\bitcoin-datadir\\debug.log\""
+  },
+  {
     "code": "SEC009",
     "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
     "text": "powershell -NoProfile -ExecutionPolicy Bypass ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "REM *expanded* value of \"%ROOTDIR%\" exactly as it would from one"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "REM them; each \"%BACKUPVER%\"/\"%CURRENTVER%\" below is its own"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "REM them; each \"%BACKUPVER%\"/\"%CURRENTVER%\" below is its own"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%CHECKSUM_FILE%\" CURRENTVER"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "echo Backup found in win\\bin\\backup\\bitcoin, checksum recognized: version %BACKUPVER%."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "echo Currently installed: %CURRENTVER%."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "move /y \"%BACKUP_DIR%\\%~1\" \"%ROOTDIR%\\win\\bin\\\" >nul"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "set \"BACKUP_DIR=%ROOTDIR%\\win\\bin\\backup\\bitcoin\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "REM *expanded* value of \"%ROOTDIR%\" exactly as it would from one"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "REM them; each \"%BACKUPVER%\"/\"%CURRENTVER%\" below is its own"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "REM them; each \"%BACKUPVER%\"/\"%CURRENTVER%\" below is its own"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%ROOTDIR%\\win\\bin\\electrum.exe\" \"win/bin/electrum.exe\" \"%CHECKSUM_FILE%\" CURRENTVER"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "echo Backup found in win\\bin\\backup\\electrum, checksum recognized: version %BACKUPVER%."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "echo Currently installed: %CURRENTVER%."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "move /y \"%BACKUP_DIR%\\electrum.exe\" \"%ROOTDIR%\\win\\bin\\\" >nul"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "set \"BACKUP_DIR=%ROOTDIR%\\win\\bin\\backup\\electrum\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
+    "text": "if exist \"%ROOTDIR%\\.last_log_offset\" del /f /q \"%ROOTDIR%\\.last_log_offset\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
+    "text": "if exist \"%ROOTDIR%\\.last_log_offset\" del /f /q \"%ROOTDIR%\\.last_log_offset\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
+    "text": "set \"LOG_FILE=%ROOTDIR%\\bitcoin-datadir\\debug.log\""
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
     "code": "E001",
@@ -265,6 +1205,21 @@
     "text": "if not \"!READ_RC!\"==\"0\" ("
   },
   {
+    "code": "E006",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "REM each caller holds it as a literal; cutting %ROOTDIR% off %TARGET%"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "set \"BDD=%ROOTDIR%\\bitcoin-datadir\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "set \"EDD=%ROOTDIR%\\electrum-datadir\""
+  },
+  {
     "code": "E010",
     "file": "../win/scripts/utilities/set-permissions.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
@@ -278,6 +1233,11 @@
     "code": "SEC009",
     "file": "../win/scripts/utilities/set-permissions.bat",
     "text": "powershell -NoProfile -ExecutionPolicy Bypass ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
     "code": "E001",
@@ -285,6 +1245,61 @@
     "text": "if \"%VERR%\"==\"1\" ("
   },
   {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "REM echo as data, \"!VAR!\" being substituted after the line has been"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "REM quotes %ROOTDIR%, and every echo of it or of a URL built on it"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "REM tokenised where \"%VAR%\" is substituted before it (#298, #300)."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :preview_pinned_keys \"%ROOTDIR%\\keys\\bitcoin-core.fingerprints\" \"keys\\bitcoin-core.fingerprints\" \"the update\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\SHA256SUMS.asc\" \"%TMPDIR%\\SHA256SUMS\" \"SHA256SUMS\" \"%ROOTDIR%\\keys\\bitcoin-core.fingerprints\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "echo Free space at !ROOTDIR!: !FREE_GB! GB"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "echo Refusing to install Bitcoin Core !VERSION!: it cannot be compared with the installed !CURRENT!."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "echo Refusing to install Bitcoin Core !VERSION!: it is older than the installed !CURRENT!."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "echo Would install Bitcoin Core !VERSION! ^(currently installed: !CURRENT!^)."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"BIN_DIR=%ROOTDIR%\\win\\bin\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
+  },
+  {
     "code": "E010",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
@@ -313,6 +1328,11 @@
     "code": "SEC009",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
     "code": "E001",
@@ -320,6 +1340,51 @@
     "text": "if errorlevel 1 ("
   },
   {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "REM quotes %ROOTDIR%, and every echo of it or of a URL built on it"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :preview_pinned_keys \"%ROOTDIR%\\keys\\electrum.fingerprints\" \"keys\\electrum.fingerprints\" \"the download\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "echo Free space at !ROOTDIR!: !FREE_GB! GB"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "echo Refusing to install Electrum !VERSION!: it cannot be compared with the installed !CURRENT!."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "echo Refusing to install Electrum !VERSION!: it is older than the installed !CURRENT!."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "echo Would install Electrum !VERSION! ^(currently installed: !CURRENT!^)."
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"BIN_DIR=%ROOTDIR%\\win\\bin\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
+  },
+  {
     "code": "E010",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
@@ -348,6 +1413,11 @@
     "code": "SEC009",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
     "code": "E001",
@@ -355,6 +1425,31 @@
     "text": "if \"%PRUNED%\"==\"0\" if %FREE_GB% lss 700 ("
   },
   {
+    "code": "E006",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "\"%ROOTDIR%\\bitcoin-datadir\\bitcoin.conf\" >nul 2>&1"
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "echo Validating setup at \"%ROOTDIR%\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "if exist \"%ROOTDIR%\\bitcoin-datadir\" if exist \"%ROOTDIR%\\electrum-datadir\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "if exist \"%ROOTDIR%\\bitcoin-datadir\" if exist \"%ROOTDIR%\\electrum-datadir\" ("
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "if exist \"%ROOTDIR%\\bitcoin-datadir\\bitcoin.conf\" ("
+  },
+  {
     "code": "E010",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
@@ -365,8 +1460,23 @@
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
+    "code": "W028",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
+  },
+  {
+    "code": "E006",
+    "file": "../win/scripts/utilities/verify-binaries.bat",
+    "text": "if not exist \"%ROOTDIR%\\%CHECKSUM_FILE%\" ("
+  },
+  {
     "code": "SEC009",
     "file": "../win/scripts/utilities/verify-binaries.bat",
     "text": "powershell -NoProfile -ExecutionPolicy Bypass ^"
+  },
+  {
+    "code": "W028",
+    "file": "../win/scripts/utilities/verify-binaries.bat",
+    "text": "set \"SCRIPT_DIR=%~dp0\""
   }
 ]
