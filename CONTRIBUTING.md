@@ -391,7 +391,8 @@ and expect each refused with nothing installed. They stand in for a fuzzer
 one runs the macOS and Linux updaters in a copy of the tree with
 a real throwaway key, and is skipped without `gpg`; the PowerShell one runs the
 PowerShell inside the `.bat` files, read from them, and runs on any system
-with `pwsh`. It is in the suite, so `tests/run.ps1` runs it:
+with `pwsh`. It also checks that each fetch offers TLS 1.2 and leaves
+`SystemDefault` alone. It is in the suite, so `tests/run.ps1` runs it:
 
 ```shell
 pwsh -NoProfile -File tests/win/updater-input.ps1
