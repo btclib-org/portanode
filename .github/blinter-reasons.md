@@ -29,6 +29,13 @@ Each accepted `E006` has one of these shapes:
   `if defined PORTANODE_ROOT`.** The variable is the user's own setting.
 - **The line is a `REM` comment.** Blinter reads its prose as code.
 
+## W022 Missing SETLOCAL EnableDelayedExpansion
+
+Blinter reads a `!name!` anywhere in a file as a use of delayed
+expansion, comments included. The only `!name!` in
+`win\scripts\utilities\lib.bat` is in a `REM` comment. The file opens no
+scope of its own, since its labels run in their caller's.
+
 ## W028 Errorlevel handling difference between .bat/.cmd
 
 `set`, `path`, `append`, `dpath`, `ftype`, `assoc` and `prompt` set
@@ -44,3 +51,21 @@ commands, and no script here reads it there:
   commands;
 - a `goto :eof` that follows one of these commands is the return of a
   `lib.bat` or `root.bat` called with no label, and every call names one.
+
+## W052 SHIFT inside parenthesized block
+
+A `shift` inside a block leaves `%1` in that block as it was. Each block
+that shifts here reads its arguments before the `shift`, and then leaves
+through `goto :parse_args`, which reads `%1` again on a line of its own.
+
+## W068 Percent expansion of a variable set in the same parenthesized block
+
+Blinter's count of open parentheses stays raised after a `for /f` whose
+`^` continues it on the next line, the shape `E010` reports. From there
+it reads every later line as inside a block. With those `for /f` lines
+joined, Blinter reports no `W068` here. No accepted `W068` reads, inside
+a block, a variable that block sets.
+
+## W071 Parse-time pseudo-variable inside a parenthesized block
+
+The same miscount as `W068`'s. No accepted `W071` is inside a block.

@@ -24,7 +24,7 @@ set "NO_NOTIFY_ARG="
 if "%~1"=="" goto :args_done
 if "%~1"=="--no-notify" (
     set "NO_NOTIFY_ARG=-NoNotify"
-    shift
+    shift /1
     goto :parse_args
 )
 echo Usage: %~nx0 [--no-notify]

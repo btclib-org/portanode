@@ -3,7 +3,7 @@ REM Shared helpers for Windows utility scripts.
 
 set "ACTION=%~1"
 if "%ACTION%"=="" goto :eof
-shift
+shift /1
 goto %ACTION%
 
 REM :warn_if_no_pubkeys
