@@ -361,9 +361,9 @@ exercises.
 
 **The `.bat` and `.ps1` halves are read by the generic hooks, and by
 `script-security.yml` for security findings, and for Blinter's Error
-findings and some of its Warning findings too** (*What gates a merge*,
-below). The same job refuses a non-ASCII byte and a lone CR in a `.bat`
-or `.cmd`; its header says why. PowerShell's parser is
+and Warning findings too** (*What gates a merge*, below). The same job
+refuses a non-ASCII byte and a lone CR in a `.bat` or `.cmd`; its header
+says why. PowerShell's parser is
 PSScriptAnalyzer, and `.pre-commit-config.yaml`'s header says why it is
 not a hook here; run all of its rules by hand, against a `pwsh` that
 carries the module:
@@ -441,9 +441,8 @@ branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
 
 **`script-security.yml` runs the security rules of PSScriptAnalyzer and
-Blinter's Error and Security rules and the Warning rules
-`.github/blinter.ini` does not disable, over the `.ps1` and `.bat` scripts
-on every pull request**, and its header says what fails it. Its
+Blinter's Error, Security and Warning rules, over the `.ps1` and `.bat`
+scripts on every pull request**, and its header says what fails it. Its
 `Script security` job is a required check. A Blinter finding it reports is
 fixed or, where it is no defect, recorded in `.github/blinter-baseline.json`
 by the command the job prints. For a Warning rule,

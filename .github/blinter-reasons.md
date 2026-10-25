@@ -79,12 +79,68 @@ test of a shifted argument sits near it. Each loop here has an exit:
 - `:find_root` in `win\scripts\root.bat` ends at a root, or at a
   directory that is its own parent.
 
+## W005 Unquoted variable with spaces
+
+Blinter reports an `if` that compares a `%variable%` outside quotes.
+Every accepted `W005` compares `%errorlevel%`, which cmd.exe expands to
+the last exit code, a number with no space in it. A variable named
+`ERRORLEVEL` would take its place, and no script in the tree sets one.
+
+## W007 File operation on potentially locked file
+
+Blinter reports a `copy`, `move`, `del` or `ren` whose line names an
+`.exe`, among other paths. The accepted `W007` is the `move` in
+`rollback-electrum.bat` that puts the backup back in `win\bin`. Where
+the move fails, the `if errorlevel 1` on the next line reports it.
+Nothing is deleted before it, so a failure leaves the installed version
+in place.
+
+## W009 Windows version compatibility
+
+Blinter reports `where` and `icacls` as missing from older Windows.
+`README.md` supports Windows 10 and later, and Microsoft's reference
+pages for both commands list Windows 10 and Windows 11.
+
+## W011 Unicode handling issue
+
+Blinter reports a `findstr` line that holds `<` or `>`, and an `echo`
+line whose redirection it does not read, such as `1>&2`. Each accepted
+`W011` is a `findstr` whose output goes to `nul`, or the `echo ... 1>&2`
+of `:resolve_root` in `win\scripts\root.bat`.
+
+`:report_permission_effect` in `set-permissions.bat` searches the output
+of `icacls` for the folder's path and the account's name, either of
+which can hold a letter outside ASCII. Measured on windows-latest, for
+a folder and an account whose names held `U+00E9` and `U+00FC`, both
+matched the output of `icacls`.
+
+The findings are accepted for what Blinter's rule tests; `findstr`
+itself cannot open a file whose path holds a letter outside the ANSI
+code page, which
+[ISS 740](https://github.com/btclib-org/portanode/issues/740) tracks.
+
+## W014 Missing PAUSE for user interaction
+
+Blinter asks for a `pause` in a script that reads `set /p` and holds no
+`pause`, and reports its last line. Every accepted `W014` is the last
+line of a root `.bat` launcher, the `exit /b 0` of `:end`. The menu
+goes there only where the choice is `0`, which asks to close. The
+launcher's one other exit, where `PORTANODE_ROOT` names no PortaNode
+folder, waits first with `:pause_if_own_console`.
+
 ## W022 Missing SETLOCAL EnableDelayedExpansion
 
 Blinter reads a `!name!` anywhere in a file as a use of delayed
 expansion, comments included. The only `!name!` in
 `win\scripts\utilities\lib.bat` is in a `REM` comment. The file opens no
 scope of its own, since its labels run in their caller's.
+
+## W023 Inefficient nested FOR loops
+
+Blinter reads a `for` whose block opens within the twenty lines after
+another `for` as nested in it. The accepted `W023` is the verification
+loop in `update-bitcoin.bat`. The `for` before it ends on its own line,
+so the loop is not nested.
 
 ## W025 Missing error handling
 
@@ -120,6 +176,17 @@ A quoted target that holds neither keeps its closing quote, and so seems
 to end without an extension. Every accepted `W033` calls a quoted path that ends
 in `.bat`, or `"%SCRIPT%"` in a root `.bat` launcher, which sets `SCRIPT`
 to the `.bat` path of a menu entry.
+
+## W039 Nested FOR loops without call optimization
+
+Blinter reports a nested `for` with no `call :label`. The accepted
+`W039` is on the loop `W023` describes, which is not nested.
+
+## W040 Nested FOR loop variable reuse
+
+Blinter reports a nested `for` that reuses the outer loop's variable.
+The accepted `W040` is on the loop `W023` describes, which is not
+nested, so its `%%E` is its own.
 
 ## W052 SHIFT inside parenthesized block
 
