@@ -435,7 +435,8 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 ```
 
 That answers `true`: a red `Lint`, `Dependency review`, `Sign-off`,
-`Script security` or `test: every job passed` stops the merge.
+`Script security`, `test: every job passed` or `codeql: every job passed`
+stops the merge.
 `REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
@@ -464,7 +465,8 @@ commit pushed is `verified`; [the standard's *Signatures*][s-sigs] has the rule.
 `codeql.yml` runs CodeQL over the workflow files on every pull request,
 every push to `main` and weekly, which is the code-scanning analysis the
 Scorecard's SAST check reads off a merged pull request. Its `codeql:
-every job passed` job reports and is not a required check; a CodeQL
+every job passed` job passes where every job of its run did, and the
+branch rule names it, so a red one holds the merge. A CodeQL
 alert is fixed, or dismissed only as section 10 of the organization
 standard's *scorecard* entry allows.
 

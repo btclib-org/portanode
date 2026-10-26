@@ -41,9 +41,10 @@ gh api repos/btclib-org/portanode --jq '.default_branch'
 # main
 ```
 
-**`lint.yml`, `script-security.yml` and `test.yml` run on every pull
-request, and a red `Lint`, `Dependency review`, `Sign-off`, `Script
-security` or `test: every job passed` job stops the merge:**
+**`lint.yml`, `script-security.yml`, `test.yml` and `codeql.yml` run on
+every pull request, and a red `Lint`, `Dependency review`, `Sign-off`,
+`Script security`, `test: every job passed` or `codeql: every job passed`
+job stops the merge:**
 
 ```shell
 gh api repos/btclib-org/portanode/branches/main/protection \
@@ -55,18 +56,19 @@ gh api repos/btclib-org/portanode/branches/main/protection \
            {"app_id":15368,"context":"Dependency review"},
            {"app_id":15368,"context":"Sign-off"},
            {"app_id":15368,"context":"Script security"},
-           {"app_id":15368,"context":"test: every job passed"}],
+           {"app_id":15368,"context":"test: every job passed"},
+           {"app_id":15368,"context":"codeql: every job passed"}],
  "contexts":["Lint","Dependency review","Sign-off","Script security",
-             "test: every job passed"],"strict":false}
+             "test: every job passed","codeql: every job passed"],
+ "strict":false}
 ```
 
-names the contexts `Lint`, `Dependency review`, `Sign-off`, `Script security`
-and `test: every job passed` — the jobs' names, `lint.yml` saying why a name
-is the context and why renaming it cannot be done in a pull request
-afterwards — as required status checks. The first three are `lint.yml`'s
-jobs, `Script security` is `script-security.yml`'s job, and `test: every job
-passed` is `test.yml`'s aggregate job, which passes where every job of its
-run did.
+names these contexts as required status checks. Each is a job's name,
+and `lint.yml` says why a name is the context and why renaming it cannot
+be done in a pull request afterwards. The first three are `lint.yml`'s
+jobs and `Script security` is `script-security.yml`'s job. `test: every
+job passed` and `codeql: every job passed` are the aggregate jobs of
+`test.yml` and `codeql.yml`, each passing where every job of its run did.
 
 **The requirement lives in classic branch protection, not in a ruleset
 rule.** None of the rulesets below carries a `required_status_checks`
@@ -77,9 +79,8 @@ gh api repos/btclib-org/portanode/rules/branches/main \
   --jq '[.[] | {type, ruleset_id}]'
 ```
 
-lists only `main-integrity`'s rules and `main-self-merge`'s;
-`Lint`, `Dependency review`, `Sign-off`, `Script security` and `test: every
-job passed` are required through the older
+lists only `main-integrity`'s rules and `main-self-merge`'s; the
+contexts above are required through the older
 `branches/main/protection` endpoint, which this repository keeps active
 alongside the rulesets rather than folding into one of them.
 
@@ -89,12 +90,11 @@ reason][s11-branch].
 
 `links.yml` and `claude-review.yml` are not part of the required checks: the
 first reports the internet's weather and the second an opinion, and neither is a
-thing to hold a merge on. `codeql.yml` is not one either, and `scorecard.yml`
-is not a check on a pull request at all.
+thing to hold a merge on. `scorecard.yml` is not a check on a pull request
+at all.
 
-What holds a pull request is the review, `Lint`, `Dependency review`,
-`Sign-off`, `Script security` and `test: every job passed`; what holds
-every commit that reaches `main` is `main-integrity`.
+What holds a pull request is the review and the contexts above; what
+holds every commit that reaches `main` is `main-integrity`.
 
 ## Rulesets
 
