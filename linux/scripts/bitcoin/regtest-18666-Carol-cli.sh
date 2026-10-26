@@ -69,7 +69,10 @@ if [ ! -x "$BTC_CLI" ]; then
     exit 1
 fi
 
-mkdir -p "${ROOTDIR}/bitcoin-datadir/regtest_carol"
+mkdir -p "${DATADIR}" || {
+    echo "Error: could not create ${DATADIR#"$ROOTDIR"/}"
+    exit 1
+}
 
 BASENAME="$(basename "$0")"
 FILENAME="${BASENAME%.*}"
