@@ -17,9 +17,8 @@ name: codeql
 #     curl -s https://api.scorecard.dev/projects/github.com/btclib-org/portanode \
 #       | jq '.checks[] | select(.name == "SAST")'
 #
-# is what answers it for the day it is read. Nothing requires this
-# workflow's checks: REPOSITORY.md's "What gates a merge" is where that is
-# decided.
+# is what answers it for the day it is read. The codeql-passed job below
+# is a required check, which REPOSITORY.md's "What gates a merge" records.
 #
 # The three triggers answer what the other two cannot: the push scans the
 # commit a merge creates, the schedule scans an unchanged tree against a
