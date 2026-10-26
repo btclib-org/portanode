@@ -1,5 +1,6 @@
 # shellcheck shell=bash
-# Tests for the updaters' downgrade refusal and HTTPS-only fetches.
+# Tests for the macOS and Linux updaters' downgrade refusal and HTTPS-only
+# fetches.
 #
 #   bash tests/updaters.sh
 #

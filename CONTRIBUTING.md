@@ -336,9 +336,10 @@ runs them**, so a change to what one of them tests runs it by hand, with
   holding a letter outside ASCII, with and without a UTF-8 locale;
 - `tests/resolve-root.sh` tests `resolve_root` and the `.sh` and
   `.command` scripts that call it;
-- `tests/updaters.sh` tests the updaters' downgrade refusal and
-  HTTPS-only fetches, and runs after a change to an updater,
-  `refuse_downgrade`, `curl_https` or `compare-versions.ps1`.
+- `tests/updaters.sh` tests the macOS and Linux updaters' downgrade
+  refusal and HTTPS-only fetches, and `compare-versions.ps1`. It runs
+  after a change to one of those updaters, to `refuse_downgrade` or
+  `curl_https`, or to `compare-versions.ps1`.
 
 ```shell
 bash shared/tests/node-detection.sh
