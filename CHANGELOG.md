@@ -13,6 +13,46 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
+## v2026.10.26
+
+The Windows updaters ask for TLS 1.2, and the Windows `findstr` reads work
+in a folder whose path holds a letter outside the ANSI code page.
+
+### The Windows updaters ask for TLS 1.2
+
+Under Windows PowerShell 5.1, every download of the updaters and of the
+`latest-*-version.ps1` scripts adds TLS 1.2 to the protocols already set. A
+machine left at the system default keeps that default (closes #728).
+
+### Windows `findstr` reads work in a folder named outside the ANSI code page
+
+`findstr` reads its file from standard input, so a path holding a letter
+such as `ł` or a CJK letter no longer stops the Electrum launchers or makes
+both updaters refuse every download (closes #740).
+
+### Windows regtest launchers stop where their datadir cannot be made
+
+The Bob and Carol launchers exit 1 with an error rather than start a node
+without its datadir. `clean-artifacts.bat` exits 1 where PowerShell does not
+start, rather than report the cleanup complete (issue #729).
+
+### The Windows utilities keep their own name through their options
+
+The updaters, the rollbacks and the log monitor name themselves in the usage
+line for an unknown option (issue #729).
+
+### Script security runs every Blinter Warning rule
+
+Each finding is fixed, or accepted in `.github/blinter-baseline.json`, and
+`.github/blinter-reasons.md` says why each accepted rule is no defect
+(issue #729).
+
+### The calls into btclib-org/.github are pinned to its tag
+
+The calls to its reusable workflows name the commit of `v2026.10.25` rather
+than `@main`, and `check-changelog` is frozen at that tag
+(issue btclib-org/.github#1870).
+
 ## v2026.10.25
 
 An update refuses a downgrade and a download it cannot verify, and the
