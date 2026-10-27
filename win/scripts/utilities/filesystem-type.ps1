@@ -18,12 +18,12 @@
 # where GetVolumePathName's mount point answers exFAT, and set-permissions.bat
 # reports that directory restricted to the account and exits 0 on the first,
 # against the volume's own warning and the 2 it earns on the second. Its
-# readback does not catch what the name gets wrong there: icacls reads the
-# granted ACE off the mount point, where a file inside the same directory
-# answers "No permissions are set. All users have full control." Only that
-# direction is reachable -- an NTFS volume at a directory on the exFAT one is
-# refused with "Incorrect function." and exit 1, mountvol's own usage naming
-# an NTFS directory as where a mount point resides.
+# readback does not catch what the name gets wrong there: it reads the granted
+# ACE off the mount point, as icacls does, where icacls answers "No permissions
+# are set. All users have full control." for a file inside the same directory.
+# Only that direction is reachable -- an NTFS volume at a directory on the
+# exFAT one is refused with "Incorrect function." and exit 1, mountvol's own
+# usage naming an NTFS directory as where a mount point resides.
 #
 # GetPathRoot is asked second rather than not at all, because there are paths
 # GetVolumePathName leads away from a volume that can be named. A drive letter

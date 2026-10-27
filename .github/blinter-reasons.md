@@ -97,30 +97,20 @@ in place.
 
 ## W009 Windows version compatibility
 
-Blinter reports `where` and `icacls` as missing from older Windows.
-`README.md` supports Windows 10 and later, and Microsoft's reference
-pages for both commands list Windows 10 and Windows 11.
+Blinter reports `where` as missing from older Windows. `README.md`
+supports Windows 10 and later, and Microsoft's reference page for it
+lists Windows 10 and Windows 11.
 
 ## W011 Unicode handling issue
 
 Blinter reports a `findstr` line that holds `<` or `>`, and an `echo`
 line whose redirection it does not read, such as `1>&2`. Each accepted
-`W011` is a `findstr` whose output goes to `nul`, or to the file a second
-`findstr` in `set-permissions.bat` reads, or the `echo ... 1>&2` of
-`:resolve_root` in `win\scripts\root.bat`.
-
-`:report_permission_effect` in `set-permissions.bat` searches the output
-of `icacls` for the folder's path and the account's name, either of
-which can hold a letter outside ASCII. Measured on windows-latest, for
-a folder and an account whose names held `U+00E9` and `U+00FC`, both
-matched the output of `icacls`.
+`W011` is a `findstr` whose output goes to `nul`, or the `echo ... 1>&2`
+of `:resolve_root` in `win\scripts\root.bat`.
 
 The findings are accepted for what Blinter's rule tests. Each of these
 `findstr` lines reads its file on standard input, with `<`, for the reason
-the comment in `win\scripts\electrum\lib.bat` gives. The search of the
-report in `set-permissions.bat` for a folder named in CJK letters still
-fails, which [ISS 743](https://github.com/btclib-org/portanode/issues/743)
-tracks.
+the comment in `win\scripts\electrum\lib.bat` gives.
 
 ## W014 Missing PAUSE for user interaction
 
