@@ -1,11 +1,11 @@
 # The set lines that build BITCOIND_CMD in the regtest CLI launchers, run
 # as each launcher writes them, under folders whose paths hold an "&", a
 # "^", a "!", parentheses and spaces. Each folder's path stays whole
-# inside its own quote pair.
+# inside its own quote pair. A line written as set "BITCOIND_CMD=..." is
+# run as written too, and fails where an "&" is in the path.
 #
-# The control rewrites the same lines as set "NAME=value", the form
-# Blinter's SEC002 asks for. The value's own quotes then close the outer
-# pair, so the "&" ends the set command and the value comes out wrong.
+# The control runs every line as set "NAME=value", which
+# .pre-commit-config.yaml's header says an "&" breaks, and expects it to.
 
 $repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 Push-Location -LiteralPath (Join-Path $PSScriptRoot '..')
@@ -14,13 +14,17 @@ try { . .\lib.ps1 } finally { Pop-Location }
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ('portanode-tests-' + [guid]::NewGuid())
 $tmp = (New-Item -ItemType Directory -Path $tmp).FullName
 
-# What cmd.exe should leave in BITCOIND_CMD: the right-hand sides with
-# each variable replaced by its value, and nothing else read.
+# What cmd.exe should leave in BITCOIND_CMD: the right-hand sides, less
+# any outer quote pair, with each variable replaced by its value, and
+# nothing else read.
 function Get-Expected {
   param([string[]]$Lines, [string]$Root, [string]$Name, [string]$Datadir)
   $value = ''
   foreach ($line in $Lines) {
     $rhs = $line -replace '^set BITCOIND_CMD=', ''
+    if ($line -match '^set "BITCOIND_CMD=') {
+      $rhs = ($line -replace '^set "BITCOIND_CMD=', '') -replace '"$', ''
+    }
     $rhs = $rhs.Replace('%BITCOIND_CMD%', $value).Replace('%ROOTDIR%', $Root)
     $value = $rhs.Replace('%DATADIR%', $Datadir).Replace('%~n0', $Name)
   }
@@ -48,7 +52,7 @@ Test-Same 'the regtest CLI launchers are found' 'True' "$($launchers.Count -gt 0
 try {
   foreach ($file in $launchers) {
     $text = Get-Content -LiteralPath $file.FullName
-    $lines = @($text | Where-Object { $_ -like 'set BITCOIND_CMD=*' })
+    $lines = @($text | Where-Object { $_ -match '^set "?BITCOIND_CMD=' })
     $datadirLine = @($text | Where-Object { $_ -like 'set "DATADIR=*' })[0]
     $sub = ($datadirLine -replace '^set "DATADIR=%ROOTDIR%', '').TrimEnd('"')
     Test-Same "$($file.Name) builds BITCOIND_CMD in set lines" 'True' "$($lines.Count -gt 0)"
@@ -59,7 +63,9 @@ try {
         $want (Get-Built $file.BaseName $datadirLine $lines $root)
     }
     $root = Join-Path $tmp 'a&b'
-    $quoted = $lines | ForEach-Object { 'set "' + $_.Substring(4) + '"' }
+    $quoted = $lines | ForEach-Object {
+      if ($_ -match '^set "') { $_ } else { 'set "' + $_.Substring(4) + '"' }
+    }
     $built = Get-Built $file.BaseName $datadirLine $quoted $root
     Test-Same "control: $($file.Name) in set `"NAME=value`" form breaks at the &" `
       'False' "$($built -ceq (Get-Expected $lines $root $file.BaseName ($root + $sub)))"
