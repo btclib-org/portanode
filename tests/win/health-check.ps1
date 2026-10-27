@@ -30,6 +30,7 @@ function Invoke-HealthCheck {
 try {
   $root = Join-Path $tmp 'a & b (c)'
   New-Item -ItemType Directory -Path (Join-Path $root 'bitcoin-datadir') | Out-Null
+  New-Item -ItemType Directory -Path (Join-Path $root 'win') | Out-Null
   New-Item -ItemType File -Path (Join-Path $root 'VERSION') | Out-Null
   New-Item -ItemType File -Path (Join-Path $root 'bitcoin-datadir\.cookie') | Out-Null
   Set-Content -LiteralPath (Join-Path $root 'bitcoin-datadir\bitcoind.pid') -Value '99999999'
