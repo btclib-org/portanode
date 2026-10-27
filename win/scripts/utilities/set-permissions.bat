@@ -197,34 +197,30 @@ REM own filesystem first for the opposite reason: macOS synthesises
 REM rwx------ on a volume storing no mode, so there the readback answers
 REM the same 700 a real restriction does.
 REM
-REM The second search is the first one's complement: findstr /v drops
-REM every line holding the granted ACE, wherever in the report icacls
-REM prints it, and what survives is searched for ":(", which every
-REM remaining ACE line carries and neither the blank line nor icacls's
-REM own "Successfully processed" summary does. The path icacls echoes
-REM ahead of the first ACE cannot supply that pair either: ':' is not a
-REM legal character in a Windows file name, and a drive letter's own
-REM colon is followed by a backslash. Measured on windows-latest against
-REM a directory carrying the granted ACE alone and one carrying it
-REM beside Everyone:(OI)(CI)F -- the second of which icacls printed with
-REM Everyone on the path line and the granted ACE indented below it, so
-REM the filter is read against the order it does not expect as well as
-REM the one it does -- the search answered 1 on the first and 0 on the
-REM second.
+REM A findstr search of icacls's report is not the readback, because the
+REM report does not hold either name whole for findstr to find. Measured on
+REM windows-latest: icacls writes the report in the OEM code page, where a
+REM CJK letter reads "?", and findstr reads a backslash in a /c: string as
+REM an escape before "_", "." and "?". So a search of the report missed the
+REM folder's path where it held "\_", as D:\a\_temp does, or a backslash
+REM before a CJK letter, and missed the granted ACE for an account named in
+REM CJK letters.
 REM
-REM The readback runs a control before it runs the search, because the
-REM search is one whose informative answer is a miss: a search that did not
-REM read the file answers 1, as one that read it and did not find the string
-REM does, which win/scripts/electrum/lib.bat records for the same reason.
-REM Measured on windows-latest: the ACE search answers 0 where the ACE is
-REM there and 1 against a file that is absent, a file that is empty, and
-REM a real file the string is missing from alike -- three states behind
-REM one code. icacls echoes the path it was given as the first thing on
-REM its first line, so a search for TARGET itself answers 0 on a report
-REM that arrived and 1 on an empty file; that is the control, and only
-REM once it passes does a miss on the ACE mean the ACE is absent.
+REM The readback below reads the directory's DACL through .NET instead,
+REM and compares security identifiers, so neither name passes through a
+REM code page or a search string. The granted ACE is an explicit Allow of
+REM FullControl to the account, with ContainerInherit and ObjectInherit:
+REM what the write asks for, and what icacls prints as "(OI)(CI)(F)". The
+REM readback exits 0 where that ACE is the whole DACL, 3 where no such ACE
+REM is there or the account does not resolve, and 4 where another ACE
+REM stands beside it, an inherited one included. Any other status is a
+REM DACL that could not be read or an interpreter that did not start, and
+REM reads as a readback that did not happen. It calls no cmdlet, so no
+REM module has to load for it, and the values arrive as $env: reads. Its
+REM argument is one physical line for the reason :update_checksum in
+REM win\scripts\utilities\lib.bat gives.
 REM
-REM TARGET is read as !TARGET! inside the readback block below rather
+REM TARGET is read as !TARGET! inside the block that reports below rather
 REM than as %TARGET%: percent expansion runs before cmd.exe matches that
 REM block's parentheses, so a closing parenthesis in the mount point
 REM would end the block early (#211, #298, #300). Measured on
@@ -245,9 +241,8 @@ REM the pass that substitutes !TARGET! strips an unmatched "!" from the
 REM value %~1 expands to, and from the target path of every call in
 REM this file besides (#411). Captured with it off and read with it on,
 REM the character survives both -- measured on windows-latest with the
-REM folder at C:\Port!Node and TEMP pointed at a directory holding a
-REM "!" of its own, this routine's own shape reading back TARGET and a
-REM TEMP-derived ACL_FILE unchanged.
+REM folder at C:\Port!Node, this routine's own shape reading back TARGET
+REM unchanged.
 REM The block holds no call, which is what lets it be enabled at all.
 REM
 REM Every "exit /b" below returns from this "call" rather than ending
@@ -285,49 +280,26 @@ if defined NO_ACL (
     echo with encryption or physical control of the device instead.
     exit /b 2
 )
+powershell -NoProfile -Command "& { try { $rules = [Security.AccessControl.DirectorySecurity]::new($env:TARGET, 'Access').GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]) } catch { exit 1 }; try { $sid = [Security.Principal.NTAccount]::new($env:USERDOMAIN + '\' + $env:USERNAME).Translate([Security.Principal.SecurityIdentifier]) } catch { exit 3 }; $granted = 0; $other = 0; foreach ($r in $rules) { if ($r.IdentityReference.Equals($sid) -and -not $r.IsInherited -and $r.AccessControlType -eq 'Allow' -and $r.FileSystemRights -eq 'FullControl' -and $r.InheritanceFlags -eq 'ContainerInherit, ObjectInherit' -and $r.PropagationFlags -eq 'None') { $granted++ } else { $other++ } }; if ($granted -eq 0) { exit 3 }; if ($other -gt 0) { exit 4 }; exit 0 }"
+set "ACL_RC=%ERRORLEVEL%"
 setlocal enabledelayedexpansion
-set "ACL_FILE=!TEMP!\pn_acl_%RANDOM%%RANDOM%.txt"
-REM Each search below reads the report from standard input and, where it gives
-REM the answer, follows "cmd /d /c exit 1", for the reason
-REM win/scripts/electrum/lib.bat gives. TEMP follows the account name, so the
-REM report can sit under a letter outside the ANSI code page. Measured on
-REM windows-latest with TEMP under such a folder, cmd.exe opens the report and
-REM each search reads it. The last search is two steps, the first writing to a
-REM second file, because a redirection cmd.exe cannot open at the head of a
-REM pipe ends the batch file, measured on windows-latest.
-REM
-REM The search strings are not read by that route: the search for TARGET
-REM answers 1 for a folder named in CJK letters, which
-REM https://github.com/btclib-org/portanode/issues/743 tracks.
-icacls "!TARGET!" > "!ACL_FILE!" 2>nul
-cmd /d /c exit 1
-findstr /i /c:"!TARGET!" < "!ACL_FILE!" >nul 2>&1
-set "READ_RC=!errorlevel!"
-cmd /d /c exit 1
-findstr /i /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" < "!ACL_FILE!" >nul 2>&1
-set "ACE_RC=!errorlevel!"
-findstr /i /v /c:"!USERDOMAIN!\!USERNAME!:(OI)(CI)(F)" < "!ACL_FILE!" > "!ACL_FILE!.rest" 2>nul
-cmd /d /c exit 1
-findstr /c:":(" < "!ACL_FILE!.rest" >nul 2>&1
-set "OTHER_RC=!errorlevel!"
-del "!ACL_FILE!" "!ACL_FILE!.rest" >nul 2>&1
-if not "!READ_RC!"=="0" (
-    echo Warning: %REL% is on %FS_NAME%, but its ACL could not be read
-    echo back, so whether the restriction is in force is not established.
-    echo Check with icacls "!TARGET!".
-    exit /b 1
-) else if not "!ACE_RC!"=="0" (
+if "!ACL_RC!"=="3" (
     echo Warning: %REL% is on %FS_NAME%, but !TARGET! does not
     echo carry an ACE granting !USERDOMAIN!\!USERNAME! full
     echo control; the write above may have failed. Check with
     echo icacls "!TARGET!".
     exit /b 1
-) else if "!OTHER_RC!"=="0" (
+) else if "!ACL_RC!"=="4" (
     echo Warning: %REL% is on %FS_NAME% and grants
     echo !USERDOMAIN!\!USERNAME! full control, but !TARGET! still
     echo carries an ACE for another identity, so access to it is not
     echo restricted to that account. icacls "!TARGET!" names that
     echo identity, and icacls with /remove takes its ACE off.
+    exit /b 1
+) else if not "!ACL_RC!"=="0" (
+    echo Warning: %REL% is on %FS_NAME%, but its ACL could not be read
+    echo back, so whether the restriction is in force is not established.
+    echo Check with icacls "!TARGET!".
     exit /b 1
 ) else if not "!INHERIT_RC!"=="0" (
     echo Warning: %REL% is on %FS_NAME% and !TARGET! itself now

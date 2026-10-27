@@ -2707,7 +2707,7 @@
   {
     "code": "E001",
     "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "if not \"!READ_RC!\"==\"0\" ("
+    "text": "if \"!ACL_RC!\"==\"3\" ("
   },
   {
     "code": "E006",
@@ -2738,31 +2738,6 @@
     "code": "SEC009",
     "file": "../win/scripts/utilities/set-permissions.bat",
     "text": "powershell -NoProfile -ExecutionPolicy Bypass ^"
-  },
-  {
-    "code": "W009",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "icacls \"!TARGET!\" > \"!ACL_FILE!\" 2>nul"
-  },
-  {
-    "code": "W011",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "findstr /c:\":(\" < \"!ACL_FILE!.rest\" >nul 2>&1"
-  },
-  {
-    "code": "W011",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "findstr /i /c:\"!TARGET!\" < \"!ACL_FILE!\" >nul 2>&1"
-  },
-  {
-    "code": "W011",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "findstr /i /c:\"!USERDOMAIN!\\!USERNAME!:(OI)(CI)(F)\" < \"!ACL_FILE!\" >nul 2>&1"
-  },
-  {
-    "code": "W011",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "findstr /i /v /c:\"!USERDOMAIN!\\!USERNAME!:(OI)(CI)(F)\" < \"!ACL_FILE!\" > \"!ACL_FILE!.rest\" 2>nul"
   },
   {
     "code": "W028",
@@ -2857,7 +2832,7 @@
   {
     "code": "W071",
     "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "set \"ACL_FILE=!TEMP!\\pn_acl_%RANDOM%%RANDOM%.txt\""
+    "text": "set \"ACL_RC=%ERRORLEVEL%\""
   },
   {
     "code": "E001",

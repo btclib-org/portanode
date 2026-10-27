@@ -121,9 +121,10 @@ restrict() {
 # real restriction does -- measured on macos-latest against an exFAT
 # disk image, which read 700 after a run that changed nothing on it.
 # win/scripts/utilities/set-permissions.bat's own readback does not have
-# that problem, icacls answering "No permissions are set. All users have
-# full control." on a volume that holds no ACL, so there the readback
-# rather than the name is what says whether the restriction is in force.
+# that problem: it finds no ACE granting the account on a volume that
+# holds no ACL, measured on windows-latest against exFAT and FAT32 disk
+# images, so there the readback rather than the name is what says whether
+# the restriction is in force.
 # What a filesystem missing from the case below costs therefore differs
 # by platform: here the mode alone reports it restricted; there the
 # readback reports it unrestricted and the run exits 1, the status for a

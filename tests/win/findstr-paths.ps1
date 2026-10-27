@@ -1,23 +1,17 @@
 # The reads of a file by findstr in the Windows scripts, on a path holding a
 # letter outside the ANSI code page. win/scripts/electrum/lib.bat says why each
 # script gives findstr the file on standard input. The reads in the lib.bat
-# files run the label as it stands; the readback and the search for prune= run
-# statements copied out of their script, as their sections say. Each runs in a
-# folder named in ASCII, in Latin-1 letters, and in letters outside both, which
-# are the folder names the measurements in ISS 740 cover:
+# files run the label as it stands; the search for prune= runs statements
+# copied out of its script, as its section says. Each runs in a folder named in
+# ASCII, in Latin-1 letters, and in letters outside both, which are the folder
+# names the measurements in ISS 740 cover:
 #
 # - :require_non_portable_build, in win/scripts/electrum/lib.bat, on a file in
 #   the folder;
 # - :verify_pgp_signature, in win/scripts/utilities/lib.bat, with TEMP in the
-#   folder, where it writes gpg's status file, and a stand-in gpg;
-# - the readback in set-permissions.bat, with TEMP in the folder, where it
-#   writes icacls's report;
+#   folder, where it writes gpg's status file, and a throwaway key;
 # - the search for prune= in validate-setup.bat, on a bitcoin.conf in the
 #   folder.
-#
-# The readback runs on a folder named in ASCII: its search of the report for the
-# folder's own name fails on one named in CJK letters, which
-# https://github.com/btclib-org/portanode/issues/743 tracks.
 
 $repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 Push-Location -LiteralPath (Join-Path $PSScriptRoot '..')
@@ -27,11 +21,7 @@ $utilities = Join-Path $repo 'win\scripts\utilities'
 $electrumLib = Join-Path $repo 'win\scripts\electrum\lib.bat'
 $utilitiesLib = Join-Path $utilities 'lib.bat'
 
-# Under an ASCII path that holds no backslash before punctuation: findstr
-# reads a backslash before one as an escape in a search string, and
-# set-permissions.bat searches the report for its PortaNode folder's path.
-$localAppData = [Environment]::GetFolderPath('LocalApplicationData')
-$tmp = Join-Path $localAppData ('path-tests-' + [guid]::NewGuid())
+$tmp = Join-Path ([IO.Path]::GetTempPath()) ('path-tests-' + [guid]::NewGuid())
 $tmp = (New-Item -ItemType Directory -Path $tmp).FullName
 
 # Folder names from code points, so that this file stays ASCII under every
@@ -43,17 +33,11 @@ $names = [ordered]@{
   'CJK'        = ([string][char]0x65E5) + [char]0x672C + [char]0x8A9E
 }
 
-# The PowerShell the scripts start is Windows PowerShell, which a pwsh parent's
-# module path would stop from loading the module of Set-Acl.
-$modulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine')
-
 # Runs $Bat under cmd.exe with $Env set, and returns its output and exit status.
 # The values reach cmd.exe through the environment, which spares quoting a path
 # that holds a letter on a command line.
 function Invoke-Bat {
   param([string]$Bat, [hashtable]$Env)
-  $Env = $Env.Clone()
-  $Env['PSModulePath'] = $modulePath
   $old = @{}
   foreach ($key in $Env.Keys) {
     $old[$key] = [Environment]::GetEnvironmentVariable($key)
@@ -184,53 +168,6 @@ if (-not $gpg) {
   }
   Remove-Item -LiteralPath "$short-1", "$short-2" -Recurse -Force -ErrorAction SilentlyContinue
 }
-
-# --- set-permissions.bat ------------------------------------------------------
-# The statements from "setlocal enabledelayedexpansion" to the end of the file
-# read icacls's report back from TEMP. They run as they stand, with the values
-# :report_permission_effect is given. The whole script cannot run with TEMP in
-# a folder named outside the ANSI code page, for the reason
-# https://github.com/btclib-org/portanode/issues/744 gives.
-$lines = Get-Content -LiteralPath (Join-Path $utilities 'set-permissions.bat')
-$first = [array]::IndexOf($lines, 'setlocal enabledelayedexpansion')
-$readback = New-Driver 'readback.bat' (@(
-  '@echo off',
-  'set "TARGET=%TEST_TARGET%"',
-  'set "REL=bitcoin-datadir"',
-  'set "FS_NAME=NTFS"',
-  'set "INHERIT_RC=0"') + $lines[$first..($lines.Count - 1)])
-$account = "$env:USERDOMAIN\$env:USERNAME"
-$target = (New-Item -ItemType Directory -Path (Join-Path $tmp 'target-plain')).FullName
-# The DACL is written as set-permissions.bat writes it, by set-datadir-acl.ps1,
-# so that the account is the only identity the report names.
-$restrict = New-Driver 'restrict.bat' @(
-  '@echo off',
-  'powershell -NoProfile -ExecutionPolicy Bypass -File "%TEST_SCRIPT%" -Path "%TEST_TARGET%" -Account "%TEST_ACCOUNT%"',
-  'exit /b %errorlevel%')
-foreach ($label in $names.Keys) {
-  $temp = Join-Path $tmp ('perm-' + $names[$label])
-  New-Item -ItemType Directory -Path $temp | Out-Null
-  $r = Invoke-Bat $restrict @{
-    TEST_SCRIPT = (Join-Path $utilities 'set-datadir-acl.ps1'); TEST_TARGET = $target; TEST_ACCOUNT = $account
-  }
-  Test-Same "set-datadir-acl.ps1 restricts the folder to the account, exit status, before the $label case" '0' ([string]$r.Status)
-  $r = Invoke-Bat $readback @{ TEST_TARGET = $target; TEMP = $temp; TMP = $temp }
-  Test-Same "the readback exits 0 for the restricted folder with TEMP in a $label folder" '0' ([string]$r.Status)
-  Test-Contain "the readback reports the restriction with TEMP in a $label folder" $r.Text 'permissions restricted to'
-  $null = & icacls.exe $target /grant '*S-1-1-0:(OI)(CI)R'
-  $r = Invoke-Bat $readback @{ TEST_TARGET = $target; TEMP = $temp; TMP = $temp }
-  Test-Same "the readback exits 1 for another identity's ACE with TEMP in a $label folder" '1' ([string]$r.Status)
-  Test-Contain "the readback names the other identity with TEMP in a $label folder" $r.Text 'another identity'
-  $null = & icacls.exe $target /remove '*S-1-1-0'
-}
-# A TEMP that does not exist: icacls cannot write the report, and the readback
-# says so rather than reading a stale answer or ending.
-$r = Invoke-Bat $readback @{
-  TEST_TARGET = $target; TEMP = (Join-Path $tmp 'absent'); TMP = (Join-Path $tmp 'absent')
-}
-Test-Same 'the readback exits 1 where the report cannot be written' '1' ([string]$r.Status)
-Test-Contain 'the readback says the ACL could not be read back where the report cannot be written' `
-  $r.Text 'could not be read'
 
 # --- validate-setup.bat -------------------------------------------------------
 # The statements from "set PRUNED=0" to the parenthesis that closes the block,
