@@ -107,7 +107,7 @@ file on the drive.
   servers, and Electrum's daemon RPC: a unix socket, `daemon_rpc_socket`,
   in the network's datadir (`electrum-datadir/` on mainnet, a subdirectory
   on the others) on macOS and Linux, and a TCP port on `127.0.0.1` on
-  Windows (`README.md`'s *Choosing a filesystem*).
+  Windows (*Why each filesystem is recommended* below).
 
 ## Trust boundaries
 
@@ -184,6 +184,43 @@ Core itself refuses a second node on one data directory.
 Electrum's own server choice, and `mainnet-local-server-only` talks to a
 server on this machine only. `README.md`'s *Electrum* says what each
 reveals.
+
+## Why each filesystem is recommended
+
+`README.md`'s *Choosing a filesystem* gives the filesystem for each set
+of operating systems. This is why.
+
+- **APFS, NTFS and ext4** are each the filesystem its one operating
+  system uses for its own boot disk: full permission bits, a journal,
+  and nothing to install.
+- **exFAT** is a filesystem macOS and Windows both read and write
+  with nothing to install. NTFS needs a third-party driver to write
+  from macOS, and APFS is unreadable outside macOS, so exFAT answers
+  every pairing that includes macOS, and all three.
+- **exFAT stores no Unix mode.** macOS reports every file executable whatever
+  `chmod` asked, as `CONTRIBUTING.md`'s *Conventions and measurements the tree
+  relies on* measures. Ubuntu's exFAT driver computes the mode from the mount's
+  `fmask`, which defaults to the mounting process's umask, so an `fmask` that
+  clears the owner's execute bit stops the launchers.
+  `linux/scripts/utilities/set-permissions.sh` carries that measurement.
+- **exFAT cannot hold Electrum's daemon socket on macOS and Linux.**
+  There the daemon's RPC channel is a unix socket in the datadir, and
+  exFAT refuses the bind: `ENOTSUP` on macOS, `EPERM` under Ubuntu's
+  kernel driver, `EIO` under `exfat-fuse`. A wallet file is still
+  written; every command reaching it afterwards fails. The Electrum
+  launchers there make the same bind before starting Electrum, and
+  their comments say why.
+- **Windows is not affected.** Electrum's RPC channel there is a TCP
+  port on `127.0.0.1`. On an exFAT volume, creating a wallet, starting
+  the daemon, `load_wallet` and `getbalance` each answer as they do on
+  NTFS, so the Windows launchers make no such check.
+- **NTFS answers Windows and Ubuntu** because the Linux kernel's
+  in-tree `ntfs3` driver reads and writes it. The kernel documents
+  that; it is not measured here. macOS reads NTFS only, so NTFS answers
+  no pairing that includes macOS.
+
+Bitcoin Core's warning against exFAT on macOS is accepted, as
+*Limitations, not vulnerabilities* in `README.md` says.
 
 ## Secure design principles
 
