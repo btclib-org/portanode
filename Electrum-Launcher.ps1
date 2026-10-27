@@ -1,3 +1,5 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+  Justification = 'A menu for the person at the console, not output for a pipeline.')]
 Param()
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path

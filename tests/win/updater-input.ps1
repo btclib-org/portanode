@@ -55,7 +55,8 @@ Test-Same 'compare-versions.ps1 lets 27.0 over 28.1 pass with -Allow 1' 'OK' `
 # it would not see a variable of this file, and a HEAD probe succeeds.
 $env:PORTANODE_TEST_INDEX = ''
 function Invoke-WebRequest {
-  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '')]
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '',
+    Justification = 'A stand-in for the cmdlet, as the comment above says.')]
   param()
   $env:PORTANODE_TEST_PROTOCOLS += [string][int][Net.ServicePointManager]::SecurityProtocol + ' '
   if ($args -contains 'Head') { return $null }

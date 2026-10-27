@@ -1,3 +1,5 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+  Justification = 'A report for the console; the calling .bat reads only the exit code.')]
 param(
   [Parameter(Mandatory = $true)]
   [string]$RootDir,
@@ -70,7 +72,6 @@ if ($currentSize -gt $lastOffset) {
     $errors | ForEach-Object { Write-Host $_.Line }
 
     if (-not $NoNotify) {
-      $toastShown = $false
       try {
         # The type literal cannot wrap: PowerShell's tokenizer rejects an
         # assembly-qualified type name split across lines.
@@ -89,11 +90,7 @@ if ($currentSize -gt $lastOffset) {
           [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier(
             'PortaNode')
         $notifier.Show($toast)
-        $toastShown = $true
       } catch {
-      }
-
-      if (-not $toastShown) {
         try {
           Add-Type -AssemblyName System.Windows.Forms
           [System.Windows.Forms.MessageBox]::Show(

@@ -1,3 +1,5 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+  Justification = 'A report for the console; the calling .bat reads only the exit code.')]
 param(
   [Parameter(Mandatory = $true)]
   [string]$RootDir
