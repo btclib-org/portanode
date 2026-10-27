@@ -202,8 +202,7 @@ of operating systems. This is why.
   relies on* measures. Ubuntu's exFAT driver computes the mode from the mount's
   `fmask`, which defaults to the mounting process's umask, so an `fmask` that
   clears the owner's execute bit stops the launchers.
-  `linux/scripts/utilities/set-permissions.sh` carries that measurement. For the
-  same reason `set-permissions` restricts nothing on exFAT.
+  `linux/scripts/utilities/set-permissions.sh` carries that measurement.
 - **exFAT cannot hold Electrum's daemon socket on macOS and Linux.**
   There the daemon's RPC channel is a unix socket in the datadir, and
   exFAT refuses the bind: `ENOTSUP` on macOS, `EPERM` under Ubuntu's

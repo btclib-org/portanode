@@ -70,7 +70,3 @@ Electrum with `--dir` on APFS instead.
   restricts nothing there and says so.
 - The utilities need `curl`, `shasum`, `hdiutil` and `bash`, and the
   updaters `gpg`.
-
-## Troubleshooting
-
-- For GUI issues, ensure XQuartz is installed if needed.

@@ -59,8 +59,9 @@ and Ubuntu it has to run under, not on a single default:
 | Windows and Ubuntu | NTFS       |
 | All three          | exFAT      |
 
-- **A drive formatted for fewer operating systems** has to be
-  reformatted to serve one more later.
+- **A drive on APFS or ext4** serves only its own operating system, and
+  one on NTFS does not serve macOS: serving one more means reformatting
+  it.
 - **On exFAT, a file's mode is not stored**: macOS reports every file
   executable, and on Linux the mount's `fmask` decides
   (*Troubleshooting*). `set-permissions` restricts nothing there.
