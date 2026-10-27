@@ -1830,16 +1830,6 @@
     "text": "for /f \"usebackq delims=\" %%J in (`powershell -NoProfile -Command \"& { try { & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\\bitcoin-datadir') getblockchaininfo 2>$null } catch { '' } }\"`) do set BTC_INFO=%%J"
   },
   {
-    "code": "SEC002",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "set ARTIFACTS=!ARTIFACTS! .cookie"
-  },
-  {
-    "code": "SEC002",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "set ARTIFACTS=!ARTIFACTS! bitcoind.pid"
-  },
-  {
     "code": "SEC009",
     "file": "../win/scripts/utilities/health-check.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"

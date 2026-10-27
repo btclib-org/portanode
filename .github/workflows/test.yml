@@ -43,8 +43,9 @@ jobs:
         shell: pwsh
         working-directory: tests/win
         run: |
-          $needsCmd = 'clean-artifacts.ps1', 'findstr-paths.ps1', 'launchers.ps1',
-            'regtest-datadir.ps1', 'resolve-root.ps1', 'usage.ps1'
+          $needsCmd = 'clean-artifacts.ps1', 'findstr-paths.ps1', 'health-check.ps1',
+            'launchers.ps1', 'regtest-cli-command.ps1', 'regtest-datadir.ps1',
+            'resolve-root.ps1', 'usage.ps1'
           $failed = @()
           foreach ($file in Get-ChildItem -Filter '*.ps1' | Sort-Object Name) {
             if ($needsCmd -contains $file.Name) { continue }
