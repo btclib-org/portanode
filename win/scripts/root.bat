@@ -19,9 +19,9 @@ REM that value before the walk below sees it, and from the target path
 REM of the "call" that reaches this file besides (#411). A folder
 REM mounted at a path holding one is legal on exFAT and NTFS alike.
 REM
-REM Measured on windows-latest against two copies of
-REM one tree at C:\p473\ba!ng, one with the callers' line 2 left bare.
-REM Under a "cmd /V:ON", and under a "cmd" given no /V flag at all
+REM Measured on windows-latest against two copies of one tree at
+REM C:\p473\ba!ng, one with the callers' line 2 left bare. Under a
+REM "cmd /V:ON", and under a "cmd" given no /V flag at all
 REM once the Command Processor key under HKCU\Software\Microsoft has
 REM its DelayedExpansion value at 1, the bare copy's launcher prints
 REM its root as "" where the other prints the folder, and

@@ -58,8 +58,6 @@ Electrum with `--dir` on APFS instead.
   it again brings the app back to that version.
 - `monitor-bitcoin-log.sh` sends a macOS notification when it finds an
   error or a warning.
-- `health-check.sh` relies on the process list, which some sandboxed
-  environments restrict.
 - `clean-artifacts.sh` removes the `._*` and `.DS_Store` files macOS
   leaves, and only those.
 - `set-permissions.sh` restricts `bitcoin-datadir/` and

@@ -49,10 +49,6 @@ launchers, updating, troubleshooting and the limitations.
   carries a checksum `linux/checksums.sha256` recognizes.
 - `monitor-bitcoin-log.sh` reports on standard output, and sends a
   desktop notification through `notify-send` where one can be delivered.
-- `health-check.sh` asks `bitcoin-cli` first, then the process list,
-  then the datadir's `.cookie` and `bitcoind.pid`. Its Electrum check
-  reads the process list alone, so a restricted `/proc` can hide a
-  running Electrum.
 - `clean-artifacts.sh` removes the trash directories a Linux desktop
   makes on a volume other than the home one, emptying that trash, and
   the temporary files a killed GLib save leaves. It removes nothing

@@ -193,7 +193,7 @@ of operating systems. This is why.
 - **APFS, NTFS and ext4** are each the filesystem its one operating
   system uses for its own boot disk: full permission bits, a journal,
   and nothing to install.
-- **exFAT** is the one filesystem macOS and Windows both read and write
+- **exFAT** is a filesystem macOS and Windows both read and write
   with nothing to install. NTFS needs a third-party driver to write
   from macOS, and APFS is unreadable outside macOS, so exFAT answers
   every pairing that includes macOS, and all three.

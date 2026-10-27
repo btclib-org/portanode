@@ -196,9 +196,10 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
 - **Testnet3**: `Bitcoin-Launcher.*`'s menu runs `testnet3-18333-qt`.
 - **Testnet4**: `Bitcoin-Launcher.*`'s menu runs `testnet4-48333-qt`.
 - **Regtest**: `Bitcoin-Launcher.*`'s menu runs the `regtest-*` scripts,
-  GUI or CLI, for Alice, Bob and Carol. Clean entries delete that node's
-  regtest data before starting. The three can run at once on one
-  machine, each connecting to the other two on localhost:
+  GUI or CLI, for Alice, Bob and Carol. A clean entry refuses while a
+  node uses that node's regtest data; otherwise it asks, then deletes the
+  data before starting. The three can run at once on one machine, each
+  connecting to the other two on localhost:
 
   | Node  | P2P port | RPC port | Data under `bitcoin-datadir/` |
   |-------|----------|----------|-------------------------------|
@@ -414,7 +415,10 @@ message naming it:
 - Health check: `./macos/scripts/utilities/health-check.sh`,
   `win/scripts/utilities/health-check.bat`, or
   `./linux/scripts/utilities/health-check.sh` check disk space and
-  whether the processes are running.
+  whether the processes are running. For Bitcoin Core they ask
+  `bitcoin-cli` first, then the process list, then the datadir's
+  `.cookie` and `bitcoind.pid`. For Electrum they read the process list
+  alone, so where it is restricted a running Electrum can go unseen.
 
 ### Getting Help
 
@@ -491,8 +495,10 @@ list, and it is the only list.
     is the outcome the reader has least recourse against; each
     directory's own message is printed either way.
 - **File Artifacts**: macOS creates `._*` and `.DS_Store` files; these are
-  ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh` or
-  `win/scripts/utilities/clean-artifacts.bat` to remove existing ones.
+  ignored by `.gitignore`. Run `./macos/scripts/utilities/clean-artifacts.sh`
+  to remove existing ones. Windows leaves `Thumbs.db`, `ehthumbs.db` and
+  `*.stackdump` files, which `win/scripts/utilities/clean-artifacts.bat`
+  removes.
 - **Linux File Artifacts**: Linux desktops leave their own trash
   directories and temporary save files on the volume; run
   `./linux/scripts/utilities/clean-artifacts.sh` to remove them, which
