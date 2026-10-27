@@ -516,9 +516,9 @@ restating it.
 - **The executable bit decides nothing on the volume this is built for.**
   macOS synthesises a mode for exFAT rather than storing one: a file
   written there reads `rwx------` whatever `chmod` was asked for, and a
-  script runs regardless. `README.md`'s *Choosing a filesystem* and
-  `macos/scripts/utilities/set-permissions.sh` cite this measurement,
-  made on an exFAT image:
+  script runs regardless. `ASSURANCE_CASE.md`'s *Why each filesystem
+  is recommended* and `macos/scripts/utilities/set-permissions.sh` cite
+  this measurement, made on an exFAT image:
 
   ```shell
   d=$(mktemp -d)

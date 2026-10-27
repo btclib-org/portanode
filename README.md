@@ -59,62 +59,18 @@ and Ubuntu it has to run under, not on a single default:
 | Windows and Ubuntu | NTFS       |
 | All three          | exFAT      |
 
-- **APFS, NTFS and ext4** are each the filesystem the one operating
-  system they serve already uses for its own boot disk: full
-  permission bits, a journal, and nothing to install. Moving the drive
-  to a second operating system later means reformatting it.
-- **exFAT** is the filesystem macOS and Windows both read and write
-  with nothing to install, and it is the answer for every pairing that
-  includes macOS: Windows' own NTFS needs a third-party driver to write
-  from macOS, and macOS's own APFS is unreadable outside macOS, so
-  neither platform's own filesystem crosses to the other where macOS is
-  one of the two. It carries no Unix permission bits, and the two
-  platforms that read it do not fail identically on that account: macOS
-  synthesises the execute bit as always-on regardless of `chmod`,
-  measured by mounting an exFAT image and running a script whose mode
-  denies it, while Ubuntu's own exFAT driver instead computes a mode
-  from the mount's own `fmask`, which defaults to the mounting
-  process's umask (#484): an `fmask` clearing the owner's execute bit
-  makes the script fail. That is one mask away from the guarantee
-  macOS's synthesis gives unconditionally.
-- **exFAT on Linux carries a further cost specific to Electrum**: its
-  daemon binds a unix domain socket inside `electrum-datadir` for its own
-  RPC channel, and every wallet command — `getinfo` included — goes
-  through it. Measured on Ubuntu's own kernel exFAT driver, on
-  `ubuntu-latest`: the bind fails with `EPERM` (`exfat-fuse` answers
-  `EIO` instead, both refusing the same call), `daemon -d` then times out
-  waiting for the daemon to be ready, `getinfo` answers `Daemon not
-  running`, and no `daemon_rpc_socket` appears in the datadir — where an
-  ext4 control on the same runner answers each of those the other way.
-  What cannot exist there is the RPC channel rather than the wallet:
-  `electrum create` writes its wallet file into such a datadir without
-  error — a file parsing as JSON with the same keys as the control's —
-  and it is every command reaching that wallet afterwards that has
-  nothing to go through. Both volumes measured are loopback images, which
-  is as close as a runner gets to a drive plugged into a running machine.
-  `linux/scripts/electrum/`'s launchers detect the failing bind before
-  starting Electrum and refuse rather than start it silently broken.
-- **macOS refuses the same bind.** Measured against a volume made with
-  `hdiutil create -fs ExFAT`: the bind answers `ENOTSUP` where the same
-  call in a directory on APFS succeeds, and Electrum's daemon then fails
-  to start its RPC server on `daemon_rpc_socket` with that errno.
-  `macos/scripts/electrum/`'s launchers make the same bind before
-  starting Electrum and refuse on it. What cannot exist on such a
-  datadir is the RPC channel rather than the wallet: `electrum create`
-  writes a wallet file there without error, and it is every command
-  reaching that wallet afterwards that has nothing to go through.
-- **Windows is not affected.** Electrum binds a TCP port on `127.0.0.1`
-  for that channel there instead of a unix socket, so the call that
-  fails above is never made. Measured on `windows-latest` against a
-  volume `diskpart` formatted `fs=exfat`: creating a wallet, starting
-  the daemon, `load_wallet` and `getbalance` each answer as they do
-  against an NTFS control on the same runner, and the daemon's own log
-  names the socket it bound as `socktype=tcp`.
-  `win/scripts/electrum/`'s launchers carry no such check.
-- **NTFS** read-write from Ubuntu is the kernel's own in-tree `ntfs3`
-  driver, documented by the kernel rather than measured here; from
-  macOS, NTFS is read-only without a third-party driver, which is why
-  it does not answer any pairing that includes macOS.
+- **A drive formatted for fewer operating systems** has to be
+  reformatted to serve one more later.
+- **On exFAT, a file's mode is not stored**: macOS reports every file
+  executable, and on Linux the mount's `fmask` decides
+  (*Troubleshooting*). `set-permissions` restricts nothing there.
+- **On exFAT, Electrum runs only on Windows**: on macOS and Linux its
+  launchers refuse an `electrum-datadir` that cannot hold the daemon's
+  socket.
+- **On exFAT, Bitcoin Core warns on macOS** (*Limitations, not
+  vulnerabilities*).
+
+`ASSURANCE_CASE.md`'s *Why each filesystem is recommended* says why.
 
 ## Prerequisites
 
@@ -125,21 +81,10 @@ and Ubuntu it has to run under, not on a single default:
   pruning is on.
 - **Permissions**: Ensure the external disk is mounted and writable. A
   folder taken by either route in *Getting the folder* below needs
-  nothing made runnable by hand: the launchers carry the executable bit
-  in the repository and both routes keep it, and exFAT, which stores no
-  mode of its own, reports every file as executable on macOS regardless
-  of `chmod` and on Linux under any mount whose `fmask` does not carry
-  `1` in its owner digit — *Choosing a filesystem* above has both
-  measurements. A Linux mount whose `fmask` does carry it is outside
-  that, and `linux/scripts/utilities/set-permissions.sh` names one,
-  `fmask=133`, as the setting that stops the launchers starting: what
-  such a volume reports comes from the mount rather than from the file,
-  so unmounting the volume and mounting it again with another mask is
-  what changes it. A Linux exFAT mount carrying `noexec` is outside that
-  too, and shows in no mode at all: the file goes on reading executable
-  and still will not run. Measured on Ubuntu's own kernel driver.
-  *Troubleshooting* below has the remedy for that case, and for a folder
-  that reached the disk some other way.
+  nothing made runnable by hand, except on a Linux mount whose `fmask`
+  clears the owner's execute bit or which carries `noexec`:
+  *Troubleshooting* below has the remedy for both, and for a folder that
+  reached the disk some other way.
 - **Dependencies**: None required beyond standard OS tools. For advanced use,
   ensure `gpg` (for the updaters' PGP verification, see *PGP verification
   fails closed* below) and command-line tools are available.
@@ -189,40 +134,42 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
   detect, run from a shell: macOS's `.command` directly, Windows' `.bat`
   through MSYS/Cygwin, and on Linux `linux/Bitcoin-Launcher.sh`,
   `linux/Electrum-Launcher.sh` or `linux/Utilities-Launcher.sh`. A script
-  under `linux/scripts/` also runs by its own path, which
-  `linux/scripts/README.md` covers.
+  under `linux/scripts/` also runs by its own path.
 - `.bat` files are intended for Command Prompt/PowerShell on Windows.
 - `.ps1` files are intended for PowerShell on Windows (menu-based, same options
   as `.bat`).
+- `Utilities-Launcher.*` includes update and rollback options for Bitcoin
+  Core and Electrum.
+- `macos/README.md`, `win/README.md` and `linux/README.md` say what holds
+  on one platform only.
 
 ## Folder Structure
 
 - `macos/`
+    - `README.md`: what holds on macOS only.
     - `bin/`: macOS binaries for Bitcoin Core and Electrum (e.g.,
       `Bitcoin-Qt.app/`).
     - `bin/backup/`: macOS backups created by update scripts.
     - `checksums.sha256`: macOS checksums (versioned).
     - `scripts/`
-        - `bitcoin/`: Bitcoin Core launch scripts (.command). See
-          `macos/scripts/bitcoin/README.md`.
-        - `electrum/`: Electrum launch scripts (.command). See
-          `macos/scripts/electrum/README.md`.
+        - `bitcoin/`: Bitcoin Core launch scripts (.command).
+        - `electrum/`: Electrum launch scripts (.command).
         - `utilities/`: macOS maintenance scripts (updates, verification, cleanup,
           logs).
 
 - `win/`
+    - `README.md`: what holds on Windows only.
     - `bin/`: Windows binaries (e.g., `electrum.exe`).
     - `bin/backup/`: Windows backups created by update scripts.
     - `checksums.sha256`: Windows checksums (versioned) at `win/checksums.sha256`.
     - `scripts/`
-        - `bitcoin/`: Bitcoin Core launch scripts (.bat). See
-          `win/scripts/bitcoin/README.md`.
-        - `electrum/`: Electrum launch scripts (.bat). See
-          `win/scripts/electrum/README.md`.
+        - `bitcoin/`: Bitcoin Core launch scripts (.bat).
+        - `electrum/`: Electrum launch scripts (.bat).
         - `utilities/`: Windows maintenance scripts (updates, verification, cleanup,
           logs).
 
 - `linux/`
+    - `README.md`: what holds on Linux only.
     - `Bitcoin-Launcher.sh`, `Electrum-Launcher.sh`,
       `Utilities-Launcher.sh`: the numbered menus the root launchers of
       those names reach on Linux.
@@ -232,10 +179,8 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
     - `checksums.sha256`: Linux checksums (versioned) at
       `linux/checksums.sha256`.
     - `scripts/`
-        - `bitcoin/`: Bitcoin Core launch scripts (.sh). See
-          `linux/scripts/bitcoin/README.md`.
-        - `electrum/`: Electrum launch scripts (.sh). See
-          `linux/scripts/electrum/README.md`.
+        - `bitcoin/`: Bitcoin Core launch scripts (.sh).
+        - `electrum/`: Electrum launch scripts (.sh).
         - `utilities/`: Linux maintenance scripts (updates, verification,
           cleanup, logs).
 
@@ -250,8 +195,16 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
 - **Testnet3**: `Bitcoin-Launcher.*`'s menu runs `testnet3-18333-qt`.
 - **Testnet4**: `Bitcoin-Launcher.*`'s menu runs `testnet4-48333-qt`.
 - **Regtest**: `Bitcoin-Launcher.*`'s menu runs the `regtest-*` scripts,
-  GUI or CLI, for Alice, Bob and Carol. Clean entries reset data before
-  starting.
+  GUI or CLI, for Alice, Bob and Carol. Clean entries delete that node's
+  regtest data before starting. The three can run at once on one
+  machine, each connecting to the other two on localhost:
+
+  | Node  | P2P port | RPC port | Data under `bitcoin-datadir/` |
+  |-------|----------|----------|-------------------------------|
+  | Alice | 18444    | 18443    | `regtest/`                    |
+  | Bob   | 18555    | 18554    | `regtest_bob/`                |
+  | Carol | 18666    | 18665    | `regtest_carol/`              |
+
 - Data is stored in `bitcoin-datadir/`. Configure via `bitcoin.conf`.
 - On Linux, the same script names are under `linux/scripts/bitcoin/`
   with a `.sh` extension, and each also runs by its own path.
@@ -276,13 +229,19 @@ location to the directory holding `VERSION` beside `macos/`, `win/` or
 - **Testnet3**: `Electrum-Launcher.*`'s menu runs `testnet3`.
 - **Testnet4**: `Electrum-Launcher.*`'s menu runs `testnet4`.
 - **Regtest**: `Electrum-Launcher.*`'s menu runs `regtest`.
-- Data in `electrum-datadir/`. Wallets are in `wallets/`.
+- Data in `electrum-datadir/`. Wallets are in `wallets/`. Every platform's
+  launchers use this one directory, so a wallet created on one is the
+  wallet the others open.
+- `mainnet` and `mainnet-local-server-only` open the same state, and
+  neither checks for the other: stop one before starting the other.
 - On Linux, the same script names are under `linux/scripts/electrum/`
   with a `.sh` extension, and each also runs by its own path.
 
 ### Environment Overrides
 
-Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
+Set `PORTANODE_ROOT` to the folder holding `VERSION` to skip the walk up
+from the script. A value that is not that folder stops the script with a
+message naming it:
 
 - macOS or Linux: `export PORTANODE_ROOT=/path/to/portanode`
 - Windows: `set PORTANODE_ROOT=C:\path\to\portanode`
@@ -296,22 +255,34 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   `linux/scripts/utilities/update-bitcoin.sh` or
   `linux/scripts/utilities/update-electrum.sh`. Each platform's updater
   backs up the version it replaces, verifies the download's PGP
-  signature, and records the new binary's checksum.
+  signature, and records the new binary's checksum. It needs network
+  access, and downloads and unpacks in the local temporary directory,
+  never on the removable volume.
+- **An updater refuses a version older than the installed one**, since an
+  old release still carries valid signatures, and any version where the
+  installed one is not digits and dots. `--allow-downgrade` installs it
+  anyway. The installed version is the one the platform's
+  `checksums.sha256` records for the installed binary's hash; where it
+  records none, no version is refused as older. A requested version that
+  is not digits and dots is refused whatever else is passed, since it is
+  built into a URL and a file name.
 - Rollback with `./macos/scripts/utilities/rollback-bitcoin.sh` or
   `./macos/scripts/utilities/rollback-electrum.sh` on macOS,
   `win/scripts/utilities/rollback-bitcoin.bat` and
   `win/scripts/utilities/rollback-electrum.bat` on Windows, or
   `linux/scripts/utilities/rollback-bitcoin.sh` and
-  `linux/scripts/utilities/rollback-electrum.sh` on Linux, if an update
-  causes issues. Rollback needs the backup an update created, so it is
-  only available after one has run. On macOS, the first rollback after
-  upgrading to the whole-bundle checks is refused, because the entries
-  recorded before them cover the executable only; rollbacks work from the
-  second update on.
-- Validate setup with `./macos/scripts/utilities/validate-setup.sh`,
-  `win/scripts/utilities/validate-setup.bat`, or
-  `linux/scripts/utilities/validate-setup.sh` after updating, and test
-  with the regtest scripts.
+  `linux/scripts/utilities/rollback-electrum.sh` on Linux, if an update causes
+  issues. Rollback needs the backup an update created, so it is only available
+  after one has run. It moves the backup into place, so a second rollback has
+  nothing left to restore. On macOS, the first rollback after upgrading to the
+  whole-bundle checks is refused, because the entries recorded before them cover
+  the executable only; rollbacks work from the second update on.
+- After updating, run the platform's `verify-binaries`,
+  `validate-setup` and `health-check`, in that order: for example
+  `./macos/scripts/utilities/validate-setup.sh`,
+  `win/scripts/utilities/validate-setup.bat` or
+  `linux/scripts/utilities/validate-setup.sh`. Then test with the
+  regtest scripts.
 - **PGP verification fails closed.** Update scripts abort the install unless the
   download carries a valid PGP signature. This requires `gpg` to be installed
   and the signer's key imported: a detached signature file typically carries
@@ -347,7 +318,7 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   [bitcoincore.org](https://bitcoincore.org/en/download/) or
   [electrum.org](https://electrum.org/#download) and verify its checksum
   against the official source yourself, then replace `macos/bin/`
-  (`Bitcoin-Qt.app`, or the command-line tools `macos/bin/README.md` lists),
+  (`Bitcoin-Qt.app`, or the command-line tools `macos/README.md` lists),
   `win/bin/` (`bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`,
   `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`),
   or `linux/bin/` (`bitcoin-qt`, `bitcoind`, `bitcoin-cli`, `bitcoin-tx`,
@@ -362,21 +333,21 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   `validate-setup`'s checksum check do not see it until an updater run
   records one.
 - **Checksums**: `macos/checksums.sha256`, `win/checksums.sha256` and
-  `linux/checksums.sha256` keep ever-growing lists of acceptable hashes
-  labeled by version; update scripts append a new entry (only after a
-  successful PGP verification) and never rewrite an existing one. These
-  files provide **integrity and rollback**
-  checks (detecting corruption/tampering of an already-installed binary), not
-  authenticity — authenticity comes from the PGP step above. Where to get each
-  project's signing key is the *PGP verification fails closed* bullet above.
+  `linux/checksums.sha256` keep ever-growing lists of acceptable hashes labeled
+  by version; update scripts append a new entry (only after a successful PGP
+  verification), never add one twice, and never rewrite an existing one. These
+  files provide **integrity and rollback** checks (detecting
+  corruption/tampering of an already-installed binary), not authenticity —
+  authenticity comes from the PGP step above. Where to get each project's
+  signing key is the *PGP verification fails closed* bullet above.
 
 ### Expected Binaries by OS
 
 - **macOS (`macos/bin/`)**: `Bitcoin-Qt.app/`, `Electrum.app/`, and the Bitcoin
-  Core command-line tools (see `macos/bin/README.md`)
+  Core command-line tools (see `macos/README.md`)
 - **Windows (`win/bin/`)**: `bitcoin-qt.exe`, `bitcoind.exe`, `bitcoin-cli.exe`,
   `bitcoin-tx.exe`, `bitcoin-util.exe`, `bitcoin-wallet.exe`, `bitcoin.exe`,
-  `electrum.exe` (see `win/bin/README.md`)
+  `electrum.exe`
 - **Linux (`linux/bin/`)**: `bitcoin-qt`, `bitcoind`, `bitcoin-cli`,
   `bitcoin-tx`, `bitcoin-util`, `bitcoin-wallet`, `bitcoin`,
   `electrum.AppImage`
@@ -393,27 +364,18 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   not restore it. `chmod +x` the launcher you ran, or take the folder
   again by either route in *Getting the folder*, both of which keep it.
 - **Permission denied on Linux, with the folder on exFAT**: the mode a
-  file reads there is computed from the mount's `fmask` rather than
-  stored, so a mask carrying `1` in its owner digit clears the
-  launcher's execute bit and running it fails with `Permission denied`,
-  exit 126; under `fmask=133` the launcher reads `-rw-r--r--` however it
-  reached the volume. The entry above does not reach this case:
-  `chmod +x` exits 0 and the launcher goes on reading `-rw-r--r--`, and
-  a `mount -o remount` naming another mask exits 0 and leaves the mask
-  in force as it was. `findmnt -no OPTIONS <mount point>` prints that
-  mask, and unmounting the volume and mounting it again with one that
-  leaves the owner's execute bit — `fmask=022`, or `fmask=077,dmask=077`
-  to keep the volume owner-only — is what makes the launchers runnable.
-- **Permission denied, though the mode already reads executable**: a
-  mount carrying `noexec` refuses the exec whatever the file's own mode
-  is, on any filesystem that offers the option, and running the
-  launcher fails with `Permission denied`, exit 126. Neither entry
-  above reaches it: there is no bit for `chmod +x` to set and no mask
-  for a remount to clear, so both exit 0 and change nothing. `ls -l`
-  still reads the launcher as executable and `test -x` answers false;
-  `findmnt -no OPTIONS <mount point>` is where `noexec` itself shows.
-  Unmounting the volume and mounting it again without `noexec` is what
-  makes the launchers runnable.
+  file reads there comes from the mount's `fmask`, so a mask with `1` in
+  its owner digit, such as `fmask=133`, leaves the launchers unrunnable
+  however they reached the volume. Neither `chmod +x` nor a
+  `mount -o remount` naming another mask changes it.
+  `findmnt -no OPTIONS <mount point>` prints the mask. Unmount the
+  volume and mount it again with one that keeps the owner's execute bit:
+  `fmask=022`, or `fmask=077,dmask=077` to keep the volume owner-only.
+- **Permission denied, though the mode reads executable**: the mount
+  carries `noexec`, which refuses the exec whatever the file's mode, and
+  `test -x` answers false. The two entries above change nothing here.
+  `findmnt -no OPTIONS <mount point>` shows `noexec`. Unmount the volume
+  and mount it again without it.
 - **"The ... path uses exFAT" warning on macOS**: expected, from
   Bitcoin Core itself, not from a launcher here — see *Limitations, not
   vulnerabilities* below.
@@ -438,17 +400,20 @@ Set `PORTANODE_ROOT` to customize the root path (e.g., if moving the folder):
   `bash linux/scripts/bitcoin/mainnet-8333-qt.sh`.
 - Rotate logs: `./macos/scripts/utilities/rotate-bitcoin-log.sh`,
   `win/scripts/utilities/rotate-bitcoin-log.bat`, or
-  `./linux/scripts/utilities/rotate-bitcoin-log.sh`
+  `./linux/scripts/utilities/rotate-bitcoin-log.sh` copy `debug.log` to a
+  backup (`debug.log.1`, etc.) and start it afresh.
 - Monitor logs: `./macos/scripts/utilities/monitor-bitcoin-log.sh`,
   `win/scripts/utilities/monitor-bitcoin-log.bat`, or
   `./linux/scripts/utilities/monitor-bitcoin-log.sh` (run periodically to
-  check for errors). Under `cron`, `launchd` or Task Scheduler, add
+  check for errors) report the errors and warnings logged since the last
+  run. Under `cron`, `launchd` or Task Scheduler, add
   `--no-notify` (or set `PORTANODE_NO_NOTIFY=1`) to suppress the desktop
   notification, which a headless or logged-out session cannot show and
   which blocks on Windows until someone dismisses it.
 - Health check: `./macos/scripts/utilities/health-check.sh`,
   `win/scripts/utilities/health-check.bat`, or
-  `./linux/scripts/utilities/health-check.sh`
+  `./linux/scripts/utilities/health-check.sh` check disk space and
+  whether the processes are running.
 
 ### Getting Help
 

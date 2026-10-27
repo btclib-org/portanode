@@ -61,11 +61,14 @@ fi
 
 # The AppImage mounts its own filesystem through the kernel's /dev/fuse
 # before any of Electrum runs. Checked here rather than left to the
-# AppImage, whose own failure offers --appimage-extract and then links
-# AppImageKit's FUSE page, where the remedy is installing libfuse2t64, a
-# library this binary does not load. The message below drops that half
-# and names --appimage-extract-and-run instead, which needs no privilege
-# and was measured to run this AppImage with no /dev/fuse present.
+# AppImage, whose own failure links AppImageKit's FUSE page, where the
+# remedy is installing libfuse2t64: this AppImage links squashfuse
+# statically and loads no libfuse. The message names
+# --appimage-extract-and-run, one step where the AppImage's own
+# --appimage-extract suggestion is two. It needs no privilege, and was
+# measured to run this AppImage with no /dev/fuse present. The launcher
+# names that route rather than taking it: unpacking on every start is
+# slower, and would hide a broken FUSE setup, which is what to repair.
 if [ ! -r /dev/fuse ] || [ ! -w /dev/fuse ]; then
     echo "Error: /dev/fuse is not available to this user."
     echo "The Electrum AppImage mounts its own filesystem through that device."
