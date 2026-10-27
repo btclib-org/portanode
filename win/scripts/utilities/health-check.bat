@@ -139,10 +139,10 @@ REM is checked to actually be Bitcoin, since a reused PID after a crash would
 REM otherwise report a false "running".
 if "%BTC_RUNNING%"=="0" (
     if exist "!ROOTDIR!\bitcoin-datadir\.cookie" (
-        set ARTIFACTS=!ARTIFACTS! .cookie
+        set "ARTIFACTS=!ARTIFACTS! .cookie"
     )
     if exist "!ROOTDIR!\bitcoin-datadir\bitcoind.pid" (
-        set ARTIFACTS=!ARTIFACTS! bitcoind.pid
+        set "ARTIFACTS=!ARTIFACTS! bitcoind.pid"
         REM One physical line: a caret after in, before the file set's
         REM own opening parenthesis, is not a continuation. cmd.exe reads
         REM the for without a file set and refuses it, inside a
