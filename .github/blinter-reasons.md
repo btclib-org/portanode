@@ -7,6 +7,12 @@ header says why for the Error and Security rules.
 `.github/workflows/script-security.yml`'s header says how the job holds
 the two files to each other.
 
+A finding that is Blinter's defect rather than the script's is accepted
+in the baseline and reported upstream. It is first filed in this
+repository as an `upstream-report` issue, as `btclib-common.md`'s
+[*Collateral*](https://github.com/btclib-org/claude-process/blob/main/process/btclib-common.md#collateral)
+says.
+
 ## E006 Potentially undefined variable reference
 
 Blinter counts a variable as defined only where a `set` in its own file
