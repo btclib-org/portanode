@@ -37,6 +37,10 @@ if not "%errorlevel%"=="0" (
 
 set "MOUNT_PATH=%ROOTDIR%"
 set FREE_GB=
+REM Blinter reports E010 on a loop whose powershell command a caret
+REM continues inside the backquotes, as below. That caret continues
+REM the line, and the loop runs. A caret between "in" and the opening
+REM parenthesis would not, and cmd.exe would lose the loop's do.
 REM Run from its own directory by a relative name: win/scripts/root.ps1
 REM says why, and the values arrive as $env: reads.
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^

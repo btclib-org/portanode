@@ -89,6 +89,8 @@ goto :version_ready
 :scrape_version
 echo Determining latest Bitcoin Core version...
 set VERSION=
+REM Blinter's E010 on the loops below is no defect, as health-check.bat
+REM says.
 REM Run from its own directory by a relative name: win/scripts/root.ps1
 REM says why.
 for /f "usebackq delims=" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^

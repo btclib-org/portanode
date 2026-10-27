@@ -82,6 +82,8 @@ if exist "%ROOTDIR%\bitcoin-datadir\bitcoin.conf" (
 )
 
 set FREE_GB=
+REM Blinter's E010 on the loop below is no defect, as health-check.bat
+REM says.
 REM Run from its own directory by a relative name: win/scripts/root.ps1
 REM says why, and the values arrive as $env: reads.
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^

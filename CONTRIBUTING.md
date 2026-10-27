@@ -405,19 +405,8 @@ uvx blinter . --no-config --summary
 ```
 
 It exits non-zero here, and `.pre-commit-config.yaml`'s header says why
-that is not a hook: not one of the findings the rules that set its exit
-code produce here is a defect, and the header carries what suppressing
-one would cost. Read what it reports before believing it, and inspect
+it is not a hook. Read what it reports before believing it, and inspect
 the file from `git archive`, which applies the checkout attributes.
-
-**`E010` is one rule code covering two different shapes of a
-`^`-continued `for /f`, and only one of them is the false positive the
-paragraph above describes.** A caret inside the backquoted command
-substitution is a continuation like any other, and the loop runs; a
-caret between `in` and the file set's own opening parenthesis is not a
-continuation, and cmd.exe genuinely loses the loop's `do`. Which shape a
-given `E010` names is read from where the caret sits relative to the
-backquotes, not from the code.
 
 ### What gates a merge, and what only reports
 

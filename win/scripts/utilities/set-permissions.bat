@@ -263,6 +263,8 @@ set "TARGET=%~1"
 set "REL=%~2"
 set "INHERIT_RC=%~3"
 set "FS_NAME="
+REM Blinter's E010 on the loop below is no defect, as health-check.bat
+REM says.
 REM Run from its own directory by a relative name: win/scripts/root.ps1
 REM says why, and the values arrive as $env: reads.
 for /f "usebackq delims=" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^
