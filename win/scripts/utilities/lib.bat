@@ -26,8 +26,8 @@ REM reads WNP_ANSWER_FILE from its own environment rather than having
 REM the path spliced in. gpg can start keyboxd, which outlives this
 REM script. Where Start-Process redirects gpg's output itself, keyboxd
 REM holds the caller's output pipe, and a caller reading it never
-REM returns (windows-latest run 39181636990); under the hidden window
-REM it does not (run 39182563899). taskkill /t ends gpg along with
+REM returns, measured on windows-latest; under the hidden window it
+REM does not. taskkill /t ends gpg along with
 REM that cmd.exe.
 REM An empty answer file is not a keyring holding no key, so the two
 REM print different warnings and neither ends the run: --dry-run
@@ -122,9 +122,9 @@ REM The test is on size rather than existence, an empty file answering
 REM no more than a missing one; no case measured here separates the
 REM two.
 REM What reaches this line is a %TEMP% under which cmd.exe cannot
-REM create the file at all: one that is missing (windows-latest runs
-REM 39182563899 and 39182668674 leave it missing after
-REM :warn_if_no_pubkeys), a drive letter that is not mapped, a path
+REM create the file at all: one that is missing, as measured on
+REM windows-latest after :warn_if_no_pubkeys, a drive letter that is
+REM not mapped, a path
 REM whose own directory component is a file.
 REM An unset %TEMP%, whose path resolves to the
 REM current drive's root, does not reach it, nor does one whose ACL

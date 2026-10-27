@@ -19,7 +19,7 @@ REM that value before the walk below sees it, and from the target path
 REM of the "call" that reaches this file besides (#411). A folder
 REM mounted at a path holding one is legal on exFAT and NTFS alike.
 REM
-REM Measured on windows-latest, run 34020028270, against two copies of
+REM Measured on windows-latest against two copies of
 REM one tree at C:\p473\ba!ng, one with the callers' line 2 left bare.
 REM Under a "cmd /V:ON", and under a "cmd" given no /V flag at all
 REM once the Command Processor key under HKCU\Software\Microsoft has
@@ -198,7 +198,7 @@ exit /b 0
 REM Makes System32 the current directory with pushd, for the caller to
 REM undo with popd before it returns, and returns 1 where it cannot.
 REM cmd.exe looks for a command run by its bare name in the current
-REM directory before PATH. Measured on windows-latest, run 39180182985:
+REM directory before PATH. Measured on windows-latest:
 REM a PowerShell.bat in the current directory ran in place of
 REM PowerShell, from a plain line and from a for /f capture alike, and
 REM with the folder there a tasklist.bat took health-check.bat over, a
