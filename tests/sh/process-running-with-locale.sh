@@ -1,35 +1,36 @@
 # shellcheck shell=bash
-# Tests of process_running_with and regtest_node_running_on in shared/lib.sh
-# on a string holding a character outside ASCII, with and without a UTF-8
-# locale in the caller's environment. Run from anywhere, on macOS or Linux:
-#
-#     bash shared/tests/process-running-with-locale.sh
-#
-# It starts a stand-in process, a bash whose command line carries a datadir
-# argument, and no node. Exit 0 where every case passes, 1 where one fails.
+# shellcheck disable=SC2329 # check and shared/lib.sh call these functions by name
+# process_running_with and regtest_node_running_on, in shared/lib.sh, on a
+# string holding a character outside ASCII, with and without a UTF-8 locale
+# in the caller's environment. It starts a stand-in process, a bash whose
+# command line carries a datadir argument, and no node.
 
 set -u
 
-# bash looks for a bare name in the current directory, then in PATH. Found
-# through PATH, $0 has no directory, so the directory below would be wrong.
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-# shellcheck source=shared/lib.sh
+REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
+# shellcheck source=tests/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
+# shellcheck source=shared/lib.sh
+. "$REPO/shared/lib.sh"
 
-failures=0
-
-# expect <status> <description> <command> [argument...]: runs the command
-# in a subshell and compares its exit status with <status>.
+# expect <status> <description> <command> [argument...]: one case, passed
+# where the command exits <status>. check runs it in a subshell.
 expect() {
-    local want="$1" what="$2" got
+    local want="$1" what="$2"
     shift 2
-    ("$@")
+    check "$what" answers "$want" "$@"
+}
+
+# answers <status> <command> [argument...]: 0 where the command exits
+# <status>.
+answers() {
+    local want="$1" got
+    shift
+    "$@"
     got=$?
-    if [ "$got" -ne "$want" ]; then
-        echo "FAIL: $what (wanted $want, got $got)"
-        failures=$((failures + 1))
-    fi
+    same "$want" "$got"
 }
 
 # without_locale <command> [argument...]: runs the command with no locale
@@ -58,7 +59,6 @@ not_1() {
 listing() {
     PROCS="$1"
     shift
-    # shellcheck disable=SC2329 # the functions of lib.sh call it
     _process_args() { printf '%s\n' "$PROCS"; }
     "$@"
 }
@@ -66,7 +66,6 @@ listing() {
 # no_utf8_locale <command> [argument...]: runs the command as on a machine
 # that has no UTF-8 locale.
 no_utf8_locale() {
-    # shellcheck disable=SC2329 # the functions of lib.sh call it
     _utf8_locale() { return 1; }
     "$@"
 }
@@ -149,8 +148,9 @@ if loc="$(_utf8_locale)"; then
             under "$caller" listing "bitcoind -regtest -uacomment="$'\xff'" ${ARG/è/È}" \
             not_1 regtest_node_running_on "$DIR"
     done
+    echo "ok - SKIP: the cases for a machine with no UTF-8 locale (this one has $loc)"
 else
-    echo "This machine has no UTF-8 locale."
+    echo "ok - SKIP: the cases that need a UTF-8 locale (this machine has none)"
     expect 2 "a string outside ASCII answers 2" process_running_with "$ARG"
     expect 2 "a datadir outside ASCII answers 2" regtest_node_running_on "$DIR"
 fi
@@ -176,8 +176,4 @@ expect 2 "a string holding a tab, which ps escapes, answers 2" \
 expect 2 "a string holding a byte that is not UTF-8 answers 2" \
     process_running_with "$ARG"$'\xff'
 
-if [ "$failures" -ne 0 ]; then
-    echo "$failures case(s) failed"
-    exit 1
-fi
-echo "Every case passed."
+finish

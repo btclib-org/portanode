@@ -1,40 +1,33 @@
 # shellcheck shell=bash
-# Tests for the node-detection helpers of shared/lib.sh. Run from anywhere:
-#
-#   bash shared/tests/node-detection.sh
-#
-# It exits 0 where every case passes and 1 otherwise. It starts no node and
-# reads no process list: each case replaces _process_args with the lines it
-# names. It has no shebang and no executable bit because Bash reads it;
-# launchers are the files that need one.
+# shellcheck disable=SC2329 # check and shared/lib.sh call these functions by name
+# The node-detection helpers of shared/lib.sh, which the Alice -clean
+# launchers and the mainnet launchers use to find a running node. It starts
+# no node and reads no process list: each case replaces _process_args with
+# the lines it names.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-# shellcheck source=shared/lib.sh
+REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
+# shellcheck source=tests/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
+# shellcheck source=shared/lib.sh
+. "$REPO/shared/lib.sh"
 
-FAILED=0
-CASES=0
 PROCS=""
 
 # the functions of lib.sh call it
-# shellcheck disable=SC2329
 _process_args() {
     printf '%s' "$PROCS"
 }
 
-# expect <status> <description> <function> [argument...]: runs the function
-# against $PROCS and compares its exit status with <status>.
-expect() {
-    local want="$1" what="$2" got
-    shift 2
+# answers <status> <function> [argument...]: 0 where the function, run
+# against $PROCS, exits <status>.
+answers() {
+    local want="$1" got
+    shift
     "$@"
     got=$?
-    CASES=$((CASES + 1))
-    if [ "$got" -ne "$want" ]; then
-        FAILED=$((FAILED + 1))
-        echo "FAIL: $what (wanted $want, got $got)"
-    fi
+    same "$want" "$got"
 }
 
 D="/Volumes/My Drive/portanode/bitcoin-datadir"
@@ -58,12 +51,12 @@ for args in \
     "-datadir=$D/ -regtest" \
     "-DATADIR=$D -REGTEST"; do
     PROCS="$BIN $args"$'\n'
-    expect 0 "regtest node found: $args" regtest_node_running_on "$D"
+    check "regtest node found: $args" answers 0 regtest_node_running_on "$D"
 done
 
 PROCS="/usr/bin/bitcoind -regtest -datadir=$D"$'\n'
-expect 0 "bitcoind found" regtest_node_running_on "$D"
-expect 0 "datadir with a trailing slash given" regtest_node_running_on "$D/"
+check "bitcoind found" answers 0 regtest_node_running_on "$D"
+check "datadir with a trailing slash given" answers 0 regtest_node_running_on "$D/"
 
 for args in \
     "-datadir=$D" \
@@ -80,11 +73,11 @@ for args in \
     "-datadir=/Volumes/other/bitcoin-datadir -regtest" \
     "-regtest"; do
     PROCS="$BIN $args"$'\n'
-    expect 1 "regtest node not found: $args" regtest_node_running_on "$D"
+    check "regtest node not found: $args" answers 1 regtest_node_running_on "$D"
 done
 
 PROCS=$'/bin/ls\n/usr/bin/vim notes\n'
-expect 1 "no node running" regtest_node_running_on "$D"
+check "no node running" answers 1 regtest_node_running_on "$D"
 
 # Mainnet check (ISS 662): the network flags count only as whole arguments.
 for args in \
@@ -103,11 +96,11 @@ for args in \
     "-datadir=$D" \
     ""; do
     PROCS="$BIN $args"$'\n'
-    expect 0 "mainnet node found: $args" mainnet_node_running
+    check "mainnet node found: $args" answers 0 mainnet_node_running
 done
 
 PROCS="/usr/local/bin/bitcoind -datadir=/Volumes/btc-testnet-old"$'\n'
-expect 0 "mainnet bitcoind found" mainnet_node_running
+check "mainnet bitcoind found" answers 0 mainnet_node_running
 
 for args in \
     "-testnet" \
@@ -125,20 +118,18 @@ for args in \
     "-datadir=/Volumes/btc-testnet-old -regtest" \
     "-REGTEST"; do
     PROCS="$BIN $args"$'\n'
-    expect 1 "mainnet node not found: $args" mainnet_node_running
+    check "mainnet node not found: $args" answers 1 mainnet_node_running
 done
 
 PROCS=$'/bin/ls /Volumes/btc-testnet-old\n'
-expect 1 "no node running (mainnet)" mainnet_node_running
+check "no node running (mainnet)" answers 1 mainnet_node_running
 
 # A process list that cannot be read answers 2 and not "no node".
-# shellcheck disable=SC2329
 _process_args() {
     return 1
 }
-expect 2 "unreadable list (regtest guard)" regtest_node_running_on "$D"
-expect 2 "unreadable list (mainnet)" mainnet_node_running
-expect 2 "unreadable list (process_running_with)" process_running_with x
+check "unreadable list (regtest guard)" answers 2 regtest_node_running_on "$D"
+check "unreadable list (mainnet)" answers 2 mainnet_node_running
+check "unreadable list (process_running_with)" answers 2 process_running_with x
 
-echo "$((CASES - FAILED)) of $CASES passed"
-[ "$FAILED" -eq 0 ]
+finish

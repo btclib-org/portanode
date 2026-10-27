@@ -1,25 +1,22 @@
 # shellcheck shell=bash
-# Tests for the updaters' downgrade refusal and HTTPS-only fetches.
-#
-#   bash tests/updaters.sh
+# Tests for the macOS and Linux updaters' downgrade refusal and HTTPS-only
+# fetches.
 #
 # Needs no network: the updaters run in a copy of the tree, with curl,
 # pgrep and uname replaced by stubs on PATH, and OSTYPE set to the
 # platform each is for. The curl_https checks start local servers, so
-# they need python3 and openssl, and are reported SKIP without them.
+# they need python3 and openssl, and are skipped without them.
 # compare-versions.ps1 runs through pwsh against the same cases as
-# refuse_downgrade, and is reported SKIP where pwsh is not on PATH.
-# Exits 1 where any check fails.
-#
-# Run by bash rather than executed, so it carries no shebang and no
-# executable bit.
+# refuse_downgrade, and is skipped where pwsh is not on PATH.
 set -uo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT="$(dirname "$SCRIPT_DIR")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
+# shellcheck source=tests/lib.sh
+. "$SCRIPT_DIR/../lib.sh"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tests.XXXXXX")"
 SERVER_PIDS=""
 # shellcheck disable=SC2329 # invoked by the EXIT trap below
@@ -32,10 +29,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-FAILED=0
-pass() { echo "ok   $1"; }
-fail() { echo "FAIL $1"; FAILED=1; }
-skip() { echo "SKIP $1"; }
+pass() { echo "ok - $1"; }
+fail() { echo "not ok - $1"; TESTS_FAILED=$((TESTS_FAILED + 1)); }
+skip() { echo "ok - SKIP: $1"; }
 
 # shellcheck source=shared/utilities/lib.sh
 . "$ROOT/shared/utilities/lib.sh"
@@ -168,17 +164,17 @@ EOF
     # not show that --proto-redir is passed; the curl log of the updater
     # runs below does.
     # -k because the certificate is self-signed.
-    check() {
+    fetch() {
         local want="$1" what="$2"
         shift 2
         if "$@" > /dev/null 2>&1; then got=fetches; else got=refuses; fi
         if [ "$got" = "$want" ]; then pass "$what $got"; else fail "$what $got"; fi
     }
-    check fetches "curl, plain HTTP," curl -fsS "$HTTP/"
-    check refuses "curl_https, plain HTTP," curl_https -fsS "$HTTP/"
-    check fetches "curl_https, HTTPS," curl_https -fsSk "$HTTPS/ok"
-    check fetches "curl -L, HTTPS redirected to HTTP," curl -fsSkL "$HTTPS/redirect"
-    check refuses "curl_https -L, HTTPS redirected to HTTP," \
+    fetch fetches "curl, plain HTTP," curl -fsS "$HTTP/"
+    fetch refuses "curl_https, plain HTTP," curl_https -fsS "$HTTP/"
+    fetch fetches "curl_https, HTTPS," curl_https -fsSk "$HTTPS/ok"
+    fetch fetches "curl -L, HTTPS redirected to HTTP," curl -fsSkL "$HTTPS/redirect"
+    fetch refuses "curl_https -L, HTTPS redirected to HTTP," \
       curl_https -fsSkL "$HTTPS/redirect"
 else
     skip "curl_https against local servers: python3 or openssl not found"
@@ -280,4 +276,4 @@ else
     cat "$WORK/curl.log"
 fi
 
-exit "$FAILED"
+finish
