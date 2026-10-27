@@ -381,6 +381,10 @@ pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
 Its `ParseError` severity is PowerShell's own parser refusing the file,
 which is a different answer from a style finding.
 
+A finding it reports is fixed or, where it is no defect, suppressed in
+the script by a `SuppressMessageAttribute` that says why. The same
+command with `-SuppressedOnly` lists the suppressed findings.
+
 **`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
 which the Windows mainnet launcher uses to read a running node's network
 switches. It is in the suite, so `tests/run.ps1` runs it. It starts no
