@@ -47,19 +47,12 @@
 # names a share's filesystem rather than declining it, so the two answer for
 # the same folder rather than one of them alone.
 #
-# Add-Type compiles the declaration below and so needs a writable %TEMP%,
-# which GetPathRoot does not. What that costs is the refusal: measured on
-# windows-latest with %TEMP% on an unmapped drive letter, this script exits 1
-# and validate-setup.bat prints "Could not determine disk free space." and
-# carries on to exit 0, where GetPathRoot answers and its 100GB test runs.
-# Falling back to GetPathRoot there is refused twice over. An Add-Type that
-# does not compile leaves no call made at all, so there is nothing to fall
-# back from, where filesystem-type.ps1's own fallback follows a call that ran
-# and failed at a root it names. And the two roots are not the same root: for
-# the subst target that fallback exists for, it answers the volume its
-# accurate call would have, where GetPathRoot here answers a different one,
-# so a folder at a mount point would be validated on the drive letter's
-# figure rather than reported unknown.
+# Where the call fails the script exits 1 rather than ask GetPathRoot's root:
+# at a mount point that root is another volume, so a folder would be
+# validated on the drive letter's figure rather than reported unknown.
+#
+# The declaration is emitted in memory rather than compiled by Add-Type, for
+# the reason filesystem-type.ps1 gives.
 param(
   [Parameter(Mandatory = $true)]
   [string]$Path
@@ -67,19 +60,38 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# filesystem-type.ps1's function of the same name, copied.
+function Get-Kernel32Type {
+    param([string]$Name, [hashtable]$Methods)
+    $assembly = [Reflection.Emit.AssemblyBuilder]::DefineDynamicAssembly(
+        [Reflection.AssemblyName]::new($Name),
+        [Reflection.Emit.AssemblyBuilderAccess]::Run)
+    $type = $assembly.DefineDynamicModule($Name).DefineType($Name, 'Public')
+    $dllImport = [Runtime.InteropServices.DllImportAttribute]
+    $attribute = [Reflection.Emit.CustomAttributeBuilder]::new(
+        $dllImport.GetConstructor([Type[]]@([string])), [object[]]@('kernel32.dll'),
+        [Reflection.FieldInfo[]]@($dllImport.GetField('CharSet'),
+            $dllImport.GetField('SetLastError')),
+        [object[]]@([Runtime.InteropServices.CharSet]::Unicode, $true))
+    foreach ($method in $Methods.GetEnumerator()) {
+        $parameters = [Type[]]$method.Value
+        $builder = $type.DefineMethod($method.Key,
+            'Public, Static, PinvokeImpl', [bool], $parameters)
+        $builder.SetCustomAttribute($attribute)
+    }
+    return $type.CreateType()
+}
+
 try {
     $full = (Resolve-Path -LiteralPath $Path).ProviderPath
-    Add-Type -Namespace PortaNode -Name Disk -MemberDefinition @'
-[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-public static extern bool GetDiskFreeSpaceEx(string lpDirectoryName,
-    out ulong lpFreeBytesAvailableToCaller,
-    out ulong lpTotalNumberOfBytes,
-    out ulong lpTotalNumberOfFreeBytes);
-'@
+    $byRef = [uint64].MakeByRefType()
+    $disk = Get-Kernel32Type -Name 'PortaNode.Disk' -Methods @{
+        GetDiskFreeSpaceEx = [string], $byRef, $byRef, $byRef
+    }
     $available = [uint64]0
     $capacity = [uint64]0
     $free = [uint64]0
-    if (-not [PortaNode.Disk]::GetDiskFreeSpaceEx($full, [ref]$available,
+    if (-not $disk::GetDiskFreeSpaceEx($full, [ref]$available,
             [ref]$capacity, [ref]$free)) {
         exit 1
     }

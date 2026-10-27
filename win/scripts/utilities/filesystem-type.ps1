@@ -69,19 +69,17 @@
 # A UNC path is where DriveInfo cannot be asked and this call can, so a folder
 # on a share is named here where it was reported unknown.
 #
-# Get-Volume -FilePath reaches the same volume in one line and needs no
-# compile, and is not used: measured on windows-latest it takes several times
-# as long as the pair below, once per data directory. What the pair costs in
-# its place is Add-Type's need for a writable %TEMP% to compile in, and on the
-# filesystem this folder is meant for that cost is not offset. Measured with
-# %TEMP% on an unmapped drive letter, against data directories on an exFAT
-# volume: set-permissions.bat answers exFAT and prints the volume's own
-# warning at exit 2 where it runs GetPathRoot, and reports the filesystem as
-# undetermined at exit 1 where it runs this. An exFAT directory never reaches
-# that script's own ACL readback -- its exFAT arm exits ahead of the line
-# naming the readback's !TEMP! file -- so there is no second %TEMP% failure
-# underneath to make the two alike. Warning to warning and non-zero to
-# non-zero, so a run under that %TEMP% never claims a restriction it lacks.
+# Get-Volume -FilePath reaches the same volume in one line, and is not used:
+# measured on windows-latest it takes several times as long as the pair
+# below, once per data directory.
+#
+# The pair is declared with System.Reflection.Emit, in memory, rather than
+# with Add-Type. Add-Type in Windows PowerShell 5.1 compiles the declaration
+# under %TEMP%, and the compile fails where %TEMP% holds a letter outside the
+# ANSI code page or sits on a drive letter no volume carries. TEMP follows
+# the account name, so an account named with such a letter meets the first.
+# tests/win/temp-outside-ansi.ps1 runs this script and free-space-gb.ps1
+# under both, with powershell.exe and with the PowerShell running the suite.
 #
 # The buffer is MAX_PATH + 1, and what it has to hold is the mount point
 # rather than -Path. Measured on windows-latest: an input of 362 characters
@@ -97,30 +95,47 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Returns a type holding a static kernel32 entry point answering bool for each
+# key of -Methods, taking the parameter types its value lists. Each is what a
+# [DllImport] with CharSet.Unicode and SetLastError declares.
+function Get-Kernel32Type {
+    param([string]$Name, [hashtable]$Methods)
+    $assembly = [Reflection.Emit.AssemblyBuilder]::DefineDynamicAssembly(
+        [Reflection.AssemblyName]::new($Name),
+        [Reflection.Emit.AssemblyBuilderAccess]::Run)
+    $type = $assembly.DefineDynamicModule($Name).DefineType($Name, 'Public')
+    $dllImport = [Runtime.InteropServices.DllImportAttribute]
+    $attribute = [Reflection.Emit.CustomAttributeBuilder]::new(
+        $dllImport.GetConstructor([Type[]]@([string])), [object[]]@('kernel32.dll'),
+        [Reflection.FieldInfo[]]@($dllImport.GetField('CharSet'),
+            $dllImport.GetField('SetLastError')),
+        [object[]]@([Runtime.InteropServices.CharSet]::Unicode, $true))
+    foreach ($method in $Methods.GetEnumerator()) {
+        $parameters = [Type[]]$method.Value
+        $builder = $type.DefineMethod($method.Key,
+            'Public, Static, PinvokeImpl', [bool], $parameters)
+        $builder.SetCustomAttribute($attribute)
+    }
+    return $type.CreateType()
+}
+
 try {
     $full = (Resolve-Path -LiteralPath $Path).ProviderPath
-    Add-Type -Namespace PortaNode -Name Volume -MemberDefinition @'
-[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-public static extern bool GetVolumePathName(string lpszFileName,
-    System.Text.StringBuilder lpszVolumePathName, uint cchBufferLength);
-
-[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-public static extern bool GetVolumeInformation(string lpRootPathName,
-    System.Text.StringBuilder lpVolumeNameBuffer, uint nVolumeNameSize,
-    out uint lpVolumeSerialNumber, out uint lpMaximumComponentLength,
-    out uint lpFileSystemFlags,
-    System.Text.StringBuilder lpFileSystemNameBuffer,
-    uint nFileSystemNameSize);
-'@
+    $byRef = [uint32].MakeByRefType()
+    $volume = Get-Kernel32Type -Name 'PortaNode.Volume' -Methods @{
+        GetVolumePathName = [string], [Text.StringBuilder], [uint32]
+        GetVolumeInformation = [string], [Text.StringBuilder], [uint32],
+            $byRef, $byRef, $byRef, [Text.StringBuilder], [uint32]
+    }
     $size = 261
     $name = New-Object -TypeName System.Text.StringBuilder -ArgumentList $size
     $serial = 0
     $components = 0
     $flags = 0
     $mount = New-Object -TypeName System.Text.StringBuilder -ArgumentList $size
-    if ([PortaNode.Volume]::GetVolumePathName($full, $mount, $size)) {
+    if ($volume::GetVolumePathName($full, $mount, $size)) {
         $m = $mount.ToString()
-        $ok = [PortaNode.Volume]::GetVolumeInformation($m, $null, 0,
+        $ok = $volume::GetVolumeInformation($m, $null, 0,
             [ref]$serial, [ref]$components, [ref]$flags, $name, $size)
         # Marshal::GetLastWin32Error reads a value the runtime caches at each
         # P/Invoke declared SetLastError, so nothing goes between it and the
@@ -139,7 +154,7 @@ public static extern bool GetVolumeInformation(string lpRootPathName,
         }
     }
     $root = [System.IO.Path]::GetPathRoot($full)
-    if ([PortaNode.Volume]::GetVolumeInformation($root, $null, 0,
+    if ($volume::GetVolumeInformation($root, $null, 0,
             [ref]$serial, [ref]$components, [ref]$flags, $name, $size)) {
         Write-Output $name.ToString()
         exit 0
