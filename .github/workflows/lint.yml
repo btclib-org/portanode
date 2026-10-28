@@ -12,9 +12,9 @@ name: lint
 #
 # A job's name becomes a required context, and that is a
 # second step rather than part of this one: a required context nothing
-# produces blocks every merge with nothing in the tree to explain why, so
-# the workflow lands first and REPOSITORY.md's "What gates a merge"
-# follows it once a run is green.
+# produces blocks every merge but an administrator's, with nothing in the
+# tree to explain why, so the workflow lands first and REPOSITORY.md's
+# "What gates a merge" follows it once a run is green.
 
 on:
   push:

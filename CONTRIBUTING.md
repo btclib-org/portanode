@@ -436,9 +436,11 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 That answers `true`: a red `Lint`, `Dependency review`, `Sign-off`,
 `Script security`, `test: every job passed` or `codeql: every job passed`
 stops the merge.
-`REPOSITORY.md`'s *What gates a merge* has the setting, that it is classic
-branch protection rather than a ruleset rule, and that its `strict` flag
-is off.
+
+**No required check holds an administrator's merge**, here or below,
+because `enforce_admins` is off. `REPOSITORY.md`'s *What gates a merge*
+has the setting, that it is classic branch protection rather than a
+ruleset rule, and that its `strict` and `enforce_admins` flags are off.
 
 **`script-security.yml` runs the security rules of PSScriptAnalyzer and
 Blinter's Error, Security and Warning rules, over the `.ps1` and `.bat`
