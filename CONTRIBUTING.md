@@ -366,13 +366,13 @@ scripts exist for, and the one a checkout on an internal disk never
 exercises.
 
 **The `.bat` and `.ps1` halves are read by the generic hooks, and by
-`script-security.yml` for security findings, and for Blinter's Error
-and Warning findings too** (*What gates a merge*, below). The same job
-refuses a non-ASCII byte and a lone CR in a `.bat` or `.cmd`; its header
-says why. PowerShell's parser is
-PSScriptAnalyzer, and `.pre-commit-config.yaml`'s header says why it is
-not a hook here; run all of its rules by hand, against a `pwsh` that
-carries the module:
+`script-security.yml` for PSScriptAnalyzer's findings and for Blinter's
+Error, Security and Warning findings** (*What gates a merge*, below).
+The same job refuses a non-ASCII byte and a lone CR in a `.bat` or
+`.cmd`; its header says why. PowerShell's parser is PSScriptAnalyzer,
+and `.pre-commit-config.yaml`'s header says why it is not a hook here.
+The command shows the job's findings before a push, against a `pwsh`
+that carries the module at the version the job pins:
 
 ```shell
 pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
@@ -440,7 +440,7 @@ stops the merge.
 branch protection rather than a ruleset rule, and that its `strict` flag
 is off.
 
-**`script-security.yml` runs the security rules of PSScriptAnalyzer and
+**`script-security.yml` runs PSScriptAnalyzer's default rules and
 Blinter's Error, Security and Warning rules, over the `.ps1` and `.bat`
 scripts on every pull request**, and its header says what fails it. Its
 `Script security` job is a required check. A Blinter finding it reports is

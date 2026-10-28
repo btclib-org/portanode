@@ -25,9 +25,9 @@
 # found" for the first shape and cannot find `docker` for the second.
 # uv is the only prerequisite CONTRIBUTING.md asks of a machine that
 # commits here, and a hook that cannot bootstrap turns every run red
-# without having read anything, so PSScriptAnalyzer is run by hand:
-# CONTRIBUTING.md's last section carries the invocation, beside what
-# else the gate does not reach.
+# without having read anything, so PSScriptAnalyzer is not a hook here.
+# CONTRIBUTING.md's last section carries the command that runs it
+# locally, beside what else the gate does not reach.
 #
 # `.bat` has a linter, and it was weighed rather than wished for.
 # Blinter installs under uv alone, wanting neither `pwsh` nor a
@@ -61,8 +61,8 @@
 # Run it by hand, as above; reconsider it when it reads a `^`
 # continuation.
 #
-# The security rules of PSScriptAnalyzer and Blinter's Error, Security
-# and Warning rules run in CI all the same, in
+# PSScriptAnalyzer's default rules and Blinter's Error, Security and
+# Warning rules run in CI all the same, in
 # .github/workflows/script-security.yml, and the costs above do not
 # stand in the way of that job. It runs Blinter unmodified and this tree
 # conveys none of it, and the AGPL "affirms your unlimited permission to

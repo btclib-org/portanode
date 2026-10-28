@@ -1,22 +1,23 @@
 ---
 name: script-security
 
-# the security rules of PSScriptAnalyzer and the Error, Security and
+# the default rules of PSScriptAnalyzer and the Error, Security and
 # Warning rules of Blinter, over every tracked .ps1 and .bat script: the
 # hooks lint.yml runs read these files as text, and .pre-commit-config.yaml's
 # header says why neither tool is a hook.
 #
-# A finding of any other rule does not fail the job. For PowerShell the
-# rules are ScriptSecurity, the settings preset the module ships, and three
-# security rules the preset leaves out: PSAvoidUsingInvokeExpression,
-# PSAvoidUsingBrokenHashAlgorithms and
-# PSAvoidUsingAllowUnencryptedAuthentication. A file PowerShell cannot
-# parse fails too, since nothing in it was read. For batch a finding of
-# those Blinter rules fails the job where the baseline below does not hold
-# it, and the job fails as well where Blinter read a number of files other
+# For PowerShell a finding of Warning or Error severity fails the job, and
+# so does a file PowerShell cannot parse, since nothing in it was read. A
+# finding of Information severity is printed and does not fail it. A
+# finding a SuppressMessageAttribute in the .ps1 suppresses is not
+# reported, and CONTRIBUTING.md's last section says when one is
+# suppressed. The job reads no PSScriptAnalyzer settings file from the
+# tree, so none can turn a rule off. For batch a finding of those
+# Blinter rules fails the job where the baseline below does not hold it,
+# and the job fails as well where Blinter read a number of files other
 # than the number git tracks, or where a tracked .bat or .cmd file holds a
 # LINT:IGNORE directive, which would silence a finding without an entry in
-# the baseline. Both tools' other rules stay by hand, as CONTRIBUTING.md's
+# the baseline. Blinter's other rules stay by hand, as CONTRIBUTING.md's
 # last section says.
 #
 # It fails too on a byte in those files that is neither printable ASCII nor
@@ -200,29 +201,33 @@ jobs:
             sha256sum --check --strict
           unzip -q "$pkg" -d "$RUNNER_TEMP/PSScriptAnalyzer"
 
-      # one file at a time, from git's list, so that every tracked script is
-      # read and a parse error names its file
-      - name: Check the .ps1 scripts with PSScriptAnalyzer's security rules
+      # one file at a time, from git's list, so that a parse error names its
+      # file. The list ignores case, so X.PS1 is read too. The empty settings
+      # stop PSScriptAnalyzer reading a PSScriptAnalyzerSettings.psd1 beside
+      # the file, and the escaped path keeps a [ in a name from matching no
+      # file: Invoke-ScriptAnalyzer has no -LiteralPath
+      - name: Check the .ps1 scripts with PSScriptAnalyzer's rules
         shell: pwsh
         run: |
           Import-Module "$env:RUNNER_TEMP/PSScriptAnalyzer/PSScriptAnalyzer.psd1"
-          $module = Get-Module PSScriptAnalyzer
-          $version = $module.Version
-          # the preset read from the module, so its list stays the module's,
-          # with the header's three rules added
-          $settings = Import-PowerShellDataFile `
-            (Join-Path $module.ModuleBase 'Settings/ScriptSecurity.psd1')
-          $settings.IncludeRules += @(
-            'PSAvoidUsingInvokeExpression'
-            'PSAvoidUsingBrokenHashAlgorithms'
-            'PSAvoidUsingAllowUnencryptedAuthentication'
-          )
+          $version = (Get-Module PSScriptAnalyzer).Version
           "PowerShell $($PSVersionTable.PSVersion), PSScriptAnalyzer $version"
-          $files = @(git ls-files '*.ps1' '*.psm1' '*.psd1')
-          $found = @(foreach ($f in $files) {
-            Invoke-ScriptAnalyzer -Path $f -Settings $settings |
-              ForEach-Object { "::error file=$f,line=$($_.Line)::$($_.RuleName): $($_.Message)" }
-          })
-          "$($found.Count) security findings in $($files.Count) files"
+          $files = @(git ls-files ':(icase)*.ps1' ':(icase)*.psm1' ':(icase)*.psd1')
+          $found = @()
+          $information = @()
+          foreach ($f in $files) {
+            $path = [WildcardPattern]::Escape($f)
+            foreach ($d in Invoke-ScriptAnalyzer -Path $path -Settings @{}) {
+              $text = "$($d.Severity) $($d.RuleName): $($d.Message)"
+              if ($d.Severity -eq 'Information') {
+                $information += "${f}:$($d.Line): $text"
+              } else {
+                $found += "::error file=$f,line=$($d.Line)::$text"
+              }
+            }
+          }
+          "$($information.Count) Information findings, which fail nothing"
+          $information
+          "$($found.Count) other findings in $($files.Count) files"
           $found
           if ($found.Count -gt 0) { exit 1 }
