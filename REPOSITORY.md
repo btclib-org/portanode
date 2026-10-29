@@ -412,8 +412,8 @@ organization's `reusable-codeql.yml` over `actions` alone.
 `code-scanning/default-setup` lists `actions` as the only language this
 repository holds, so what CodeQL reads here is its own workflow files,
 not its launcher scripts. What reads the launchers instead is
-`shellcheck`, in `.pre-commit-config.yaml`'s own hooks, and the security
-rules `script-security.yml` runs over the `.bat` and `.ps1` ones.
+`shellcheck`, in `.pre-commit-config.yaml`'s own hooks, and the rules
+`script-security.yml` runs over the `.bat` and `.ps1` ones.
 `code-quality/setup` answers with an empty `languages` list of its own,
 which is the code-quality feature's state and not CodeQL's — the two
 endpoints cover different features and do not corroborate each other.
