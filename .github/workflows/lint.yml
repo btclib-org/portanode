@@ -104,7 +104,7 @@ jobs:
       # uv is the only prerequisite here as everywhere, and this is the
       # step that supplies it
       - name: Install uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
 
       # the cache key needs the runner image, not only the OS: a
       # pre-commit environment built on one image is not always usable on
@@ -220,7 +220,7 @@ jobs:
       # caching off: the job installs no dependency, so a cache has nothing
       # to hold
       - name: Install uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
           enable-cache: false
 
