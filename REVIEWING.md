@@ -526,11 +526,8 @@ question names it.
   variable built as `$ROOTDIR/...` prints one too, and matches neither
   in the message nor in the assignment, so that half is read rather than
   grepped. What the reading decides is the path's use: a path printed for
-  use outside the launcher's own process is that convention's carve-out rather
-  than this defect. The carve-out covers `$ROOTDIR` alone, the block of
-  resolved locations a Bitcoin launcher opens with, a message whose
-  subject is how long a path is, and the command an Electrum launcher
-  prints for pasting into a shell.
+  use outside the launcher's own process is that convention's carve-out
+  rather than this defect.
 
   That grep, and the interpolating half beside it, both anchor on one
   physical line holding `echo`, so two shapes reach neither: a message
