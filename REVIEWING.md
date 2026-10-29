@@ -664,8 +664,8 @@ question names it.
 
     names the subject on one platform; whether the other platforms have
     it, and whether they needed the same change, is the reading.
-- **Does verification still fail closed?** An update script installs
-  nothing whose PGP signature did not verify. A diff that turns a
+- **Does verification still fail closed?** `README.md`'s *PGP
+  verification fails closed* states the rule. A diff that turns a
   verification failure into a warning, that adds a way past it, or that
   installs before verifying rather than after, is a blocking finding
   whatever else it does.
