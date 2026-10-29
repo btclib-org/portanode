@@ -82,5 +82,15 @@ set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
 set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666
-start "" cmd /k %BITCOIND_CMD%
+REM cmd /k strips the first and the last quote of a command that opens
+REM with one and holds more than two. Passed bare, BITCOIND_CMD loses the
+REM opening quote of the path to bitcoind.exe, and no bitcoind starts,
+REM whatever the folder (#757). Wrapped in one more pair, the strip takes
+REM that pair. The value is expanded late, after cmd has parsed this
+REM line, so an "&" in the folder's path is never parsed here at all.
+REM Expanded at parse time instead, the "&" would be parsed, and would
+REM sit outside every pair: between the value's own inner quotes.
+setlocal enabledelayedexpansion
+start "" cmd /k "!BITCOIND_CMD!"
+endlocal
 start "" cmd /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"
