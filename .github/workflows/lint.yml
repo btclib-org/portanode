@@ -8,7 +8,7 @@ name: lint
 # The suite is test.yml's, the security rules over the Windows scripts
 # are script-security.yml's, and there is no documentation build in this
 # tree. CONTRIBUTING.md's last section says what the hooks and the suite
-# leave uncovered, and which halves of the suite are run by hand.
+# leave uncovered, and where the suite's macOS and Windows halves run.
 #
 # A job's name becomes a required context, and that is a
 # second step rather than part of this one: a required context nothing
