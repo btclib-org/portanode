@@ -44,7 +44,7 @@ gh api repos/btclib-org/portanode --jq '.default_branch'
 **`lint.yml`, `script-security.yml`, `test.yml` and `codeql.yml` run on
 every pull request, and a red `Lint`, `Dependency review`, `Sign-off`,
 `Script security`, `test: every job passed` or `codeql: every job passed`
-job stops the merge:**
+job stops the merge of anybody but an administrator:**
 
 ```shell
 gh api repos/btclib-org/portanode/branches/main/protection \
@@ -88,13 +88,26 @@ alongside the rulesets rather than folding into one of them.
 being up to date with `main`. [Section 11 of the standard has the
 reason][s11-branch].
 
+**`enforce_admins` is off**, so an administrator can merge past a red
+required check: [GitHub does not apply classic protection to an account
+with admin permission][admins] while it is off. The review still holds
+that merge, through `main-self-merge` below. [Section 11 of the standard
+sets this value in every tree][s11-branch].
+
+```shell
+gh api repos/btclib-org/portanode/branches/main/protection \
+  --jq .enforce_admins.enabled
+# false
+```
+
 `links.yml` and `claude-review.yml` are not part of the required checks: the
 first reports the internet's weather and the second an opinion, and neither is a
 thing to hold a merge on. `scorecard.yml` is not a check on a pull request
 at all.
 
-What holds a pull request is the review and the contexts above; what
-holds every commit that reaches `main` is `main-integrity`.
+What holds a pull request is the review and, for anybody but an
+administrator, the contexts above; what holds every commit that reaches
+`main` is `main-integrity`.
 
 ## Rulesets
 
@@ -536,6 +549,7 @@ asks for the publishing environments.
 answers `0`, `RELEASING.md` saying a release here is a signed tag and a
 GitHub release cut by hand with nothing to publish to an index.
 
+[admins]: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#do-not-allow-bypassing-the-above-settings
 [governance]: https://github.com/btclib-org/.github/blob/main/GOVERNANCE.md#how-a-decision-is-made
 [s11-branch]: https://github.com/btclib-org/.github/blob/main/README.md#branch-protection-and-rulesets
 [s11-sigs]: https://github.com/btclib-org/.github/blob/main/README.md#signatures
