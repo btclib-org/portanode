@@ -28,13 +28,15 @@ if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) {
         [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 }
 
+# Run by a relative name from its own directory: win/scripts/root.ps1 says why.
+Set-Location -LiteralPath $PSScriptRoot -ErrorAction Stop
+
 # -TimeoutSec 300: the bound update-bitcoin.sh puts on this same index fetch,
 # sized against the 135 s bitcoincore.org was measured answering it in (ISS
 # 354), and its comment carries the reasoning. The candidate probe below keeps
 # -TimeoutSec 30, that script's own bound on the same probe.
 try {
-    $index = (Invoke-WebRequest -Uri 'https://bitcoincore.org/bin/' `
-        -UseBasicParsing -TimeoutSec 300).Content
+    $index = (& .\fetch-https.ps1 -Uri 'https://bitcoincore.org/bin/' -TimeoutSec 300).Content
 } catch {
     Write-Output 'INDEX_UNREACHABLE'
     exit 1
@@ -55,12 +57,12 @@ $versions = [regex]::Matches($index, 'href="bitcoin-core-([0-9]+\.[0-9]+(?:\.[0-
 # on either runtime. Measured on windows-latest against a listener that
 # sleeps past -TimeoutSec 2 and one that answers 404 immediately, for both
 # powershell.exe and pwsh.exe.
+# A redirect fetch-https.ps1 refuses throws neither, so it reads as a 404.
 $sawTimeout = $false
 foreach ($v in $versions) {
     $url = "https://bitcoincore.org/bin/bitcoin-core-$v/bitcoin-$v-win64.zip"
     try {
-        Invoke-WebRequest -Uri $url -Method Head -UseBasicParsing `
-            -TimeoutSec 30 | Out-Null
+        & .\fetch-https.ps1 -Uri $url -Method Head -TimeoutSec 30 | Out-Null
         Write-Output $v
         exit 0
     } catch {

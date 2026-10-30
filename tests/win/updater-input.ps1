@@ -18,6 +18,12 @@ $exe = (Get-Process -Id $PID).Path
 $windows = $env:OS -eq 'Windows_NT'
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ('portanode-input-' + [guid]::NewGuid())
 $tmp = (New-Item -ItemType Directory -Path $tmp).FullName
+# The fetches that save a file start save-response.ps1, which here is a stand-in
+# beside a copy of fetch-https.ps1, so nothing reaches the network.
+$scripts = (New-Item -ItemType Directory -Path (Join-Path $tmp 'scripts')).FullName
+Copy-Item -LiteralPath (Join-Path $utilities 'fetch-https.ps1') -Destination $scripts
+Set-Content -LiteralPath (Join-Path $scripts 'save-response.ps1') -Value 'Write-Host (''PROTOCOLS='' + [int][Net.ServicePointManager]::SecurityProtocol)'
+$env:SCRIPT_DIR = $scripts
 
 # --- a version string -------------------------------------------------------
 # compare-versions.ps1 runs in this process: its exit ends the script and
@@ -59,8 +65,7 @@ function Invoke-WebRequest {
     Justification = 'A stand-in for the cmdlet, as the comment above says.')]
   param()
   $env:PORTANODE_TEST_PROTOCOLS += [string][int][Net.ServicePointManager]::SecurityProtocol + ' '
-  if ($args -contains 'Head') { return $null }
-  [pscustomobject]@{ Content = $env:PORTANODE_TEST_INDEX }
+  [pscustomobject]@{ StatusCode = 200; Content = $env:PORTANODE_TEST_INDEX }
 }
 # The output of a script run against $Index, or 'threw' where it raised.
 function Get-Latest {
@@ -147,7 +152,7 @@ function Get-BatchPowerShellEach {
       Where-Object { $_.Contains($Marker) -and $_.Contains('-Command "') })) {
     $start = $line.IndexOf('-Command "') + 10
     $text = $line.Substring($start, $line.LastIndexOf('"') - $start)
-    if (-not $windows) { $text = $text.Replace("'\", "'/") }
+    if (-not $windows) { $text = $text.Replace("'\", "'/").Replace(' .\', ' ./') }
     $text
   }
 }
@@ -159,17 +164,22 @@ function Get-BatchPowerShell {
 
 # --- TLS 1.2 in the batch files -------------------------------------------------
 # Each powershell line of an updater that fetches runs here with the real text,
-# Invoke-WebRequest being a function that prints the protocols .NET holds when
-# it is called, after the line has started from TLS 1.1 alone and from
-# SystemDefault. The stub has no double quote, which Windows PowerShell 5.1
-# drops from a command line.
+# after it has started from TLS 1.1 alone and from SystemDefault. Two stand-ins
+# print the protocols .NET holds when they are called: the save-response.ps1 above
+# for a line that saves a file, and for a size probe an Invoke-WebRequest function,
+# the stub below. The stub has no double quote, which Windows PowerShell 5.1 drops
+# from a command line.
 function Get-Stub {
   param([int]$Start)
-  'function Invoke-WebRequest { param() Write-Host (''PROTOCOLS='' + [int][Net.ServicePointManager]::SecurityProtocol) }; ' +
+  'function Invoke-WebRequest { param() Write-Host (''PROTOCOLS='' + [int][Net.ServicePointManager]::SecurityProtocol); [pscustomobject]@{ StatusCode = 200 } }; ' +
     "[Net.ServicePointManager]::SecurityProtocol = $Start; "
 }
-foreach ($batch in 'update-bitcoin.bat', 'update-electrum.bat') {
-  $texts = @(Get-BatchPowerShellEach $batch 'Invoke-WebRequest -Uri')
+foreach ($name in 'URL', 'CHECKSUM_URL', 'CHECKSUM_SIG_URL') {
+  Set-Item "Env:$name" 'https://example.invalid/x'
+}
+foreach ($fetches in @(@('update-bitcoin.bat', 4), @('update-electrum.bat', 3))) {
+  $batch = $fetches[0]
+  $texts = @(Get-BatchPowerShellEach $batch 'fetch-https.ps1 -Uri')
   $n = 0
   foreach ($text in $texts) {
     $n++
@@ -179,8 +189,10 @@ foreach ($batch in 'update-bitcoin.bat', 'update-electrum.bat') {
       Test-Same "$batch fetch $n from $($case[0]) sees $($case[2])" $case[2] ([string]$seen)
     }
   }
-  Test-Same "$batch has the fetches this test reads" $true ($texts.Count -ge 3)
+  Test-Same "$batch has the fetches this test reads" $fetches[1] $texts.Count
 }
+
+Remove-Item Env:URL, Env:CHECKSUM_URL, Env:CHECKSUM_SIG_URL
 
 # --- SHA256SUMS ---------------------------------------------------------------
 # update-bitcoin.bat reads TMPDIR\SHA256SUMS and checks TMPDIR\FILE against
@@ -307,5 +319,6 @@ Test-Same 'the signature check refuses a pinned and an unpinned key for two requ
   (Test-Status ((Get-GoodStatus $p1 $p1) + (Get-GoodStatus $outsider $outsider)) 2)
 Remove-Item Env:FPR_FILE, Env:STATUS_FILE, Env:LABEL
 
+Remove-Item Env:SCRIPT_DIR
 Remove-Item -LiteralPath $tmp -Recurse -Force
 Complete-Test

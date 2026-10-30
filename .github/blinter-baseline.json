@@ -2932,12 +2932,12 @@
   {
     "code": "W002",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\\SHA256SUMS') -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\\SHA256SUMS') } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "W002",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "W003",
@@ -2947,12 +2947,12 @@
   {
     "code": "W003",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\\SHA256SUMS') -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\\SHA256SUMS') } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "W003",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "W004",
@@ -3392,12 +3392,12 @@
   {
     "code": "W002",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "W003",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "powershell -NoProfile -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "W004",
