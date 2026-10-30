@@ -86,9 +86,26 @@ and Ubuntu it has to run under, not on a single default:
   clears the owner's execute bit or which carries `noexec`:
   *Troubleshooting* below has the remedy for both, and for a folder that
   reached the disk some other way.
-- **Dependencies**: None required beyond standard OS tools. For advanced use,
-  ensure `gpg` (for the updaters' PGP verification, see *PGP verification
-  fails closed* below) and command-line tools are available.
+- **Dependencies**: [`dependencies.yaml`](./dependencies.yaml) lists the
+  programs the launchers and utilities start that this folder does not
+  hold, what each is for and which ones are required. Bitcoin Core and
+  Electrum come through the updaters, which need `gpg` (*PGP verification
+  fails closed* below).
+  `tests/sh/dependencies.sh` fails where this list and that file differ:
+    - macOS: Bitcoin Core, Electrum, `bash`, `env`, `gpg`, `curl`, `tar`,
+      `unzip`, `hdiutil`, `open`, `diskutil`, `stat`, `ps`, `pgrep`, `shasum`,
+      `sha256sum`, `jq`, `bc`, `perl`, `osascript`, `locale`, `find`, `awk`,
+      `basename`, `cat`, `chmod`, `cp`, `cut`, `df`, `dirname`, `grep`, `head`,
+      `ls`, `mkdir`, `mktemp`, `mv`, `readlink`, `rm`, `rmdir`, `sed`, `sort`,
+      `sync`, `tail`, `tr`, `uname`, `wc`, `xargs`.
+    - Windows: Bitcoin Core, Electrum, `cmd`, `powershell`, `gpg`, `find`,
+      `findstr`, `where`, `tasklist`, `taskkill`, `icacls`, `timeout`, `doskey`.
+    - Linux: Bitcoin Core, Electrum, `bash`, `env`, `gpg`, `curl`, `tar`,
+      `stat`, `ps`, `pgrep`, `shasum`, `sha256sum`, `jq`, `bc`, `python3`,
+      `findmnt`, `getfacl`, `notify-send`, `locale`, `find`, `awk`, `basename`,
+      `cat`, `chmod`, `cp`, `cut`, `df`, `dirname`, `grep`, `head`, `mkdir`,
+      `mktemp`, `mv`, `readlink`, `rm`, `rmdir`, `sed`, `sort`, `sync`, `tail`,
+      `tr`, `uname`, `wc`, `xargs`.
 
 ## Getting the folder
 
