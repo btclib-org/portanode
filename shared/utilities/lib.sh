@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Shared helpers for download, PGP verification and checksum bookkeeping.
 # Platform-nameless like shared/lib.sh beside it: macos/scripts/utilities/
 # lib.sh and linux/scripts/utilities/lib.sh each forward to it rather than

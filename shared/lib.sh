@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Shared helpers for every platform's scripts. This file names no
 # platform on purpose. macos/scripts/lib.sh and linux/scripts/lib.sh each
 # forward to it rather than holding the implementation, so the path

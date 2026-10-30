@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # What the Windows updaters download and what they are told, fed to them
 # malformed: a version string, the release index, SHA256SUMS and gpg's status
 # output. Each is refused. tests/sh/updater-input.sh has the shell half and

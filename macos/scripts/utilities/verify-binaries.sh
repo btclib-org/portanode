@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Verify binaries against macos/checksums.sha256
 set -euo pipefail
 

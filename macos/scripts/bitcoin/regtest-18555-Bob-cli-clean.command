@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Portable readlink -f: macOS's own readlink has no -f before 12.3
 # (apple-oss-distributions/file_cmds tag file_cmds-352.40.6 vs.
 # file_cmds-353.100.22), so $0 -- the symlink's own path where a

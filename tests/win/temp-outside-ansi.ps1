@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # win/scripts/utilities/filesystem-type.ps1 and free-space-gb.ps1 under a
 # TEMP holding a letter outside the ANSI code page, and under one on a drive
 # letter no volume carries. Each runs under powershell.exe, the Windows

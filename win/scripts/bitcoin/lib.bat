@@ -1,4 +1,8 @@
 @echo off
+REM Copyright (c) The btclib developers
+REM Distributed under the MIT software license, see the accompanying
+REM LICENSE file or https://opensource.org/license/mit for the full text.
+
 REM Shared routines for the Bitcoin launchers beside this file, called by label:
 REM     call "%SCRIPT_DIR%lib.bat" :label [arguments]
 REM A guard prints its own message and returns 1 where the caller must stop, so

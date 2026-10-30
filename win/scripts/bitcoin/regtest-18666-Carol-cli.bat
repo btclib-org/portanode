@@ -1,5 +1,9 @@
 @echo off
 setlocal disabledelayedexpansion
+REM Copyright (c) The btclib developers
+REM Distributed under the MIT software license, see the accompanying
+REM LICENSE file or https://opensource.org/license/mit for the full text.
+
 REM Launch Bitcoin Core daemon for regtest as Carol.
 REM Data directory: bitcoin-datadir\regtest_carol
 REM P2P port: 18666

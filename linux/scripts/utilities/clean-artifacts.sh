@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Clean Linux artifacts
 
 # bash looks for a bare name in the current directory, then in PATH. Found
