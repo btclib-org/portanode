@@ -72,10 +72,7 @@ ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)$"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|/Electrum$|/electrum$"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|python.*electrum"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|(^|/)run_electrum( |\$)"
-if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
-    echo "Error: Electrum is running. Stop it before updating."
-    exit 1
-fi
+refuse_while_running "Electrum" updating "$ELECTRUM_PGREP_PATTERN" || exit 1
 
 # Detect OS (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]]; then

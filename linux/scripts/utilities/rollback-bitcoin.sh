@@ -42,10 +42,7 @@ BIN_NAMES="bitcoind bitcoin-cli bitcoin-qt bitcoin-tx bitcoin-util bitcoin-walle
 # so a change to one is owed to the other -- matching how the macOS and
 # Windows halves of this same pair are written.
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
-if pgrep -f -i "$BTC_PGREP_PATTERN" > /dev/null; then
-    echo "Error: Bitcoin Core is running. Stop it before rolling back."
-    exit 1
-fi
+refuse_while_running "Bitcoin Core" "rolling back" "$BTC_PGREP_PATTERN" || exit 1
 
 echo "Rolling back Bitcoin binaries..."
 

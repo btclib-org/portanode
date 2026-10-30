@@ -152,10 +152,7 @@ BIN_NAMES="bitcoind bitcoin-cli bitcoin-qt bitcoin-tx bitcoin-util bitcoin-walle
 # expressions, so alternation is "|" (a GNU-BRE "\|" matches a literal pipe and
 # never matches a real process, which would let the update run while Bitcoin is).
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt|${APP_NAME}"
-if pgrep -f -i "$BTC_PGREP_PATTERN" > /dev/null; then
-    echo "Error: Bitcoin Core is running. Stop it before updating."
-    exit 1
-fi
+refuse_while_running "Bitcoin Core" updating "$BTC_PGREP_PATTERN" || exit 1
 
 echo "Updating Bitcoin Core..."
 
