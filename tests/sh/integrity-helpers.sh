@@ -144,14 +144,18 @@ else
     # Under the updaters' set -euo pipefail, with each bash at hand (macOS's
     # /bin/bash is 3.2): the refusal leaves no temporary directory, and
     # stderr holds shasum's or sha256sum's refusal and nothing else.
+    # A file and not -c: kcov's PS4 reads BASH_SOURCE, which a -c shell leaves
+    # unset, and under set -eu that ends the shell at its first traced line.
+    cat > "$T/tree-hash-refusal.sh" <<'EOF'
+set -euo pipefail
+. "$1"
+tree_hash "$2"
+EOF
     # shellcheck disable=SC2329 # run through check, as "$@"
     cleans_up() {
         local sh="$1" td out rc=0
         td="$(mktemp -d "$T/tmpdir.XXXXXX")"
-        # shellcheck disable=SC2016 # $1 and $2 are the child shell's own
-        # arguments, so the script is single-quoted on purpose
-        out="$(TMPDIR="$td" "$sh" -c \
-            'set -euo pipefail; . "$1"; tree_hash "$2"' _ \
+        out="$(TMPDIR="$td" "$sh" "$T/tree-hash-refusal.sh" \
             "$REPO/shared/utilities/lib.sh" "$B" 2>&1)" || rc=$?
         [ "$rc" -ne 0 ] && [ -z "$(ls -A "$td")" ] &&
             ! printf '%s\n' "$out" | grep -qv 'Permission denied'
