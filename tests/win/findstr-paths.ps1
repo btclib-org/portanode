@@ -111,8 +111,10 @@ if (-not $gpg) {
     if (Test-Path -LiteralPath $cygpath) { (& $cygpath -u $Path) } else { $Path }
   }
   # A home's path stays short: gpg's agent listens on a socket inside it, and
-  # the path of a socket is limited to 108 bytes.
-  $short = Join-Path ([IO.Path]::GetTempPath()) ('gh' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+  # the path of a socket is limited to 108 bytes. It also stays outside TEMP:
+  # cygpath can write a home inside TEMP as /tmp/..., which names another folder
+  # once the cases below change TEMP.
+  $short = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) ('gh' + [guid]::NewGuid().ToString('N').Substring(0, 8))
   $home1 = Get-GpgHome (New-Item -ItemType Directory -Path "$short-1").FullName
   $home2 = Get-GpgHome (New-Item -ItemType Directory -Path "$short-2").FullName
   $data = Join-Path $tmp 'data.txt'
