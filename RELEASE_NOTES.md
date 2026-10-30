@@ -17,6 +17,10 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
+## v2026.10.30
+
+Nothing to do by hand on an existing folder.
+
 ## v2026.10.26
 
 Nothing to do by hand on an existing folder.
