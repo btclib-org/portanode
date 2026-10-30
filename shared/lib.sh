@@ -76,6 +76,34 @@ resolve_root() {
     (cd "$start_dir" && pwd -P)
 }
 
+# sync_percent <fraction>: prints the fraction as a percentage with two
+# decimals. It exits 1 where the fraction is not a number from 0 to 1, or
+# where bc is missing, fails or prints something other than digits and a
+# point; what it prints then is not a reading. The range check also refuses
+# what printf accepts and bc cannot read, such as nan, inf and 0x10.
+#
+# The C locale is there because printf reads a number by the locale's
+# decimal separator, so that under a comma it refuses bc's "99.99" and
+# prints a wrong number: 0,00 under bash 3.2, 99,00 under bash 5. A prefix
+# on the command is not enough: "LC_ALL=C printf" still prints 0,00 under
+# bash 3.2.
+#
+# The first printf writes out an exponent, which jq can print for a small
+# fraction and which bc misreads or refuses.
+sync_percent() (
+    export LC_ALL=C
+    fraction="$(printf '%.12f' "$1" 2>/dev/null)" || exit 1
+    case "$fraction" in
+        0.* | 1.000000000000) ;;
+        *) exit 1 ;;
+    esac
+    percent="$(echo "$fraction * 100" | bc -l 2>/dev/null)" || exit 1
+    case "$percent" in
+        '' | *[!0-9.]*) exit 1 ;;
+    esac
+    printf '%.2f' "$percent" 2>/dev/null
+)
+
 # _utf8_locale: prints the name of a UTF-8 locale this machine has; 1 where
 # it finds none.
 _utf8_locale() {
