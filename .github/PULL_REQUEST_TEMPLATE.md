@@ -7,11 +7,11 @@
 ## How it was verified
 
 <!-- The command you ran and what it answered. test.yml runs the suite
-     under tests/ on Ubuntu, and CONTRIBUTING.md's last section says how
-     its macOS and Windows halves run by hand. No test starts what a
-     launcher launches: a change to that is verified by running the
-     launcher on a macOS, a Windows and a Linux machine, from a volume
-     that is not the boot disk. -->
+     under tests/ on Ubuntu, and CONTRIBUTING.md's last section says when
+     its macOS and Windows halves run. No test starts what a launcher
+     launches: a change to that is verified by running the launcher on a
+     macOS, a Windows and a Linux machine, from a volume that is not the
+     boot disk. -->
 
 ## Checks
 

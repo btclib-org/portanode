@@ -22,7 +22,8 @@ What the suite does not reach is a launcher starting Bitcoin Core or
 Electrum: no binary is in the tree. `win/regtest-cli-command.ps1` comes
 closest: it runs the Windows regtest CLI launchers with a stand-in for
 `bitcoind.exe` that records the arguments it is given. CI runs the menus
-on Ubuntu, from the runner's home directory.
+from each runner's checkout, on the platforms `CONTRIBUTING.md`'s last
+section names.
 
 ## Adding a test
 

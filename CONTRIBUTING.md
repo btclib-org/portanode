@@ -336,14 +336,14 @@ maintainer's checkout, so one session installing it installs it for every
 other. Run the gate by hand before committing.
 
 **The suite under `tests/` runs the launchers and their helpers**, with
-`bash` on macOS and Linux and with PowerShell on Windows. CI runs it on
-Ubuntu only: `test.yml`, on every pull request. There `tests/run.sh` runs,
-and so does every file of `tests/win/` that starts no `cmd.exe`, under
-the runner's `pwsh`; the files that do start it are named in the step
-of `test.yml` that runs the others. The macOS and Windows halves run by
-hand, `tests/run.sh` under the `/bin/bash` 3.2 macOS ships and
-`tests/run.ps1` under PowerShell, until a workflow runs them. On macOS and
-Linux:
+`bash` on macOS and Linux and with PowerShell on Windows. `test.yml` runs
+it on Ubuntu, on every pull request. There `tests/run.sh` runs, and so
+does every file of `tests/win/` that starts no `cmd.exe`, under the
+runner's `pwsh`; the files that do start it are named in the step of
+`test.yml` that runs the others. The macOS and Windows halves run
+weekly: `os-macos.yml` runs `tests/run.sh` under the `/bin/bash` 3.2
+macOS ships, and `os-windows.yml` runs `tests/run.ps1` under `pwsh` and
+under Windows PowerShell 5.1. On macOS and Linux:
 
 ```shell
 bash tests/run.sh
@@ -474,6 +474,10 @@ standard's *scorecard* entry allows.
 `scorecard.yml` runs the OpenSSF Scorecard after each push to `main` and
 weekly, and publishes the score the `README.md` badge shows. It does not
 run on a pull request.
+
+`os-macos.yml` and `os-windows.yml` run the suite where `test.yml` does
+not, as *The environment and the gates* says. They do not run on a pull
+request, so they hold no merge.
 
 What holds a pull request is the review and green checks, and what
 holds every commit that reaches `main` — linear history, no
