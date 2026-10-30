@@ -90,7 +90,17 @@ REM that pair. The value is expanded late, after cmd has parsed this
 REM line, so an "&" in the folder's path is never parsed here at all.
 REM Expanded at parse time instead, the "&" would be parsed, and would
 REM sit outside every pair: between the value's own inner quotes.
+REM Both start lines pass /v:off. A console given no /v flag takes delayed
+REM expansion from the DelayedExpansion value of the Command Processor key.
+REM Measured on windows-latest with that value at 1 and no /v flag: with the
+REM folder at "a !OS! c", no bitcoind starts, and with it at "a !b! c" or
+REM "a !b c", the CLI console reads the folder without the "!b!" or the "!"
+REM (#766).
+REM Both name cmd.exe by its full path. Measured on windows-latest: with
+REM COMSPEC unset, a bare cmd on a start line runs a cmd.bat or a cmd.exe
+REM planted in the current directory, which is the folder where a launcher
+REM starts from its root (#672).
 setlocal enabledelayedexpansion
-start "" cmd /k "!BITCOIND_CMD!"
+start "" "%SystemRoot%\System32\cmd.exe" /v:off /k "!BITCOIND_CMD!"
 endlocal
-start "" cmd /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"
+start "" "%SystemRoot%\System32\cmd.exe" /v:off /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"

@@ -161,8 +161,8 @@ REM read from the caller's environment rather than passed, the way the
 REM header above says ROOTDIR is. DATADIR arrives already joined,
 REM where a label taking a data directory as an argument takes it
 REM relative and joins it itself. It is a console's own command rather
-REM than a guard, so it is reached as: start "" cmd /k call
-REM "...lib.bat" :cli_console
+REM than a guard, so it is reached as: start "" "...cmd.exe" /v:off /k
+REM call "...lib.bat" :cli_console
 REM
 REM The macro names bitcoin-cli.exe by an absolute path under win\bin
 REM rather than by its bare name. Measured on windows-latest with a
