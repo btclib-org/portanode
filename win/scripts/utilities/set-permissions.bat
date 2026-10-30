@@ -1,5 +1,9 @@
 @echo off
 setlocal disabledelayedexpansion
+REM Copyright (c) The btclib developers
+REM Distributed under the MIT software license, see the accompanying
+REM LICENSE file or https://opensource.org/license/mit for the full text.
+
 REM Set restrictive permissions for PortaNode data directories (Windows)
 
 REM Disabled explicitly rather than merely left off: every call below

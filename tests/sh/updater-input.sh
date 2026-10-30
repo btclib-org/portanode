@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # shellcheck shell=bash
 # shellcheck disable=SC2329 # the cases are functions that check calls by name
 # shellcheck disable=SC2016 # the stubs are written with their $ unexpanded

@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # The reads of a file by findstr in the Windows scripts, on a path holding a
 # letter outside the ANSI code page. win/scripts/electrum/lib.bat says why each
 # script gives findstr the file on standard input. The reads in the lib.bat

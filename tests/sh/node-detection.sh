@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # shellcheck shell=bash
 # shellcheck disable=SC2329 # check and shared/lib.sh call these functions by name
 # The node-detection helpers of shared/lib.sh, which the Alice -clean

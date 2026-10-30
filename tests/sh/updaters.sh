@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # shellcheck shell=bash
 # Tests for the macOS and Linux updaters' downgrade refusal and HTTPS-only
 # fetches.
