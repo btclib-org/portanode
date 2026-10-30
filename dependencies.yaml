@@ -1,0 +1,251 @@
+---
+# The external dependencies, for a program to read. An entry is a program a
+# launcher or utility here starts that this tree does not hold and the shell
+# does not build in, the program its shebang names included; what only tests/
+# starts is not one. `required: true` marks one a script stops without, or
+# without which a check it makes goes off without the script saying so;
+# `required: false` marks the rest. `platforms` describes each platform's own
+# launchers; what a shell such as MSYS or Cygwin brings to run a root .sh is
+# not listed. The Prerequisites section of README.md names the same programs,
+# and tests/sh/dependencies.sh fails where the two differ.
+dependencies:
+  - name: Bitcoin Core
+    platforms: [macos, windows, linux]
+    required: true
+    used_for: the node and wallet the Bitcoin launchers start; the updaters fetch it
+  - name: Electrum
+    platforms: [macos, windows, linux]
+    required: true
+    used_for: the wallet the Electrum launchers start; the updaters fetch it
+  - name: bash
+    platforms: [macos, linux]
+    required: true
+    used_for: runs the macOS and Linux launchers and utilities
+  - name: env
+    platforms: [macos, linux]
+    required: true
+    used_for: finds bash for a root .sh launcher or verify-binaries.sh started by its path
+  - name: cmd
+    platforms: [windows]
+    required: true
+    used_for: runs the Windows launchers and utilities
+  - name: powershell
+    platforms: [windows]
+    required: true
+    used_for: what the Windows launchers and utilities do beyond cmd, such as node checks, downloads and permissions
+  - name: gpg
+    platforms: [macos, windows, linux]
+    required: true
+    used_for: the updaters' PGP verification
+  - name: curl
+    platforms: [macos, linux]
+    required: true
+    used_for: downloads for the updaters
+  - name: tar
+    platforms: [macos, linux]
+    required: true
+    used_for: unpacks a Bitcoin Core download
+  - name: unzip
+    platforms: [macos]
+    required: true
+    used_for: unpacks a Bitcoin Core download that is a zip
+  - name: hdiutil
+    platforms: [macos]
+    required: true
+    used_for: mounts the Electrum disk image the updater fetches
+  - name: open
+    platforms: [macos]
+    required: true
+    used_for: starts Electrum in the macOS Electrum launchers
+  - name: diskutil
+    platforms: [macos]
+    required: false
+    used_for: reads the filesystem in set-permissions, which warns without it
+  - name: stat
+    platforms: [macos, linux]
+    required: true
+    used_for: reads file sizes and modes in the log monitor and set-permissions
+  - name: ps
+    platforms: [macos, linux]
+    required: true
+    used_for: finds a running node or wallet
+  - name: pgrep
+    platforms: [macos, linux]
+    required: true
+    used_for: finds a running node or wallet
+  - name: shasum
+    platforms: [macos, linux]
+    required: false
+    used_for: checksums; one of shasum and sha256sum is needed
+  - name: sha256sum
+    platforms: [macos, linux]
+    required: false
+    used_for: checksums; one of shasum and sha256sum is needed
+  - name: jq
+    platforms: [macos, linux]
+    required: false
+    used_for: the sync percentage in health-check
+  - name: bc
+    platforms: [macos, linux]
+    required: true
+    used_for: the sync percentage in health-check
+  - name: perl
+    platforms: [macos]
+    required: false
+    used_for: the unix-socket check in the Electrum launchers
+  - name: python3
+    platforms: [linux]
+    required: false
+    used_for: the unix-socket check in the Electrum launchers
+  - name: findmnt
+    platforms: [linux]
+    required: false
+    used_for: in set-permissions reads the filesystem, or stat -f without it, and the mount options it prints
+  - name: getfacl
+    platforms: [linux]
+    required: false
+    used_for: reports a default ACL in set-permissions
+  - name: notify-send
+    platforms: [linux]
+    required: false
+    used_for: the desktop notification of the log monitor
+  - name: osascript
+    platforms: [macos]
+    required: false
+    used_for: the desktop notification of the log monitor
+  - name: locale
+    platforms: [macos, linux]
+    required: true
+    used_for: picks a UTF-8 locale for reading process names
+  - name: find
+    platforms: [macos, windows, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: findstr
+    platforms: [windows]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: where
+    platforms: [windows]
+    required: true
+    used_for: looks up gpg and bitcoin-cli
+  - name: tasklist
+    platforms: [windows]
+    required: true
+    used_for: finds a running node or wallet
+  - name: taskkill
+    platforms: [windows]
+    required: false
+    used_for: ends a gpg run that passed its time limit
+  - name: icacls
+    platforms: [windows]
+    required: false
+    used_for: resets inherited permissions in set-permissions, which warns without it
+  - name: timeout
+    platforms: [windows]
+    required: false
+    used_for: the pause before a script closes its own console
+  - name: doskey
+    platforms: [windows]
+    required: false
+    used_for: the btc command in a regtest console
+  - name: awk
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: basename
+    platforms: [macos, linux]
+    required: false
+    used_for: names a file in a message and a launcher in -uacomment
+  - name: cat
+    platforms: [macos, linux]
+    required: true
+    used_for: reads the pid file in health-check and the offset of the log monitor
+  - name: chmod
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: cp
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: cut
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: df
+    platforms: [macos, linux]
+    required: true
+    used_for: reads free disk space, and on macOS the device for diskutil
+  - name: dirname
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: grep
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: head
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: ls
+    platforms: [macos]
+    required: true
+    used_for: lists a data directory's ACL for the check in set-permissions
+  - name: mkdir
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: mktemp
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: mv
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: readlink
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: rm
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: rmdir
+    platforms: [macos, linux]
+    required: false
+    used_for: removes an emptied backup directory after a rollback
+  - name: sed
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: sort
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: sync
+    platforms: [macos, linux]
+    required: false
+    used_for: flushes a copy to disk before the updaters hash it
+  - name: tail
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: tr
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: uname
+    platforms: [macos, linux]
+    required: true
+    used_for: picks the platform in the launchers and the architecture in the updaters
+  - name: wc
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
+  - name: xargs
+    platforms: [macos, linux]
+    required: true
+    used_for: text and file handling in the scripts
