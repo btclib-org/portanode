@@ -127,8 +127,14 @@ if command -v python3 > /dev/null && command -v openssl > /dev/null; then
       -keyout "$WORK/key.pem" -out "$WORK/cert.pem" > /dev/null 2>&1
     # One HTTP and one HTTPS server; the HTTPS one answers /ok with 200
     # and /redirect with a 302 to the HTTP one. Each writes its port.
+    # socketserver.TCPServer, not http.server.HTTPServer, whose bind calls
+    # socket.getfqdn: on the macos-latest runner the first such call is
+    # quick, and a later one can outlast the wait for the port below, so
+    # the second server misses that wait. This shows it there, in its later
+    # calls, though not on every runner:
+    # for _ in 1 2 3 4 5; do time python3 -c 'import socket; print(socket.getfqdn("127.0.0.1"))'; done
     cat > "$WORK/server.py" <<'EOF'
-import http.server, ssl, sys
+import http.server, socketserver, ssl, sys
 tls, portfile, target = sys.argv[1] == "tls", sys.argv[2], sys.argv[3]
 class H(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -142,7 +148,7 @@ class H(http.server.BaseHTTPRequestHandler):
         self.wfile.write(b"ok\n")
     def log_message(self, *args):
         pass
-s = http.server.HTTPServer(("127.0.0.1", 0), H)
+s = socketserver.TCPServer(("127.0.0.1", 0), H)
 if tls:
     c = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     c.load_cert_chain(sys.argv[4], sys.argv[5])
