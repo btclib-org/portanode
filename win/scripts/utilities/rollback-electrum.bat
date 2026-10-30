@@ -46,9 +46,8 @@ REM operation whichever script does it, and a rollback is run when something has
 REM just gone wrong, which is when Electrum is most likely to still be up. The
 REM filter is that script's, repeated here rather than shared, so a change to
 REM one is owed to the other.
-tasklist /fi "imagename eq electrum.exe" | find /i "electrum.exe" >nul
-if %errorlevel%==0 (
-    echo Error: Electrum is running. Stop it before rolling back.
+call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Electrum" "rolling back" electrum.exe
+if errorlevel 1 (
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1

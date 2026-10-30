@@ -838,6 +838,25 @@ curl_https() {
     curl --proto '=https' --proto-redir '=https' "$@"
 }
 
+# refuse_while_running NAME DOING PATTERN
+#
+# Returns 0 where pgrep answers that no command line matches PATTERN, an
+# extended regular expression. Otherwise returns 1 with a message: a process
+# matches, or pgrep is missing or failed, and then nothing says that NAME is
+# stopped. DOING is what the caller is about to do, as "updating". A guard
+# written "if pgrep" reads both failures as "not running". PATTERN is why this
+# is not process_running_with, which compares a string.
+refuse_while_running() {
+    local rc=0
+    pgrep -f -i "$3" > /dev/null || rc=$?
+    case "$rc" in
+        0) echo "Error: $1 is running. Stop it before $2." ;;
+        1) return 0 ;;
+        *) echo "Error: cannot tell whether $1 is running: pgrep is missing or failed. Not $2." ;;
+    esac
+    return 1
+}
+
 # refuse_downgrade INSTALLED REQUESTED ALLOW NAME
 #
 # Returns 1, with a message, where REQUESTED is older than INSTALLED. An

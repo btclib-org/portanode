@@ -42,10 +42,7 @@ CHECKSUM_FILE="$ROOTDIR/linux/checksums.sha256"
 # are written. run_electrum is anchored to where a program name can appear,
 # for the same reason update-electrum.sh's own copy is.
 ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|(^|/)run_electrum( |\$)"
-if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
-    echo "Error: Electrum is running. Stop it before rolling back."
-    exit 1
-fi
+refuse_while_running "Electrum" "rolling back" "$ELECTRUM_PGREP_PATTERN" || exit 1
 
 echo "Rolling back Electrum binaries..."
 
