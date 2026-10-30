@@ -13,6 +13,69 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
+## v2026.10.30
+
+The Windows regtest CLI launchers start bitcoind, and the Windows scripts
+that read the ACL, the filesystem or the free space work in more folders
+and accounts.
+
+### The Windows regtest CLI launchers start bitcoind
+
+`cmd /k` lost the opening quote of the path to `bitcoind.exe`, so no node
+started, whatever the folder. They wrap the command and expand it late, so
+an `&`, `(`, `^` or `!` in the path stays whole (closes #757).
+
+### macOS and Linux Bob and Carol launchers stop without their datadir
+
+Where `mkdir -p` cannot create the datadir, the launcher prints an error
+and exits 1 before starting Bitcoin Core, as the Windows ones do
+(closes #735).
+
+### `set-permissions.bat` reads the ACL back in any folder
+
+It reads the ACL through .NET, not by `findstr` over `icacls`. A path
+holding `\_` or a backslash before a CJK letter, and an account named in
+CJK letters, made the readback report a failure (closes #743).
+
+### Windows filesystem and free-space reads work under a non-ANSI `TEMP`
+
+`filesystem-type.ps1` and `free-space-gb.ps1` call kernel32 without
+`Add-Type`, whose compile under Windows PowerShell 5.1 failed where `TEMP`
+held a letter outside the ANSI code page (closes #744).
+
+### One README per platform
+
+`macos/`, `win/` and a new `linux/` README hold what is true there alone,
+and the root `README.md` the rest. The READMEs under `bin/` and `scripts/`
+are removed, which breaks a link to one of them (closes #727).
+
+### Script security fails on any PSScriptAnalyzer Warning or Error
+
+An unsuppressed Warning, Error or ParseError in a tracked PowerShell file
+fails the job (closes #755). The Warning findings on the `.ps1` scripts are
+fixed, or suppressed with the reason in the script (closes #739).
+
+### The suite runs the test files that were run by hand
+
+They move under `tests/sh/` and run in `tests/run.sh` (closes #703).
+
+### The repository's own records and contributor rules
+
+`REPOSITORY.md` records `codeql: every job passed` as required (closes #750)
+and `enforce_admins` as off (closes #655). `CONTRIBUTING.md` says that
+development is LLM-based (issue btclib-org/.github#1846).
+
+### `REVIEWING.md` and `blinter-reasons.md` follow the organization
+
+`REVIEWING.md` takes btclib-org/.github's shared part at `72e0222`
+(issue btclib-org/.github#1904). `.github/blinter-reasons.md` says that a
+defect of Blinter's own is reported upstream (closes #760).
+
+### The calls into btclib-org/.github move to its later tags
+
+The reusable workflows are called at the commit of `v2026.10.29`, and
+`check-changelog` is frozen at `v2026.10.26`.
+
 ## v2026.10.26
 
 The Windows updaters ask for TLS 1.2, and the Windows `findstr` reads work
