@@ -418,7 +418,9 @@ message naming it:
   whether the processes are running. For Bitcoin Core they ask
   `bitcoin-cli` first, then the process list, then the datadir's
   `.cookie` and `bitcoind.pid`. For Electrum they read the process list
-  alone, so where it is restricted a running Electrum can go unseen.
+  alone, so where it is restricted a running Electrum can go unseen. On
+  macOS and Linux, where `pgrep` is missing, they print `unknown` in place
+  of `no`.
 
 ### Getting Help
 
