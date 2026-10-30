@@ -47,3 +47,5 @@ run by `bash`, never started by its path.
 
 A case sets up what it needs in a temporary directory and leaves nothing
 behind, the checkout included.
+`win/regtest-cli-command.ps1` also sets a registry value, which its header
+names, and restores it; other consoles opened meanwhile follow that value.

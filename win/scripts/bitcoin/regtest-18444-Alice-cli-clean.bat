@@ -82,7 +82,9 @@ set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666
 REM Wrapped and expanded late: see regtest-18444-Alice-cli.bat (#757).
+REM The start lines' /v:off and full path: see regtest-18444-Alice-cli.bat
+REM (#766, #672).
 setlocal enabledelayedexpansion
-start "" cmd /k "!BITCOIND_CMD!"
+start "" "%SystemRoot%\System32\cmd.exe" /v:off /k "!BITCOIND_CMD!"
 endlocal
-start "" cmd /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"
+start "" "%SystemRoot%\System32\cmd.exe" /v:off /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"
