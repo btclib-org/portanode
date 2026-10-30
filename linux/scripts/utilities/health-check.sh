@@ -27,6 +27,12 @@ fi
 # agree on what counts as a running node; pgrep's regex is extended on both
 # procps and BSD, hence "|" rather than a GNU-BRE "\|".
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
+# Without pgrep a process the other passes miss may still be running, so the
+# status lines read "unknown" rather than "no".
+PGREP_FOUND="no"
+if command -v pgrep >/dev/null 2>&1; then
+    PGREP_FOUND="yes"
+fi
 # The last candidate is a bitcoin-cli from outside the folder;
 # macos/scripts/utilities/health-check.sh carries what pins a borrowed
 # client to this folder's own datadir.
@@ -52,7 +58,7 @@ if [ -n "$BTC_CLI" ]; then
     fi
 fi
 
-if [ "$BTC_RUNNING" != "yes" ] && \
+if [ "$BTC_RUNNING" != "yes" ] && [ "$PGREP_FOUND" = "yes" ] && \
    pgrep -f -i "$BTC_PGREP_PATTERN" >/dev/null 2>&1; then
     BTC_RUNNING="yes"
     BTC_METHOD="pgrep"
@@ -128,6 +134,9 @@ else
     if [ "$BTC_RUNNING" = "maybe" ]; then
         echo "Bitcoin running: maybe"
         echo "Bitcoin sync: unknown"
+    elif [ "$PGREP_FOUND" != "yes" ]; then
+        echo "Bitcoin running: unknown (pgrep not found)"
+        echo "Bitcoin sync: unknown"
     else
         echo "Bitcoin running: no"
         echo "Bitcoin sync: n/a"
@@ -149,7 +158,9 @@ fi
 # command line and matched that same process, which is why it is the only
 # pass needed.
 ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|(^|/)run_electrum( |\$)"
-if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
+if [ "$PGREP_FOUND" != "yes" ]; then
+    echo "Electrum running: unknown (pgrep not found)"
+elif pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
     echo "Electrum running: yes (pgrep)"
 else
     echo "Electrum running: no"
