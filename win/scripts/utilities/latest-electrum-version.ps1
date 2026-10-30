@@ -23,13 +23,15 @@ if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) {
         [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 }
 
+# Run by a relative name from its own directory: win/scripts/root.ps1 says why.
+Set-Location -LiteralPath $PSScriptRoot -ErrorAction Stop
+
 # -TimeoutSec 300: the bound latest-bitcoin-version.ps1 explains, and the one
 # update-electrum.sh puts on this same index fetch. download.electrum.org has
 # not been measured slow; the bound is applied here too rather than left below
 # the figure the other publisher this tree fetches from answered in.
 try {
-    $index = (Invoke-WebRequest -Uri 'https://download.electrum.org/' `
-        -UseBasicParsing -TimeoutSec 300).Content
+    $index = (& .\fetch-https.ps1 -Uri 'https://download.electrum.org/' -TimeoutSec 300).Content
 } catch {
     Write-Output 'INDEX_UNREACHABLE'
     exit 1

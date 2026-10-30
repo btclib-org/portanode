@@ -619,6 +619,8 @@ because that document, and not this one, is where the rule lives.
   `$Account` beside its own; `compare-versions.ps1` takes two versions,
   and `latest-bitcoin-version.ps1` and `latest-electrum-version.ps1` take
   no parameter, none of the three reaching a root;
+  `fetch-https.ps1` and `save-response.ps1` take `$Uri` and `$OutFile`
+  and reach no root either;
   `win/scripts/bitcoin/node-args.ps1` and its test,
   `tests/win/node-args.ps1`, read command lines and reach no root either;
   `tests/lib.ps1` and `tests/run.ps1` take no root;
