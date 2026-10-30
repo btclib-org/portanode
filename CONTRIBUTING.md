@@ -371,11 +371,20 @@ Error, Security and Warning findings** (*What gates a merge*, below).
 The same job refuses a non-ASCII byte and a lone CR in a `.bat` or
 `.cmd`; its header says why. PowerShell's parser is PSScriptAnalyzer,
 and `.pre-commit-config.yaml`'s header says why it is not a hook here.
-The command shows the job's findings before a push, against a `pwsh`
-that carries the module at the version the job pins:
+The command shows the job's findings before a push, and runs as written
+in bash, zsh and pwsh. It reads the version the job pins from the
+workflow, and stops where it finds none or that version is not
+installed. Its empty settings ignore a `PSScriptAnalyzerSettings.psd1`,
+as the job does:
 
 ```shell
-pwsh -Command 'Invoke-ScriptAnalyzer -Path . -Recurse'
+pwsh -Command '$ErrorActionPreference = "Stop"
+  $m = Select-String -Path .github/workflows/script-security.yml `
+    -Pattern "download/([0-9.]+)/PSScriptAnalyzer\."
+  if (-not $m) { throw "no PSScriptAnalyzer pin in script-security.yml" }
+  $v = $m[0].Matches[0].Groups[1].Value
+  Import-Module PSScriptAnalyzer -RequiredVersion $v
+  Invoke-ScriptAnalyzer -Path . -Recurse -Settings @{}'
 ```
 
 Its `ParseError` severity is PowerShell's own parser refusing the file,
@@ -534,10 +543,22 @@ restating it.
   APFS, where GitHub's zipball carries the index mode through `unzip`.
   Detach the image afterwards with `hdiutil detach /Volumes/T`.
 - **`pwsh` is installable.** `brew install powershell` on macOS provides
-  it, and `Install-Module -Name PSScriptAnalyzer -Force -Scope
-  CurrentUser` adds the module once `pwsh` is there. With both,
-  `[System.Management.Automation.Language.Parser]::ParseFile` and
-  PSScriptAnalyzer run for real: a positive control against the
+  it. Once `pwsh` is there, this adds the module at the version
+  `script-security.yml` pins, read as the PSScriptAnalyzer command in
+  *The environment and the gates* reads it:
+
+  ```shell
+  pwsh -Command '$ErrorActionPreference = "Stop"
+    $m = Select-String -Path .github/workflows/script-security.yml `
+      -Pattern "download/([0-9.]+)/PSScriptAnalyzer\."
+    if (-not $m) { throw "no PSScriptAnalyzer pin in script-security.yml" }
+    $v = $m[0].Matches[0].Groups[1].Value
+    Install-Module -Name PSScriptAnalyzer -RequiredVersion $v -Force `
+      -Scope CurrentUser'
+  ```
+
+  With both, `[System.Management.Automation.Language.Parser]::ParseFile`
+  and PSScriptAnalyzer run for real: a positive control against the
   unmodified tree first, then a clean run against the change, rather than
   a `.ps1` change read for correctness without being parsed.
 - **Blinter is compared by version and by line numbers.** Capture the

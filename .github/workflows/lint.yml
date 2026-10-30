@@ -5,10 +5,11 @@ name: lint
 # second list of the same tools: a commit and CI then enforce one thing,
 # and a hook added to that file needs no edit here.
 #
-# The suite is test.yml's, the security rules over the Windows scripts
-# are script-security.yml's, and there is no documentation build in this
-# tree. CONTRIBUTING.md's last section says what the hooks and the suite
-# leave uncovered, and which halves of the suite are run by hand.
+# The suite is test.yml's, PSScriptAnalyzer and Blinter over the Windows
+# scripts are script-security.yml's, and there is no documentation build
+# in this tree. CONTRIBUTING.md's last section says what the hooks and
+# the suite leave uncovered, and which halves of the suite are run by
+# hand.
 #
 # A job's name becomes a required context, and that is a
 # second step rather than part of this one: a required context nothing

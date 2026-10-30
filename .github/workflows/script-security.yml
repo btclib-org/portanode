@@ -114,8 +114,9 @@ jobs:
       # finding matches. What says it ran is its count of the files it read,
       # set against the files git tracks. It leaves alone an entry whose
       # file it did not read, so the entries' files are set against git's
-      # too. The accepted rules are then set against the reasons file's
-      # sections, as the header says
+      # too, with core.quotePath off so that git writes a non-ASCII name as
+      # Blinter does. The accepted rules are then set against the reasons
+      # file's sections, as the header says
       - name: Check the .bat scripts with the Blinter rules .github/blinter.ini runs
         run: |
           set -o pipefail
@@ -149,7 +150,8 @@ jobs:
           fi
           jq -r '.[].file | sub("^\\.\\./"; "")' .github/blinter-baseline.json |
             LC_ALL=C sort -u > "$t/listed"
-          git ls-files '*.bat' '*.cmd' | LC_ALL=C sort > "$t/tracked"
+          git -c core.quotePath=false ls-files '*.bat' '*.cmd' |
+            LC_ALL=C sort > "$t/tracked"
           LC_ALL=C comm -23 "$t/listed" "$t/tracked" > "$t/gone"
           if [ -s "$t/gone" ]; then
             echo "::error::baseline entries for files git does not track"
@@ -202,17 +204,20 @@ jobs:
           unzip -q "$pkg" -d "$RUNNER_TEMP/PSScriptAnalyzer"
 
       # one file at a time, from git's list, so that a parse error names its
-      # file. The list ignores case, so X.PS1 is read too. The empty settings
-      # stop PSScriptAnalyzer reading a PSScriptAnalyzerSettings.psd1 beside
-      # the file, and the escaped path keeps a [ in a name from matching no
-      # file: Invoke-ScriptAnalyzer has no -LiteralPath
+      # file. The list ignores case, so X.PS1 is read too. With -z git
+      # writes each name as it is, where it would quote a name holding a
+      # non-ASCII byte. The empty settings stop PSScriptAnalyzer reading a
+      # PSScriptAnalyzerSettings.psd1 beside the file, and the escaped path
+      # keeps a [ in a name from matching no file: Invoke-ScriptAnalyzer has
+      # no -LiteralPath
       - name: Check the .ps1 scripts with PSScriptAnalyzer's rules
         shell: pwsh
         run: |
           Import-Module "$env:RUNNER_TEMP/PSScriptAnalyzer/PSScriptAnalyzer.psd1"
           $version = (Get-Module PSScriptAnalyzer).Version
           "PowerShell $($PSVersionTable.PSVersion), PSScriptAnalyzer $version"
-          $files = @(git ls-files ':(icase)*.ps1' ':(icase)*.psm1' ':(icase)*.psd1')
+          $files = @((git ls-files -z ':(icase)*.ps1' ':(icase)*.psm1' ':(icase)*.psd1') -split "`0" |
+            Where-Object { $_ })
           $found = @()
           $information = @()
           foreach ($f in $files) {
