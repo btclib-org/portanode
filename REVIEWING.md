@@ -513,8 +513,8 @@ Everything above is the same file in every repository of the
 organization; everything below is this one's, and the comparison stops at
 this heading.
 
-Each of these is a question, and the document that answers it is named
-because that document, and not this one, is where the rule lives.
+Each of these is a question. Where another document holds the rule, the
+question names it.
 
 - **Is every path a launcher itself consumes relative to `ROOTDIR`?**
   The folder is mounted at a different point on every machine it is
@@ -526,11 +526,8 @@ because that document, and not this one, is where the rule lives.
   variable built as `$ROOTDIR/...` prints one too, and matches neither
   in the message nor in the assignment, so that half is read rather than
   grepped. What the reading decides is the path's use: a path printed for
-  use outside the launcher's own process is that convention's carve-out rather
-  than this defect. The carve-out covers `$ROOTDIR` alone, the block of
-  resolved locations a Bitcoin launcher opens with, a message whose
-  subject is how long a path is, and the command an Electrum launcher
-  prints for pasting into a shell.
+  use outside the launcher's own process is that convention's carve-out
+  rather than this defect.
 
   That grep, and the interpolating half beside it, both anchor on one
   physical line holding `echo`, so two shapes reach neither: a message
@@ -664,8 +661,8 @@ because that document, and not this one, is where the rule lives.
 
     names the subject on one platform; whether the other platforms have
     it, and whether they needed the same change, is the reading.
-- **Does verification still fail closed?** An update script installs
-  nothing whose PGP signature did not verify. A diff that turns a
+- **Does verification still fail closed?** `README.md`'s *PGP
+  verification fails closed* states the rule. A diff that turns a
   verification failure into a warning, that adds a way past it, or that
   installs before verifying rather than after, is a blocking finding
   whatever else it does.
