@@ -22,7 +22,8 @@ What the suite does not reach is a launcher starting Bitcoin Core or
 Electrum: no binary is in the tree. `win/regtest-cli-command.ps1` comes
 closest: it runs the Windows regtest CLI launchers with a stand-in for
 `bitcoind.exe` that records the arguments it is given. CI runs the menus
-on Ubuntu, from the runner's home directory.
+from each runner's checkout, on the platforms `CONTRIBUTING.md`'s last
+section names.
 
 `tests/kcov.sh` runs `tests/run.sh` under `kcov` in a Debian container, as
 `kcov.yml` starts it. It installs packages and adds a user, so it is not
