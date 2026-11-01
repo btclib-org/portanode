@@ -59,7 +59,5 @@ launchers, updating, troubleshooting and the limitations.
   nothing there. It names `uid=<your uid>,fmask=077,dmask=077` as the
   mount options that restrict the volume, and `fmask=133` as the one
   that stops the launchers and the binaries from running.
-- The utilities need `bash`, `curl`, `gpg`, and `sha256sum` or `shasum`.
-  `set-permissions.sh` reads the filesystem with `findmnt`, or `stat -f`
-  without it. `monitor-bitcoin-log.sh` uses `notify-send` where it is
-  installed.
+- `dependencies.yaml` at the folder's root lists what the launchers and
+  utilities start.

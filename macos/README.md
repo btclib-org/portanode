@@ -66,5 +66,5 @@ Electrum with `--dir` on APFS instead.
   access that `chmod` does not revoke. On exFAT or FAT32 macOS reports a
   fixed mode whatever `chmod` asks, and holds no ACL, so the script
   restricts nothing there and says so.
-- The utilities need `curl`, `shasum`, `hdiutil` and `bash`, and the
-  updaters `gpg`.
+- `dependencies.yaml` at the folder's root lists what the launchers and
+  utilities start.
