@@ -88,11 +88,17 @@ file on the drive.
 - **The network, through the updaters.** Only the updaters, and on
   Windows the `latest-*-version.ps1` helpers they call, download
   anything; they reach `bitcoincore.org` and `download.electrum.org`.
-  This lists the scripts that call a downloader:
+  On Windows each fetch goes through `fetch-https.ps1`, which calls
+  `Invoke-WebRequest` itself and `save-response.ps1` for a file. Under
+  `pwsh` it fails on a redirect unless it writes a file, as its header
+  says; the updaters run under `powershell`. This lists the scripts that
+  call a downloader, leaving out comments and messages:
 
     ```shell
-    git grep -l -E 'curl |Invoke-WebRequest' \
-      -- '*.sh' '*.command' '*.bat' '*.ps1'
+    git grep -E \
+      'curl(_https)? |Invoke-WebRequest|HttpWebRequest|fetch-https\.ps1 ' \
+      -- '*.sh' '*.command' '*.bat' '*.ps1' ':!tests' \
+      | grep -vE '^[^:]+:[[:space:]]*(#|REM |echo )' | cut -d: -f1 | sort -u
     ```
 
 - **The user's GPG keyring and `keys/*.fingerprints`**, which together
@@ -136,7 +142,8 @@ every redirect (`--proto '=https' --proto-redir '=https'`), and
 `update-bitcoin.sh` takes a `SHA256SUMS` entry only where its name field
 equals the file's name, exactly once (`verify_sha256sums`).
 
-The Windows updaters refuse a file `Get-FileHash` cannot read, compare
+The Windows updaters fetch through `fetch-https.ps1`, which follows a
+redirect only to HTTPS, refuse a file `Get-FileHash` cannot read, compare
 the hash and path fields of a checksum line whole, and
 `update-bitcoin.bat` looks a name up in `SHA256SUMS` by its exact field.
 They download into a fresh
@@ -266,9 +273,8 @@ to, and what counters each.
   download into a fresh `mktemp -d` directory, the Windows ones into a
   fresh `%TEMP%\portanode-<name>.<GUID>`.
 - **Cleartext transmission (CWE-319).** Every download URL is `https`,
-  and on macOS and Linux a redirect to another scheme is refused
-  (`curl_https`). The Windows updaters' `Invoke-WebRequest` calls are
-  not known to refuse one: [ISS 695].
+  and a redirect to another scheme is refused (`curl_https`, and
+  `win/scripts/utilities/fetch-https.ps1`).
 - **Improper neutralization of output (CWE-150).** [ISS 629]: the log
   monitors print `debug.log` lines to the terminal unfiltered.
 - **Shell defects.** `shellcheck` reads every `.sh` and `.command`
@@ -280,4 +286,3 @@ to, and what counters each.
   gate, against `.secrets.baseline`.
 
 [ISS 629]: https://github.com/btclib-org/portanode/issues/629
-[ISS 695]: https://github.com/btclib-org/portanode/issues/695
