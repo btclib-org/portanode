@@ -24,6 +24,10 @@ closest: it runs the Windows regtest CLI launchers with a stand-in for
 `bitcoind.exe` that records the arguments it is given. CI runs the menus
 on Ubuntu, from the runner's home directory.
 
+`tests/kcov.sh` runs `tests/run.sh` under `kcov` in a Debian container, as
+`kcov.yml` starts it. It installs packages and adds a user, so it is not
+run on a developer's machine.
+
 ## Adding a test
 
 A test file holds the cases of one subject, a helper or a launcher:

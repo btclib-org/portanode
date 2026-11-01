@@ -142,6 +142,22 @@ macos/bin`, rather than with anything naming the cause.
     primary key and its signing subkey, and land the change as a pull
     request before the tag. A tag signed by a key the file does not
     name is not a release (`VERIFYING.md`, *Who signs the tags*).
+1. Run the suite under `kcov` on the merged commit, and stop where the run
+   fails. The command dispatches `kcov.yml` and waits for its run, which
+   exits non-zero where a case failed:
+
+    ```shell
+    git fetch origin && sha=$(git rev-parse origin/main) \
+      && gh workflow run kcov.yml --repo btclib-org/portanode --ref main \
+      && sleep 15 \
+      && run=$(gh run list --repo btclib-org/portanode --workflow kcov.yml \
+        --event workflow_dispatch --commit "${sha:?}" --limit 1 \
+        --json databaseId --jq '.[0].databaseId') \
+      && gh run watch "${run:?}" --repo btclib-org/portanode --exit-status
+    ```
+
+    The log of the run prints the share of lines covered. No floor applies
+    to it (btclib-org/portanode#784).
 1. Read the open alerts and stop while any is open. The command prints
    each open Dependabot and code-scanning alert, and exits `0` only
    where there is none and both calls answered:

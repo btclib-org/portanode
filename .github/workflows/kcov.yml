@@ -1,0 +1,50 @@
+---
+name: kcov
+
+# the suite under tests/ under kcov, the dynamic analysis RELEASING.md
+# runs before each tag. It fails where the suite fails. No floor applies
+# to the coverage it prints.
+#
+# Dispatched rather than on a calendar or on every pull request: it answers
+# a release's question. A pull request reaches it only through the files
+# below, so a change to them is checked by the run it configures.
+#
+# In a container, because kcov is not in Ubuntu 24.04's archive, and because
+# under Ubuntu 26.04 the same kcov version reports far fewer covered lines of
+# the same suite than under Debian 13. The digest is moved by hand: Dependabot
+# reads the actions here and not this command.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # closed too, for the reason links.yml gives at the same line
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+    paths:
+      - .github/workflows/kcov.yml
+      - tests/kcov.sh
+
+permissions:
+  contents: read
+
+concurrency:
+  # keyed as lint.yml's group is, and for its reasons
+  group: kcov-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !(github.event.action == 'closed' && github.event.pull_request.merged) }}
+
+jobs:
+  kcov:
+    name: Run the suite under kcov
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run the suite under kcov
+        run: >-
+          docker run --rm
+          --volume "$PWD:/checkout:ro"
+          debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4
+          bash /checkout/tests/kcov.sh

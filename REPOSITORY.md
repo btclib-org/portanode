@@ -102,8 +102,10 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 
 `links.yml` and `claude-review.yml` are not part of the required checks: the
 first reports the internet's weather and the second an opinion, and neither is a
-thing to hold a merge on. `scorecard.yml` is not a check on a pull request
-at all.
+thing to hold a merge on. `kcov.yml` is not part of them either: a pull
+request runs it only where it changes that file or the script it runs, and
+a required check that never runs blocks a merge. `scorecard.yml` is not a
+check on a pull request at all.
 
 What holds a pull request is the review and, for anybody but an
 administrator, the contexts above; what holds every commit that reaches
@@ -461,8 +463,8 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 turns that answer into a number, twenty concurrent jobs on the free plan,
 shared across every repository of the organization. `lint.yml`,
 `script-security.yml`, `test.yml`, `codeql.yml` and `claude-review.yml`
-are what a pull request here starts, with `links.yml` added where the path its trigger
-names is touched.
+are what a pull request here starts, with `links.yml` and `kcov.yml` added where
+a path their triggers name is touched.
 
 ## Pages, which this repository does not use
 

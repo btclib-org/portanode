@@ -137,7 +137,11 @@ class H(http.server.BaseHTTPRequestHandler):
             self.send_header("Location", target)
             self.end_headers()
             return
+        # http.server closes a TLS socket without close_notify. With no length
+        # to go by, curl on Debian 13 and Ubuntu 26.04 reads that as a body cut
+        # short and exits 56.
         self.send_response(200)
+        self.send_header("Content-Length", "3")
         self.end_headers()
         self.wfile.write(b"ok\n")
     def log_message(self, *args):
