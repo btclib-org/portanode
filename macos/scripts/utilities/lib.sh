@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # macOS's own entry point for the platform-nameless download, PGP and
 # checksum helpers. The implementation lives in shared/utilities/lib.sh;
 # this file stays at this path, as a forwarder rather than being

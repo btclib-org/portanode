@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Prints the whole gigabytes still writable on the volume holding -Path,
 # then exits 0. Exits 1 (no output) where that volume cannot be read.
 #

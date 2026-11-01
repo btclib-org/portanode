@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # shellcheck shell=bash
 # The launchers at the root, as macOS and Linux run them: each opens the
 # menu of the platform it runs on, and leaves it on 0 or an empty line. No

@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # win\scripts\utilities\clean-artifacts.bat where PowerShell does not
 # start: it says so and exits 1, rather than reporting the cleanup done.
 

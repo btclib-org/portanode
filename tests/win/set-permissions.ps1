@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # win/scripts/utilities/set-permissions.bat, run whole in a copy of the tree,
 # and its readback in :report_permission_effect. The folders are those a
 # findstr search of icacls's report misses, as the comment above that label

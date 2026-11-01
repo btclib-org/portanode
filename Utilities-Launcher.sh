@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 set -euo pipefail
 
 # Portable readlink -f: macOS's own readlink has no -f before 12.3

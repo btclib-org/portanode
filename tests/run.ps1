@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Runs every test file under tests/win/, each in a process of its own under
 # the PowerShell running this one, and exits 1 where any of them failed. A
 # file fails where it exits non-zero or prints a line starting "not ok ", so

@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # shellcheck shell=bash
 # Tests for shared/utilities/lib.sh's integrity helpers: verify_sha256sums,
 # tree_hash, and the whole-bundle entries the macOS updaters record and

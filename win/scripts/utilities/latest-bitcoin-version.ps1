@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Prints the newest Bitcoin Core version on bitcoincore.org that actually ships
 # a win64 archive, then exits 0.
 #

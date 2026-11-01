@@ -1,5 +1,9 @@
 @echo off
 setlocal disabledelayedexpansion
+REM Copyright (c) The btclib developers
+REM Distributed under the MIT software license, see the accompanying
+REM LICENSE file or https://opensource.org/license/mit for the full text.
+
 REM Launch Bitcoin Core GUI for regtest as Bob (clean start).
 REM Removes and recreates regtest_bob data directory.
 REM Data directory: bitcoin-datadir\regtest_bob

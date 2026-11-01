@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # The launchers at the root, as Windows runs them: each opens its menu and
 # leaves it on 0. No entry is chosen, so nothing here needs a binary under
 # win\bin.

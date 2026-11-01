@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # shellcheck shell=bash
 # Runs every test file under tests/sh/, each in a process of its own under
 # the bash running this one, and exits 1 where any of them failed. A file

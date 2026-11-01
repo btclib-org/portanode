@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Prints MALFORMED where -Requested is not digits and dots, whatever else is
 # passed; then OK where -Allow is 1 or -Installed is "unknown", OLDER where
 # -Requested is older, UNCOMPARABLE where -Installed is not digits and dots,

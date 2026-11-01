@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Tests win/scripts/bitcoin/node-args.ps1, which reads a running node's
 # network switches for the Windows mainnet launcher. It starts no process
 # and reads no process list, so PowerShell runs it on any system:

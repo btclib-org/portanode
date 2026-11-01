@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # The regtest launchers for Bob and Carol, under a root where their data
 # directory cannot be created: each stops with an error before it starts
 # a node. A file named bitcoin-datadir stands where the folder goes, and

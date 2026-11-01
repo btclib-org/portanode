@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # win\scripts\utilities\health-check.bat under a folder whose path holds
 # an "&", with no node running and the files a node that stopped
 # uncleanly leaves in its data directory. It lists both files and calls

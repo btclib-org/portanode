@@ -494,6 +494,34 @@ repos:
         # local-link-prefix above gives
         entry: |-
           \A@echo[\x20\t]+off\r?\n[\x20\t]*@?setlocal[\x20\t]+disabledelayedexpansion[\x20\t]*\r?$
+      # a script opens with COPYRIGHT's lines, written as `REM` in a `.bat`.
+      # They start by line 3: a shebang has to stay first, and the check
+      # above requires `@echo off` and `setlocal` on lines 1 and 2.
+      # pygrep reads only the file it is given, so it would need a copy of
+      # the notice here, free to drift from COPYRIGHT. `python` is the one
+      # pre-commit builds for the hook, so the machine needs none of its own.
+      - id: copyright-notice
+        name: a script opens with the lines of COPYRIGHT
+        language: python
+        files: \.(sh|command|bat|ps1)$
+        entry: |-
+          python -c '
+          import sys
+
+          with open("COPYRIGHT", encoding="ascii") as file:
+              hash_form = file.read().splitlines()
+          rem_form = ["REM" + line[1:] for line in hash_form]
+
+          failed = False
+          for name in sys.argv[1:]:
+              with open(name, encoding="utf-8", errors="replace") as file:
+                  top = file.read().splitlines()[:5]
+              form = rem_form if name.endswith(".bat") else hash_form
+              if not any(top[at : at + 3] == form for at in range(3)):
+                  print(f"{name}: does not open with the lines of COPYRIGHT")
+                  failed = True
+          sys.exit(failed)
+          '
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: 331f33fa4dfbcbca7c3da3620c137fde0faab273 # frozen: v3.9.10
     hooks:

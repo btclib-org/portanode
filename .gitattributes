@@ -63,7 +63,9 @@ keys/*.fingerprints text eol=lf
 # `git tag -s "v$(cat VERSION)"`, command substitution strips a trailing
 # newline and not the carriage return in front of it, and
 # `git check-ref-format` refuses the ref name that results. Nothing reads
-# `COPYRIGHT` or `LICENSE`, so `text` is the whole of what they need.
+# `LICENSE`, and the `copyright-notice` hook reads `COPYRIGHT` in Python's
+# text mode, which takes either line ending, so `text` is the whole of
+# what they need.
 COPYRIGHT text
 LICENSE text
 VERSION text eol=lf

@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # The set lines that build BITCOIND_CMD in the regtest CLI launchers, run
 # as each launcher writes them, under folders whose paths hold an "&", a
 # "^", a "!", parentheses and spaces. Each folder's path stays whole

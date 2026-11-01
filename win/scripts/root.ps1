@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # True where Dir holds VERSION plus one of macos/, win/ or linux/, the
 # marker resolve_root in shared/lib.sh looks for; the comment at the head
 # of that loop argues why any one of the three is enough.

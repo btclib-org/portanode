@@ -289,7 +289,7 @@ Everything above is the same file in every repository of the
 organization; everything below is this one's, and the comparison stops at
 this heading.
 
-There is no `.python-version` because the tracked tree has no Python source
+There is no `.python-version` because the tracked tree has no Python file
 and no gate depends on a repository-selected Python interpreter. The Python
 used to create hook environments is managed by pre-commit; pin a version here
 if a project source file or gate becomes interpreter-sensitive.
@@ -298,7 +298,7 @@ if a project source file or gate becomes interpreter-sensitive.
 
 uv is the only thing that has to be installed; it fetches interpreters
 and tools itself. There is no project here — no `pyproject.toml`, no lock
-file, and no Python at all, `check-changelog` being fetched from
+file, and no Python file, `check-changelog` being fetched from
 `btclib-org/.github` — so nothing is synced and every command is a `uvx`:
 
 ```shell

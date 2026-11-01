@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Prints the newest version listed on download.electrum.org, then exits 0.
 #
 # Two failures, told apart on stdout the way latest-bitcoin-version.ps1's own

@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # The usage line of the utilities that take options, given an option they
 # know and then one they do not: each names itself, however many arguments
 # it read before the one it refused.

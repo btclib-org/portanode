@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Reads Bitcoin Core's network switches out of a Windows command line.
 # lib.bat beside this file dot-sources it, and tests/win/node-args.ps1
 # tests it.

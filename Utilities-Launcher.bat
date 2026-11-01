@@ -1,5 +1,8 @@
 @echo off
 setlocal disabledelayedexpansion
+REM Copyright (c) The btclib developers
+REM Distributed under the MIT software license, see the accompanying
+REM LICENSE file or https://opensource.org/license/mit for the full text.
 
 REM Explicitly disabled on line 2 rather than merely not enabled: a bare
 REM "setlocal" keeps whatever state the caller left the pass at, and the

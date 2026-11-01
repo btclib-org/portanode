@@ -1,4 +1,8 @@
 @echo off
+REM Copyright (c) The btclib developers
+REM Distributed under the MIT software license, see the accompanying
+REM LICENSE file or https://opensource.org/license/mit for the full text.
+
 REM Shared helpers for Windows utility scripts.
 
 set "ACTION=%~1"

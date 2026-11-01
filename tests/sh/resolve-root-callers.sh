@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # shellcheck shell=bash
 # resolve_root in shared/lib.sh given a PORTANODE_ROOT, and every .sh and
 # .command script that calls it. It asks git for those scripts, so it needs

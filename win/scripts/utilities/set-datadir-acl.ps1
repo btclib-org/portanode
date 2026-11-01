@@ -1,3 +1,7 @@
+# Copyright (c) The btclib developers
+# Distributed under the MIT software license, see the accompanying
+# LICENSE file or https://opensource.org/license/mit for the full text.
+
 # Replaces -Path's DACL with a protected one granting -Account full control
 # and nothing else, then exits 0. Exits 1, with a message on stderr, where
 # the account cannot be resolved or the DACL cannot be written.
