@@ -156,10 +156,7 @@ refuse_downgrade "$CURRENT" "$VERSION" "$ALLOW_DOWNGRADE" "Electrum" \
 # the line's end -- so a process that merely carries "run_electrum" among
 # its own arguments, unrelated to Electrum, is not matched.
 ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|(^|/)run_electrum( |\$)"
-if pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
-    echo "Error: Electrum is running. Stop it before updating."
-    exit 1
-fi
+refuse_while_running "Electrum" updating "$ELECTRUM_PGREP_PATTERN" || exit 1
 
 echo "Updating Electrum..."
 

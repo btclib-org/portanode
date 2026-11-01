@@ -437,6 +437,30 @@ if defined ROOTDIR call set "RR_PATH=%%RR_PATH:%ROOTDIR%\=%%"
 set "%RR_OUTVAR%=%RR_PATH%"
 exit /b 0
 
+REM :refuse_while_running <name> <doing> <image>
+REM Returns 0 where tasklist answers that no process runs <image>. Otherwise
+REM returns 1 with a message: one does, or tasklist is missing or failed, and
+REM then nothing says that <name> is stopped. <doing> is what the caller is
+REM about to do, as "updating". One run of tasklist gives both answers: the
+REM line that follows it only where it exits 0 is the proof a listing was
+REM read, and a pipe into find could not give that, its status being find's.
+:refuse_while_running
+set "GUARD_NAME=%~1"
+set "GUARD_DOING=%~2"
+set "GUARD_LISTED="
+set "GUARD_FOUND="
+for /f "tokens=1 delims= " %%L in ('tasklist /nh /fi "imagename eq %~3" 2^>nul ^&^& echo portanode-listed') do (
+    if "%%L"=="portanode-listed" set "GUARD_LISTED=1"
+    if /i "%%L"=="%~3" set "GUARD_FOUND=1"
+)
+if defined GUARD_FOUND (
+    echo Error: %GUARD_NAME% is running. Stop it before %GUARD_DOING%.
+    exit /b 1
+)
+if defined GUARD_LISTED exit /b 0
+echo Error: cannot tell whether %GUARD_NAME% is running: tasklist is missing or failed. Not %GUARD_DOING%.
+exit /b 1
+
 :normalize_fs_path
 set "RAW=%~1"
 set "OUTVAR=%~2"

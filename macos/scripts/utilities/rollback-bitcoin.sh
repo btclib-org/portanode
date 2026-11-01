@@ -31,10 +31,7 @@ done
 # pattern is that script's, repeated here rather than shared, so a change to one
 # is owed to the other.
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt|Bitcoin-Qt.app"
-if pgrep -f -i "$BTC_PGREP_PATTERN" > /dev/null; then
-    echo "Error: Bitcoin Core is running. Stop it before rolling back."
-    exit 1
-fi
+refuse_while_running "Bitcoin Core" "rolling back" "$BTC_PGREP_PATTERN" || exit 1
 
 echo "Rolling back Bitcoin binaries..."
 

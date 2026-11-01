@@ -157,10 +157,7 @@ refuse_downgrade "$CURRENT" "$VERSION" "$ALLOW_DOWNGRADE" "Bitcoin Core" \
 # GNU procps, whose -f/-i mean the same as the BSD pgrep update-bitcoin.sh
 # (macOS) uses; there is no app bundle name to add to the pattern here.
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
-if pgrep -f -i "$BTC_PGREP_PATTERN" > /dev/null; then
-    echo "Error: Bitcoin Core is running. Stop it before updating."
-    exit 1
-fi
+refuse_while_running "Bitcoin Core" updating "$BTC_PGREP_PATTERN" || exit 1
 
 echo "Updating Bitcoin Core..."
 

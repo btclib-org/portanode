@@ -46,16 +46,14 @@ REM operation whichever script does it, and a rollback is run when something
 REM has just gone wrong, which is when the node is most likely to still be up.
 REM The filters are that script's, repeated here rather than shared, so a
 REM change to one is owed to the other.
-tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
-if %errorlevel%==0 (
-    echo Error: Bitcoin Core is running. Stop it before rolling back.
+call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Bitcoin Core" "rolling back" bitcoind.exe
+if errorlevel 1 (
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
-tasklist /fi "imagename eq bitcoin-qt.exe" | find /i "bitcoin-qt.exe" >nul
-if %errorlevel%==0 (
-    echo Error: Bitcoin Core is running. Stop it before rolling back.
+call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Bitcoin Core" "rolling back" bitcoin-qt.exe
+if errorlevel 1 (
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1

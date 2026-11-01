@@ -172,16 +172,14 @@ setlocal enabledelayedexpansion
 echo Updating Bitcoin Core to !VERSION!...
 endlocal
 
-tasklist /fi "imagename eq bitcoind.exe" | find /i "bitcoind.exe" >nul
-if %errorlevel%==0 (
-    echo Error: Bitcoin Core is running. Stop it before updating.
+call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Bitcoin Core" updating bitcoind.exe
+if errorlevel 1 (
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
-tasklist /fi "imagename eq bitcoin-qt.exe" | find /i "bitcoin-qt.exe" >nul
-if %errorlevel%==0 (
-    echo Error: Bitcoin Core is running. Stop it before updating.
+call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Bitcoin Core" updating bitcoin-qt.exe
+if errorlevel 1 (
     popd >nul 2>&1
     call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
