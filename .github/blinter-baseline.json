@@ -332,7 +332,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "start \"\" cmd /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest\""
   },
   {
     "code": "W028",
@@ -442,7 +442,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
-    "text": "start \"\" cmd /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest\""
   },
   {
     "code": "W028",
@@ -642,7 +642,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "start \"\" cmd /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18554\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18554\""
   },
   {
     "code": "W028",
@@ -762,7 +762,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
-    "text": "start \"\" cmd /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18554\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18554\""
   },
   {
     "code": "W028",
@@ -992,7 +992,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "start \"\" cmd /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18665\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18665\""
   },
   {
     "code": "W028",
@@ -1112,7 +1112,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
-    "text": "start \"\" cmd /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18665\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18665\""
   },
   {
     "code": "W028",
