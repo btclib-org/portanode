@@ -136,8 +136,8 @@ if [ "$BTC_RUNNING" = "yes" ]; then
     fi
     if [ -n "$BLOCKCHAIN_INFO" ] && command -v jq >/dev/null 2>&1; then
         SYNC=$(echo "$BLOCKCHAIN_INFO" | jq -r '.verificationprogress')
-        if [ "$SYNC" != "null" ] && [ -n "$SYNC" ]; then
-            PCT=$(printf "%.2f" "$(echo "$SYNC * 100" | bc -l)")
+        if [ "$SYNC" != "null" ] && [ -n "$SYNC" ] && \
+           PCT=$(sync_percent "$SYNC"); then
             echo "Bitcoin sync: ${PCT}%"
         else
             echo "Bitcoin sync: unknown"
