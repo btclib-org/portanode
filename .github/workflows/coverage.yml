@@ -1,0 +1,69 @@
+---
+name: coverage
+
+# the suite under tests/, measured: its bash lines under kcov, and its .ps1
+# statements by tests/statements.ps1. RELEASING.md runs it before each tag.
+# Each job fails where the suite fails, and where the share it prints is
+# under the floor its last step passes; tests/README.md says how a floor is
+# raised.
+#
+# Dispatched rather than on a calendar or on every pull request: it answers
+# a release's question. A pull request reaches it only through the files
+# below, so a change to them, a floor's included, is checked by the run it
+# configures.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # closed too, for the reason links.yml gives at the same line
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+    paths:
+      - .github/workflows/coverage.yml
+      - tests/kcov.sh
+      - tests/statements.ps1
+
+permissions:
+  contents: read
+
+concurrency:
+  # keyed as lint.yml's group is, and for its reasons
+  group: coverage-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !(github.event.action == 'closed' && github.event.pull_request.merged) }}
+
+jobs:
+  kcov:
+    name: Measure the bash lines the suite runs
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # In a container, because kcov is not in Ubuntu 24.04's archive, and
+      # because under Ubuntu 26.04 the same kcov version reports far fewer
+      # covered lines of the same suite than under Debian 13. The digest is
+      # moved by hand: Dependabot reads the actions here and not this
+      # command. The argument is the floor, a percentage.
+      - name: Run the suite under kcov
+        run: >-
+          docker run --rm
+          --volume "$PWD:/checkout:ro"
+          debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4
+          bash /checkout/tests/kcov.sh 34
+
+  statements:
+    name: Measure the .ps1 statements the suite runs
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # -Floor is the floor, a percentage
+      - name: Run the suite with a statement log
+        shell: pwsh
+        run: pwsh -NoProfile -File tests\statements.ps1 -Floor 58
