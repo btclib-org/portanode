@@ -42,9 +42,7 @@ done
 
 # Detect OS/arch (Linux only). Bitcoin Core's Linux archives are published
 # for exactly two architectures (bitcoin-<version>-<arch>-linux-gnu.tar.gz),
-# so an unrecognized `uname -m` is refused rather than guessed at the way
-# update-bitcoin.sh (macOS) treats any non-arm64 uname as x86_64 -- macOS
-# only ever reports one of two values there, where Linux runs on more.
+# so an unrecognized `uname -m` is refused rather than guessed at.
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     OS="linux-gnu"
     EXT="tar.gz"

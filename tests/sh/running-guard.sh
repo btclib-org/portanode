@@ -8,9 +8,9 @@
 # pgrep is missing or fails, each refuses. tests/win/running-guard.ps1 has the
 # Windows half.
 #
-# Each script runs against an empty folder named by PORTANODE_ROOT, with curl
-# and uname replaced by stubs, OSTYPE set to its platform, and a PATH of
-# symlinks to /bin and /usr/bin without pgrep. Needs no network.
+# Each script runs against an empty folder named by PORTANODE_ROOT, with curl,
+# uname and sysctl replaced by stubs, OSTYPE set to its platform, and a PATH
+# of symlinks to /bin and /usr/bin without pgrep. Needs no network.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -39,7 +39,9 @@ cat > "$STUBS/uname" <<'EOF'
 #!/bin/sh
 echo "$STUB_ARCH"
 EOF
-chmod +x "$STUBS/curl" "$STUBS/uname"
+# sysctl answers that the Mac is Apple silicon.
+printf '#!/bin/sh\necho 1\n' > "$STUBS/sysctl"
+chmod +x "$STUBS/curl" "$STUBS/uname" "$STUBS/sysctl"
 
 # pgrep_answering <status>: prints a directory whose pgrep exits <status>.
 pgrep_answering() {

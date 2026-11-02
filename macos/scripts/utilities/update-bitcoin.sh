@@ -40,7 +40,7 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# Detect OS/arch (macOS only)
+# Detect OS (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="apple-darwin"
     # Use the official notarized release archive (the ".zip" ships the
@@ -48,11 +48,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # the project's *unsigned* internal build artifact; on Apple Silicon an
     # unsigned binary is killed by the kernel with SIGKILL ("Killed: 9").
     EXT="zip"
-    ARCH="$(uname -m)"
-    if [ "$ARCH" = "arm64" ]; then
-        ARCH_TAG="arm64"
-    else
-        ARCH_TAG="x86_64"
+    ARCH_TAG="arm64"
+    # hw.optional.arm64 answers 1 on Apple silicon, under Rosetta too, where
+    # `uname -m` does not answer arm64. Any other answer, an unknown oid's
+    # error included, is refused before anything is downloaded.
+    if [ "$(sysctl -n hw.optional.arm64 2>/dev/null || true)" != "1" ]; then
+        echo "Bitcoin Core's arm64 build needs Apple silicon:" \
+             "nothing was downloaded or replaced." >&2
+        exit 1
     fi
     APP_NAME="Bitcoin-Qt.app"
     APP_DIR="$ROOTDIR/macos/bin"

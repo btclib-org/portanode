@@ -97,11 +97,12 @@ and Ubuntu it has to run under, not on a single default:
   fails closed* below).
   `tests/sh/dependencies.sh` fails where this list and that file differ:
     - macOS: Bitcoin Core, Electrum, `bash`, `env`, `gpg`, `curl`, `tar`,
-      `unzip`, `hdiutil`, `open`, `diskutil`, `stat`, `ps`, `pgrep`, `shasum`,
-      `sha256sum`, `jq`, `bc`, `perl`, `osascript`, `locale`, `find`, `awk`,
-      `basename`, `cat`, `chmod`, `cp`, `cut`, `df`, `dirname`, `grep`, `head`,
-      `ls`, `mkdir`, `mktemp`, `mv`, `readlink`, `rm`, `rmdir`, `sed`, `sort`,
-      `sync`, `tail`, `tr`, `uname`, `wc`, `xargs`.
+      `unzip`, `hdiutil`, `open`, `diskutil`, `sysctl`, `stat`, `ps`, `pgrep`,
+      `shasum`, `sha256sum`, `jq`, `bc`, `perl`, `osascript`, `locale`,
+      `find`, `awk`, `basename`, `cat`, `chmod`, `cp`, `cut`, `df`,
+      `dirname`, `grep`, `head`, `ls`, `mkdir`, `mktemp`, `mv`, `readlink`,
+      `rm`, `rmdir`, `sed`, `sort`, `sync`, `tail`, `tr`, `uname`, `wc`,
+      `xargs`.
     - Windows: Bitcoin Core, Electrum, `cmd`, `powershell`, `gpg`, `find`,
       `findstr`, `where`, `tasklist`, `taskkill`, `icacls`, `timeout`, `doskey`.
     - Linux: Bitcoin Core, Electrum, `bash`, `env`, `gpg`, `curl`, `tar`,
