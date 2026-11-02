@@ -13,6 +13,72 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
+## v2026.11.2
+
+The Windows updaters fetch over HTTPS only, redirects included, and the
+scripts that need to know whether a node runs stop, or say they cannot
+tell, where the process listing fails.
+
+### The Windows updaters refuse a redirect away from HTTPS
+
+Windows PowerShell 5.1 follows a redirect from HTTPS to plain HTTP. Every
+Windows updater fetch goes through `fetch-https.ps1`, which refuses a hop
+that is not HTTPS before it goes out, as `curl_https` does (closes #695).
+
+### An update or rollback stops where it cannot tell a node is stopped
+
+Where `pgrep`, or `tasklist` on Windows, is missing or fails, the updaters
+and rollbacks say they cannot tell and stop, `--dry-run` included. That
+read as "not running", and the binaries were replaced (closes #787).
+
+### A `-clean` launcher deletes nothing where it cannot tell
+
+On macOS and Linux, a `ps` line that is not UTF-8 could hide a node whose
+datadir holds a letter outside ASCII. The launcher says it could not tell
+and deletes nothing (closes #694).
+
+### The macOS and Linux health-checks say `unknown` where they cannot read
+
+Without `bc`, or under a comma-decimal locale, the sync percentage is the
+true one or `unknown` (closes #791). Without `pgrep`, Bitcoin Core and
+Electrum read `unknown (pgrep not found)`, not `no` (closes #802).
+
+### The Windows regtest CLI consoles pass `/v:off` and name `cmd.exe` in full
+
+With the `DelayedExpansion` registry value at 1, a folder holding `!` was
+misread or kept bitcoind from starting. A `cmd` planted in the folder ran
+where `COMSPEC` was cleared in the console (closes #766, #771 and #672).
+
+### Every script states its copyright
+
+Each tracked `.sh`, `.command`, `.bat` and `.ps1` opens with
+`COPYRIGHT`'s lines, and a hook refuses one that does not (closes #778
+and #815).
+
+### `dependencies.yaml` lists the programs the tree does not hold
+
+It names each program a launcher or utility starts, with its platforms,
+its use and whether it is required. `tests/sh/dependencies.sh` fails
+where it and `README.md`'s Prerequisites differ (closes #779).
+
+### The suite runs under kcov and weekly on macOS and Windows
+
+`RELEASING.md` dispatches `kcov.yml`, which runs the suite under `kcov`,
+before each tag (closes #780). `os-macos.yml` and `os-windows.yml` run it
+weekly (issue btclib-org/.github#1802).
+
+### Windows tests for a planted command and a moved `TEMP`
+
+In `tests/win/`, `health-check.ps1` shows that `health-check.bat` run from
+the root runs no planted `powershell.bat` or `tasklist.bat` (issue #672),
+and `findstr-paths.ps1` keeps its gpg home outside `TEMP` (closes #789).
+
+### Contributor rules
+
+`CONTRIBUTING.md`'s PSScriptAnalyzer command reads the rules and the
+version `script-security.yml` pins (closes #768). `REVIEWING.md`'s own part
+opens with btclib-org/.github's sentence (issue btclib-org/.github#1919).
+
 ## v2026.10.30
 
 The Windows regtest CLI launchers start bitcoind, and the Windows scripts
