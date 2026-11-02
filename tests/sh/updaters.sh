@@ -7,7 +7,7 @@
 # fetches.
 #
 # Needs no network: the updaters run in a copy of the tree, with curl,
-# pgrep and uname replaced by stubs on PATH, and OSTYPE set to the
+# pgrep, uname and sysctl replaced by stubs on PATH, and OSTYPE set to the
 # platform each is for. The curl_https checks start local servers, so
 # they need python3 and openssl, and are skipped without them.
 # compare-versions.ps1 runs through pwsh against the same cases as
@@ -215,7 +215,9 @@ cat > "$STUBS/uname" <<'EOF'
 #!/bin/sh
 echo "$STUB_ARCH"
 EOF
-chmod +x "$STUBS/curl" "$STUBS/pgrep" "$STUBS/uname"
+# sysctl answers that the Mac is Apple silicon.
+printf '#!/bin/sh\necho 1\n' > "$STUBS/sysctl"
+chmod +x "$STUBS/curl" "$STUBS/pgrep" "$STUBS/uname" "$STUBS/sysctl"
 
 sha() {
     if command -v shasum > /dev/null; then

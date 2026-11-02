@@ -10,8 +10,8 @@
 # nothing is installed. It stands in for a fuzzer (ISS 646): the updaters are
 # shell, which none that OpenSSF Scorecard recognises runs.
 #
-# The updaters run in a copy of the tree with curl, pgrep, uname and hdiutil
-# replaced by stubs on PATH. curl serves files from a directory, and the
+# The updaters run in a copy of the tree with curl, pgrep, uname, sysctl and
+# hdiutil replaced by stubs on PATH. curl serves files from a directory, and the
 # signatures are real: gpg signs with a key made for the run, whose
 # fingerprint is the only one the copy's keys/*.fingerprints pin.
 # win/scripts/utilities holds the Windows halves, tested in
@@ -112,9 +112,20 @@ EOF
 printf '#!/bin/sh\nexit 1\n' > "$STUBS/pgrep"
 printf '#!/bin/sh\necho "$STUB_ARCH"\n' > "$STUBS/uname"
 printf '#!/bin/sh\necho "$*" >> "$CURL_LOG.hdiutil"\nexit 1\n' > "$STUBS/hdiutil"
-chmod +x "$STUBS/curl" "$STUBS/pgrep" "$STUBS/uname" "$STUBS/hdiutil"
+# sysctl prints $STUB_SYSCTL, and at "error" fails as an unknown oid does.
+cat > "$STUBS/sysctl" <<'EOF'
+#!/bin/sh
+if [ "$STUB_SYSCTL" = error ]; then
+    echo "sysctl: unknown oid '$2'" >&2
+    exit 1
+fi
+echo "$STUB_SYSCTL"
+EOF
+chmod +x "$STUBS/curl" "$STUBS/pgrep" "$STUBS/uname" "$STUBS/hdiutil" \
+  "$STUBS/sysctl"
 
 # run_updater OSTYPE ARCH SCRIPT ARGS...: status in $RC, output in $OUT.
+# sysctl answers $STUB_SYSCTL where it is set, and 1 where it is not.
 run_updater() {
     local ostype="$1" arch="$2" script="$3"
     shift 3
@@ -122,8 +133,9 @@ run_updater() {
     : > "$WORK/curl.log.hdiutil"
     RC=0
     OUT="$(env -u PORTANODE_ROOT PATH="$STUBS:$PATH" OSTYPE="$ostype" \
-      STUB_ARCH="$arch" CURL_LOG="$WORK/curl.log" SERVE="$SERVE" TMPDIR="$WORK" \
-      GNUPGHOME="$HOME_A" bash "$TREE/$script" "$@" 2>&1)" || RC=$?
+      STUB_ARCH="$arch" STUB_SYSCTL="${STUB_SYSCTL-1}" CURL_LOG="$WORK/curl.log" \
+      SERVE="$SERVE" TMPDIR="$WORK" GNUPGHOME="$HOME_A" \
+      bash "$TREE/$script" "$@" 2>&1)" || RC=$?
 }
 
 # Every path under the platform directories and the two checksum files: a
@@ -312,6 +324,55 @@ while read -r script ostype arch; do
             sums_case "$script" "$ostype" "$arch" sums_cli_for_other
     fi
 done <<< "$UPDATERS"
+
+# --- Apple silicon -----------------------------------------------------------
+# The macOS bitcoin updater asks sysctl for hw.optional.arm64, and installs
+# only where it answers 1. The release served is correct and signed, so a
+# refusal is the check refusing.
+MACOS_BITCOIN=macos/scripts/utilities/update-bitcoin.sh
+silicon_serve() {
+    fresh_tree
+    serve_release "$MACOS_BITCOIN" 29.0
+    good_sums > "$SERVE/SHA256SUMS"
+    publish_sums
+    BEFORE="$(snapshot)"
+}
+# silicon_installs: sysctl answers 1 and uname x86_64, as under Rosetta; the
+# arm64 archives are fetched and installed.
+silicon_installs() {
+    silicon_serve
+    STUB_SYSCTL=1
+    run_updater darwin24 x86_64 "$MACOS_BITCOIN" --version 29.0
+    [ "$RC" -eq 0 ] || { printf '  exit %s\n%s\n' "$RC" "$OUT"; return 1; }
+    contains "$OUT" "Bitcoin Core updated to 29.0" || return 1
+    contains "$(cat "$WORK/curl.log")" "/$FILE" || return 1
+    contains "$(cat "$WORK/curl.log")" "/$CLI"
+}
+# silicon_refused ANSWER: sysctl answers ANSWER ("error": an unknown oid);
+# the updater refuses, with nothing fetched and nothing replaced.
+silicon_refused() {
+    silicon_serve
+    STUB_SYSCTL="$1"
+    run_updater darwin24 arm64 "$MACOS_BITCOIN" --version 29.0
+    refused "needs Apple silicon" || return 1
+    if [ -s "$WORK/curl.log" ]; then
+        printf '  curl ran:\n'
+        sed 's/^/    /' "$WORK/curl.log"
+        return 1
+    fi
+}
+if command -v zip > /dev/null && command -v unzip > /dev/null; then
+    check "macos update-bitcoin installs the arm64 build where sysctl says Apple silicon" \
+        silicon_installs
+    check "macos update-bitcoin refuses where hw.optional.arm64 is 0" \
+        silicon_refused 0
+    check "macos update-bitcoin refuses where hw.optional.arm64 is empty" \
+        silicon_refused ""
+    check "macos update-bitcoin refuses where hw.optional.arm64 is an unknown oid" \
+        silicon_refused error
+else
+    echo "ok - skipped: macos bitcoin needs zip and unzip"
+fi
 
 
 # --- the signature on what is downloaded -----------------------------------

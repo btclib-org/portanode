@@ -47,9 +47,10 @@ Electrum with `--dir` on APFS instead.
 
 ## Utilities
 
-- `update-bitcoin.sh` downloads the build for this Mac's architecture,
-  `x86_64` or `arm64`. `update-electrum.sh` mounts Electrum's DMG to
-  install from it.
+- `update-bitcoin.sh` downloads Bitcoin Core's `arm64` build. On a Mac
+  that is not Apple silicon it stops before downloading anything, and
+  the installed build stays. `update-electrum.sh` mounts Electrum's DMG
+  to install from it.
 - `verify-binaries.sh` checks with `shasum`, and needs `bash`: run it
   with `bash` where your default `sh` is not bash.
 - `rollback-bitcoin.sh` restores `Bitcoin-Qt.app` only.

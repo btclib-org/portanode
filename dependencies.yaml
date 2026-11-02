@@ -61,6 +61,10 @@ dependencies:
     platforms: [macos]
     required: false
     used_for: reads the filesystem in set-permissions, which warns without it
+  - name: sysctl
+    platforms: [macos]
+    required: true
+    used_for: tells the Bitcoin Core updater whether the Mac is Apple silicon
   - name: stat
     platforms: [macos, linux]
     required: true
