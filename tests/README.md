@@ -25,9 +25,29 @@ closest: it runs the Windows regtest CLI launchers with a stand-in for
 from each runner's checkout, on the platforms `CONTRIBUTING.md`'s last
 section names.
 
-`tests/kcov.sh` runs `tests/run.sh` under `kcov` in a Debian container, as
-`kcov.yml` starts it. It installs packages and adds a user, so it is not
-run on a developer's machine.
+## Coverage
+
+`coverage.yml` measures what the suite runs, one share per language, each
+read from one run:
+
+- bash lines, by `tests/kcov.sh`, which runs `tests/run.sh` under `kcov` in
+  a Debian container. It installs packages and adds a user, so it is not
+  run on a developer's machine.
+- `.ps1` statements, by `tests/statements.ps1`, which runs `tests/run.ps1`
+  on a Windows runner over a copy of the checkout whose `.ps1` files outside
+  `tests/` log each statement they run. It runs on a runner only. Its header
+  says why it does not use Pester.
+
+`.bat` is unmeasured, no tool counting a batch file's statements, and the
+Windows job lists each `.bat` as unmeasured. Branches are measured in
+neither language (btclib-org/portanode#784).
+
+Each job fails where the suite fails, and where its share is under its
+floor: the argument its last step in `coverage.yml` passes. A pull request
+that raises a share raises that floor with it, to the whole percent at or
+under the total its run printed. Each script cuts that total at two
+decimals rather than rounding it, so it never reads above the share. That
+edit to `coverage.yml` is what runs the workflow on the pull request.
 
 ## Adding a test
 

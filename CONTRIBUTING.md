@@ -487,11 +487,12 @@ branch rule names it, so a red one holds the merge. A CodeQL
 alert is fixed, or dismissed only as section 10 of the organization
 standard's *scorecard* entry allows.
 
-`kcov.yml` runs the suite under `kcov` on Ubuntu, in the Debian container
-its header names, and prints the share of lines covered. `RELEASING.md`
-dispatches it before each tag. A pull request runs it only where it changes
-that file or `tests/kcov.sh`, the script the container runs, and it is not a
-required check.
+`coverage.yml` measures the suite: its bash lines under `kcov`, in a
+Debian container on Ubuntu, and its `.ps1` statements on Windows. Each job
+fails under its floor, as `tests/README.md` says. `RELEASING.md` dispatches
+it before each tag. A pull request runs it only where it changes that
+file, `tests/kcov.sh` or `tests/statements.ps1`, and it is not a required
+check.
 
 `scorecard.yml` runs the OpenSSF Scorecard after each push to `main` and
 weekly, and publishes the score the `README.md` badge shows. It does not
