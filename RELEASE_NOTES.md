@@ -17,6 +17,13 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
+## v2026.11.2
+
+**An update or rollback stops where it cannot list the running
+processes**, `--dry-run` included: where `pgrep` (macOS, Linux) or
+`tasklist` (Windows) is missing or fails. Install the one `README.md`'s
+Prerequisites names before updating or rolling back.
+
 ## v2026.10.30
 
 Nothing to do by hand on an existing folder.
