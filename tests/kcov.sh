@@ -9,7 +9,7 @@
 # exits as the suite does, and 1 where the suite passed and the share is under
 # the floor it is given, a percentage:
 #
-#   bash tests/kcov.sh 34
+#   bash tests/kcov.sh <floor>
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 set -euo pipefail
@@ -42,7 +42,7 @@ import json, sys
 report = json.load(open(sys.argv[1]))
 covered, total = report["covered_lines"], report["total_lines"]
 # Cut at two decimals rather than rounded, so that it never reads above the
-# share: tests/README.md raises a floor to the whole percent under it.
+# share: tests/README.md raises a floor to the whole percent at or under it.
 cut = 10000 * covered // total
 print(f"{cut // 100}.{cut % 100:02d}% of {total} lines")
 for entry in sorted(report["files"], key=lambda entry: entry["file"]):

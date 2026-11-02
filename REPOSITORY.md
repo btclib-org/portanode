@@ -104,9 +104,8 @@ gh api repos/btclib-org/portanode/branches/main/protection \
 first reports the internet's weather and the second an opinion, and neither is a
 thing to hold a merge on. `coverage.yml` is not part of them either: a pull
 request runs it only where it changes that file, `tests/kcov.sh` or
-`tests/statements.ps1`, and a required check that never runs blocks a
-merge. `scorecard.yml` is not a
-check on a pull request at all.
+`tests/statements.ps1`, and a required check that never runs blocks a merge.
+`scorecard.yml` is not a check on a pull request at all.
 
 What holds a pull request is the review and, for anybody but an
 administrator, the contexts above; what holds every commit that reaches

@@ -10,7 +10,7 @@
 # exits as the suite does, and 1 where the suite passed and the share is
 # under the floor it is given, a percentage:
 #
-#   pwsh -NoProfile -File tests\statements.ps1 -Floor 58
+#   pwsh -NoProfile -File tests\statements.ps1 -Floor <floor>
 #
 # A log per process, because the launchers run the .ps1 files as processes
 # of their own, which a profiler in this one does not see: Pester's covers
@@ -79,7 +79,7 @@ $inv = [Globalization.CultureInfo]::InvariantCulture
 $covered = @($statements.Keys | Where-Object { $ran.ContainsKey($_) }).Count
 $total = $statements.Count
 # Cut at two decimals rather than rounded, so that it never reads above the
-# share: tests/README.md raises a floor to the whole percent under it.
+# share: tests/README.md raises a floor to the whole percent at or under it.
 $rem = [long]0
 $cut = [Math]::DivRem([long](10000 * $covered), [long]$total, [ref]$rem)
 Write-Output ([string]::Format($inv, '{0}.{1:00}% of {2} statements', ($cut - $cut % 100) / 100, $cut % 100, $total))
