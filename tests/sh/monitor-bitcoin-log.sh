@@ -25,6 +25,8 @@ chmod +x "$TMP/bin/stat"
 
 # report <platform> <line>: prints what that platform's monitor reports for
 # a debug.log holding the line, which printf writes from its escapes.
+# REPORT_ENV, where set, is one NAME=value more for the monitor's
+# environment.
 report() {
     local root="$TMP/$1"
     rm -rf "$root"
@@ -32,7 +34,8 @@ report() {
     touch "$root/VERSION"
     # shellcheck disable=SC2059 # the line holds the escapes printf reads
     printf "$2\n" > "$root/bitcoin-datadir/debug.log"
-    PATH="$TMP/bin:$PATH" PORTANODE_ROOT="$root" "$BASH" \
+    env ${REPORT_ENV:+"$REPORT_ENV"} PATH="$TMP/bin:$PATH" \
+        PORTANODE_ROOT="$root" "$BASH" \
         "$REPO/$1/scripts/utilities/monitor-bitcoin-log.sh" --no-notify
 }
 
@@ -59,6 +62,12 @@ for platform in linux macos; do
     check "$platform: a carriage return ending a line is dropped" same \
         "$TITLE"$'\n''ERROR crlf' \
         "$(report "$platform" 'ERROR crlf\r')"
+    # bash 3.2 has no BASHOPTS, so there the case passes whatever the
+    # monitor prints with.
+    check "$platform: xpg_echo from BASHOPTS leaves an escape as text" same \
+        "$TITLE"$'\n''ERROR xpg \x1b[31m end' \
+        "$(REPORT_ENV=BASHOPTS=xpg_echo report "$platform" \
+            'ERROR xpg \033[31m end')"
 done
 
 finish

@@ -86,7 +86,9 @@ if [ "$CURRENT_SIZE" -gt "$LAST_OFFSET" ]; then
 
     if [ -n "$ERRORS" ]; then
         echo "Bitcoin log errors detected:"
-        echo "$ERRORS"
+        # printf, not echo: under xpg_echo, which BASHOPTS can carry into
+        # this bash, echo turns an escape such as \x1b back into its byte.
+        printf '%s\n' "$ERRORS"
         # macOS notification
         if [ "$NO_NOTIFY" -eq 0 ] && command -v osascript >/dev/null 2>&1; then
             NOTIFY_MSG="Bitcoin errors detected"

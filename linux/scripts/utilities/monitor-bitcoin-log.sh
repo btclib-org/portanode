@@ -114,7 +114,9 @@ if [ "$CURRENT_SIZE" -gt "$LAST_OFFSET" ]; then
 
     if [ -n "$ERRORS" ]; then
         echo "Bitcoin log errors detected:"
-        echo "$ERRORS"
+        # printf, not echo: under xpg_echo, which BASHOPTS can carry into
+        # this bash, echo turns an escape such as \x1b back into its byte.
+        printf '%s\n' "$ERRORS"
         if [ "$NO_NOTIFY" -eq 0 ]; then
             notify_desktop "PortaNode Alert" "Bitcoin errors detected"
         fi
