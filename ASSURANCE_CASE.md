@@ -176,7 +176,10 @@ decides which binaries and which data it uses. A set
 beside `macos/`, `win/` or `linux/`, or the launcher stops. An Alice
 `-clean` launcher deletes regtest data only when it finds no node
 running on it. On macOS and Linux it reads each argument of a command
-line whole (`regtest_node_running_on` in `shared/lib.sh`).
+line whole (`regtest_node_running_on` in `shared/lib.sh`). On Windows it
+reads the node's network as the mainnet launcher does, below, and also
+splits the command line as Bitcoin Core up to v30.0 did, so it counts a
+node whose command line either version reads as regtest.
 
 The mainnet launcher refuses to start while a mainnet node is running.
 It reads a node's flags as whole arguments, so a path holding

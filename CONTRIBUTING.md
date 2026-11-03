@@ -402,9 +402,10 @@ the script by a `SuppressMessageAttribute` that says why. The same
 command with `-SuppressedOnly` lists the suppressed findings.
 
 **`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
-which the Windows mainnet launcher uses to read a running node's network
-switches. It is in the suite, so `tests/run.ps1` runs it. It starts no
-process, so `pwsh` also runs it on any system, CI's included:
+which the Windows mainnet launcher and the Alice `-clean` launchers use to
+read a running node's network switches. It is in the suite, so
+`tests/run.ps1` runs it. It starts no process, so `pwsh` also runs it on
+any system, CI's included:
 
 ```shell
 pwsh -NoProfile -File tests/win/node-args.ps1

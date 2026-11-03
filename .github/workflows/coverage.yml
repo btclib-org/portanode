@@ -66,4 +66,4 @@ jobs:
       # -Floor is the floor, a percentage
       - name: Run the suite with a statement log
         shell: pwsh
-        run: pwsh -NoProfile -File tests\statements.ps1 -Floor 68
+        run: pwsh -NoProfile -File tests\statements.ps1 -Floor 71
