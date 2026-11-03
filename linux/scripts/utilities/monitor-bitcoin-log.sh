@@ -96,9 +96,15 @@ if [ "$CURRENT_SIZE" -gt "$LAST_OFFSET" ]; then
     # The subshell answers with tail's own status: grep exits 1 where nothing
     # matches, and a head inside the pipe would end it early and hand tail a
     # SIGPIPE, so the first five are taken after the matches are captured.
+    # Without -a, grep reports a chunk holding a NUL as a binary file that
+    # matches, in place of its lines, and GNU grep in a UTF-8 locale drops
+    # each line holding a byte that is not UTF-8. The lines are escaped
+    # before they are captured, because bash drops a NUL from a captured
+    # string.
     MATCHES=$(
       tail -c "+$((LAST_OFFSET+1))" "$LOG_FILE" \
-        | grep -i "error\\|warning\\|failed"
+        | grep -a -i "error\\|warning\\|failed" \
+        | escape_controls
       exit "${PIPESTATUS[0]}"
     ) || {
         echo "Error: bitcoin-datadir/debug.log could not be read."
@@ -108,7 +114,9 @@ if [ "$CURRENT_SIZE" -gt "$LAST_OFFSET" ]; then
 
     if [ -n "$ERRORS" ]; then
         echo "Bitcoin log errors detected:"
-        echo "$ERRORS"
+        # printf, not echo: under xpg_echo, which BASHOPTS can carry into
+        # this bash, echo turns an escape such as \x1b back into its byte.
+        printf '%s\n' "$ERRORS"
         if [ "$NO_NOTIFY" -eq 0 ]; then
             notify_desktop "PortaNode Alert" "Bitcoin errors detected"
         fi

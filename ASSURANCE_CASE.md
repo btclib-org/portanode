@@ -275,8 +275,11 @@ to, and what counters each.
 - **Cleartext transmission (CWE-319).** Every download URL is `https`,
   and a redirect to another scheme is refused (`curl_https`, and
   `win/scripts/utilities/fetch-https.ps1`).
-- **Improper neutralization of output (CWE-150).** [ISS 629]: the log
-  monitors print `debug.log` lines to the terminal unfiltered.
+- **Improper neutralization of output (CWE-150).** The log monitors
+  escape control characters in the `debug.log` lines they print:
+  `README.md`'s *Logs and Debugging* says which, and which bytes pass
+  unchanged (`escape_controls` in `shared/lib.sh`, and
+  `win/scripts/utilities/monitor-bitcoin-log.ps1`).
 - **Shell defects.** `shellcheck` reads every `.sh` and `.command`
   script as a hook of the lint gate, which `lint.yml` runs on every pull
   request (`CONTRIBUTING.md`'s last section). The required `Script security`
@@ -284,5 +287,3 @@ to, and what counters each.
   (`script-security.yml`; `REPOSITORY.md`'s *What gates a merge*).
 - **Secrets in the tree.** `detect-secrets` runs as a hook of the lint
   gate, against `.secrets.baseline`.
-
-[ISS 629]: https://github.com/btclib-org/portanode/issues/629

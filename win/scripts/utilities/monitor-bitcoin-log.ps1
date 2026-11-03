@@ -14,6 +14,18 @@ if (-not $NoNotify -and $env:PORTANODE_NO_NOTIFY -eq '1') {
   $NoNotify = $true
 }
 
+# A log line with each control character written as text, so that the
+# console shows it rather than acts on it: shared/lib.sh's escape_controls
+# says which, and writes the same for macOS and Linux.
+function ConvertTo-VisibleText {
+  param([string]$Text)
+  [regex]::Replace($Text, '[\x00-\x1F\x7F-\x9F]', {
+      param($m)
+      $code = [int][char]$m.Value
+      if ($code -ge 0x80) { '\u{0:x4}' -f $code } else { '\x{0:x2}' -f $code }
+    })
+}
+
 $logFile = Join-Path $RootDir 'bitcoin-datadir\debug.log'
 $lastCheckFile = Join-Path $RootDir '.last_log_offset'
 # -LiteralPath on every path built from $RootDir: -Path reads a wildcard
@@ -73,7 +85,7 @@ if ($currentSize -gt $lastOffset) {
 
   if ($errors) {
     Write-Host 'Bitcoin log errors detected:'
-    $errors | ForEach-Object { Write-Host $_.Line }
+    $errors | ForEach-Object { Write-Host (ConvertTo-VisibleText $_.Line) }
 
     if (-not $NoNotify) {
       try {
