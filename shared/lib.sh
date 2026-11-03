@@ -108,6 +108,38 @@ sync_percent() (
     printf '%.2f' "$percent" 2>/dev/null
 )
 
+# escape_controls: copies standard input to standard output with each control
+# character written as text, so that a terminal shows it rather than acts on
+# it. A C0 byte other than the newline, and DEL, become \xHH, as Bitcoin
+# Core's own log escaping writes them. A C1 character, U+0080 to U+009F in
+# UTF-8, becomes \u00HH. A carriage return that ends a line is dropped,
+# even on a last line that no newline follows. The Windows monitor's line
+# split drops one only before a newline.
+#
+# sed reads bytes under the C locale; under UTF-8, macOS sed refuses a byte
+# that is not UTF-8. An argument cannot hold a NUL, so the first sed escapes
+# every 0x01, tr then turns each NUL into 0x01, and the second sed escapes
+# those as \x00.
+escape_controls() {
+    local i oct hex c cr c2 soh
+    printf -v cr '\r'
+    printf -v c2 '\302'
+    printf -v soh '\001'
+    local -a sed_args=(-e "s/$cr\$//")
+    for ((i = 1; i < 160; i++)); do
+        printf -v oct '%03o' "$i"
+        printf -v hex '%02x' "$i"
+        printf -v c %b "\\0$oct"
+        if (((i < 32 && i != 10) || i == 127)); then
+            sed_args+=(-e "s/$c/\\\\x$hex/g")
+        elif ((i >= 128)); then
+            sed_args+=(-e "s/$c2$c/\\\\u00$hex/g")
+        fi
+    done
+    LC_ALL=C sed "${sed_args[@]}" | LC_ALL=C tr '\000' '\001' \
+        | LC_ALL=C sed "s/$soh/\\\\x00/g"
+}
+
 # _utf8_locale: prints the name of a UTF-8 locale this machine has; 1 where
 # it finds none.
 _utf8_locale() {
