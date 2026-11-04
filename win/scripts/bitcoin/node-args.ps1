@@ -21,13 +21,86 @@
 # refuses as unknown, which stops it before it runs.
 
 function Split-CommandLine {
-  # The arguments of a command line, the program first. White space outside
-  # double quotes separates arguments, and the quotes are dropped, so
-  # -datadir="D:\a b" is one argument. A backslash before a quote, which
-  # Windows reads as a literal quote, is not read that way here.
-  param([string]$CommandLine)
-  foreach ($m in [regex]::Matches($CommandLine, '(?:"[^"]*"?|[^\s"])+')) {
-    $m.Value.Replace('"', '')
+  # The arguments of a command line, the program first, as Bitcoin Core on
+  # Windows receives them. From v31.0 Core reads the argv of Microsoft's C
+  # runtime (Microsoft Learn, "Parsing C command-line arguments"); up to
+  # v30.0 it read CommandLineToArgvW, which -CommandLineToArgvW follows, so a
+  # guard can ask both. Both read a space or a tab outside double quotes as a
+  # separator and drop the quotes, so -datadir="D:\a b" is one argument.
+  # Both read 2n backslashes before a quote as n and a quote that opens or
+  # closes a quoted run, 2n+1 as n and a literal quote, and a backslash
+  # before anything else as itself. They differ on a run of quotes: the C
+  # runtime reads "" inside a quoted run as a literal quote and stays inside
+  # it; CommandLineToArgvW counts the run modulo 3, the quote that opened
+  # the run included, so that "" inside one gives a literal quote and closes
+  # it. They differ on the program's name too: the C runtime ends it at a
+  # space outside quotes; CommandLineToArgvW ends a name that opens with a
+  # quote at the next quote, and any other at a space, its quotes kept.
+  # Wine's CommandLineToArgvW (dlls/shcore/main.c) and its tests against
+  # Windows (dlls/shell32/tests/shlexec.c) state these rules. A line that
+  # ends inside quotes ends its last argument.
+  param([string]$CommandLine, [switch]$CommandLineToArgvW)
+  $line = $CommandLine
+  $i = 0
+  $word = New-Object System.Text.StringBuilder
+  if ($CommandLineToArgvW -and $line.StartsWith('"')) {
+    $i = 1
+    while ($i -lt $line.Length -and $line[$i] -ne '"') { [void]$word.Append($line[$i]); $i++ }
+    $i++
+  } elseif ($CommandLineToArgvW) {
+    while ($i -lt $line.Length -and $line[$i] -notmatch '[ \t]') { [void]$word.Append($line[$i]); $i++ }
+  } else {
+    $quoted = $false
+    while ($i -lt $line.Length -and ($quoted -or $line[$i] -notmatch '[ \t]')) {
+      if ($line[$i] -eq '"') { $quoted = -not $quoted } else { [void]$word.Append($line[$i]) }
+      $i++
+    }
+  }
+  $word.ToString()
+  while ($true) {
+    while ($i -lt $line.Length -and $line[$i] -match '[ \t]') { $i++ }
+    if ($i -ge $line.Length) { break }
+    $word = New-Object System.Text.StringBuilder
+    # 1 inside a quoted run, 0 outside it.
+    $quoted = 0
+    $escaped = $false
+    while ($i -lt $line.Length -and ($quoted -eq 1 -or $line[$i] -notmatch '[ \t]')) {
+      if ($line[$i] -eq '\') {
+        $run = 0
+        while ($i -lt $line.Length -and $line[$i] -eq '\') { $run++; $i++ }
+        if ($i -lt $line.Length -and $line[$i] -eq '"') {
+          [void]$word.Append([char]'\', ($run - $run % 2) / 2)
+          $escaped = ($run % 2 -eq 1)
+        } else {
+          [void]$word.Append([char]'\', $run)
+        }
+      } elseif ($line[$i] -eq '"') {
+        if ($escaped) {
+          [void]$word.Append([char]'"')
+        } elseif ($CommandLineToArgvW) {
+          $quoted++
+        } elseif ($quoted -eq 1 -and $i + 1 -lt $line.Length -and $line[$i + 1] -eq '"') {
+          [void]$word.Append([char]'"')
+          $i++
+        } else {
+          $quoted = 1 - $quoted
+        }
+        $i++
+        $escaped = $false
+        if ($CommandLineToArgvW) {
+          while ($i -lt $line.Length -and $line[$i] -eq '"') {
+            $quoted++
+            if ($quoted -eq 3) { [void]$word.Append([char]'"'); $quoted = 0 }
+            $i++
+          }
+          if ($quoted -eq 2) { $quoted = 0 }
+        }
+      } else {
+        [void]$word.Append($line[$i])
+        $i++
+      }
+    }
+    $word.ToString()
   }
 }
 
@@ -42,13 +115,15 @@ function Test-ValueReadsFalse {
   return $v -match '^0*($|[^0-9])'
 }
 
-function Test-MainnetNode {
-  # True where a node's command line selects mainnet: no network switch is
-  # true and -chain is absent, or -chain=main alone.
-  param([string]$CommandLine)
+function Get-NodeChain {
+  # The network a node's command line selects, by the name "-chain" takes:
+  # "main" where no network switch is true and "-chain" is absent. Null where
+  # more than one network is selected. An unknown "-chain" name is returned
+  # as given. -CommandLineToArgvW splits the line as Core up to v30.0 did.
+  param([string]$CommandLine, [switch]$CommandLineToArgvW)
   $flags = @{ testnet = $false; testnet4 = $false; signet = $false; regtest = $false }
   $chain = $null
-  foreach ($word in @(Split-CommandLine $CommandLine | Select-Object -Skip 1)) {
+  foreach ($word in @(Split-CommandLine $CommandLine -CommandLineToArgvW:$CommandLineToArgvW | Select-Object -Skip 1)) {
     if ($word -notmatch '^[-/]') { continue }
     $word = $word.Substring(1)
     if ($word.StartsWith('-')) { $word = $word.Substring(1) }
@@ -73,9 +148,16 @@ function Test-MainnetNode {
       $chain = '0'
     }
   }
-  $selected = @($flags.Values | Where-Object { $_ }).Count
-  if ($null -ne $chain) { $selected += 1 }
-  if ($selected -gt 1) { return $false }
-  if ($null -ne $chain) { return ($chain -ceq 'main') }
-  return ($selected -eq 0)
+  $selected = @($flags.Keys | Where-Object { $flags[$_] })
+  if ($selected.Count + [int]($null -ne $chain) -gt 1) { return $null }
+  if ($null -ne $chain) { return $chain }
+  if ($selected.Count -eq 0) { return 'main' }
+  if ($selected[0] -eq 'testnet') { return 'test' }
+  return $selected[0]
+}
+
+function Test-MainnetNode {
+  # True where a node's command line selects mainnet.
+  param([string]$CommandLine)
+  return ((Get-NodeChain $CommandLine) -ceq 'main')
 }

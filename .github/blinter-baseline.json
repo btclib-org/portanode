@@ -190,6 +190,11 @@
     "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"%PSFIND%\""
   },
   {
+    "code": "SEC009",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"%PSFIND%\""
+  },
+  {
     "code": "SEC014",
     "file": "../win/scripts/bitcoin/lib.bat",
     "text": "doskey btc=\"%%ROOTDIR%%\\win\\bin\\bitcoin-cli.exe\" %~2 -datadir=\"%%DATADIR%%\" $*"

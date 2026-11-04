@@ -30,9 +30,14 @@ goto %ACTION%
 
 :require_datadir_free
 REM Refuse to go on while a Bitcoin node is using the data directory the
-REM first argument names. The second argument, where given, is a switch that
-REM node's command line has to carry as well: it is what tells a regtest node
-REM from the mainnet node sharing bitcoin-datadir with it.
+REM first argument names. The second argument, where given, is the network
+REM that node has to select as well, by the name "-chain" takes: it is what
+REM tells a regtest node from the mainnet node sharing bitcoin-datadir with
+REM it. node-args.ps1 beside this file reads the network from the command
+REM line, as its header says (#679), and is dot-sourced as
+REM :require_no_mainnet_node says. A node counts where it selects the
+REM network as Core up to v30.0 splits its command line or as Core from v31.0
+REM does (Split-CommandLine there): either version may be the one running.
 REM
 REM Windows refuses to delete a file another process holds open rather than
 REM deleting it, so a clean start run under a live node leaves a data
@@ -53,22 +58,24 @@ REM fails into an exit code rather than into an empty result.
 setlocal
 set "NODE_DATADIR_REL=%~1"
 set "NODE_DATADIR=%ROOTDIR%\%NODE_DATADIR_REL%"
-set "NODE_SWITCH=%~2"
+set "NODE_CHAIN=%~2"
 set "PSFIND=$ErrorActionPreference = 'Stop'; $q = [char]34;"
+set "PSFIND=%PSFIND% Set-Location -LiteralPath $env:LIB_DIR; . .\node-args.ps1;"
 set "PSFIND=%PSFIND% $d = [regex]::Escape(($env:NODE_DATADIR -replace '\\+','\'));"
 set "PSFIND=%PSFIND% $re = '-datadir=' + $q + '?' + $d + $q + '?(\s|$)';"
-set "PSFIND=%PSFIND% $s = $env:NODE_SWITCH;"
+set "PSFIND=%PSFIND% $c = $env:NODE_CHAIN;"
 set "PSFIND=%PSFIND% $p = @(Get-CimInstance Win32_Process | Where-Object {"
 set "PSFIND=%PSFIND% $_.Name -in 'bitcoin-qt.exe','bitcoind.exe' -and"
 set "PSFIND=%PSFIND% $_.CommandLine -and ((($_.CommandLine -replace"
 set "PSFIND=%PSFIND% ('\\+' + $q), $q) -replace '\\+','\') -match $re) -and"
-set "PSFIND=%PSFIND% (-not $s -or $_.CommandLine -match [regex]::Escape($s))});"
+set "PSFIND=%PSFIND% (-not $c -or (Get-NodeChain $_.CommandLine) -ceq $c -or"
+set "PSFIND=%PSFIND% (Get-NodeChain $_.CommandLine -CommandLineToArgvW) -ceq $c)});"
 set "PSFIND=%PSFIND% if ($p.Count -gt 0) { exit 2 }"
 REM System32 is the current directory around the query: root.bat's
 REM :leave_folder says why.
 call "%LIB_DIR%..\root.bat" :leave_folder
 if errorlevel 1 exit /b 1
-powershell -NoProfile -Command "%PSFIND%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "%PSFIND%"
 set "PSFIND_RC=%ERRORLEVEL%"
 popd >nul 2>&1
 if "%PSFIND_RC%"=="2" (
