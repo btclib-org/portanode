@@ -29,14 +29,17 @@ fi
 # Bitcoin status. The pattern is the one update-bitcoin.sh and
 # rollback-bitcoin.sh beside this file refuse to run against, so the three
 # agree on what counts as a running node; pgrep's regex is extended on both
-# procps and BSD, hence "|" rather than a GNU-BRE "\|".
+# procps and BSD, hence "|" rather than a GNU-BRE "\|". pgrep_outside_own_line
+# leaves out this shell, whose command line matches where the folder's path
+# does.
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
-# Without pgrep a process the other passes miss may still be running, so the
-# status lines read "unknown" rather than "no".
+# Without pgrep, or where pgrep or ps fails, a process the other passes miss
+# may still be running, so the status lines read "unknown" rather than "no".
 PGREP_FOUND="no"
 if command -v pgrep >/dev/null 2>&1; then
     PGREP_FOUND="yes"
 fi
+PGREP_FAILED="no"
 # The last candidate is a bitcoin-cli from outside the folder;
 # macos/scripts/utilities/health-check.sh carries what pins a borrowed
 # client to this folder's own datadir.
@@ -62,10 +65,14 @@ if [ -n "$BTC_CLI" ]; then
     fi
 fi
 
-if [ "$BTC_RUNNING" != "yes" ] && [ "$PGREP_FOUND" = "yes" ] && \
-   pgrep -f -i "$BTC_PGREP_PATTERN" >/dev/null 2>&1; then
-    BTC_RUNNING="yes"
-    BTC_METHOD="pgrep"
+if [ "$BTC_RUNNING" != "yes" ] && [ "$PGREP_FOUND" = "yes" ]; then
+    PGREP_RC=0
+    pgrep_outside_own_line "$BTC_PGREP_PATTERN" >/dev/null 2>&1 || PGREP_RC=$?
+    case "$PGREP_RC" in
+        0) BTC_RUNNING="yes"; BTC_METHOD="pgrep" ;;
+        1) ;;
+        *) PGREP_FAILED="yes" ;;
+    esac
 fi
 
 if [ "$BTC_RUNNING" != "yes" ]; then
@@ -141,6 +148,9 @@ else
     elif [ "$PGREP_FOUND" != "yes" ]; then
         echo "Bitcoin running: unknown (pgrep not found)"
         echo "Bitcoin sync: unknown"
+    elif [ "$PGREP_FAILED" = "yes" ]; then
+        echo "Bitcoin running: unknown (pgrep or ps failed)"
+        echo "Bitcoin sync: unknown"
     else
         echo "Bitcoin running: no"
         echo "Bitcoin sync: n/a"
@@ -164,8 +174,12 @@ fi
 ELECTRUM_PGREP_PATTERN="electrum\.AppImage|python.*electrum|(^|/)run_electrum( |\$)"
 if [ "$PGREP_FOUND" != "yes" ]; then
     echo "Electrum running: unknown (pgrep not found)"
-elif pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
-    echo "Electrum running: yes (pgrep)"
 else
-    echo "Electrum running: no"
+    PGREP_RC=0
+    pgrep_outside_own_line "$ELECTRUM_PGREP_PATTERN" > /dev/null || PGREP_RC=$?
+    case "$PGREP_RC" in
+        0) echo "Electrum running: yes (pgrep)" ;;
+        1) echo "Electrum running: no" ;;
+        *) echo "Electrum running: unknown (pgrep or ps failed)" ;;
+    esac
 fi
