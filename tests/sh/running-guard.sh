@@ -162,10 +162,12 @@ TABLE="1 0
 31 30"
 outside() { same "$2" "$(_pids_outside_own_line 10 "$1" "$TABLE")"; }
 check "the shell and its ancestors are left out" outside "10 5 1" ""
-check "its descendants are left out" outside "11 12" ""
-check "an unrelated process is kept" outside "20 12" "20"
+check "its descendants are kept" outside "11 12" "11
+12"
+check "an unrelated process is kept" outside "20" "20"
 check "a pid missing from the table is kept" outside "99" "99"
-check "a loop of parents ends and is kept" outside "30" "30"
+check "a loop of parents among the ancestors ends" \
+    same "20" "$(_pids_outside_own_line 30 "31 20" "$TABLE")"
 
 # A process pgrep finds is not left out where ps cannot say whose it is.
 mkdir -p "$WORK/ps-fails"
@@ -180,14 +182,55 @@ check "a rollback refuses where pgrep finds a process and ps fails" \
 # A folder whose path holds the pattern (ISS 808): the script's own command
 # line, and its ancestors', match it. GNU procps pgrep reports them; macOS
 # pgrep leaves its ancestors out. These cases use the real pgrep, on the
-# Bitcoin scripts of a copy of the tree under such a path.
+# Bitcoin scripts of a copy of the tree under such a path. Another run of
+# this file matches the pattern too, so the cases hold a lock directory
+# shared by every run, and a case is skipped where a process outside it
+# matches before or after.
 BTC_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
 REAL_PGREP="$(command -v pgrep)"
+LOCK=/tmp/portanode-running-guard.lock
+# take_lock: 0 once this run holds LOCK, 1 after about five minutes. A lock
+# whose owner no longer runs is removed.
+take_lock() {
+    local owner
+    for _ in $(seq 600); do
+        if mkdir "$LOCK" 2> /dev/null; then
+            echo "$$" > "$LOCK/pid"
+            trap 'rm -f "$LOCK/pid"; rmdir "$LOCK"; rm -rf "$WORK"' EXIT
+            return 0
+        fi
+        owner="$(cat "$LOCK/pid" 2> /dev/null)"
+        if [ -n "$owner" ] && ! kill -0 "$owner" 2> /dev/null; then
+            rm -f "$LOCK/pid"
+            rmdir "$LOCK" 2> /dev/null
+            continue
+        fi
+        sleep 0.5
+    done
+    return 1
+}
+# outside_match: 0 where a process this run did not start matches.
+outside_match() {
+    pgrep -f -i "$BTC_PATTERN" > /dev/null
+}
+# child_node_refused: 0 where the guard refuses a node the shell itself
+# started.
+child_node_refused() {
+    local name="portanode-child-$$" out rc=0
+    "$BASH" -c 'while :; do sleep 1; done' "$name" &
+    local node=$!
+    for _ in $(seq 50); do pgrep -f "$name" > /dev/null && break; sleep 0.1; done
+    out="$(refuse_while_running "Bitcoin Core" updating "$name")" || rc=$?
+    kill "$node"
+    wait "$node" 2> /dev/null
+    [ "$rc" -eq 1 ] && contains "$out" "Error: Bitcoin Core is running."
+}
 if [ -z "$REAL_PGREP" ]; then
     echo "ok - skipped: pgrep not found"
-elif pgrep -f -i "$BTC_PATTERN" > /dev/null; then
-    echo "ok - skipped: a process matching $BTC_PATTERN runs here"
+elif ! take_lock; then
+    echo "ok - skipped: $LOCK is held by another run"
 else
+    check "the guard refuses a node the shell started" child_node_refused
     mkdir -p "$WORK/real-pgrep" "$WORK/bitcoind-usb"
     ln -s "$REAL_PGREP" "$WORK/real-pgrep/pgrep"
     git -C "$REPO" ls-files -z | tar -C "$REPO" --null -T - -cf - 2> /dev/null \
@@ -202,9 +245,17 @@ else
         past="${past//_/ }"
         args=(--dry-run)
         case "$script" in */update-*) args+=(--version 99.0) ;; esac
-        out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
-        check "$script under bitcoind-usb goes on where no node runs" \
-            passes "$out" "$past"
+        what="$script under bitcoind-usb goes on where no node runs"
+        if outside_match; then
+            echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"
+        else
+            out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
+            if outside_match; then
+                echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"
+            else
+                check "$what" passes "$out" "$past"
+            fi
+        fi
         "$BASH" -c 'while :; do sleep 1; done' bitcoind &
         node=$!
         out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"

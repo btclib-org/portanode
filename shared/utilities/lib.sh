@@ -844,10 +844,9 @@ curl_https() {
 
 # _pids_outside_own_line SELF PIDS TABLE
 #
-# Prints each of PIDS, which are separated by spaces, that is neither SELF,
-# an ancestor of SELF nor a descendant of SELF. TABLE holds a "pid ppid"
-# line for each process, as "ps -A -o pid= -o ppid=" prints it. A pid
-# missing from TABLE is printed.
+# Prints each of PIDS, which are separated by spaces, that is neither SELF
+# nor an ancestor of SELF. TABLE holds a "pid ppid" line for each process,
+# as "ps -A -o pid= -o ppid=" prints it. A child of SELF is printed.
 _pids_outside_own_line() {
     printf '%s\n' "$3" | awk -v self="$1" -v pids="$2" '
         { parent[$1] = $2 }
@@ -857,12 +856,7 @@ _pids_outside_own_line() {
                 mine[parent[p]] = 1
             n = split(pids, list, " ")
             for (i = 1; i <= n; i++) {
-                p = list[i]
-                if (p in mine) continue
-                for (q = p; q != self && q in parent && parent[q] != q; q = parent[q])
-                    if (++steps > 4096) break
-                steps = 0
-                if (q != self) print p
+                if (!(list[i] in mine)) print list[i]
             }
         }'
 }
@@ -870,17 +864,17 @@ _pids_outside_own_line() {
 # refuse_while_running NAME DOING PATTERN
 #
 # Returns 0 where pgrep answers that no command line matches PATTERN, an
-# extended regular expression, other than those of this shell, its
-# ancestors and its descendants. Otherwise returns 1 with a message: a
-# process matches, or pgrep or ps is missing or failed, and then nothing
-# says that NAME is stopped. DOING is what the caller is about to do, as
-# "updating". A guard written "if pgrep" reads both failures as "not
-# running". PATTERN is why this is not process_running_with, which compares
-# a string.
+# extended regular expression, other than those of this shell and its
+# ancestors. Otherwise returns 1 with a message: a process matches, or
+# pgrep or ps is missing or failed, and then nothing says that NAME is
+# stopped. DOING is what the caller is about to do, as "updating". A guard
+# written "if pgrep" reads both failures as "not running". PATTERN is why
+# this is not process_running_with, which compares a string.
 #
 # GNU procps pgrep leaves out only itself, so where the folder's path
 # matches PATTERN, the shell running the script matches, and so does a
 # launcher that started it (ISS 808). macOS pgrep leaves out its ancestors.
+# A node that is an ancestor of this shell is let through on both.
 refuse_while_running() {
     local rc=0 found table
     found="$(pgrep -f -i "$3")" || rc=$?
