@@ -5,12 +5,14 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2329 # check calls these functions by name
 # The running-node guard of the macOS and Linux updaters and rollbacks: where
-# pgrep is missing or fails, each refuses. tests/win/running-guard.ps1 has the
-# Windows half.
+# pgrep is missing or fails, each refuses, and a folder whose path holds the
+# pattern does not match itself. tests/win/running-guard.ps1 has the Windows
+# half.
 #
 # Each script runs against an empty folder named by PORTANODE_ROOT, with curl,
 # uname and sysctl replaced by stubs, OSTYPE set to its platform, and a PATH
-# of symlinks to /bin and /usr/bin without pgrep. Needs no network.
+# of symlinks to /bin and /usr/bin without pgrep, to which a case adds the
+# pgrep it needs. Needs no network.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -144,5 +146,78 @@ prepare_rollback
 run_script "$(pgrep_answering 1):" linux-gnu x86_64 "$ROLLBACK" > /dev/null
 check "a rollback where pgrep finds no process replaces it" \
     same backup "$(cat "$BIN/bitcoin-qt")"
+
+# _pids_outside_own_line on a table where 10 is the shell, 5 and 1 its
+# ancestors, 11 and 12 its descendants, 20 an unrelated process and 30 and
+# 31 a loop of parents.
+# shellcheck source=shared/utilities/lib.sh
+. "$REPO/shared/utilities/lib.sh"
+TABLE="1 0
+5 1
+10 5
+11 10
+12 11
+20 1
+30 31
+31 30"
+outside() { same "$2" "$(_pids_outside_own_line 10 "$1" "$TABLE")"; }
+check "the shell and its ancestors are left out" outside "10 5 1" ""
+check "its descendants are left out" outside "11 12" ""
+check "an unrelated process is kept" outside "20 12" "20"
+check "a pid missing from the table is kept" outside "99" "99"
+check "a loop of parents ends and is kept" outside "30" "30"
+
+# A process pgrep finds is not left out where ps cannot say whose it is.
+mkdir -p "$WORK/ps-fails"
+printf '#!/bin/sh\necho 4242\n' > "$WORK/ps-fails/pgrep"
+printf '#!/bin/sh\nexit 1\n' > "$WORK/ps-fails/ps"
+chmod +x "$WORK/ps-fails/pgrep" "$WORK/ps-fails/ps"
+out="$(run_script "$WORK/ps-fails:" linux-gnu x86_64 \
+    linux/scripts/utilities/rollback-bitcoin.sh --dry-run)"
+check "a rollback refuses where pgrep finds a process and ps fails" \
+    refused "$out" "Bitcoin Core" "rolling back"
+
+# A folder whose path holds the pattern (ISS 808): the script's own command
+# line, and its ancestors', match it. GNU procps pgrep reports them; macOS
+# pgrep leaves its ancestors out. These cases use the real pgrep, on the
+# Bitcoin scripts of a copy of the tree under such a path.
+BTC_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
+REAL_PGREP="$(command -v pgrep)"
+if [ -z "$REAL_PGREP" ]; then
+    echo "ok - skipped: pgrep not found"
+elif pgrep -f -i "$BTC_PATTERN" > /dev/null; then
+    echo "ok - skipped: a process matching $BTC_PATTERN runs here"
+else
+    mkdir -p "$WORK/real-pgrep" "$WORK/bitcoind-usb"
+    ln -s "$REAL_PGREP" "$WORK/real-pgrep/pgrep"
+    git -C "$REPO" ls-files -z | tar -C "$REPO" --null -T - -cf - 2> /dev/null \
+        | tar -C "$WORK/bitcoind-usb" -xf -
+    REPO="$WORK/bitcoind-usb"
+    ROOT="$WORK/root-usb"
+    mkdir -p "$ROOT/linux" "$ROOT/macos"
+    : > "$ROOT/VERSION"
+    while read -r script ostype arch doing past; do
+        [ -n "$script" ] || continue
+        doing="${doing//_/ }"
+        past="${past//_/ }"
+        args=(--dry-run)
+        case "$script" in */update-*) args+=(--version 99.0) ;; esac
+        out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
+        check "$script under bitcoind-usb goes on where no node runs" \
+            passes "$out" "$past"
+        "$BASH" -c 'while :; do sleep 1; done' bitcoind &
+        node=$!
+        out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
+        kill "$node"
+        wait "$node" 2> /dev/null
+        check "$script under bitcoind-usb stops where a node runs" \
+            stops_for_a_node "$out" "Bitcoin Core" "$doing"
+    done <<'EOF'
+linux/scripts/utilities/update-bitcoin.sh linux-gnu x86_64 updating --dry-run:
+linux/scripts/utilities/rollback-bitcoin.sh linux-gnu x86_64 rolling_back No_backup_found
+macos/scripts/utilities/update-bitcoin.sh darwin24 arm64 updating --dry-run:
+macos/scripts/utilities/rollback-bitcoin.sh darwin24 arm64 rolling_back No_backup_found
+EOF
+fi
 
 finish
