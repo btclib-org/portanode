@@ -188,8 +188,11 @@ check "a rollback refuses where pgrep finds a process and ps fails" \
 # after.
 BTC_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
 REAL_PGREP="$(command -v pgrep)"
-# The stand-in nodes below close descriptor 9, so that one left running by a
-# killed run does not hold the lock.
+# The stand-in nodes below end within 60 seconds, so that a killed run
+# leaves none running for long. They close descriptor 9, so that the sleep
+# one leaves when it is killed does not hold the lock. The "; :" keeps bash
+# from replacing itself with sleep, which would drop the name.
+
 # outside_match: 0 where a process this run did not start matches.
 outside_match() {
     pgrep -f -i "$BTC_PATTERN" > /dev/null
@@ -198,7 +201,7 @@ outside_match() {
 # started.
 child_node_refused() {
     local name="portanode-child-$$" out rc=0
-    "$BASH" -c 'while :; do sleep 1; done' "$name" 9<&- &
+    "$BASH" -c 'sleep 60; :' "$name" 9<&- &
     local node=$!
     for _ in $(seq 50); do pgrep -f "$name" > /dev/null && break; sleep 0.1; done
     out="$(refuse_while_running "Bitcoin Core" updating "$name")" || rc=$?
@@ -208,8 +211,13 @@ child_node_refused() {
 }
 if [ -z "$REAL_PGREP" ]; then
     echo "ok - skipped: pgrep not found"
-elif ! hold_node_lock; then
-    echo "ok - skipped: $NODE_LOCK is held by another run, or perl is missing"
+elif hold_node_lock; lock_rc=$?; [ "$lock_rc" -ne 0 ]; then
+    case "$lock_rc" in
+        1) why="another run held $NODE_LOCK for five minutes" ;;
+        2) why="$NODE_LOCK cannot be opened" ;;
+        *) why="perl not found" ;;
+    esac
+    echo "ok - skipped: the cases under bitcoind-usb ($why)"
 else
     check "the guard refuses a node the shell started" child_node_refused
     mkdir -p "$WORK/real-pgrep" "$WORK/bitcoind-usb"
@@ -237,7 +245,7 @@ else
                 check "$what" passes "$out" "$past"
             fi
         fi
-        "$BASH" -c 'while :; do sleep 1; done' bitcoind 9<&- &
+        "$BASH" -c 'sleep 60; :' bitcoind 9<&- &
         node=$!
         out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
         kill "$node"
