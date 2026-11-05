@@ -40,6 +40,26 @@ contains() {
     return 1
 }
 
+# hold_node_lock: 0 once this shell holds the lock that keeps apart the test
+# files whose processes match a running-node pattern; 1 after about five
+# minutes, 2 where NODE_LOCK cannot be opened, 3 without perl. The lock is an
+# flock on NODE_LOCK, held through file descriptor 9, so the kernel releases
+# it once every process holding that descriptor has ended, a child started
+# in the background included.
+NODE_LOCK=/tmp/portanode-tests-node.lock
+hold_node_lock() {
+    [ -e "$NODE_LOCK" ] || : 2> /dev/null >> "$NODE_LOCK"
+    { exec 9< "$NODE_LOCK"; } 2> /dev/null || return 2
+    command -v perl > /dev/null || return 3
+    perl -MFcntl=:flock -e '
+        open(my $f, "<&=", 9) or exit 2;
+        for (1 .. 600) {
+            exit 0 if flock($f, LOCK_EX | LOCK_NB);
+            select(undef, undef, undef, 0.5);
+        }
+        exit 1' 2> /dev/null || return 1
+}
+
 # finish: exits 0 where every case passed, 1 otherwise.
 finish() {
     [ "$TESTS_FAILED" -eq 0 ] || exit 1

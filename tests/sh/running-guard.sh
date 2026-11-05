@@ -5,12 +5,14 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2329 # check calls these functions by name
 # The running-node guard of the macOS and Linux updaters and rollbacks: where
-# pgrep is missing or fails, each refuses. tests/win/running-guard.ps1 has the
-# Windows half.
+# pgrep is missing or fails, each refuses, and a folder whose path holds the
+# pattern does not match itself. tests/win/running-guard.ps1 has the Windows
+# half.
 #
 # Each script runs against an empty folder named by PORTANODE_ROOT, with curl,
 # uname and sysctl replaced by stubs, OSTYPE set to its platform, and a PATH
-# of symlinks to /bin and /usr/bin without pgrep. Needs no network.
+# of symlinks to /bin and /usr/bin without pgrep, to which a case adds the
+# pgrep it needs. Needs no network.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -144,5 +146,135 @@ prepare_rollback
 run_script "$(pgrep_answering 1):" linux-gnu x86_64 "$ROLLBACK" > /dev/null
 check "a rollback where pgrep finds no process replaces it" \
     same backup "$(cat "$BIN/bitcoin-qt")"
+
+# _pids_outside_own_line on a table where 10 is the shell, 5 and 1 its
+# ancestors, 11 and 12 its descendants, 20 an unrelated process and 30 and
+# 31 a loop of parents.
+# shellcheck source=shared/utilities/lib.sh
+. "$REPO/shared/utilities/lib.sh"
+TABLE="1 0
+5 1
+10 5
+11 10
+12 11
+20 1
+30 31
+31 30"
+outside() { same "$2" "$(_pids_outside_own_line 10 "$1" "$TABLE")"; }
+check "the shell and its ancestors are left out" outside "10 5 1" ""
+check "its descendants are kept" outside "11 12" "11
+12"
+check "an unrelated process is kept" outside "20" "20"
+check "a pid missing from the table is kept" outside "99" "99"
+check "a loop of parents among the ancestors ends" \
+    same "20" "$(_pids_outside_own_line 30 "31 20" "$TABLE")"
+
+# A process pgrep finds is not left out where ps cannot say whose it is.
+mkdir -p "$WORK/ps-fails"
+printf '#!/bin/sh\necho 4242\n' > "$WORK/ps-fails/pgrep"
+printf '#!/bin/sh\nexit 1\n' > "$WORK/ps-fails/ps"
+chmod +x "$WORK/ps-fails/pgrep" "$WORK/ps-fails/ps"
+out="$(run_script "$WORK/ps-fails:" linux-gnu x86_64 \
+    linux/scripts/utilities/rollback-bitcoin.sh --dry-run)"
+check "a rollback refuses where pgrep finds a process and ps fails" \
+    refused "$out" "Bitcoin Core" "rolling back"
+
+# A folder whose path holds the pattern (ISS 808): the script's own command
+# line, and its ancestors', match it. GNU procps pgrep reports them; macOS
+# pgrep leaves its ancestors out. These cases use the real pgrep, on the
+# Bitcoin scripts of a copy of the tree under such a path. Another run of
+# this file matches the pattern too, so the cases hold hold_node_lock's
+# lock, and a case is skipped where a process outside it matches before or
+# after.
+BTC_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
+REAL_PGREP="$(command -v pgrep)"
+# The stand-in nodes below end within 60 seconds, so that a killed run
+# leaves none running for long. They close descriptor 9, so that the sleep
+# one leaves when it is killed does not hold the lock. The "; :" keeps bash
+# from replacing itself with sleep, which would drop the name.
+
+# node_listed <pid> <pattern>: 0 once pgrep lists the stand-in <pid> as
+# matching <pattern>, 1 with a message where it does not within five seconds.
+# Until the stand-in execs, its command line is this shell's. The pid itself
+# is waited for, because another process matching the pattern may end before
+# the guard looks.
+node_listed() {
+    for _ in $(seq 50); do
+        pgrep -f -i "$2" | grep -qx "$1" && return 0
+        sleep 0.1
+    done
+    printf '  pgrep did not list the stand-in %s as matching %s\n' "$1" "$2"
+    return 1
+}
+# outside_match: 0 where a process this run did not start matches.
+outside_match() {
+    pgrep -f -i "$BTC_PATTERN" > /dev/null
+}
+# child_node_refused: 0 where the guard refuses a node the shell itself
+# started.
+child_node_refused() {
+    local name="portanode-child-$$" out rc=0
+    "$BASH" -c 'sleep 60; :' "$name" 9<&- &
+    local node=$!
+    if node_listed "$node" "$name"; then
+        out="$(refuse_while_running "Bitcoin Core" updating "$name")" || rc=$?
+    fi
+    kill "$node"
+    wait "$node" 2> /dev/null
+    [ "$rc" -eq 1 ] && contains "$out" "Error: Bitcoin Core is running."
+}
+if [ -z "$REAL_PGREP" ]; then
+    echo "ok - skipped: pgrep not found"
+elif hold_node_lock; lock_rc=$?; [ "$lock_rc" -ne 0 ]; then
+    case "$lock_rc" in
+        1) why="another run held $NODE_LOCK for five minutes" ;;
+        2) why="$NODE_LOCK cannot be opened" ;;
+        *) why="perl not found" ;;
+    esac
+    echo "ok - skipped: the cases under bitcoind-usb ($why)"
+else
+    check "the guard refuses a node the shell started" child_node_refused
+    mkdir -p "$WORK/real-pgrep" "$WORK/bitcoind-usb"
+    ln -s "$REAL_PGREP" "$WORK/real-pgrep/pgrep"
+    git -C "$REPO" ls-files -z | tar -C "$REPO" --null -T - -cf - 2> /dev/null \
+        | tar -C "$WORK/bitcoind-usb" -xf -
+    REPO="$WORK/bitcoind-usb"
+    ROOT="$WORK/root-usb"
+    mkdir -p "$ROOT/linux" "$ROOT/macos"
+    : > "$ROOT/VERSION"
+    while read -r script ostype arch doing past; do
+        [ -n "$script" ] || continue
+        doing="${doing//_/ }"
+        past="${past//_/ }"
+        args=(--dry-run)
+        case "$script" in */update-*) args+=(--version 99.0) ;; esac
+        what="$script under bitcoind-usb goes on where no node runs"
+        if outside_match; then
+            echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"
+        else
+            out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
+            if outside_match; then
+                echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"
+            else
+                check "$what" passes "$out" "$past"
+            fi
+        fi
+        "$BASH" -c 'sleep 60; :' bitcoind 9<&- &
+        node=$!
+        out=""
+        if node_listed "$node" "$BTC_PATTERN"; then
+            out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
+        fi
+        kill "$node"
+        wait "$node" 2> /dev/null
+        check "$script under bitcoind-usb stops where a node runs" \
+            stops_for_a_node "$out" "Bitcoin Core" "$doing"
+    done <<'EOF'
+linux/scripts/utilities/update-bitcoin.sh linux-gnu x86_64 updating --dry-run:
+linux/scripts/utilities/rollback-bitcoin.sh linux-gnu x86_64 rolling_back No_backup_found
+macos/scripts/utilities/update-bitcoin.sh darwin24 arm64 updating --dry-run:
+macos/scripts/utilities/rollback-bitcoin.sh darwin24 arm64 rolling_back No_backup_found
+EOF
+fi
 
 finish
