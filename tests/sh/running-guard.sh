@@ -193,6 +193,19 @@ REAL_PGREP="$(command -v pgrep)"
 # one leaves when it is killed does not hold the lock. The "; :" keeps bash
 # from replacing itself with sleep, which would drop the name.
 
+# node_listed <pid> <pattern>: 0 once pgrep lists the stand-in <pid> as
+# matching <pattern>, 1 with a message where it does not within five seconds.
+# Until the stand-in execs, its command line is this shell's. The pid itself
+# is waited for, because another process matching the pattern may end before
+# the guard looks.
+node_listed() {
+    for _ in $(seq 50); do
+        pgrep -f -i "$2" | grep -qx "$1" && return 0
+        sleep 0.1
+    done
+    printf '  pgrep did not list the stand-in %s as matching %s\n' "$1" "$2"
+    return 1
+}
 # outside_match: 0 where a process this run did not start matches.
 outside_match() {
     pgrep -f -i "$BTC_PATTERN" > /dev/null
@@ -203,8 +216,9 @@ child_node_refused() {
     local name="portanode-child-$$" out rc=0
     "$BASH" -c 'sleep 60; :' "$name" 9<&- &
     local node=$!
-    for _ in $(seq 50); do pgrep -f "$name" > /dev/null && break; sleep 0.1; done
-    out="$(refuse_while_running "Bitcoin Core" updating "$name")" || rc=$?
+    if node_listed "$node" "$name"; then
+        out="$(refuse_while_running "Bitcoin Core" updating "$name")" || rc=$?
+    fi
     kill "$node"
     wait "$node" 2> /dev/null
     [ "$rc" -eq 1 ] && contains "$out" "Error: Bitcoin Core is running."
@@ -247,7 +261,10 @@ else
         fi
         "$BASH" -c 'sleep 60; :' bitcoind 9<&- &
         node=$!
-        out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
+        out=""
+        if node_listed "$node" "$BTC_PATTERN"; then
+            out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
+        fi
         kill "$node"
         wait "$node" 2> /dev/null
         check "$script under bitcoind-usb stops where a node runs" \
