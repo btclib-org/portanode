@@ -448,7 +448,7 @@ message naming it:
   `.cookie` and `bitcoind.pid`. For Electrum they read the process list
   alone, so where it is restricted a running Electrum can go unseen. On
   macOS and Linux, where `pgrep` is missing, they print `unknown` in place
-  of `no`.
+  of `no`, and on Linux also where `pgrep` or `ps` fails.
 
 ### Getting Help
 

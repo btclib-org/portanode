@@ -401,3 +401,50 @@ mainnet_node_running() {
     done <<<"$procs"
     return 1
 }
+
+# _pids_outside_own_line SELF PIDS TABLE
+#
+# Prints each of PIDS, which are separated by spaces, that is neither SELF
+# nor an ancestor of SELF. TABLE holds a "pid ppid" line for each process,
+# as "ps -A -o pid= -o ppid=" prints it. A child of SELF is printed.
+_pids_outside_own_line() {
+    printf '%s\n' "$3" | awk -v self="$1" -v pids="$2" '
+        { parent[$1] = $2 }
+        END {
+            mine[self] = 1
+            for (p = self; p in parent && !(parent[p] in mine); p = parent[p])
+                mine[parent[p]] = 1
+            n = split(pids, list, " ")
+            for (i = 1; i <= n; i++) {
+                if (!(list[i] in mine)) print list[i]
+            }
+        }'
+}
+
+# pgrep_outside_own_line <pattern>: prints the pid of each process whose
+# command line matches <pattern>, as pgrep -f -i reads it, other than this
+# shell and its ancestors (_pids_outside_own_line). Returns 0 where it
+# prints a pid, or where pgrep exits 0 and prints none; 1 where no other
+# process matches; 2 or more where pgrep or ps is missing or failed.
+#
+# GNU procps pgrep leaves out only itself, so where the folder's path
+# matches <pattern>, the shell running the script matches, and so does a
+# launcher that started it (ISS 808, ISS 836). macOS pgrep leaves out its
+# ancestors. A node that is an ancestor of this shell is left out on both.
+#
+# This shell is BASHPID, read before any command substitution, inside
+# which it is the substitution's own pid. bash 3.2, which macOS ships, has
+# no BASHPID, and $$ stands in: a subshell between the two is an ancestor
+# of pgrep, which macOS pgrep leaves out. pgrep runs under exec, so that
+# the command substitution's subshell, a copy of this shell, is pgrep
+# itself and not a child of this shell left in the answer.
+pgrep_outside_own_line() {
+    local rc=0 found table self="${BASHPID:-$$}"
+    found="$(exec pgrep -f -i "$1")" || rc=$?
+    [ "$rc" -eq 0 ] && [ -n "$found" ] || return "$rc"
+    table="$(ps -A -o pid= -o ppid=)" || return 2
+    found="$(_pids_outside_own_line "$self" "${found//$'\n'/ }" "$table")" \
+        || return 2
+    [ -n "$found" ] || return 1
+    printf '%s\n' "$found"
+}

@@ -4,9 +4,10 @@
 
 # shellcheck shell=bash
 # shellcheck disable=SC2329 # check calls these functions by name
-# What the macOS and Linux health-checks say where pgrep is missing, run in a
-# copy of the tree with a PATH of its own. pgrep, ps and bitcoin-cli are
-# stand-ins, so that no process of this machine decides a case.
+# What the macOS and Linux health-checks say where pgrep is missing or fails,
+# run in a copy of the tree with a PATH of its own. pgrep, ps and bitcoin-cli
+# are stand-ins, so that no process of this machine decides a case, except in
+# the cases under bitcoind-usb at the end.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -123,5 +124,84 @@ done
 
 check "macos: without pgrep the ps pass still finds Electrum" \
     prints macos "$PS_ELECTRUM" "Electrum running: yes (ps)"
+
+# On Linux a pgrep that fails, or a ps that cannot say whose a process is,
+# leaves both answers unknown.
+PGREP_FAILS="$(with_tools pgrep-fails pgrep 'exit 2')"
+PS_FAILS="$(with_tools ps-fails pgrep 'echo 4242' ps 'exit 1')"
+while read -r tools what; do
+    check "linux: $what reads as unknown" \
+        prints linux "$tools" \
+        "Bitcoin running: unknown (pgrep or ps failed)" \
+        "Bitcoin sync: unknown" \
+        "Electrum running: unknown (pgrep or ps failed)"
+done <<EOF
+$PGREP_FAILS a pgrep that fails
+$PS_FAILS a match where ps fails
+EOF
+
+# A folder whose path holds the node pattern (ISS 836): the health-check's
+# own command line matches it, which GNU procps pgrep reports. These cases
+# run the health-check of this machine's platform with the real pgrep and
+# ps, on a copy of the root under bitcoind-usb. They hold hold_node_lock's
+# lock, which keeps them apart from the other test files whose processes
+# match the pattern, and a case is skipped where a process outside them
+# matches before or after.
+BTC_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
+# outside_match: 0 where a process this run did not start matches.
+outside_match() {
+    pgrep -f -i "$BTC_PATTERN" > /dev/null
+}
+case "$(uname)" in
+    Darwin) platform=macos ;;
+    Linux) platform=linux ;;
+    *) platform="" ;;
+esac
+if [ -z "$platform" ]; then
+    echo "ok - skipped: the cases under bitcoind-usb (neither macOS nor Linux)"
+elif ! command -v pgrep > /dev/null; then
+    echo "ok - skipped: the cases under bitcoind-usb (pgrep not found)"
+elif hold_node_lock; lock_rc=$?; [ "$lock_rc" -ne 0 ]; then
+    case "$lock_rc" in
+        1) why="another run held $NODE_LOCK for five minutes" ;;
+        2) why="$NODE_LOCK cannot be opened" ;;
+        *) why="perl not found" ;;
+    esac
+    echo "ok - skipped: the cases under bitcoind-usb ($why)"
+else
+    REAL="$TMP/real"
+    mkdir -p "$REAL"
+    cp -PR "$NO_PGREP"/. "$REAL/"
+    ln -sf "$(command -v pgrep)" "$REAL/pgrep"
+    ln -sf "$(command -v ps)" "$REAL/ps"
+    cp -R "$ROOT" "$TMP/bitcoind-usb"
+    ROOT="$TMP/bitcoind-usb"
+    what="$platform: under bitcoind-usb no node reads as not running"
+    if outside_match; then
+        echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"
+    else
+        out="$(health_check "$platform" "$REAL" 2>/dev/null)"
+        if outside_match; then
+            echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"
+        else
+            check "$what" contains "$out" "Bitcoin running: no"
+        fi
+    fi
+    # The stand-in ends within 60 seconds, so that a killed run leaves
+    # none running for long. It closes descriptor 9, so that the sleep
+    # it leaves when it is killed does not hold the lock. The "; :"
+    # keeps bash from replacing itself with sleep, which would drop the
+    # name.
+    "$BASH" -c 'sleep 60; :' bitcoind 9<&- &
+    node=$!
+    out=""
+    if node_listed "$node" "$BTC_PATTERN"; then
+        out="$(health_check "$platform" "$REAL" 2>/dev/null)"
+    fi
+    kill "$node"
+    wait "$node" 2> /dev/null
+    check "$platform: under bitcoind-usb a running node is found" \
+        contains "$out" "Bitcoin running: yes (pgrep)"
+fi
 
 finish

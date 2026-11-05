@@ -193,19 +193,6 @@ REAL_PGREP="$(command -v pgrep)"
 # one leaves when it is killed does not hold the lock. The "; :" keeps bash
 # from replacing itself with sleep, which would drop the name.
 
-# node_listed <pid> <pattern>: 0 once pgrep lists the stand-in <pid> as
-# matching <pattern>, 1 with a message where it does not within five seconds.
-# Until the stand-in execs, its command line is this shell's. The pid itself
-# is waited for, because another process matching the pattern may end before
-# the guard looks.
-node_listed() {
-    for _ in $(seq 50); do
-        pgrep -f -i "$2" | grep -qx "$1" && return 0
-        sleep 0.1
-    done
-    printf '  pgrep did not list the stand-in %s as matching %s\n' "$1" "$2"
-    return 1
-}
 # outside_match: 0 where a process this run did not start matches.
 outside_match() {
     pgrep -f -i "$BTC_PATTERN" > /dev/null

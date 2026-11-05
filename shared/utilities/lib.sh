@@ -842,50 +842,18 @@ curl_https() {
     curl --proto '=https' --proto-redir '=https' "$@"
 }
 
-# _pids_outside_own_line SELF PIDS TABLE
-#
-# Prints each of PIDS, which are separated by spaces, that is neither SELF
-# nor an ancestor of SELF. TABLE holds a "pid ppid" line for each process,
-# as "ps -A -o pid= -o ppid=" prints it. A child of SELF is printed.
-_pids_outside_own_line() {
-    printf '%s\n' "$3" | awk -v self="$1" -v pids="$2" '
-        { parent[$1] = $2 }
-        END {
-            mine[self] = 1
-            for (p = self; p in parent && !(parent[p] in mine); p = parent[p])
-                mine[parent[p]] = 1
-            n = split(pids, list, " ")
-            for (i = 1; i <= n; i++) {
-                if (!(list[i] in mine)) print list[i]
-            }
-        }'
-}
-
 # refuse_while_running NAME DOING PATTERN
 #
-# Returns 0 where pgrep answers that no command line matches PATTERN, an
-# extended regular expression, other than those of this shell and its
-# ancestors. Otherwise returns 1 with a message: a process matches, or
-# pgrep or ps is missing or failed, and then nothing says that NAME is
-# stopped. DOING is what the caller is about to do, as "updating". A guard
-# written "if pgrep" reads both failures as "not running". PATTERN is why
-# this is not process_running_with, which compares a string.
-#
-# GNU procps pgrep leaves out only itself, so where the folder's path
-# matches PATTERN, the shell running the script matches, and so does a
-# launcher that started it (ISS 808). macOS pgrep leaves out its ancestors.
-# A node that is an ancestor of this shell is let through on both.
+# Returns 0 where pgrep_outside_own_line, in shared/lib.sh, finds no process
+# matching PATTERN, an extended regular expression. Otherwise returns 1 with
+# a message: a process matches, or pgrep or ps is missing or failed, and
+# then nothing says that NAME is stopped. DOING is what the caller is about
+# to do, as "updating". A guard written "if pgrep" reads both failures as
+# "not running". PATTERN is why this is not process_running_with, which
+# compares a string.
 refuse_while_running() {
-    local rc=0 found table
-    found="$(pgrep -f -i "$3")" || rc=$?
-    if [ "$rc" -eq 0 ] && [ -n "$found" ]; then
-        if table="$(ps -A -o pid= -o ppid=)"; then
-            found="$(_pids_outside_own_line "$$" "$(printf '%s' "$found" | tr '\n' ' ')" "$table")" || rc=2
-            [ "$rc" -ne 0 ] || [ -n "$found" ] || rc=1
-        else
-            rc=2
-        fi
-    fi
+    local rc=0
+    pgrep_outside_own_line "$3" > /dev/null || rc=$?
     case "$rc" in
         0) echo "Error: $1 is running. Stop it before $2." ;;
         1) return 0 ;;
