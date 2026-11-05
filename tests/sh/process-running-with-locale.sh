@@ -79,6 +79,10 @@ ASCII_ARG="-datadir=/portanode-test-$$/Disco/bitcoin-datadir/regtest_bob"
 DIR="${ARG#-datadir=}"
 ASCII_DIR="${ASCII_ARG#-datadir=}"
 
+# The stand-in matches the node pattern of tests/sh/running-guard.sh, so it
+# starts under hold_node_lock, and holds it while it runs. Without the lock
+# the cases here still run.
+hold_node_lock || true
 # The "; :" keeps bash from replacing itself with sleep, which would drop
 # the arguments from the command line.
 "$BASH" -c 'sleep 60; :' bitcoind -regtest "$ARG" "$ASCII_ARG" 2>/dev/null &

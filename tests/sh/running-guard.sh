@@ -183,32 +183,13 @@ check "a rollback refuses where pgrep finds a process and ps fails" \
 # line, and its ancestors', match it. GNU procps pgrep reports them; macOS
 # pgrep leaves its ancestors out. These cases use the real pgrep, on the
 # Bitcoin scripts of a copy of the tree under such a path. Another run of
-# this file matches the pattern too, so the cases hold a lock directory
-# shared by every run, and a case is skipped where a process outside it
-# matches before or after.
+# this file matches the pattern too, so the cases hold hold_node_lock's
+# lock, and a case is skipped where a process outside it matches before or
+# after.
 BTC_PATTERN="bitcoind|bitcoin-qt|bitcoin qt"
 REAL_PGREP="$(command -v pgrep)"
-LOCK=/tmp/portanode-running-guard.lock
-# take_lock: 0 once this run holds LOCK, 1 after about five minutes. A lock
-# whose owner no longer runs is removed.
-take_lock() {
-    local owner
-    for _ in $(seq 600); do
-        if mkdir "$LOCK" 2> /dev/null; then
-            echo "$$" > "$LOCK/pid"
-            trap 'rm -f "$LOCK/pid"; rmdir "$LOCK"; rm -rf "$WORK"' EXIT
-            return 0
-        fi
-        owner="$(cat "$LOCK/pid" 2> /dev/null)"
-        if [ -n "$owner" ] && ! kill -0 "$owner" 2> /dev/null; then
-            rm -f "$LOCK/pid"
-            rmdir "$LOCK" 2> /dev/null
-            continue
-        fi
-        sleep 0.5
-    done
-    return 1
-}
+# The stand-in nodes below close descriptor 9, so that one left running by a
+# killed run does not hold the lock.
 # outside_match: 0 where a process this run did not start matches.
 outside_match() {
     pgrep -f -i "$BTC_PATTERN" > /dev/null
@@ -217,7 +198,7 @@ outside_match() {
 # started.
 child_node_refused() {
     local name="portanode-child-$$" out rc=0
-    "$BASH" -c 'while :; do sleep 1; done' "$name" &
+    "$BASH" -c 'while :; do sleep 1; done' "$name" 9<&- &
     local node=$!
     for _ in $(seq 50); do pgrep -f "$name" > /dev/null && break; sleep 0.1; done
     out="$(refuse_while_running "Bitcoin Core" updating "$name")" || rc=$?
@@ -227,8 +208,8 @@ child_node_refused() {
 }
 if [ -z "$REAL_PGREP" ]; then
     echo "ok - skipped: pgrep not found"
-elif ! take_lock; then
-    echo "ok - skipped: $LOCK is held by another run"
+elif ! hold_node_lock; then
+    echo "ok - skipped: $NODE_LOCK is held by another run, or perl is missing"
 else
     check "the guard refuses a node the shell started" child_node_refused
     mkdir -p "$WORK/real-pgrep" "$WORK/bitcoind-usb"
@@ -256,7 +237,7 @@ else
                 check "$what" passes "$out" "$past"
             fi
         fi
-        "$BASH" -c 'while :; do sleep 1; done' bitcoind &
+        "$BASH" -c 'while :; do sleep 1; done' bitcoind 9<&- &
         node=$!
         out="$(run_script "$WORK/real-pgrep:" "$ostype" "$arch" "$script" "${args[@]}")"
         kill "$node"
