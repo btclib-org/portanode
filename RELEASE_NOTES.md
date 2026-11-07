@@ -17,6 +17,13 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
+## v2026.11.7
+
+**On an Intel Mac, `update-bitcoin` stops with an error.** The updater
+installs Bitcoin Core's arm64 build only, and on a Mac that is not Apple
+silicon it stops before downloading anything. The installed build stays.
+A build updated on an Apple silicon Mac does not run on an Intel one.
+
 ## v2026.11.2
 
 **An update or rollback stops where it cannot list the running
