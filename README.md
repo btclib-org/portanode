@@ -1,37 +1,6 @@
 # PortaNode
 
-<!-- The badges are what the reader decides with, one property of the
-tree per badge, in the three groups btclib-org/.github's README.md
-section 2 fixes: what the software is, whether it works, and what the
-OpenSSF makes of it. Nothing here is a Python package and there is no
-`release.yml`, so the first group is empty, the licence badge with it
--- that one earns its line in the long description an index renders and
-in the copy an unpacked sdist carries, neither of which this tree has.
-Inside the second the gates come in the order that section lists them --
-pre-commit.ci, then the lint workflow, then the test workflow -- and the
-sentinels follow in the order section 10's calendar schedules them,
-which is the order and not the instants: the day and the hour a sentinel
-owns are that section's and are not restated here. Which sentinels this
-tree carries is section 10's record rather than a choice made here, the
-badge and the workflow being one membership. This tree carries
-`os-macos` and `os-windows`, which run the suite under tests/ on the
-platforms the test workflow does not (btclib-org/.github#1802 adds the
-tree to the record), `links`, which every repository carries, `codeql`,
-by the maintainer's decision in btclib-org/portanode#719, and
-`scorecard`, by the maintainer's decision in btclib-org/portanode#639;
-each decision also adds the tree to the record. The
-Scorecard badge opens the third group, before the Best Practices and
-Baseline badges of this tree's bestpractices.dev registration. One badge
-per line keeps a change to one line and every line inside MD013. -->
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
-[![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml?query=branch%3Amain)
-[![test workflow status](https://github.com/btclib-org/portanode/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/test.yml?query=branch%3Amain)
-[![os-macos workflow status](https://github.com/btclib-org/portanode/actions/workflows/os-macos.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/os-macos.yml?query=branch%3Amain)
-[![os-windows workflow status](https://github.com/btclib-org/portanode/actions/workflows/os-windows.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/os-windows.yml?query=branch%3Amain)
-[![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/links.yml?query=branch%3Amain)
-[![codeql workflow status](https://github.com/btclib-org/portanode/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/codeql.yml?query=branch%3Amain)
-
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/btclib-org/portanode/badge)](https://scorecard.dev/viewer/?uri=github.com/btclib-org/portanode)
+<!-- Section 2 of btclib-org/.github's README.md says which badges sit here. -->
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15649/badge)](https://www.bestpractices.dev/projects/15649)
 [![OpenSSF Baseline](https://www.bestpractices.dev/projects/15649/baseline)](https://www.bestpractices.dev/projects/15649)
 
@@ -580,3 +549,15 @@ something that *is* a vulnerability is the organization's, shown on
   folder as unrecognised, and the way past that is the same click an
   attacker's script would ask for. Read a launcher before running it;
   they are short and they are all in the tree.
+
+## Status
+
+<!-- Section 2 of btclib-org/.github's README.md says which badges sit here. -->
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
+[![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml?query=branch%3Amain)
+[![test workflow status](https://github.com/btclib-org/portanode/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/test.yml?query=branch%3Amain)
+[![os-macos workflow status](https://github.com/btclib-org/portanode/actions/workflows/os-macos.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/os-macos.yml?query=branch%3Amain)
+[![os-windows workflow status](https://github.com/btclib-org/portanode/actions/workflows/os-windows.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/os-windows.yml?query=branch%3Amain)
+[![links workflow status](https://github.com/btclib-org/portanode/actions/workflows/links.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/links.yml?query=branch%3Amain)
+[![codeql workflow status](https://github.com/btclib-org/portanode/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/codeql.yml?query=branch%3Amain)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/btclib-org/portanode/badge)](https://scorecard.dev/viewer/?uri=github.com/btclib-org/portanode)
