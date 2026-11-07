@@ -13,6 +13,43 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
+## v2026.11.7
+
+The macOS Bitcoin Core updater installs the arm64 build only, and the
+scripts that look for a running node no longer find their own folder's
+path on Linux.
+
+### The macOS updater installs Bitcoin Core's arm64 build only
+
+On a Mac that is not Apple silicon it stops before downloading anything,
+and the installed build stays (issue btclib-org/.github#1982).
+
+### A folder path holding `bitcoind` no longer reads as a running node
+
+On Linux, the updaters, the rollbacks and the health check matched their
+own command line. They leave it out (closes #808 and #836).
+
+### The Windows Alice `-clean` launchers read `-chain=regtest`
+
+A regtest node started with `-chain=regtest` or `-noregtest=0` did not
+count, and the launcher deleted its data (closes #679 and #828).
+
+### The log monitors print control characters as escapes
+
+C0 and DEL print as `\xHH`, and C1 in its UTF-8 form as `\u00HH`. A
+carriage return before a newline is dropped; `README.md` says what still
+passes (closes #629).
+
+### CI fails under a coverage floor
+
+`kcov.yml` becomes `coverage.yml`, which also measures the `.ps1`
+statements on Windows and fails under each floor (closes #794).
+
+### Contributor rules and pins
+
+`CONTRIBUTING.md`, `REVIEWING.md` and `.coderabbit.yaml` take
+btclib-org/.github's shared parts; the hook and action pins move.
+
 ## v2026.11.2
 
 The Windows updaters fetch over HTTPS only, redirects included, and the
