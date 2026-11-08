@@ -1,6 +1,6 @@
 # PortaNode
 
-<!-- Section 2 of btclib-org/.github's README.md says which badges sit here. -->
+<!-- Section 2 of the organization's standard says which badges sit here. -->
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15649/badge)](https://www.bestpractices.dev/projects/15649)
 [![OpenSSF Baseline](https://www.bestpractices.dev/projects/15649/baseline)](https://www.bestpractices.dev/projects/15649)
 
@@ -552,7 +552,7 @@ something that *is* a vulnerability is the organization's, shown on
 
 ## Status
 
-<!-- Section 2 of btclib-org/.github's README.md says which badges sit here. -->
+<!-- Section 2 of the organization's standard says which badges sit here. -->
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/btclib-org/portanode/main.svg)](https://results.pre-commit.ci/latest/github/btclib-org/portanode/main)
 [![lint workflow status](https://github.com/btclib-org/portanode/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/lint.yml?query=branch%3Amain)
 [![test workflow status](https://github.com/btclib-org/portanode/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/btclib-org/portanode/actions/workflows/test.yml?query=branch%3Amain)
