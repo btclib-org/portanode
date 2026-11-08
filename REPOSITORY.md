@@ -284,10 +284,16 @@ is waiting, so those are the ones worth looking at now and then.
 
 ## Secrets
 
-`claude-review.yml` is the only workflow here that reads a secret held in
-a store, and this repository holds none of its own. `links.yml` reads
-`secrets.GITHUB_TOKEN`, which Actions mints for every workflow's job at
-each run rather than drawing from a store, so it sits outside that claim:
+This repository holds no secret of its own. A workflow here that reads
+one names it as `secrets.<name>`, and this lists those workflows:
+
+```shell
+git grep -lF 'secrets.' -- .github/workflows/
+```
+
+The workflow `links.yml` calls reads `secrets.GITHUB_TOKEN`, which
+Actions mints for every workflow's job at each run rather than drawing
+from a store. These read the stores:
 
 ```shell
 gh api repos/btclib-org/portanode/actions/secrets --jq '[.secrets[].name]'
@@ -308,15 +314,26 @@ review that silently reviewed nothing.
 
 ## Variables
 
-**A switch this repository does not set.** `claude-review.yml` calls
-`btclib-org/.github`'s `reusable-claude-review.yml`, whose jobs guard on
-`vars.CLAUDE_REVIEW_ENABLED`; a variable set here would take precedence
-over one of the same name on the organization, so the repository's own
-store is read too:
+**Switches this repository does not set.** A switch is a variable that
+the jobs of a `btclib-org/.github` workflow called here guard on:
+`reusable-claude-review.yml`, which `claude-review.yml` calls, guards
+on `vars.CLAUDE_REVIEW_ENABLED`, and `reusable-claude-implement.yml`,
+which `claude-implement.yml` calls, on `vars.CLAUDE_IMPLEMENT_ENABLED`.
+A variable set here would take precedence over one of the same name on
+the organization, so the repository's own store is read too:
 
 ```shell
 gh api repos/btclib-org/portanode/actions/variables --jq .total_count
 # 0
+```
+
+The agent runs only while the organization's `CLAUDE_IMPLEMENT_ENABLED`,
+as this repository sees it, is `true`. This prints its value, and
+nothing where it is unset or not visible here:
+
+```shell
+gh api --paginate repos/btclib-org/portanode/actions/organization-variables \
+  --jq '.variables[] | select(.name == "CLAUDE_IMPLEMENT_ENABLED") | .value'
 ```
 
 ## Token permissions
@@ -327,16 +344,19 @@ gh api repos/btclib-org/portanode/actions/permissions/workflow \
 ```
 
 answers `read` and `false`, and that is the floor every workflow here
-starts from. `claude-review.yml`, `codeql.yml` and `scorecard.yml` raise
-it, each on the job that calls a reusable workflow of
-`btclib-org/.github`:
+starts from. A job that elevates it declares a scope at `write`, each
+such job calls a reusable workflow of `btclib-org/.github`, and this
+lists each such declaration:
 
 ```shell
 git grep -n -E '^ +[a-z-]+: write' -- .github/workflows/
 ```
 
-`claude-review.yml` grants `pull-requests: write` to post a comment and
-`id-token: write` for the OIDC token the action mints at startup.
+`claude-review.yml` grants `pull-requests: write` to post a comment, and
+`claude-implement.yml` grants `issues: write` to post an assessment and
+apply a label. Both grant `id-token: write` for the OIDC token the
+action mints at startup, and `claude-implement.yml` also for the token
+its callee's `publish` job trades for the App's token.
 `codeql.yml` grants `security-events: write` to upload the analysis to
 code scanning, and `actions: read` to its analysis job and to its
 `codeql: every job passed` job, for run metadata and for the listing of

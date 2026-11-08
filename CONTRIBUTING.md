@@ -488,6 +488,10 @@ third party returning 502 would be a red merge with nothing to fix; the
 second posts the ack of record `REVIEWING.md` describes, which is an
 opinion for you to weigh. Neither belongs in a branch rule.
 
+`claude-implement.yml` runs on an issue and never on a pull request, so
+it gates nothing: the pull request it opens takes the checks above like
+any other.
+
 `verified-signatures.yml` reports after each push to `main` whether every
 commit pushed is `verified`; [the standard's *Signatures*][s-sigs] has the rule.
 
