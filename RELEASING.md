@@ -37,7 +37,7 @@ answering `[]` is what confirms the claim above.
 
 ## The version string
 
-[Section 12 of the organization
+[Section 12 of the organization's
 standard](https://github.com/btclib-org/.github#12-releasing) sets
 calendar versioning, `YYYY.M.D`. The tag is that string with a `v` in
 front, per section 11's `tag-integrity` ruleset and its `refs/tags/v*`
@@ -169,10 +169,10 @@ macos/bin`, rather than with anything naming the cause.
     ```
 
     Fix the alert and run the command again. A Scorecard alert may be
-    dismissed only as [section 10 of the organization
-    standard](https://github.com/btclib-org/.github#10-workflows)'s
-    *scorecard* entry allows. A call that fails (404, 403) stops the
-    release as an open alert does.
+    dismissed only as section 10's *scorecard* entry in
+    [the organization's standard](https://github.com/btclib-org/.github#10-workflows)
+    allows. A call that fails (404, 403) stops the release as an open
+    alert does.
 1. Tag the merged commit, **signed**, from the primary checkout after
    confirming it is clean and on `main`. The `--ff-only` merge refuses
    a merge that is not a fast-forward. Chained with `&&`, so a refusal on
@@ -220,7 +220,8 @@ macos/bin`, rather than with anything naming the cause.
     `tag-integrity` carries no `deletion` rule.
 1. Review the bestpractices.dev answers. Refresh the saved answers with
    btclib-org/.github's `.github/scripts/bestpractices.py`, and run its
-   `--stale` and `--differ` to find what to read (section 10 of its README).
+   `--stale` and `--differ` to find what to read (section 10 of the
+   organization's standard).
    Read <https://www.bestpractices.dev/projects/15649> against the release
    and update every answer it changed: the release notes, the
    vulnerabilities it fixed and the signed tag. Then refresh the saved

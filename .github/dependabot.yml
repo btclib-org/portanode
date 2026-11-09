@@ -53,8 +53,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      # Thursday, which is the day section 10 of btclib-org/.github's
-      # README.md gives dependabot across the organization. Actions move
+      # Thursday, which is the day section 10 of the organization's
+      # standard gives dependabot across the organization. Actions move
       # rarely, so a week where none did opens no pull request at all
       day: thursday
     groups:
@@ -62,6 +62,6 @@ updates:
         patterns: ["*"]
     cooldown:
       default-days: 7
-      # the exclude section 11 of btclib-org/.github's README.md gives
-      # for its own tags
+      # the exclude section 11 of the organization's standard gives for
+      # btclib-org/.github's own tags
       exclude: ["btclib-org/.github/*"]

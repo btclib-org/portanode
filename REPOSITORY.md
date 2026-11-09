@@ -5,12 +5,13 @@ workflow; editing a launcher does not need it. Keeping this material
 here lets a session fixing a script skip repository settings.
 
 The branch rules and the repository settings live *outside* the
-repository. What is recorded is the settings the organization standard
-asks about — the ones section 16's checklist sets on a new repository,
-the ones a section of the standard states a rule for, and the ones a
-behaviour it describes rests on — together with whatever a call quoted
-for one of those answers alongside it. That is this file's scope, and
-*What this file passes over* at the foot says what falls outside it.
+repository. What is recorded is the settings the organization's
+standard asks about — the ones section 16's checklist sets on a new
+repository, the ones a section of the standard states a rule for, and
+the ones a behaviour it describes rests on — together with whatever a
+call quoted for one of those answers alongside it. That is this file's
+scope, and *What this file passes over* at the foot says what falls
+outside it.
 
 Every claim below is read back from an endpoint, and the command that
 reads it is beside it — a setting somebody changed in the browser is a
@@ -27,10 +28,10 @@ gh api repos/btclib-org/portanode \
 # {"has_issues":true,"projects":false,"visibility":"public","wiki":false}
 ```
 
-Section 11 of the organization standard turns the wiki and the projects
-board off on every tree, an unused wiki being a second place a reader
-can land looking for what the tracker already records, and the projects
-board a per-user view of the same issues the tracker holds.
+Section 11 of the organization's standard turns the wiki and the
+projects board off on every tree, an unused wiki being a second place a
+reader can land looking for what the tracker already records, and the
+projects board a per-user view of the same issues the tracker holds.
 
 ## What gates a merge
 
@@ -466,9 +467,9 @@ table above is what that state is read from. Do not read that 200 as
 success. The `detect-secrets` hook is the compensating control.
 
 The other plan-gated number is not a setting at all: how many jobs the
-organization may run at once. Section 10 of the organization standard
-makes this section its one home per tree, beside the command that
-re-derives it:
+organization may run at once. Section 10 of the organization's
+standard makes this section its one home per tree, beside the command
+that re-derives it:
 
 ```shell
 gh api orgs/btclib-org --jq .plan.name
