@@ -500,8 +500,8 @@ every push to `main` and weekly, which is the code-scanning analysis the
 Scorecard's SAST check reads off a merged pull request. Its `codeql:
 every job passed` job passes where every job of its run did, and the
 branch rule names it, so a red one holds the merge. A CodeQL
-alert is fixed, or dismissed only as section 10 of the organization
-standard's *scorecard* entry allows.
+alert is fixed, or dismissed only as section 10's *scorecard* entry in
+the organization's standard allows.
 
 `coverage.yml` measures the suite: its bash lines under `kcov`, in a
 Debian container on Ubuntu, and its `.ps1` statements on Windows. Each job
