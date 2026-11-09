@@ -54,7 +54,7 @@ concurrency:
 
 jobs:
   analyze:
-    uses: btclib-org/.github/.github/workflows/reusable-codeql.yml@f1e5044d9c9d0ce9d1c5cdc74f483b3d08a2bd8f # v2026.11.9
+    uses: btclib-org/.github/.github/workflows/reusable-codeql.yml@305b1840909ffd49d653d20cc6f5f9e1ab6a3382 # v2026.11.10
     with:
       # CodeQL fails a language it finds no source for, so the list names
       # the one this tree holds
