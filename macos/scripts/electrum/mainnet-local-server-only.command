@@ -86,7 +86,10 @@ fi
 # answers /Library/Developer/CommandLineTools/usr/bin/python3, so
 # command -v answers for the shim rather than for the interpreter behind
 # it. /usr/bin/perl is the interpreter itself.
-mkdir -p "${ROOTDIR}/electrum-datadir"
+mkdir -p "${ROOTDIR}/electrum-datadir" || {
+    echo "Error: could not create electrum-datadir"
+    exit 1
+}
 SOCKET_PROBE="${ROOTDIR}/electrum-datadir/.probe.$$"
 if command -v perl >/dev/null 2>&1; then
     perl - "${ROOTDIR}/electrum-datadir/daemon_rpc_socket" \
