@@ -5,6 +5,12 @@
 # shellcheck shell=bash
 # The macOS/Linux Electrum launchers must stop when electrum-datadir cannot
 # be created, before Electrum is started.
+#
+# The Linux launchers stop at their /dev/fuse check before mkdir, and a CI
+# runner gives the job no /dev/fuse. Each runs as a copy under ROOT, with
+# shared/lib.sh and linux/scripts/lib.sh beside it in the same layout, whose
+# check reads and writes a file of its own in place of /dev/fuse, so the
+# Linux cases run wherever the macOS ones do and are never skipped.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -34,6 +40,13 @@ cp "$TMP/electrum-binary" "$MACOS_APP/Contents/MacOS/run_electrum"
 # which is another program there.
 cp "$TMP/electrum-binary" "$STUBS/open"
 
+mkdir -p "$ROOT/shared" "$ROOT/linux/scripts/electrum"
+cp "$REPO/shared/lib.sh" "$ROOT/shared/lib.sh"
+cp "$REPO/linux/scripts/lib.sh" "$ROOT/linux/scripts/lib.sh"
+FUSE="$TMP/fuse"
+: > "$FUSE"
+FUSE_STANDIN="if [ ! -r \"$FUSE\" ] || [ ! -w \"$FUSE\" ]; then"
+
 launchers=(
     linux/scripts/electrum/mainnet.sh
     linux/scripts/electrum/mainnet-local-server-only.sh
@@ -52,24 +65,29 @@ run_launcher() {
     output="$(PORTANODE_ROOT="$ROOT" \
         PORTANODE_TEST_STARTS="$started" \
         PATH="$STUBS:$PATH" \
-        "$BASH" "$REPO/$launcher" < /dev/null 2>&1)"
+        "$BASH" "$launcher" < /dev/null 2>&1)"
     status=$?
     printf '%s\nexit %s\n' "$output" "$status"
 }
 
 for launcher in "${launchers[@]}"; do
     name="${launcher#*/scripts/}"
-    # The Linux launchers stop at their /dev/fuse check before mkdir.
+    path="$REPO/$launcher"
     case "$launcher" in
         linux/*)
-            if [ ! -r /dev/fuse ] || [ ! -w /dev/fuse ]; then
-                echo "ok - skipped: $name needs read and write access to /dev/fuse"
-                continue
-            fi
+            # A reworded check would be left as it is in the copy, which
+            # would then stop at /dev/fuse, or pass it by the machine's own
+            # device: the copy must hold the rewritten check once and no
+            # /dev/fuse test.
+            path="$ROOT/$launcher"
+            sed "s#^if \[ ! -r /dev/fuse \] || \[ ! -w /dev/fuse \]; then\$#$FUSE_STANDIN#" \
+                "$REPO/$launcher" > "$path"
+            check "$name's copy tests $FUSE in place of /dev/fuse" \
+                same "0 1" "$(grep -cE -- '-[rw] /dev/fuse' "$path") $(grep -cxF "$FUSE_STANDIN" "$path")"
             ;;
     esac
     started="$TMP/${name//\//-}.started"
-    output="$(run_launcher "$launcher" "$started")"
+    output="$(run_launcher "$path" "$started")"
 
     check "$name reports a datadir creation error" \
         contains "$output" "Error: could not create electrum-datadir"
