@@ -13,7 +13,7 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
 
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d)" || exit 1
 TMP="$(cd "$TMP" && pwd -P)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -42,25 +42,23 @@ printf 'unrelated-process\n'
 EOF
 chmod +x "$STUBS/ps"
 
-# The .command launchers pass mktemp -t a template with no XXXXXX, which
-# macOS's mktemp takes as a prefix and GNU's refuses. Where the mktemp here
-# refuses it, the .command launchers get one that adds the suffix.
+# Every launcher gets a mktemp that sends -t to the TMPDIR the test gives
+# it: macOS's mktemp -t uses the user's own temporary directory before
+# TMPDIR, so the check below would not see a leftover rcfile. The stub also
+# adds the XXXXXX suffix the .command launchers' template lacks, which GNU's
+# mktemp requires.
 real_mktemp="$(command -v mktemp)"
-if probe="$(TMPDIR="$TMP" mktemp -t portanode-probe 2> /dev/null)"; then
-    rm -f -- "$probe"
-    MKTEMP_STUB=""
-else
-    # The stub's own parameters expand when it runs, not here.
-    # shellcheck disable=SC2016
-    {
-        echo '#!/bin/sh'
-        echo 'if [ "$1" = -t ]; then'
-        echo '    case "$2" in *XXX*) ;; *) set -- -t "$2.XXXXXX" ;; esac'
-        echo 'fi'
-        printf 'exec "%s" "$@"\n' "$real_mktemp"
-    } > "$MKTEMP_STUB/mktemp"
-    chmod +x "$MKTEMP_STUB/mktemp"
-fi
+# The stub's own parameters expand when it runs, not here.
+# shellcheck disable=SC2016
+{
+    echo '#!/bin/sh'
+    echo 'if [ "$1" = -t ]; then'
+    echo '    case "$2" in *XXX*) t="$2" ;; *) t="$2.XXXXXX" ;; esac'
+    printf '    exec "%s" "${TMPDIR:?}/$t"\n' "$real_mktemp"
+    echo 'fi'
+    printf 'exec "%s" "$@"\n' "$real_mktemp"
+} > "$MKTEMP_STUB/mktemp"
+chmod +x "$MKTEMP_STUB/mktemp"
 
 launchers=(
     linux/scripts/bitcoin/regtest-18444-Alice-cli.sh
@@ -84,10 +82,7 @@ for launcher in "${launchers[@]}"; do
     calls="$TMP/$name.calls"
     tmpdir="$TMP/$name.tmp"
     mkdir -p "$tmpdir"
-    path="$STUBS:$PATH"
-    case "$launcher" in
-        *.command) [ -z "$MKTEMP_STUB" ] || path="$MKTEMP_STUB:$path" ;;
-    esac
+    path="$MKTEMP_STUB:$STUBS:$PATH"
     # RCFILE expands in the session, not here.
     # shellcheck disable=SC2016
     input='btc getblockcount\necho "rcfile=${RCFILE-unset}"\n'
