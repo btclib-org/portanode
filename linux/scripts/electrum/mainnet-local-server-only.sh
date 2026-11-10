@@ -124,7 +124,10 @@ fi
 # A refused bind exits 4 rather than 1 because an uncaught exception in
 # the script below exits 1 as well, and the case below that stops the
 # launcher has to be the measured refusal alone.
-mkdir -p "${ROOTDIR}/electrum-datadir"
+mkdir -p "${ROOTDIR}/electrum-datadir" || {
+    echo "Error: could not create electrum-datadir"
+    exit 1
+}
 SOCKET_PROBE="${ROOTDIR}/electrum-datadir/.probe.$$"
 if command -v python3 >/dev/null 2>&1; then
     python3 - "${ROOTDIR}/electrum-datadir/daemon_rpc_socket" \
