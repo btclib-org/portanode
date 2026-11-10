@@ -28,6 +28,7 @@ echo 3^) Testnet4
 echo 4^) Regtest
 echo 5^) Mainnet ^(local server only^)
 echo 0^) Exit
+set "choice="
 set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"
