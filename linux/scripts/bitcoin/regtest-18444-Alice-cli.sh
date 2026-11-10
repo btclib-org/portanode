@@ -95,5 +95,11 @@ RCFILE="$(mktemp -t portanode-alice-cli-rc.XXXXXX)"
 # starts, not here: they are read from the exported environment above.
 # shellcheck disable=SC2016
 echo 'btc() { "$BTC_CLI" -regtest -datadir="$DATADIR" "$@"; }' > "$RCFILE"
+# The rcfile's last line deletes it once bash has read it, so a session
+# leaves nothing behind in the temporary directory: RCFILE is exported for
+# that line, which unsets it again.
+export RCFILE
+# shellcheck disable=SC2016
+echo 'rm -f -- "$RCFILE"; unset RCFILE' >> "$RCFILE"
 echo "btc is a function for bitcoin-cli on this datadir for this session."
 exec bash --rcfile "$RCFILE" -i
