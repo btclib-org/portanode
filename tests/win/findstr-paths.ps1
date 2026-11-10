@@ -15,7 +15,10 @@
 # - :verify_pgp_signature, in win/scripts/utilities/lib.bat, with TEMP in the
 #   folder, where it writes gpg's status file, and a throwaway key;
 # - the search for prune= in validate-setup.bat, on a bitcoin.conf in the
-#   folder.
+#   folder;
+# - the test for the data directories in validate-setup.bat, which is no read
+#   by findstr but runs copied out the same way, with both, either or neither
+#   of them in the folder.
 
 $repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 Push-Location -LiteralPath (Join-Path $PSScriptRoot '..')
@@ -196,6 +199,28 @@ foreach ($label in $names.Keys) {
   Remove-Item -LiteralPath $conf
   $r = Invoke-Bat $prune @{ ROOTDIR = $root }
   Test-Contain "validate-setup.bat reads no bitcoin.conf as PRUNED=0 in a $label folder" $r.Text 'PRUNED=0'
+}
+
+# The statements from "set DATADIRS=0" to the parenthesis that closes the
+# else, run as they stand with ROOTDIR set.
+$first = [array]::IndexOf($lines, 'set DATADIRS=0')
+$last = $first
+while ($lines[$last] -ne ')') { $last++ }
+$datadirs = New-Driver 'datadirs.bat' (@('@echo off') + $lines[$first..$last])
+$ok = 'OK: Data directories exist'
+$warn = 'WARNING: Data directories not found'
+foreach ($label in $names.Keys) {
+  foreach ($case in @(
+      @('both', @('bitcoin-datadir', 'electrum-datadir'), $ok),
+      @('only bitcoin-datadir', @('bitcoin-datadir'), $warn),
+      @('only electrum-datadir', @('electrum-datadir'), $warn),
+      @('neither', @(), $warn))) {
+    $root = Join-Path $tmp ('datadirs-' + $case[0].Replace(' ', '-') + '-' + $names[$label])
+    New-Item -ItemType Directory -Path $root | Out-Null
+    foreach ($dir in $case[1]) { New-Item -ItemType Directory -Path (Join-Path $root $dir) | Out-Null }
+    $r = Invoke-Bat $datadirs @{ ROOTDIR = $root }
+    Test-Same "validate-setup.bat prints '$($case[2])' with $($case[0]) in a $label folder" $case[2] $r.Text.Trim()
+  }
 }
 
 Remove-Item -LiteralPath $tmp -Recurse -Force
