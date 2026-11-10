@@ -41,7 +41,12 @@ if exist "%SCRIPT_DIR%verify-binaries.bat" (
     echo WARNING: verify-binaries.bat not found, skipping checksum check
 )
 
-if exist "%ROOTDIR%\bitcoin-datadir" if exist "%ROOTDIR%\electrum-datadir" (
+REM A flag rather than one "else" after the two "if exist": cmd.exe binds
+REM that "else" to the inner "if" alone, so a missing bitcoin-datadir
+REM would print neither line (#691).
+set DATADIRS=0
+if exist "%ROOTDIR%\bitcoin-datadir" if exist "%ROOTDIR%\electrum-datadir" set DATADIRS=1
+if "%DATADIRS%"=="1" (
     echo OK: Data directories exist
 ) else (
     echo WARNING: Data directories not found
