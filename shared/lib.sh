@@ -377,8 +377,9 @@ regtest_node_running_on() {
 # could not be read. A line is a node when "bitcoin-qt" or "bitcoind",
 # ignoring case, is the last part of a path: the bare name at the start of the
 # line, or "/bitcoin-qt" or "/bitcoind" followed by a space or the end of the
-# line. A process whose path merely holds either word in a directory name,
-# such as a launcher under /Volumes/bitcoind-disk, is not a node.
+# line. A process whose path holds either word in a directory name, such as a
+# launcher under /Volumes/bitcoind-disk, is not a node, unless a "/", the word
+# and a space begin the name, as in /Volumes/Bitcoin-Qt Drive.
 # The network flags are read as whole arguments, so a node whose path holds
 # "-testnet" is still a mainnet node.
 #
