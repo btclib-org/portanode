@@ -38,6 +38,7 @@ echo 13^) Regtest Carol ^(GUI, clean^)
 echo 14^) Regtest Carol ^(CLI^)
 echo 15^) Regtest Carol ^(CLI, clean^)
 echo 0^) Exit
+set "choice="
 set /p "choice=Select: "
 
 if "%choice%"=="" set "choice=0"

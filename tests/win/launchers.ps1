@@ -44,6 +44,13 @@ foreach ($name in 'Bitcoin', 'Electrum', 'Utilities') {
     $out "$name Launcher `"$repo`""
   Test-Same "$bat exits 0 on 0" "exit 0" (Get-LastLine $out)
 
+  # set /p keeps the old value on an empty line, so the menu clears it
+  # first; without that, the empty line repeats "99" (ISS 686).
+  $out = Invoke-Launcher $bat @('99', '')
+  Test-Contain "$bat refuses an unknown entry" $out 'Invalid selection.'
+  Test-Same "$bat exits 0 on an empty line after an unknown entry" `
+    "exit 0" (Get-LastLine $out)
+
   $ps1 = "$name-Launcher.ps1"
   $out = Invoke-Launcher $ps1 @('0')
   Test-Contain "$ps1 opens its menu on this checkout's root" `
@@ -51,9 +58,6 @@ foreach ($name in 'Bitcoin', 'Electrum', 'Utilities') {
   Test-Same "$ps1 exits 0 on 0" "exit 0" (Get-LastLine $out)
 }
 
-# The .bat menu is given no unknown entry: it keeps the last choice when
-# set /p reads nothing (ISS 686), and fed "99" through a pipe it shows
-# itself without end.
 $out = Invoke-Launcher 'Bitcoin-Launcher.ps1' @('99', '0')
 Test-Contain 'Bitcoin-Launcher.ps1 refuses an unknown entry' `
   $out 'Invalid selection.'
