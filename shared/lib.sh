@@ -374,8 +374,11 @@ regtest_node_running_on() {
 
 # mainnet_node_running: 0 where a running bitcoin-qt or bitcoind selects no
 # network other than mainnet; 1 where none does; 2 where the process list
-# could not be read. A line is a node when it holds "bitcoin-qt" or
-# "bitcoind" anywhere, ignoring case, as the launchers read it.
+# could not be read. A line is a node when "bitcoin-qt" or "bitcoind",
+# ignoring case, is the last part of a path: the bare name at the start of the
+# line, or "/bitcoin-qt" or "/bitcoind" followed by a space or the end of the
+# line. A process whose path merely holds either word in a directory name,
+# such as a launcher under /Volumes/bitcoind-disk, is not a node.
 # The network flags are read as whole arguments, so a node whose path holds
 # "-testnet" is still a mainnet node.
 #
@@ -388,7 +391,8 @@ mainnet_node_running() {
     procs="$(printf '%s\n' "$procs" | tr '[:upper:]' '[:lower:]')" || return 2
     while IFS= read -r line; do
         case $line in
-            *bitcoin-qt* | *bitcoind*) ;;
+            bitcoin-qt | "bitcoin-qt "* | */bitcoin-qt | *"/bitcoin-qt "*) ;;
+            bitcoind | "bitcoind "* | */bitcoind | *"/bitcoind "*) ;;
             *) continue ;;
         esac
         pad=" $line "

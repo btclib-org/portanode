@@ -128,6 +128,20 @@ done
 PROCS=$'/bin/ls /Volumes/btc-testnet-old\n'
 check "no node running (mainnet)" answers 1 mainnet_node_running
 
+PROCS=$'bitcoind -datadir=/Volumes/btc\n'
+check "mainnet bare bitcoind found" answers 0 mainnet_node_running
+PROCS=$'/usr/local/bin/bitcoind\n'
+check "mainnet bitcoind with no argument found" answers 0 mainnet_node_running
+
+# Only the last part of a path names a node: a launcher under a directory whose
+# name holds either word is not one.
+for line in \
+    "/bin/bash /Volumes/bitcoind-disk/portanode/macos/scripts/bitcoin/mainnet-8333-qt.command" \
+    "/bin/bash /Volumes/Bitcoin-Qt/portanode/linux/scripts/bitcoin/mainnet-8333-qt.sh"; do
+    PROCS="$line"$'\n'
+    check "mainnet node not found: $line" answers 1 mainnet_node_running
+done
+
 # A process list that cannot be read answers 2 and not "no node".
 _process_args() {
     return 1
