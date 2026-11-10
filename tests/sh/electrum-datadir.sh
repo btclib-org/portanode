@@ -6,11 +6,11 @@
 # The macOS/Linux Electrum launchers must stop when electrum-datadir cannot
 # be created, before Electrum is started.
 #
-# The Linux launchers stop at their /dev/fuse check before mkdir, and a CI
-# runner gives the job no /dev/fuse. Each runs as a copy under ROOT, with
-# shared/lib.sh and linux/scripts/lib.sh beside it in the same layout, whose
-# check reads and writes a file of its own in place of /dev/fuse, so the
-# Linux cases run wherever the macOS ones do and are never skipped.
+# The Linux launchers stop at their /dev/fuse check before mkdir, which a
+# machine without that device, macOS among them, fails. Each Linux launcher
+# runs as a copy under ROOT, beside copies of shared/lib.sh and
+# linux/scripts/lib.sh in the same layout, with that check pointed at a file
+# of its own, so its cases run on every machine.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
