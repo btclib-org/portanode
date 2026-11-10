@@ -3672,12 +3672,12 @@
   {
     "code": "E006",
     "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "if exist \"%ROOTDIR%\\bitcoin-datadir\" if exist \"%ROOTDIR%\\electrum-datadir\" ("
+    "text": "if exist \"%ROOTDIR%\\bitcoin-datadir\" if exist \"%ROOTDIR%\\electrum-datadir\" set DATADIRS=1"
   },
   {
     "code": "E006",
     "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "if exist \"%ROOTDIR%\\bitcoin-datadir\" if exist \"%ROOTDIR%\\electrum-datadir\" ("
+    "text": "if exist \"%ROOTDIR%\\bitcoin-datadir\" if exist \"%ROOTDIR%\\electrum-datadir\" set DATADIRS=1"
   },
   {
     "code": "E006",

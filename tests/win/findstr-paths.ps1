@@ -16,9 +16,9 @@
 #   folder, where it writes gpg's status file, and a throwaway key;
 # - the search for prune= in validate-setup.bat, on a bitcoin.conf in the
 #   folder;
-# - the test for the data directories in validate-setup.bat, which is no read
-#   by findstr but runs copied out the same way, with both, either or neither
-#   of them in the folder.
+# - the test for the data directories in validate-setup.bat, which findstr
+#   does not read but which runs copied out the same way, with both, either or
+#   neither of them in the folder.
 
 $repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 Push-Location -LiteralPath (Join-Path $PSScriptRoot '..')
