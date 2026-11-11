@@ -597,8 +597,8 @@ restating it.
   a `.ps1` change read for correctness without being parsed.
 - **Blinter is compared by version and by line numbers.** Capture the
   version once and run both halves of a comparison under it, stderr
-  dropped because its `utf_8` encoding notices move under unrelated
-  edits:
+  dropped because it holds encoding notices, not findings, and an
+  ASCII-only edit can add or remove one:
 
   ```shell
   V=$(uvx blinter --version 2>/dev/null | sed -E 's/^v?([0-9.]+).*/\1/')

@@ -92,15 +92,6 @@ Every accepted `W005` compares `%errorlevel%`, which cmd.exe expands to
 the last exit code, a number with no space in it. A variable named
 `ERRORLEVEL` would take its place, and no script in the tree sets one.
 
-## W007 File operation on potentially locked file
-
-Blinter reports a `copy`, `move`, `del` or `ren` whose line names an
-`.exe`, among other paths. The accepted `W007` is the `move` in
-`rollback-electrum.bat` that puts the backup back in `win\bin`. Where
-the move fails, the `if errorlevel 1` on the next line reports it.
-Nothing is deleted before it, so a failure leaves the installed version
-in place.
-
 ## W009 Windows version compatibility
 
 Blinter reports `where` as missing from older Windows. `README.md`
@@ -127,13 +118,6 @@ goes there only where the choice is `0`, which asks to close. The
 launcher's one other exit, where `PORTANODE_ROOT` names no PortaNode
 folder, waits first with `:pause_if_own_console`.
 
-## W022 Missing SETLOCAL EnableDelayedExpansion
-
-Blinter reads a `!name!` anywhere in a file as a use of delayed
-expansion, comments included. The only `!name!` in
-`win\scripts\utilities\lib.bat` is in a `REM` comment. The file opens no
-scope of its own, since its labels run in their caller's.
-
 ## W023 Inefficient nested FOR loops
 
 Blinter reads a `for` whose block opens within the twenty lines after
@@ -143,14 +127,10 @@ so the loop is not nested.
 
 ## W025 Missing error handling
 
-Blinter looks for `errorlevel`, or for `if` and a space, on the command's
-line and the two lines after it. Each accepted `W025` has one of these shapes:
-
-- **A `mkdir` of the download directory ends in
-  `|| goto :tmpdir_failed`.** These are in `update-bitcoin.bat` and
-  `update-electrum.bat`.
-- **A `del` removes a temporary file under `%TEMP%`,** for the reason
-  `W002` gives.
+Blinter looks for a `||` outside quotes on the command's line, and for
+`errorlevel`, or for `if` and a space, on that line and the two lines
+after it. Each accepted `W025` is a `del` that removes a temporary file
+under `%TEMP%`, for the reason `W002` gives.
 
 ## W028 Errorlevel handling difference between .bat/.cmd
 
@@ -170,11 +150,10 @@ commands, and no script here reads it there:
 
 ## W033 Command execution may be ambiguous
 
-Blinter reads a `call` target as running up to the first space or colon.
-A quoted target that holds neither keeps its closing quote, and so seems
-to end without an extension. Every accepted `W033` calls a quoted path that ends
-in `.bat`, or `"%SCRIPT%"` in a root `.bat` launcher, which sets `SCRIPT`
-to the `.bat` path of a menu entry.
+Blinter reads a `call` target as running up to the first space or colon,
+drops its quotes, and reports a target that does not end in an
+extension. Every accepted `W033` is the `call "%SCRIPT%"` of a root
+`.bat` launcher, which sets `SCRIPT` to the `.bat` path of a menu entry.
 
 ## W039 Nested FOR loops without call optimization
 

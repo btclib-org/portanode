@@ -40,16 +40,6 @@
     "text": "call \"%SCRIPT%\""
   },
   {
-    "code": "W033",
-    "file": "../Bitcoin-Launcher.bat",
-    "text": "call \"%SCRIPT_DIR%win\\scripts\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../Bitcoin-Launcher.bat",
-    "text": "call \"%SCRIPT_DIR%win\\scripts\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../Electrum-Launcher.bat",
     "text": "echo Electrum Launcher \"%ROOTDIR%\""
@@ -90,16 +80,6 @@
     "text": "call \"%SCRIPT%\""
   },
   {
-    "code": "W033",
-    "file": "../Electrum-Launcher.bat",
-    "text": "call \"%SCRIPT_DIR%win\\scripts\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../Electrum-Launcher.bat",
-    "text": "call \"%SCRIPT_DIR%win\\scripts\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../Utilities-Launcher.bat",
     "text": "echo Utilities Launcher \"%ROOTDIR%\""
@@ -138,16 +118,6 @@
     "code": "W033",
     "file": "../Utilities-Launcher.bat",
     "text": "call \"%SCRIPT%\""
-  },
-  {
-    "code": "W033",
-    "file": "../Utilities-Launcher.bat",
-    "text": "call \"%SCRIPT_DIR%win\\scripts\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../Utilities-Launcher.bat",
-    "text": "call \"%SCRIPT_DIR%win\\scripts\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
     "code": "E006",
@@ -210,16 +180,6 @@
     "text": "set \"ACTION=%~1\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/lib.bat",
-    "text": "call \"%LIB_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/lib.bat",
-    "text": "call \"%LIB_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
     "code": "W061",
     "file": "../win/scripts/bitcoin/lib.bat",
     "text": "popd >nul 2>&1"
@@ -258,31 +218,6 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/mainnet-8333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_no_mainnet_node"
   },
   {
     "code": "E006",
@@ -343,46 +278,6 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_datadir_free ^"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_deleted \"bitcoin-datadir\\regtest\""
   },
   {
     "code": "E006",
@@ -455,26 +350,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
     "text": "echo ROOTDIR is \"%ROOTDIR%\""
@@ -503,41 +378,6 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_datadir_free ^"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_deleted \"bitcoin-datadir\\regtest\""
   },
   {
     "code": "E006",
@@ -575,21 +415,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18444-Alice-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
     "text": "echo ROOTDIR is \"%ROOTDIR%\""
@@ -653,51 +478,6 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_datadir_free ^"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_deleted \"bitcoin-datadir\\regtest_bob\""
   },
   {
     "code": "E006",
@@ -775,31 +555,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
     "text": "echo ROOTDIR is \"%ROOTDIR%\""
@@ -833,46 +588,6 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_datadir_free ^"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_deleted \"bitcoin-datadir\\regtest_bob\""
   },
   {
     "code": "E006",
@@ -920,26 +635,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18555-Bob-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
     "text": "echo ROOTDIR is \"%ROOTDIR%\""
@@ -1003,51 +698,6 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_datadir_free ^"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_deleted \"bitcoin-datadir\\regtest_carol\""
   },
   {
     "code": "E006",
@@ -1125,31 +775,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
     "text": "echo ROOTDIR is \"%ROOTDIR%\""
@@ -1183,46 +808,6 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_datadir_free ^"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt-clean.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_deleted \"bitcoin-datadir\\regtest_carol\""
   },
   {
     "code": "E006",
@@ -1268,26 +853,6 @@
     "code": "W028",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/regtest-18666-Carol-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
     "code": "E006",
@@ -1320,21 +885,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/testnet3-18333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/testnet3-18333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/testnet3-18333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
     "text": "echo ROOTDIR is \"%ROOTDIR%\""
@@ -1365,21 +915,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/bitcoin/testnet4-48333-qt.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/electrum/lib.bat",
     "text": "REM     call \"%SCRIPT_DIR%lib.bat\" :label [arguments]"
@@ -1398,11 +933,6 @@
     "code": "W028",
     "file": "../win/scripts/electrum/lib.bat",
     "text": "set \"ACTION=%~1\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/lib.bat",
-    "text": "call \"%LIB_DIR%..\\root.bat\" :leave_folder"
   },
   {
     "code": "W061",
@@ -1445,31 +975,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_non_portable_build ^"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/electrum/mainnet.bat",
     "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
@@ -1503,31 +1008,6 @@
     "code": "W028",
     "file": "../win/scripts/electrum/mainnet.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/mainnet.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_non_portable_build ^"
   },
   {
     "code": "E006",
@@ -1565,31 +1045,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/electrum/regtest.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/regtest.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/regtest.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/regtest.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/regtest.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_non_portable_build ^"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/electrum/testnet3.bat",
     "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
@@ -1625,31 +1080,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet3.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet3.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet3.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet3.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet3.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_non_portable_build ^"
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/electrum/testnet4.bat",
     "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
@@ -1683,31 +1113,6 @@
     "code": "W028",
     "file": "../win/scripts/electrum/testnet4.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet4.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet4.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet4.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet4.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/electrum/testnet4.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :require_non_portable_build ^"
   },
   {
     "code": "E005",
@@ -1753,36 +1158,6 @@
     "code": "W028",
     "file": "../win/scripts/utilities/clean-artifacts.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/clean-artifacts.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/clean-artifacts.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/clean-artifacts.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/clean-artifacts.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/clean-artifacts.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/clean-artifacts.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
     "code": "W061",
@@ -1848,31 +1223,6 @@
     "code": "W028",
     "file": "../win/scripts/utilities/health-check.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
     "code": "W061",
@@ -1948,11 +1298,6 @@
     "code": "E006",
     "file": "../win/scripts/utilities/lib.bat",
     "text": "REM Written flat (no %var% set-and-read inside a ( ) block) because a"
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/utilities/lib.bat",
-    "text": "REM on, the pass that would substitute a \"!VAR!\" strips an"
   },
   {
     "code": "E006",
@@ -2085,11 +1430,6 @@
     "text": "findstr /c:\"[GNUPG:] NEWSIG\" < \"%STATUS_FILE%\" >nul 2>&1"
   },
   {
-    "code": "W022",
-    "file": "../win/scripts/utilities/lib.bat",
-    "text": "@echo off"
-  },
-  {
     "code": "W025",
     "file": "../win/scripts/utilities/lib.bat",
     "text": "del \"%STATUS_FILE%\" >nul 2>&1"
@@ -2138,41 +1478,6 @@
     "code": "W028",
     "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
     "code": "W052",
@@ -2233,156 +1538,6 @@
     "code": "W028",
     "file": "../win/scripts/utilities/rollback-bitcoin.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%BACKUP_DIR%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%CHECKSUM_FILE%\" BACKUPVER"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%CHECKSUM_FILE%\" CURRENTVER"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :refuse_while_running \"Bitcoin Core\" \"rolling back\" bitcoin-qt.exe"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :refuse_while_running \"Bitcoin Core\" \"rolling back\" bitcoind.exe"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"%BACKUP_DIR%\\bitcoin-cli.exe\" \"win/bin/bitcoin-cli.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"%BACKUP_DIR%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"%BACKUP_DIR%\\bitcoin-tx.exe\" \"win/bin/bitcoin-tx.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"%BACKUP_DIR%\\bitcoin-util.exe\" \"win/bin/bitcoin-util.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"%BACKUP_DIR%\\bitcoin-wallet.exe\" \"win/bin/bitcoin-wallet.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"%BACKUP_DIR%\\bitcoin.exe\" \"win/bin/bitcoin.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"%BACKUP_DIR%\\bitcoind.exe\" \"win/bin/bitcoind.exe\""
   },
   {
     "code": "W052",
@@ -2510,94 +1665,9 @@
     "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
   },
   {
-    "code": "W007",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "move /y \"%BACKUP_DIR%\\electrum.exe\" \"%ROOTDIR%\\win\\bin\\\" >nul"
-  },
-  {
     "code": "W028",
     "file": "../win/scripts/utilities/rollback-electrum.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%BACKUP_DIR%\\electrum.exe\" \"win/bin/electrum.exe\" \"%CHECKSUM_FILE%\" BACKUPVER"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%ROOTDIR%\\win\\bin\\electrum.exe\" \"win/bin/electrum.exe\" \"%CHECKSUM_FILE%\" CURRENTVER"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :refuse_while_running \"Electrum\" \"rolling back\" electrum.exe"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"%BACKUP_DIR%\\electrum.exe\" \"win/bin/electrum.exe\""
   },
   {
     "code": "W052",
@@ -2665,41 +1735,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
     "code": "W061",
     "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
     "text": "popd >nul 2>&1"
@@ -2748,41 +1783,6 @@
     "code": "W028",
     "file": "../win/scripts/utilities/set-permissions.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
     "code": "W061",
@@ -2843,11 +1843,6 @@
     "code": "E001",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "if \"%VERR%\"==\"1\" ("
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "REM echo as data, \"!VAR!\" being substituted after the line has been"
   },
   {
     "code": "E006",
@@ -2990,114 +1985,9 @@
     "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do ("
   },
   {
-    "code": "W025",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "mkdir \"%TEMP%\\portanode-bitcoin.%TMP_ID%\" || goto :tmpdir_failed"
-  },
-  {
     "code": "W028",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :install_verified \"%%~fF\" \"%BIN_DIR%\\%%~nxF\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%BIN_DIR%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%CHECKSUM_FILE%\" CURRENT"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :preview_pinned_keys \"%ROOTDIR%\\keys\\bitcoin-core.fingerprints\" \"keys\\bitcoin-core.fingerprints\" \"the update\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :refuse_while_running \"Bitcoin Core\" updating bitcoin-qt.exe"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :refuse_while_running \"Bitcoin Core\" updating bitcoind.exe"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"win/bin/%%E.exe\" \"win/bin/%%E.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\SHA256SUMS.asc\" \"%TMPDIR%\\SHA256SUMS\" \"SHA256SUMS\" \"%ROOTDIR%\\keys\\bitcoin-core.fingerprints\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :warn_if_no_pubkeys"
   },
   {
     "code": "W039",
@@ -3420,84 +2310,9 @@
     "text": "where gpg >nul 2>&1"
   },
   {
-    "code": "W025",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "mkdir \"%TEMP%\\portanode-electrum.%TMP_ID%\" || goto :tmpdir_failed"
-  },
-  {
     "code": "W028",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :install_verified \"%TMPDIR%\\%FILE%\" \"%BIN_DIR%\\electrum.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%BIN_DIR%\\electrum.exe\" \"win/bin/electrum.exe\" \"%CHECKSUM_FILE%\" CURRENT"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :preview_pinned_keys \"%ROOTDIR%\\keys\\electrum.fingerprints\" \"keys\\electrum.fingerprints\" \"the download\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :refuse_while_running \"Electrum\" updating electrum.exe"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\%FILE%\" \"win/bin/electrum.exe\" \"%VERSION%\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_checksum \"win/bin/electrum.exe\" \"win/bin/electrum.exe\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :warn_if_no_pubkeys"
   },
   {
     "code": "W052",
@@ -3705,46 +2520,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "W033",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "call \"%SCRIPT_DIR%verify-binaries.bat\""
-  },
-  {
     "code": "W061",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "popd >nul 2>&1"
@@ -3788,36 +2563,6 @@
     "code": "W028",
     "file": "../win/scripts/utilities/verify-binaries.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/verify-binaries.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :leave_folder"
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/verify-binaries.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/verify-binaries.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/verify-binaries.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/verify-binaries.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :pause_if_own_console \"%~nx0\""
-  },
-  {
-    "code": "W033",
-    "file": "../win/scripts/utilities/verify-binaries.bat",
-    "text": "call \"%SCRIPT_DIR%..\\root.bat\" :resolve_root \"%SCRIPT_DIR%\" ROOTDIR"
   },
   {
     "code": "W061",
