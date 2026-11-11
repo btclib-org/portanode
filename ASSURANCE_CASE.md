@@ -280,9 +280,8 @@ to, and what counters each.
   `win/scripts/utilities/fetch-https.ps1`).
 - **Improper neutralization of output (CWE-150).** The log monitors
   escape control characters in the `debug.log` lines they print:
-  `README.md`'s *Logs and Debugging* says which, and which bytes pass
-  unchanged (`escape_controls` in `shared/lib.sh`, and
-  `win/scripts/utilities/monitor-bitcoin-log.ps1`).
+  `README.md`'s *Logs and Debugging* says which (`escape_controls` in
+  `shared/lib.sh`, and `win/scripts/utilities/monitor-bitcoin-log.ps1`).
 - **Shell defects.** `shellcheck` reads every `.sh` and `.command`
   script as a hook of the lint gate, which `lint.yml` runs on every pull
   request (`CONTRIBUTING.md`'s last section). The required `Script security`

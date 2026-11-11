@@ -402,13 +402,11 @@ message naming it:
   run. In a reported line, C0 and DEL print as `\xHH`, such as `\x1b`,
   and C1 in its UTF-8 form as `\u00HH`, rather than reaching the
   terminal. A carriage return before a newline is dropped. On macOS and
-  Linux a byte 0x80 to 0x9F that is not part of a UTF-8 character still
-  reaches the terminal unchanged
-  ([ISS 827](https://github.com/btclib-org/portanode/issues/827)). Under
-  `cron`, `launchd` or Task Scheduler, add `--no-notify` (or set
-  `PORTANODE_NO_NOTIFY=1`) to suppress the desktop notification, which a
-  headless or logged-out session cannot show and which blocks on Windows
-  until someone dismisses it.
+  Linux a byte 0x80 to 0x9F that is not part of a UTF-8 character prints
+  as `\xHH`. Under `cron`, `launchd` or Task Scheduler, add `--no-notify`
+  (or set `PORTANODE_NO_NOTIFY=1`) to suppress the desktop notification,
+  which a headless or logged-out session cannot show and which blocks on
+  Windows until someone dismisses it.
 - Health check: `./macos/scripts/utilities/health-check.sh`,
   `win/scripts/utilities/health-check.bat`, or
   `./linux/scripts/utilities/health-check.sh` check disk space and
