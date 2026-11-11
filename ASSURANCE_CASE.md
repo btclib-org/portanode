@@ -179,8 +179,11 @@ running on it. On macOS and Linux it reads each argument of a command
 line whole (`regtest_node_running_on` in `shared/lib.sh`). On Windows it
 reads the node's network as the mainnet launcher does, below, and also
 splits the command line as Bitcoin Core up to v30.0 did, so it counts a
-node that either version reads as running regtest on that data
-directory.
+node whose command line either version reads as running regtest on that
+data directory. On every platform it reads the command line alone and
+compares paths as text, so it does not count a node that selects regtest
+in `bitcoin.conf`, or that names the data directory by another path, as
+through a junction or a symbolic link.
 
 The mainnet launcher refuses to start while a mainnet node is running.
 It reads a node's flags as whole arguments, so a path holding
