@@ -114,9 +114,11 @@ check "a Core entry with no version is refused" \
 check "a Core entry whose major is not digits is refused" \
     refused nondigit "$zeros  win/bin/bitcoind.exe  version=x.1"
 
-# win's entries of the latest major moved count majors down: the file's
-# own newest major would pass them, and the other files' does not.
-sed "s/  version=$latest\./  version=$old./" "$REPO/win/checksums.sha256" >"$TMP/stale.sha256"
+# A file of two entries, one of the oldest supported major and one a major
+# below it: the file's own newest major would pass both, and the other
+# files' refuses the second.
+printf '%s  win/bin/bitcoind.exe  version=%s.0\n' \
+    "$zeros" "$((old + 1))" "$zeros" "$old" >"$TMP/stale.sha256"
 if supported_only "$TMP/stale.sha256" "$count" "$latest" >/dev/null; then stale=passes; else stale=refused; fi
 check "an entry below the window the other files set is refused" same refused "$stale"
 
