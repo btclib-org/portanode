@@ -130,33 +130,29 @@ done
 check "macos: without pgrep the ps pass still finds Electrum" \
     prints macos "$PS_ELECTRUM" "Electrum running: yes (ps)"
 
-# On Linux a pgrep that fails, one that refuses -i, as busybox pgrep does
+# A pgrep that fails, one that refuses -i as busybox pgrep does
 # (tests/sh/running-guard.sh), or a ps that cannot say whose a process is,
-# leaves both answers unknown.
+# leaves both answers unknown. Status 3 is what macOS pgrep's manual gives
+# for an internal error.
 PGREP_FAILS="$(with_tools pgrep-fails pgrep 'exit 2')"
+PGREP_FAILS3="$(with_tools pgrep-fails-3 pgrep 'exit 3')"
 BUSYBOX="$(with_tools pgrep-busybox pgrep 'echo "pgrep: invalid option -- '"'i'"'" >&2
 exit 1')"
 PS_FAILS="$(with_tools ps-fails pgrep 'echo 4242' ps 'exit 1')"
-while read -r tools what; do
-    check "linux: $what reads as unknown" \
-        prints linux "$tools" \
-        "Bitcoin running: unknown (pgrep or ps failed)" \
-        "Bitcoin sync: unknown" \
-        "Electrum running: unknown (pgrep or ps failed)"
-done <<EOF
+for platform in linux macos; do
+    while read -r tools what; do
+        check "$platform: $what reads as unknown" \
+            prints "$platform" "$tools" \
+            "Bitcoin running: unknown (pgrep or ps failed)" \
+            "Bitcoin sync: unknown" \
+            "Electrum running: unknown (pgrep or ps failed)"
+    done <<EOF
 $PGREP_FAILS a pgrep that fails
+$PGREP_FAILS3 a pgrep that fails with status 3
 $BUSYBOX a pgrep that refuses -i
 $PS_FAILS a match where ps fails
 EOF
-
-# On macOS a pgrep that fails, with status 3, which its manual gives for an
-# internal error, leaves both answers unknown.
-PGREP_FAILS3="$(with_tools pgrep-fails-3 pgrep 'exit 3')"
-check "macos: a pgrep that fails reads as unknown" \
-    prints macos "$PGREP_FAILS3" \
-    "Bitcoin running: unknown (pgrep failed)" \
-    "Bitcoin sync: unknown" \
-    "Electrum running: unknown (pgrep failed)"
+done
 
 # The Electrum launchers start the bundle with arguments, whichever name
 # the bundle ships its executable under. This pgrep matches its pattern

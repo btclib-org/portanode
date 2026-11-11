@@ -30,20 +30,23 @@ fi
 # pgrep on macOS/BSD uses extended regular expressions, so alternation is "|"
 # (a GNU-BRE "\|" matches a literal pipe and never matches a real process).
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt|bitcoin-qt.app"
-# Without pgrep, or where pgrep fails, a process the other passes miss may
-# still be running, so the status lines read "unknown" rather than "no".
+# Without pgrep, or where pgrep or ps fails (pgrep_outside_own_line, in
+# shared/lib.sh), a process the other passes miss may still be running, so
+# the status lines read "unknown" rather than "no".
 PGREP_FOUND="no"
 if command -v pgrep >/dev/null 2>&1; then
     PGREP_FOUND="yes"
 fi
-PGREP_OUTPUT=""
+PGREP_ERR=""
+PGREP_RC=1
 PGREP_FAILED="no"
 if [ "$PGREP_FOUND" = "yes" ]; then
     PGREP_RC=0
-    PGREP_OUTPUT="$(pgrep -f -i "$BTC_PGREP_PATTERN" 2>&1)" || PGREP_RC=$?
+    PGREP_ERR="$(pgrep_outside_own_line "$BTC_PGREP_PATTERN" 2>&1 >/dev/null)" \
+        || PGREP_RC=$?
     [ "$PGREP_RC" -le 1 ] || PGREP_FAILED="yes"
 fi
-if echo "$PGREP_OUTPUT" | grep -qi "cannot get process list"; then
+if echo "$PGREP_ERR" | grep -qi "cannot get process list"; then
     echo "Note: process listing unavailable; falling back to CLI/artifacts."
 fi
 # The last candidate is a bitcoin-cli from outside the folder, and the
@@ -89,7 +92,7 @@ if [ -n "$BTC_CLI" ]; then
     fi
 fi
 
-if [ "$BTC_RUNNING" != "yes" ] && echo "$PGREP_OUTPUT" | grep -qi "^[0-9]"; then
+if [ "$BTC_RUNNING" != "yes" ] && [ "$PGREP_RC" -eq 0 ]; then
     BTC_RUNNING="yes"
     BTC_METHOD="pgrep"
 fi
@@ -169,7 +172,7 @@ else
         echo "Bitcoin running: unknown (pgrep not found)"
         echo "Bitcoin sync: unknown"
     elif [ "$PGREP_FAILED" = "yes" ]; then
-        echo "Bitcoin running: unknown (pgrep failed)"
+        echo "Bitcoin running: unknown (pgrep or ps failed)"
         echo "Bitcoin sync: unknown"
     else
         echo "Bitcoin running: no"
@@ -188,7 +191,7 @@ ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|python.*electrum"
 PGREP_FAILED="no"
 if [ "$PGREP_FOUND" = "yes" ]; then
     PGREP_RC=0
-    pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null || PGREP_RC=$?
+    pgrep_outside_own_line "$ELECTRUM_PGREP_PATTERN" > /dev/null || PGREP_RC=$?
     case "$PGREP_RC" in
         0) ELECTRUM_RUNNING="yes"; ELECTRUM_METHOD="pgrep" ;;
         1) ;;
@@ -209,7 +212,7 @@ if [ "$ELECTRUM_RUNNING" = "yes" ] && [ -n "$ELECTRUM_METHOD" ]; then
 elif [ "$PGREP_FOUND" != "yes" ]; then
     echo "Electrum running: unknown (pgrep not found)"
 elif [ "$PGREP_FAILED" = "yes" ]; then
-    echo "Electrum running: unknown (pgrep failed)"
+    echo "Electrum running: unknown (pgrep or ps failed)"
 else
     echo "Electrum running: $ELECTRUM_RUNNING"
 fi
