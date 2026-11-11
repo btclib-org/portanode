@@ -182,11 +182,12 @@ repos:
       - id: detect-private-key
       - id: check-yaml
       - id: check-json
-      # the hand-written json -- .claude/settings.json, which is what
-      # `git ls-files '*.json'` answers: section 4 of the standard lists
-      # this hook with the syntax ones, and check-json above asks only
-      # whether the file parses. Not prettier's, whose list below is yaml
-      # and jsonc: one formatter per file, or the two rewrite each other
+      # every file `git ls-files '*.json'` answers, as .bestpractices.json,
+      # .claude/settings.json and .github/blinter-baseline.json: section 4
+      # of the standard lists this hook with the syntax ones, and
+      # check-json above asks only whether a file parses. Not prettier's,
+      # whose list below is yaml and jsonc: one formatter per file, or the
+      # two rewrite each other
       - id: pretty-format-json
         name: pretty-format-json (in place fixes)
         args: [--autofix]
