@@ -25,39 +25,24 @@
 
 function Split-CommandLine {
   # The arguments of a command line, the program first, as Bitcoin Core on
-  # Windows receives them. From v31.0 Core reads the argv of Microsoft's C
-  # runtime (Microsoft Learn, "Parsing C command-line arguments"); up to
-  # v30.0 it read CommandLineToArgvW, which -CommandLineToArgvW follows, so a
-  # guard can ask both. Both read a space or a tab outside double quotes as a
-  # separator and drop the quotes, so -datadir="D:\a b" is one argument.
-  # Both read 2n backslashes before a quote as n and a quote that opens or
-  # closes a quoted run, 2n+1 as n and a literal quote, and a backslash
-  # before anything else as itself. They differ on a run of quotes: the C
-  # runtime reads "" inside a quoted run as a literal quote and stays inside
-  # it; CommandLineToArgvW counts the run modulo 3, the quote that opened
-  # the run included, so that "" inside one gives a literal quote and closes
-  # it. They differ on the program's name too: the C runtime ends it at a
-  # space outside quotes; CommandLineToArgvW ends a name that opens with a
-  # quote at the next quote, and any other at a space, its quotes kept.
-  # Wine's CommandLineToArgvW (dlls/shcore/main.c) and its tests against
-  # Windows (dlls/shell32/tests/shlexec.c) state these rules. A line that
-  # ends inside quotes ends its last argument.
-  param([string]$CommandLine, [switch]$CommandLineToArgvW)
+  # Windows receives them: the argv its main() takes (MAIN_FUNCTION in
+  # src/compat/compat.h of bitcoin/bitcoin), as Microsoft's C runtime splits
+  # the line (Microsoft Learn, "Parsing C command-line arguments"). A space
+  # or a tab outside double quotes separates arguments and the quotes are
+  # dropped, so -datadir="D:\a b" is one argument. 2n backslashes before a
+  # quote read as n and a quote that opens or closes a quoted run, 2n+1 as n
+  # and a literal quote, and a backslash before anything else as itself. ""
+  # inside a quoted run reads as a literal quote and stays inside the run.
+  # The program's name ends at a space outside quotes. A line that ends
+  # inside quotes ends its last argument.
+  param([string]$CommandLine)
   $line = $CommandLine
   $i = 0
   $word = New-Object System.Text.StringBuilder
-  if ($CommandLineToArgvW -and $line.StartsWith('"')) {
-    $i = 1
-    while ($i -lt $line.Length -and $line[$i] -ne '"') { [void]$word.Append($line[$i]); $i++ }
+  $quoted = $false
+  while ($i -lt $line.Length -and ($quoted -or $line[$i] -notmatch '[ \t]')) {
+    if ($line[$i] -eq '"') { $quoted = -not $quoted } else { [void]$word.Append($line[$i]) }
     $i++
-  } elseif ($CommandLineToArgvW) {
-    while ($i -lt $line.Length -and $line[$i] -notmatch '[ \t]') { [void]$word.Append($line[$i]); $i++ }
-  } else {
-    $quoted = $false
-    while ($i -lt $line.Length -and ($quoted -or $line[$i] -notmatch '[ \t]')) {
-      if ($line[$i] -eq '"') { $quoted = -not $quoted } else { [void]$word.Append($line[$i]) }
-      $i++
-    }
   }
   $word.ToString()
   while ($true) {
@@ -80,8 +65,6 @@ function Split-CommandLine {
       } elseif ($line[$i] -eq '"') {
         if ($escaped) {
           [void]$word.Append([char]'"')
-        } elseif ($CommandLineToArgvW) {
-          $quoted++
         } elseif ($quoted -eq 1 -and $i + 1 -lt $line.Length -and $line[$i + 1] -eq '"') {
           [void]$word.Append([char]'"')
           $i++
@@ -90,14 +73,6 @@ function Split-CommandLine {
         }
         $i++
         $escaped = $false
-        if ($CommandLineToArgvW) {
-          while ($i -lt $line.Length -and $line[$i] -eq '"') {
-            $quoted++
-            if ($quoted -eq 3) { [void]$word.Append([char]'"'); $quoted = 0 }
-            $i++
-          }
-          if ($quoted -eq 2) { $quoted = 0 }
-        }
       } else {
         [void]$word.Append($line[$i])
         $i++
@@ -123,10 +98,9 @@ function Test-ValueReadsFalse {
 function Get-NodeSwitch {
   # The switches of a node's command line in order, as Core reads them: each
   # a Name, lower case and without its dashes, and a Value, null where none
-  # is given. Core reads no switch after a lone "-". -CommandLineToArgvW is
-  # Split-CommandLine's.
-  param([string]$CommandLine, [switch]$CommandLineToArgvW)
-  foreach ($word in @(Split-CommandLine $CommandLine -CommandLineToArgvW:$CommandLineToArgvW | Select-Object -Skip 1)) {
+  # is given. Core reads no switch after a lone "-".
+  param([string]$CommandLine)
+  foreach ($word in @(Split-CommandLine $CommandLine | Select-Object -Skip 1)) {
     if ($word -ceq '-') { break }
     if ($word -notmatch '^[-/]') { continue }
     $word = $word.Substring(1)
@@ -144,11 +118,11 @@ function Get-NodeChain {
   # The network a node's command line selects, by the name "-chain" takes:
   # "main" where no network switch is true and "-chain" is absent. Null where
   # more than one network is selected. An unknown "-chain" name is returned
-  # as given. -CommandLineToArgvW splits the line as Core up to v30.0 did.
-  param([string]$CommandLine, [switch]$CommandLineToArgvW)
+  # as given.
+  param([string]$CommandLine)
   $flags = @{ testnet = $false; testnet4 = $false; signet = $false; regtest = $false }
   $chain = $null
-  foreach ($switch in @(Get-NodeSwitch $CommandLine -CommandLineToArgvW:$CommandLineToArgvW)) {
+  foreach ($switch in @(Get-NodeSwitch $CommandLine)) {
     $name = $switch.Name
     $value = $switch.Value
     if ($flags.ContainsKey($name)) {
@@ -175,9 +149,9 @@ function Get-NodeChain {
 function Get-NodeDatadir {
   # The data directory a node's command line names with "-datadir", the last
   # one where it names several, as Core reads it. Null where it names none.
-  param([string]$CommandLine, [switch]$CommandLineToArgvW)
+  param([string]$CommandLine)
   $datadir = $null
-  foreach ($switch in @(Get-NodeSwitch $CommandLine -CommandLineToArgvW:$CommandLineToArgvW)) {
+  foreach ($switch in @(Get-NodeSwitch $CommandLine)) {
     if ($switch.Name -ceq 'datadir') { $datadir = "$($switch.Value)" }
   }
   return $datadir
@@ -233,20 +207,12 @@ function ConvertTo-DatadirKey {
 function Test-NodeOnDatadir {
   # True where a node's command line names $Datadir as its data directory,
   # compared by ConvertTo-DatadirKey with case ignored, and, where $Chain is
-  # not empty, selects the network Get-NodeChain names $Chain. Either split
-  # of Split-CommandLine counts, where it answers both questions yes: a
-  # running node is one version of Core, which splits its line one way.
+  # not empty, selects the network Get-NodeChain names $Chain.
   param([string]$CommandLine, [string]$Datadir, [string]$Chain)
-  $want = ConvertTo-DatadirKey $Datadir
-  foreach ($argvW in $false, $true) {
-    $d = Get-NodeDatadir $CommandLine -CommandLineToArgvW:$argvW
-    if ($null -ne $d -and [string]::Equals((ConvertTo-DatadirKey $d), $want,
-        [StringComparison]::OrdinalIgnoreCase) -and
-        (-not $Chain -or (Get-NodeChain $CommandLine -CommandLineToArgvW:$argvW) -ceq $Chain)) {
-      return $true
-    }
-  }
-  return $false
+  $d = Get-NodeDatadir $CommandLine
+  return ($null -ne $d -and [string]::Equals((ConvertTo-DatadirKey $d),
+      (ConvertTo-DatadirKey $Datadir), [StringComparison]::OrdinalIgnoreCase) -and
+    (-not $Chain -or (Get-NodeChain $CommandLine) -ceq $Chain))
 }
 
 function Test-MainnetNode {

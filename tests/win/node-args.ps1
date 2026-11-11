@@ -162,6 +162,8 @@ $chains = @(
   @(($qt + ' -datadir="C:\a\\" -regtest'), 'regtest'),
   @(($qt + ' -datadir="C:\a\" -regtest'), 'main'),
   @(($qt + ' -uacomment="a"" -regtest"'), 'main'),
+  # The program's name ends at a space outside quotes.
+  @('"C:\n\bitcoind.exe"-regtest', 'main'),
   # ISS 826: Core reads no switch after a lone "-".
   @("$qt - -regtest", 'main'),
   @("$qt `"-`" -regtest", 'main'),
@@ -263,7 +265,7 @@ $otherDatadir = @(
   # Windows normalizes no "\\?\" path, so its "." stays a name.
   "$qt -datadir=\\?\C:\r\.\bitcoin-datadir -regtest",
   "$qt -datadir=\\.\Volume{b75e2c83-0000-0000-0000-602f00000000}\r -regtest",
-  # Both splits read the backslash and the quote as a quote inside the path.
+  # The backslash and the quote read as a quote inside the path.
   ($qt + ' -datadir="' + $dd + '\" -regtest')
 )
 foreach ($line in $otherDatadir) {
@@ -272,13 +274,6 @@ foreach ($line in $otherDatadir) {
 Test-Case -Description 'on datadir, any network' -Got (Test-NodeOnDatadir "$qt /datadir=$dd/" $dd '') -Want $true
 Test-Case -Description 'on datadir, datadir with a trailing separator' `
   -Got (Test-NodeOnDatadir "$qt -datadir=$dd -regtest" 'C:\r\\bitcoin-datadir\' 'regtest') -Want $true
-# Up to v30.0 Core reads -regtest here, and from v31.0 it does not.
-Test-Case -Description 'on datadir, either split' `
-  -Got (Test-NodeOnDatadir ($qt + ' -datadir=' + $dd + ' -rpcpassword="a"" -regtest') $dd 'regtest') -Want $true
-# Up to v30.0 Core reads -regtest and the second -datadir here, and from
-# v31.0 neither: no one version reads both the data directory and regtest.
-Test-Case -Description 'not on datadir, the two halves from two splits' `
-  -Got (Test-NodeOnDatadir ($qt + ' -datadir=' + $dd + ' -rpcpassword="a"" -regtest -datadir=D:\x') $dd 'regtest') -Want $false
 
 $keys = @(
   @('C:\a\.\b\..\c\', 'C:\a\c'),
@@ -335,68 +330,6 @@ $splits = @(
 )
 foreach ($c in $splits) {
   Test-Case -Description "split: $($c[0])" -Got ((Split-CommandLine $c[0]) -join '|') -Want $c[1]
-}
-
-# The same line split as CommandLineToArgvW splits it, which Core up to v30.0
-# read. These are the cases of Wine's test of CommandLineToArgvW against
-# Windows (wine-mirror/wine 36e6c4d0847, dlls/shell32/tests/shlexec.c,
-# cmdline_tests), less those holding a control character or a "|".
-$argvW = @(
-  @('exe', 'exe'),
-  @('exe arg1 arg2 "arg three" ''four five` six\ $even)', 'exe|arg1|arg2|arg three|''four|five`|six\|$even)'),
-  @('exe arg"one" "second"arg thirdarg ', 'exe|argone|secondarg|thirdarg'),
-  @('exe arg1 "unclosed', 'exe|arg1|unclosed'),
-  @('exe arg1 "', 'exe|arg1|'),
-  @('exe %TMPDIR% %2', 'exe|%TMPDIR%|%2'),
-  @('exe o\ne t\\wo t\\\ree f\\\\our ', 'exe|o\ne|t\\wo|t\\\ree|f\\\\our'),
-  @('exe "o\ne" "t\\wo" "t\\\ree" "f\\\\our" ', 'exe|o\ne|t\\wo|t\\\ree|f\\\\our'),
-  @('exe \"one \\"two" \\\"three \\\\"four" end', 'exe|"one|\two|\"three|\\four|end'),
-  @('exe "one\" still" "two\\" "three\\\" still" "four\\\\" end', 'exe|one" still|two\|three\" still|four\\|end'),
-  @('exe two""quotes next', 'exe|twoquotes|next'),
-  @('exe three"""quotes next', 'exe|three"quotes|next'),
-  @('exe four"""" quotes" next 4%3=1', 'exe|four" quotes|next|4%3=1'),
-  @('exe five"""""quotes next', 'exe|five"quotes|next'),
-  @('exe six""""""quotes next', 'exe|six""quotes|next'),
-  @('exe seven""""""" quotes" next 7%3=1', 'exe|seven"" quotes|next|7%3=1'),
-  @('exe twelve""""""""""""quotes next', 'exe|twelve""""quotes|next'),
-  @('exe thirteen""""""""""""" quotes" next 13%3=1', 'exe|thirteen"""" quotes|next|13%3=1'),
-  @('exe "two""quotes next', 'exe|two"quotes|next'),
-  @('exe "two"" next', 'exe|two"|next'),
-  @('exe "three""" quotes" next 4%3=1', 'exe|three" quotes|next|4%3=1'),
-  @('exe "four""""quotes next', 'exe|four"quotes|next'),
-  @('exe "five"""""quotes next', 'exe|five""quotes|next'),
-  @('exe "six"""""" quotes" next 7%3=1', 'exe|six"" quotes|next|7%3=1'),
-  @('exe "eleven"""""""""""quotes next', 'exe|eleven""""quotes|next'),
-  @('exe "twelve"""""""""""" quotes" next 13%3=1', 'exe|twelve"""" quotes|next|13%3=1'),
-  @('exe "the crazy \\"""\\" quotes', 'exe|the crazy \"\|quotes'),
-  @('exe"file"path arg1', 'exe"file"path|arg1'),
-  @('exe"path\ arg1', 'exe"path\|arg1'),
-  @('\"exe "arg one"', '\"exe|arg one'),
-  @('"spaced exe" "next arg"', 'spaced exe|next arg'),
-  @('"exe"arg" one" argtwo', 'exe|arg one|argtwo'),
-  @('"spaced exe\"arg1 arg2', 'spaced exe\|arg1|arg2'),
-  @('"two"" arg1 ', 'two| arg1 '),
-  @('"three""" arg2', 'three||arg2'),
-  @('"four""""arg1', 'four|"arg1'),
-  @(' "arg"one argtwo', '|argone|argtwo')
-)
-foreach ($c in $argvW) {
-  Test-Case -Description "split, CommandLineToArgvW: $($c[0])" `
-    -Got ((Split-CommandLine $c[0] -CommandLineToArgvW) -join '|') -Want $c[1]
-}
-
-# Lines read both ways, the C runtime's reading first. On the first two only
-# the reading of Core up to v30.0 selects regtest.
-$older = @(
-  @(($qt + ' -rpcpassword="a"" -regtest'), 'main', 'regtest'),
-  @('"C:\n\bitcoind.exe"-regtest', 'main', 'regtest'),
-  @(($qt + ' -rpcpassword=a\" -regtest'), 'regtest', 'regtest'),
-  @(($qt + ' -datadir="C:\a\" -regtest'), 'main', 'main')
-)
-foreach ($c in $older) {
-  Test-Case -Description "chain, C runtime: $($c[0])" -Got "$(Get-NodeChain $c[0])" -Want $c[1]
-  Test-Case -Description "chain, CommandLineToArgvW: $($c[0])" `
-    -Got "$(Get-NodeChain $c[0] -CommandLineToArgvW)" -Want $c[2]
 }
 
 if ($script:failed -gt 0) {
