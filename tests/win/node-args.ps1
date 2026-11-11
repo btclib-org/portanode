@@ -275,6 +275,10 @@ Test-Case -Description 'on datadir, datadir with a trailing separator' `
 # Up to v30.0 Core reads -regtest here, and from v31.0 it does not.
 Test-Case -Description 'on datadir, either split' `
   -Got (Test-NodeOnDatadir ($qt + ' -datadir=' + $dd + ' -rpcpassword="a"" -regtest') $dd 'regtest') -Want $true
+# Up to v30.0 Core reads -regtest and the second -datadir here, and from
+# v31.0 neither: no one version reads both the data directory and regtest.
+Test-Case -Description 'not on datadir, the two halves from two splits' `
+  -Got (Test-NodeOnDatadir ($qt + ' -datadir=' + $dd + ' -rpcpassword="a"" -regtest -datadir=D:\x') $dd 'regtest') -Want $false
 
 $keys = @(
   @('C:\a\.\b\..\c\', 'C:\a\c'),

@@ -233,23 +233,20 @@ function ConvertTo-DatadirKey {
 function Test-NodeOnDatadir {
   # True where a node's command line names $Datadir as its data directory,
   # compared by ConvertTo-DatadirKey with case ignored, and, where $Chain is
-  # not empty, selects the network Get-NodeChain names $Chain. Each question
-  # is answered yes where either split of Split-CommandLine answers it.
+  # not empty, selects the network Get-NodeChain names $Chain. Either split
+  # of Split-CommandLine counts, where it answers both questions yes: a
+  # running node is one version of Core, which splits its line one way.
   param([string]$CommandLine, [string]$Datadir, [string]$Chain)
   $want = ConvertTo-DatadirKey $Datadir
-  $onDatadir = $false
-  $onChain = -not $Chain
   foreach ($argvW in $false, $true) {
     $d = Get-NodeDatadir $CommandLine -CommandLineToArgvW:$argvW
     if ($null -ne $d -and [string]::Equals((ConvertTo-DatadirKey $d), $want,
-        [StringComparison]::OrdinalIgnoreCase)) {
-      $onDatadir = $true
-    }
-    if ($Chain -and (Get-NodeChain $CommandLine -CommandLineToArgvW:$argvW) -ceq $Chain) {
-      $onChain = $true
+        [StringComparison]::OrdinalIgnoreCase) -and
+        (-not $Chain -or (Get-NodeChain $CommandLine -CommandLineToArgvW:$argvW) -ceq $Chain)) {
+      return $true
     }
   }
-  return ($onDatadir -and $onChain)
+  return $false
 }
 
 function Test-MainnetNode {
