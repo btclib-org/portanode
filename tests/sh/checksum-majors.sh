@@ -4,7 +4,8 @@
 
 # shellcheck shell=bash
 # Each */checksums.sha256 against README.md's Version Compatibility: the
-# Bitcoin Core entries are those of the supported majors only.
+# Bitcoin Core entries, where a file has any, are those of the supported
+# majors only.
 # shellcheck disable=SC2329 # check calls these functions by name
 
 case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
@@ -32,38 +33,49 @@ supported_count() {
     ' "$1"
 }
 
-# core_majors <checksums>: the majors of the Bitcoin Core entries, one per
-# line, sorted. It reads an entry as loosely as the verifiers do:
+# core_majors <checksums>: the major of each Bitcoin Core entry, one per
+# line, sorted, and "unparsed" for one whose version has no digit major.
+# It reads an entry as loosely as the verifiers do:
 # shared/utilities/lib.sh's verify_binaries takes any 64-character first
 # field, and win/scripts/utilities/verify-binaries.ps1 a hash in either
-# case and a path with backslashes, compared lowercased. A Core entry is
-# one whose path, so read, is under bin/ and starts bitcoin.
+# case and a path with backslashes, compared lowercased, and both take an
+# entry with no version=. A Core entry is one whose path, so read, is
+# under bin/ and starts bitcoin.
 core_majors() {
     awk '
         length($1) == 64 {
             p = tolower($2)
             gsub(/\\/, "/", p)
-            if (p !~ /\/bin\/bitcoin/ || index($0, "version=") == 0) next
+            if (p !~ /\/bin\/bitcoin/) next
             v = $0
-            sub(/.*version=/, "", v)
+            if (sub(/.*version=/, "", v) == 0) { print "unparsed"; next }
             split(v, part, ".")
-            if (part[1] ~ /^[0-9]+$/) print part[1]
+            print (part[1] ~ /^[0-9]+$/ ? part[1] : "unparsed")
         }
-    ' "$1" | LC_ALL=C sort -n -u
+    ' "$1" | LC_ALL=C sort -u
 }
 
-# supported_only <checksums> <count>: 0 where every Core major lies within
-# <count> of the highest one, otherwise 1 with the majors printed.
+# latest_major <checksums>...: the highest Core major the files record.
+# The tree states the bundled version nowhere else, so this is the
+# reference each file is held to: a file the others have moved past fails.
+latest_major() {
+    local f
+    for f in "$@"; do core_majors "$f"; done | grep -E '^[0-9]+$' | LC_ALL=C sort -n | tail -n 1
+}
+
+# supported_only <checksums> <count> <latest>: 0 where every Core major
+# parses and lies within <count> of <latest>, otherwise 1 with the majors
+# printed.
 supported_only() {
-    local majors highest m
+    local majors m
     majors="$(core_majors "$1")"
-    [ -n "$majors" ] || return 0
-    highest="$(printf '%s\n' "$majors" | tail -n 1)"
     for m in $majors; do
-        if [ "$m" -le "$((highest - $2))" ]; then
-            echo "  majors in ${1#"$REPO"/}: $(printf '%s\n' "$majors" | paste -sd " " -)"
-            return 1
-        fi
+        case "$m" in
+            *[!0-9]*) ;;
+            *) [ "$m" -gt "$(($3 - $2))" ] && [ "$m" -le "$3" ] && continue ;;
+        esac
+        echo "  majors in ${1#"$REPO"/}: $(printf '%s\n' "$majors" | paste -sd " " -)"
+        return 1
     done
     return 0
 }
@@ -73,26 +85,38 @@ check "README.md's Version Compatibility says how many Core majors are supported
     [ -n "$count" ]
 : "${count:=0}"
 
+latest="$(latest_major "$REPO"/*/checksums.sha256)"
+check "the checksum files hold Core entries the cases read" [ -n "$latest" ]
+: "${latest:=0}"
+
 for f in "$REPO"/*/checksums.sha256; do
     check "${f#"$REPO"/} holds Core entries of the supported majors only" \
-        supported_only "$f" "$count"
+        supported_only "$f" "$count" "$latest"
 done
 
-check "macos/checksums.sha256 holds Core entries the case reads" \
-    [ -n "$(core_majors "$REPO/macos/checksums.sha256")" ]
+# refused <case> <line>: a copy of win/checksums.sha256 with <line> added
+# fails supported_only.
+refused() {
+    cp "$REPO/win/checksums.sha256" "$TMP/$1.sha256"
+    printf '%s\n' "$2" >>"$TMP/$1.sha256"
+    ! supported_only "$TMP/$1.sha256" "$count" "$latest" >/dev/null
+}
 
-cp "$REPO/win/checksums.sha256" "$TMP/planted.sha256"
-printf '%s  win/bin/bitcoind.exe  version=%s.2\n' \
-    "$(printf '0%.0s' $(seq 64))" "$(($(core_majors "$TMP/planted.sha256" | tail -n 1) - count))" \
-    >>"$TMP/planted.sha256"
-if supported_only "$TMP/planted.sha256" "$count" >/dev/null; then planted=passes; else planted=refused; fi
-check "an entry of a major below the supported ones is refused" same refused "$planted"
+zeros="$(printf '0%.0s' $(seq 64))"
+old="$((latest - count))"
+check "an entry of a major below the supported ones is refused" \
+    refused below "$zeros  win/bin/bitcoind.exe  version=$old.2"
+check "such an entry with an uppercase hash and a backslash path is refused" \
+    refused upper "$(printf 'A%.0s' $(seq 64))  win\\bin\\bitcoind.exe  version=$old.2"
+check "a Core entry with no version is refused" \
+    refused unversioned "$zeros  win/bin/bitcoind.exe"
+check "a Core entry whose major is not digits is refused" \
+    refused nondigit "$zeros  win/bin/bitcoind.exe  version=x.1"
 
-cp "$REPO/win/checksums.sha256" "$TMP/upper.sha256"
-printf '%s  win\\bin\\bitcoind.exe  version=%s.2\n' \
-    "$(printf 'A%.0s' $(seq 64))" "$(($(core_majors "$TMP/upper.sha256" | tail -n 1) - count))" \
-    >>"$TMP/upper.sha256"
-if supported_only "$TMP/upper.sha256" "$count" >/dev/null; then upper=passes; else upper=refused; fi
-check "such an entry with an uppercase hash and a backslash path is refused" same refused "$upper"
+# A file whose newest entries are a major behind the others, which its own
+# highest major would pass.
+sed "s/  version=$latest\./  version=$old./" "$REPO/win/checksums.sha256" >"$TMP/stale.sha256"
+if supported_only "$TMP/stale.sha256" "$count" "$latest" >/dev/null; then stale=passes; else stale=refused; fi
+check "a file a major behind the others is refused" same refused "$stale"
 
 finish

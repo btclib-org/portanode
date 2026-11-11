@@ -329,9 +329,9 @@ message naming it:
   `linux/checksums.sha256` keep lists of acceptable hashes labeled by version;
   update scripts append a new entry (only after a successful PGP verification),
   never add one twice, and never rewrite an existing one. In the repository,
-  their Bitcoin Core entries are those of the supported majors (*Version
-  Compatibility* below), so that a rollback within them can verify its backup.
-  These files provide **integrity and rollback** checks (detecting
+  their Bitcoin Core entries, where a file has any, are those of the supported
+  majors (*Version Compatibility* below); a rollback refuses a backup no entry
+  matches. These files provide **integrity and rollback** checks (detecting
   corruption/tampering of an already-installed binary), not authenticity —
   authenticity comes from the PGP step above. Where to get each project's
   signing key is the *PGP verification fails closed* bullet above.
