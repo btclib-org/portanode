@@ -120,20 +120,33 @@ sync_percent() (
 # character written as text, so that a terminal shows it rather than acts on
 # it. A C0 byte other than the newline, and DEL, become \xHH, as Bitcoin
 # Core's own log escaping writes them. A C1 character, U+0080 to U+009F in
-# UTF-8, becomes \u00HH. A carriage return that ends a line is dropped,
-# even on a last line that no newline follows. The Windows monitor's line
-# split drops one only before a newline.
+# UTF-8, becomes \u00HH, and a byte 0x80 to 0x9F that is not part of a UTF-8
+# character becomes \xHH. A carriage return that ends a line is dropped,
+# even on a last line that no newline follows. The Windows monitor reads a
+# byte that is not part of a UTF-8 character as U+FFFD, and its line split
+# drops a carriage return only before a newline.
 #
 # sed reads bytes under the C locale; under UTF-8, macOS sed refuses a byte
 # that is not UTF-8. An argument cannot hold a NUL, so the first sed escapes
 # every 0x01, tr then turns each NUL into 0x01, and the second sed escapes
 # those as \x00.
+#
+# A byte 0x80 to 0x9F is also a later byte of a character such as "€". So
+# the first sed, once it has escaped the C0 bytes, 0x02 and 0x03 among
+# them, puts a 0x02 before each later byte of a well-formed UTF-8 sequence,
+# in the forms Unicode's Table 3-7 lists. No first byte is a later byte,
+# so each form is matched on its own. It then parks each marked byte 0x80
+# to 0x9F as 0x03 and its two hex digits, drops the other marks, escapes
+# each byte 0x80 to 0x9F left, and puts the parked bytes back.
 escape_controls() {
-    local i oct hex c cr c2 soh
+    local i j n oct hex c cr c2 soh mark park cont form first second pat rep
     printf -v cr '\r'
     printf -v c2 '\302'
     printf -v soh '\001'
-    local -a sed_args=(-e "s/$cr\$//")
+    printf -v mark '\002'
+    printf -v park '\003'
+    printf -v cont '[\200-\277]'
+    local -a sed_args=(-e "s/$cr\$//") park_args escape_args restore_args
     for ((i = 1; i < 160; i++)); do
         printf -v oct '%03o' "$i"
         printf -v hex '%02x' "$i"
@@ -142,8 +155,35 @@ escape_controls() {
             sed_args+=(-e "s/$c/\\\\x$hex/g")
         elif ((i >= 128)); then
             sed_args+=(-e "s/$c2$c/\\\\u00$hex/g")
+            park_args+=(-e "s/$mark$c/$park$hex/g")
+            escape_args+=(-e "s/$c/\\\\x$hex/g")
+            restore_args+=(-e "s/$park$hex/$c/g")
         fi
     done
+    # Each form: its first byte, its second, and how many bytes follow.
+    for form in \
+        '[\302-\337] [\200-\277] 0' \
+        '\340 [\240-\277] 1' \
+        '[\341-\354\356\357] [\200-\277] 1' \
+        '\355 [\200-\237] 1' \
+        '\360 [\220-\277] 2' \
+        '[\361-\363] [\200-\277] 2' \
+        '\364 [\200-\217] 2'; do
+        first="${form%% *}"
+        n="${form##* }"
+        second="${form#* }"
+        second="${second%% *}"
+        # shellcheck disable=SC2059 # the octal escapes are the bytes
+        printf -v pat "\\\\($first\\\\)\\\\($second\\\\)"
+        rep="\\1$mark\\2"
+        for ((j = 3; j < n + 3; j++)); do
+            pat+="\\($cont\\)"
+            rep+="$mark\\$j"
+        done
+        sed_args+=(-e "s/$pat/$rep/g")
+    done
+    sed_args+=("${park_args[@]}" -e "s/$mark//g" "${escape_args[@]}"
+        "${restore_args[@]}")
     LC_ALL=C sed "${sed_args[@]}" | LC_ALL=C tr '\000' '\001' \
         | LC_ALL=C sed "s/$soh/\\\\x00/g"
 }

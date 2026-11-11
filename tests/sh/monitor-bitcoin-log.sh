@@ -56,9 +56,20 @@ for platform in linux macos; do
     check "$platform: C1 prints as \\u00HH" same \
         "$TITLE"$'\n''ERROR c1 \u0080\u009b\u009f end' \
         "$(report "$platform" 'ERROR c1 \302\200\302\233\302\237 end')"
+    check "$platform: a byte 0x80 to 0x9F outside a character prints as \\xHH" same \
+        "$TITLE"$'\n''ERROR lone \x80 \x9b[31mRED \x9f end' \
+        "$(report "$platform" 'ERROR lone \200 \233[31mRED \237 end')"
+    # A truncated "€", an overlong form, and a surrogate: Unicode's Table
+    # 3-7 refuses each, so its byte 0x80 to 0x9F is no character's.
+    check "$platform: a byte 0x80 to 0x9F of an ill-formed sequence prints as \\xHH" same \
+        "$TITLE"$'\n''ERROR bad '$'\342''\x82 '$'\340''\x9f'$'\277'' '$'\355\240''\x80 end' \
+        "$(report "$platform" 'ERROR bad \342\202 \340\237\277 \355\240\200 end')"
     check "$platform: the characters around the ranges print unchanged" same \
         "$TITLE"$'\n''ERROR plain ~ '$'\302\240 \303\251 \342\202\254'' end' \
         "$(report "$platform" 'ERROR plain ~ \302\240 \303\251 \342\202\254 end')"
+    check "$platform: a character whose later bytes are 0x80 to 0x9F prints unchanged" same \
+        "$TITLE"$'\n''ERROR utf8 '$'\303\233 \355\237\277 \360\237\230\200 \364\217\277\277'' end' \
+        "$(report "$platform" 'ERROR utf8 \303\233 \355\237\277 \360\237\230\200 \364\217\277\277 end')"
     check "$platform: a carriage return ending a line is dropped" same \
         "$TITLE"$'\n''ERROR crlf' \
         "$(report "$platform" 'ERROR crlf\r')"
