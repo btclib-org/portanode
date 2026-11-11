@@ -2,7 +2,8 @@
 # Distributed under the MIT software license, see the accompanying
 # LICENSE file or https://opensource.org/license/mit for the full text.
 
-# Reads Bitcoin Core's network switches out of a Windows command line.
+# Reads Bitcoin Core's network switches and data directory out of a Windows
+# command line.
 # lib.bat beside this file dot-sources it, and tests/win/node-args.ps1
 # tests it.
 #
@@ -10,15 +11,17 @@
 # not the switch. Bitcoin Core picks its network this way
 # (src/common/args.cpp, src/common/settings.cpp and src/util/chaintype.cpp in
 # bitcoin/bitcoin): on Windows "-name", "--name" and "/name" alike, the name in
-# any case. A boolean switch is true bare, with an empty value, or with a value
-# whose leading integer is not zero: "-regtest=2" is true, "-regtest=0" and
-# "-regtest=abc" are false. "-noregtest" is false, and "-noregtest=0" is true.
+# any case, and no switch after a lone "-". A boolean switch is true bare, with
+# an empty value, or with a value whose leading integer is not zero:
+# "-regtest=2" is true, "-regtest=0" and "-regtest=abc" are false. "-noregtest"
+# is false, and "-noregtest=0" is true.
 # A switch given more than once takes its last value, and so does "-chain".
 # "-chain=<name>" selects a network by name, testnet3's being "test", and Core
 # refuses to start on an unknown name or on more than one network.
 #
-# Not read: bitcoin.conf, which can select a network too, and an argument Core
-# refuses as unknown, which stops it before it runs.
+# Not read: bitcoin.conf, which can select a network and set the data
+# directory too, and an argument Core refuses as unknown, which stops it
+# before it runs.
 
 function Split-CommandLine {
   # The arguments of a command line, the program first, as Bitcoin Core on
@@ -107,12 +110,34 @@ function Split-CommandLine {
 function Test-ValueReadsFalse {
   # True where Core reads a boolean switch's value as false: a value that is
   # not empty and whose leading integer, after white space and one sign, is
-  # zero or absent.
+  # zero or absent. The white space is Core's alone: space, tab, vertical tab,
+  # form feed, line feed and carriage return (TrimStringView in
+  # src/util/string.h).
   param([string]$Value)
   if ($Value -eq '') { return $false }
-  $v = $Value.Trim()
+  $v = $Value.Trim([char[]](32, 12, 10, 13, 9, 11))
   if ($v -match '^[+-]') { $v = $v.Substring(1) }
   return $v -match '^0*($|[^0-9])'
+}
+
+function Get-NodeSwitch {
+  # The switches of a node's command line in order, as Core reads them: each
+  # a Name, lower case and without its dashes, and a Value, null where none
+  # is given. Core reads no switch after a lone "-". -CommandLineToArgvW is
+  # Split-CommandLine's.
+  param([string]$CommandLine, [switch]$CommandLineToArgvW)
+  foreach ($word in @(Split-CommandLine $CommandLine -CommandLineToArgvW:$CommandLineToArgvW | Select-Object -Skip 1)) {
+    if ($word -ceq '-') { break }
+    if ($word -notmatch '^[-/]') { continue }
+    $word = $word.Substring(1)
+    if ($word.StartsWith('-')) { $word = $word.Substring(1) }
+    $eq = $word.IndexOf('=')
+    if ($eq -lt 0) {
+      [pscustomobject]@{ Name = $word.ToLowerInvariant(); Value = $null }
+    } else {
+      [pscustomobject]@{ Name = $word.Substring(0, $eq).ToLowerInvariant(); Value = $word.Substring($eq + 1) }
+    }
+  }
 }
 
 function Get-NodeChain {
@@ -123,18 +148,9 @@ function Get-NodeChain {
   param([string]$CommandLine, [switch]$CommandLineToArgvW)
   $flags = @{ testnet = $false; testnet4 = $false; signet = $false; regtest = $false }
   $chain = $null
-  foreach ($word in @(Split-CommandLine $CommandLine -CommandLineToArgvW:$CommandLineToArgvW | Select-Object -Skip 1)) {
-    if ($word -notmatch '^[-/]') { continue }
-    $word = $word.Substring(1)
-    if ($word.StartsWith('-')) { $word = $word.Substring(1) }
-    $eq = $word.IndexOf('=')
-    if ($eq -lt 0) {
-      $name = $word.ToLowerInvariant()
-      $value = $null
-    } else {
-      $name = $word.Substring(0, $eq).ToLowerInvariant()
-      $value = $word.Substring($eq + 1)
-    }
+  foreach ($switch in @(Get-NodeSwitch $CommandLine -CommandLineToArgvW:$CommandLineToArgvW)) {
+    $name = $switch.Name
+    $value = $switch.Value
     if ($flags.ContainsKey($name)) {
       $flags[$name] = ($null -eq $value -or -not (Test-ValueReadsFalse $value))
     } elseif ($name.StartsWith('no') -and $flags.ContainsKey($name.Substring(2))) {
@@ -154,6 +170,86 @@ function Get-NodeChain {
   if ($selected.Count -eq 0) { return 'main' }
   if ($selected[0] -eq 'testnet') { return 'test' }
   return $selected[0]
+}
+
+function Get-NodeDatadir {
+  # The data directory a node's command line names with "-datadir", the last
+  # one where it names several, as Core reads it. Null where it names none.
+  param([string]$CommandLine, [switch]$CommandLineToArgvW)
+  $datadir = $null
+  foreach ($switch in @(Get-NodeSwitch $CommandLine -CommandLineToArgvW:$CommandLineToArgvW)) {
+    if ($switch.Name -ceq 'datadir') { $datadir = "$($switch.Value)" }
+  }
+  return $datadir
+}
+
+function ConvertTo-DatadirKey {
+  # One form for the spellings of an absolute Windows path that Windows
+  # normalizes alike, following the steps of Microsoft Learn's "File path
+  # formats on Windows systems": "/" read as "\", runs of separators
+  # collapsed, "." segments dropped and ".." segments taken back, never past
+  # the root; then the period of a segment ending in a single one is dropped
+  # and, where the path does not end in a separator, every trailing period
+  # and space. A trailing separator is dropped last. Case is left as given,
+  # for the caller to ignore.
+  #
+  # A device path names a drive as that page says: "\\.\C:\x" is read as
+  # "C:\x" normalized, and "\\?\C:\x" as "C:\x" with nothing normalized but
+  # its trailing separator, since Windows normalizes no "\\?\" path. Any
+  # other device path, as a volume GUID's, is returned as given, and so
+  # matches only itself.
+  param([string]$Path)
+  if ($Path -match '^\\\\\?\\[A-Za-z]:(\\|$)') { return $Path.Substring(4).TrimEnd([char]'\') }
+  $p = $Path.Replace('/', '\')
+  if ($p -match '^\\\\[.?]\\') {
+    if ($p -notmatch '^\\\\\.\\[A-Za-z]:(\\|$)') { return $Path }
+    $p = $p.Substring(4)
+  }
+  $lead = ''
+  $root = 0
+  if ($p.StartsWith('\\')) {
+    $lead = '\\'
+    $root = 2
+  } elseif ($p.StartsWith('\')) {
+    $lead = '\'
+  } elseif ($p -match '^[A-Za-z]:') {
+    $root = 1
+  }
+  $kept = New-Object System.Collections.Generic.List[string]
+  foreach ($segment in $p.Split([char]'\')) {
+    if ($segment -eq '' -or $segment -eq '.') { continue }
+    if ($segment -eq '..') {
+      if ($kept.Count -gt $root) { $kept.RemoveAt($kept.Count - 1) }
+      continue
+    }
+    if ($segment -match '[^.]\.$') { $segment = $segment.Substring(0, $segment.Length - 1) }
+    $kept.Add($segment)
+  }
+  $key = $lead + ($kept -join '\')
+  if (-not $p.EndsWith('\')) { $key = $key.TrimEnd([char[]]'. ').TrimEnd([char]'\') }
+  return $key
+}
+
+function Test-NodeOnDatadir {
+  # True where a node's command line names $Datadir as its data directory,
+  # compared by ConvertTo-DatadirKey with case ignored, and, where $Chain is
+  # not empty, selects the network Get-NodeChain names $Chain. Each question
+  # is answered yes where either split of Split-CommandLine answers it.
+  param([string]$CommandLine, [string]$Datadir, [string]$Chain)
+  $want = ConvertTo-DatadirKey $Datadir
+  $onDatadir = $false
+  $onChain = -not $Chain
+  foreach ($argvW in $false, $true) {
+    $d = Get-NodeDatadir $CommandLine -CommandLineToArgvW:$argvW
+    if ($null -ne $d -and [string]::Equals((ConvertTo-DatadirKey $d), $want,
+        [StringComparison]::OrdinalIgnoreCase)) {
+      $onDatadir = $true
+    }
+    if ($Chain -and (Get-NodeChain $CommandLine -CommandLineToArgvW:$argvW) -ceq $Chain) {
+      $onChain = $true
+    }
+  }
+  return ($onDatadir -and $onChain)
 }
 
 function Test-MainnetNode {
