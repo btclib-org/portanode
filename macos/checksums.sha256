@@ -28,5 +28,4 @@ cf3281e3a2ceb656b5aa0151d3a6f9ae4976d4b3d7b13ffd26c54ffa18faed24  macos/bin/Elec
 d2d6572a3d7042d35251368d2c0f787a23b017e1cbc50a6250a62e2075563584  macos/bin/bitcoin-tx  version=32.1
 273d51edfef5948c172db1586e8ab5d8969b2ef8cd94b57d9dff7f7843ac8cdb  macos/bin/bitcoin-util  version=32.1
 a770e0acd7aa4d7063071612596062cc6313bbb32082e1b9276b974c31991c13  macos/bin/bitcoin-wallet  version=32.1
-7b0601888aba9b403f1e7d88f4e4f3ea5256e251a7387c26b0cc70e13f917d0f  macos/bin/bitcoin  version=32.1
 c04887f91d4ab29f189bd4fbc03c4b11aa7c6c71cb82e059b3f21bf136660b25  macos/bin/Bitcoin-Qt.app  version=31.0
