@@ -1,10 +1,10 @@
 # SHA-256 checksums for Bitcoin and Electrum binaries
-# Verify with: sed 's/  version=.*//' macos/checksums.sha256 | shasum -a 256 -c -
-# The sed step is not optional: -c reads an entry's version field as part of
-# the path, so without it a file whose hashes all match still fails.
-# shasum -c reports an .app bundle's entry "FAILED open or read": it holds
-# shared/utilities/lib.sh's tree_hash of the whole bundle, which
-# macos/scripts/utilities/verify-binaries.sh checks.
+# Verify with: macos/scripts/utilities/verify-binaries.sh
+# A path carries an entry for each version recorded, and the script passes
+# it where any of them matches. A check of each line on its own, as
+# shasum -c makes, reports FAILED for every version not installed, and
+# cannot read an .app bundle's entry, shared/utilities/lib.sh's tree_hash
+# of the whole bundle.
 # Format: <sha256>  <path>  version=<semver>
 # Note: macOS app bundles may change hash after codesign or quarantine changes.
 # Integrity/rollback only, NOT authenticity: entries are recorded by the updater
@@ -20,3 +20,12 @@ de95297fd56943630529ae12ee9f9fc4f875089f7f8f37765d54e21410376ae3  macos/bin/bitc
 bf188d1ab80d64c47284b9ce97e1c1b1ec702847cad2e71f3b583d8a5e87f907  macos/bin/bitcoin-util  version=31.0
 dff20b899fd6df850048d74f11129b814445c1b8dcf12d523d681dec3515a691  macos/bin/bitcoin-wallet  version=31.0
 cf3281e3a2ceb656b5aa0151d3a6f9ae4976d4b3d7b13ffd26c54ffa18faed24  macos/bin/Electrum.app/Contents/MacOS/run_electrum  version=4.7.2
+3400bdc94fc9cd6f1b8f8fe4ec5ef85055e15c6895272036c28c015084b91db3  macos/bin/Bitcoin-Qt.app  version=32.1
+4d9270db7f19ecb6c375730eecf673dd6bc6d6a1cf2ff3a55bd13b89cba63a05  macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt  version=32.1
+58f9e3b5b8cf0cecd268cc6bf02993f3244e1a93fe8d67949ced6b52c2fdd9fb  macos/bin/bitcoind  version=32.1
+5310684b6028bdc48e2155645408f02bd2b46e0ee0799317168e74ce9b823aba  macos/bin/bitcoin-cli  version=32.1
+9a377cc85096241899cb9e24671ec1202ebec8ca0a96aa884f806c80c296ec8b  macos/bin/bitcoin-qt  version=32.1
+d2d6572a3d7042d35251368d2c0f787a23b017e1cbc50a6250a62e2075563584  macos/bin/bitcoin-tx  version=32.1
+273d51edfef5948c172db1586e8ab5d8969b2ef8cd94b57d9dff7f7843ac8cdb  macos/bin/bitcoin-util  version=32.1
+a770e0acd7aa4d7063071612596062cc6313bbb32082e1b9276b974c31991c13  macos/bin/bitcoin-wallet  version=32.1
+c04887f91d4ab29f189bd4fbc03c4b11aa7c6c71cb82e059b3f21bf136660b25  macos/bin/Bitcoin-Qt.app  version=31.0

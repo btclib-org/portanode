@@ -47,13 +47,13 @@ fi
 # -datadir below is what makes borrowing one safe: Bitcoin Core reads
 # its RPC cookie from the datadir it is given, so a borrowed client
 # answers for this folder's node or does not answer at all.
-# Measured with Core v31.1.0 and a bitcoin-cli living outside every
-# datadir it was pointed at: -datadir=A reported A's block count and
-# -datadir=B reported B's. Against a datadir whose node was not running
-# it printed nothing on stdout; against a node started from a different
-# datadir -- the case a system-wide node holding the RPC port this
-# folder's datadir also wants -- it printed nothing on stdout and
-# "Authorization failed: Incorrect rpcuser or rpcpassword" on stderr.
+# Measured with a bitcoin-cli living outside every datadir it was pointed
+# at: -datadir=A reported A's block count and -datadir=B reported B's.
+# Against a datadir whose node was not running it printed nothing on
+# stdout; against a node started from a different datadir -- the case a
+# system-wide node holding the RPC port this folder's datadir also wants --
+# it printed nothing on stdout and an "Authorization failed" error on
+# stderr, whether A held a stale cookie or none.
 # Those two negative results are what the borrowing rests on, this
 # script reading the output for emptiness: a client that cannot
 # authenticate reads as "not running" rather than as a foreign node's

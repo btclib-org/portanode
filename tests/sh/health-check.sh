@@ -117,6 +117,14 @@ for platform in linux macos; do
         reads 99.99% "$platform" "$BC" 0.9999 C
     check "$platform: a node at 1 reads 100.00%" \
         reads 100.00% "$platform" "$BC" 1 C
+    # A fraction short of 1 is cut, so none reads 100.00%: 0.9999967 is a
+    # node about one block behind its best header.
+    for progress in 0.99995 0.9999967 0.999999999; do
+        check "$platform: a node at $progress reads 99.99%" \
+            reads 99.99% "$platform" "$BC" "$progress" C
+    done
+    check "$platform: a node at 0.29 reads 29.00%" \
+        reads 29.00% "$platform" "$BC" 0.29 C
     # jq prints a small number with an exponent, in a form that depends on
     # its version.
     check "$platform: a node at 9.7E-9 reads 0.00%" \

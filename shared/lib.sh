@@ -94,6 +94,13 @@ resolve_root() {
 #
 # The first printf writes out an exponent, which jq can print for a small
 # fraction and which bc misreads or refuses.
+#
+# The fraction is cut, not rounded, to the four decimals the percentage
+# shows: 100.00 is a fraction of 1 to twelve decimals, and anything less
+# reads at most 99.99. Bitcoin Core reports exactly 1 where its tip is its
+# best header and that block is at most two hours from the node's clock.
+# Every release README.md's *Version Compatibility* supports does so, from
+# Core commit fa76b378e4.
 sync_percent() (
     export LC_ALL=C
     fraction="$(printf '%.12f' "$1" 2>/dev/null)" || exit 1
@@ -101,6 +108,7 @@ sync_percent() (
         0.* | 1.000000000000) ;;
         *) exit 1 ;;
     esac
+    fraction="${fraction%????????}"
     percent="$(echo "$fraction * 100" | bc -l 2>/dev/null)" || exit 1
     case "$percent" in
         '' | *[!0-9.]*) exit 1 ;;

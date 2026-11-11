@@ -431,7 +431,8 @@ message naming it:
 
 ## Version Compatibility
 
-- **Bitcoin Core**: Check `bitcoin-cli --version`.
+- **Bitcoin Core**: the latest major release and the one before it are
+  supported. Check `bitcoin-cli --version`.
 - **Electrum**: Check `electrum --version`.
 - Compatible with macOS 10.15+ and Windows 10+; the Linux measurements
   cited in this file were taken on Ubuntu 24.04

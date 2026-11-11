@@ -192,7 +192,9 @@ if "%BTC_RUNNING%"=="1" (
         REM Built as one physical line -- see :update_checksum in
         REM lib.bat (#144).
         REM -NoProfile and $env: for the reasons at the first capture above.
-        for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { $info = & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\bitcoin-datadir') getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { [math]::Round($info.verificationprogress*100,2) } } catch { '' } }"`) do set SYNC=%%J
+        REM The fraction is cut to the percentage's two decimals, not
+        REM rounded, for the reason sync_percent in shared/lib.sh gives.
+        for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { $info = & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\bitcoin-datadir') getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { ([math]::Floor([decimal]$info.verificationprogress * 10000) / 100).ToString('F2', [cultureinfo]::InvariantCulture) } } catch { '' } }"`) do set SYNC=%%J
         if defined SYNC (
             echo Bitcoin sync: !SYNC!%%
         ) else (
