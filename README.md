@@ -326,10 +326,12 @@ message naming it:
   `validate-setup`'s checksum check do not see it until an updater run
   records one.
 - **Checksums**: `macos/checksums.sha256`, `win/checksums.sha256` and
-  `linux/checksums.sha256` keep ever-growing lists of acceptable hashes labeled
-  by version; update scripts append a new entry (only after a successful PGP
-  verification), never add one twice, and never rewrite an existing one. These
-  files provide **integrity and rollback** checks (detecting
+  `linux/checksums.sha256` keep lists of acceptable hashes labeled by version;
+  update scripts append a new entry (only after a successful PGP verification),
+  never add one twice, and never rewrite an existing one. In the repository,
+  their Bitcoin Core entries are those of the supported majors (*Version
+  Compatibility* below), so that a rollback within them can verify its backup.
+  These files provide **integrity and rollback** checks (detecting
   corruption/tampering of an already-installed binary), not authenticity —
   authenticity comes from the PGP step above. Where to get each project's
   signing key is the *PGP verification fails closed* bullet above.

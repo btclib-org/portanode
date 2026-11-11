@@ -60,8 +60,8 @@ debug_list_dir() {
 # link under it cannot be read.
 #
 # The macOS updaters record a bundle's tree_hash in macos/checksums.sha256,
-# which is append-only, so a change to what this hashes leaves every bundle
-# entry already recorded unmatched.
+# and no updater rewrites an entry, so a change to what this hashes leaves
+# every bundle entry already recorded unmatched.
 #
 # The checksum command is picked at run time rather than fixed to shasum:
 # macOS always has shasum, but a bare Linux install is not guaranteed to
@@ -493,8 +493,8 @@ update_checksum() {
     # tree_hash prints nothing for a file or bundle it cannot read, and
     # nothing where neither shasum nor sha256sum is on PATH, so hash is
     # empty. The entry built below would then carry an empty hash field
-    # into the append-only checksums.sha256, where it can neither be
-    # rewritten nor ever match: verify_checksum_entry's awk reads such a
+    # into checksums.sha256, where no updater rewrites it and it can
+    # never match a binary: verify_checksum_entry's awk reads such a
     # line's path as $1, and no real hash equals a path. A chmod 000
     # file and one carrying a "deny read" ACL both produce that empty
     # capture, and so does a bundle hashed while the volume holding
@@ -524,13 +524,13 @@ update_checksum() {
         return 0
     fi
 
-    # */checksums.sha256 is append-only: a rollback verifies its backup
-    # binary against an entry a previous install recorded for this same
-    # entry_path, so rewriting that entry to the current hash would leave
-    # the backup unrecognized and the rollback refusing it. An earlier
-    # entry stays findable by the binary it describes:
-    # verify_checksum_entry and installed_version select on hash and
-    # path together.
+    # This function only appends to */checksums.sha256: a rollback
+    # verifies its backup binary against an entry a previous install
+    # recorded for this same entry_path, so rewriting that entry to the
+    # current hash would leave the backup unrecognized and the rollback
+    # refusing it. An earlier entry stays findable by the binary it
+    # describes: verify_checksum_entry and installed_version select on
+    # hash and path together.
     local entry="$hash  $entry_path  version=$version"
     if ! grep -Fxq "$entry" "$checksum_file"; then
         echo "$entry" >> "$checksum_file"
