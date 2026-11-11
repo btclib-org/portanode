@@ -6,15 +6,15 @@ name: script-security
 # hooks lint.yml runs read these files as text, and .pre-commit-config.yaml's
 # header says why neither tool is a hook.
 #
-# For PowerShell a finding of Warning or Error severity fails the job, and
-# so does a file PowerShell cannot parse, since nothing in it was read. A
-# finding of Information severity is printed and does not fail it. A
-# finding a SuppressMessageAttribute in the .ps1 suppresses is not
-# reported, and CONTRIBUTING.md's last section says when one is
-# suppressed. The job reads no PSScriptAnalyzer settings file from the
-# tree, so none can turn a rule off. For batch a finding of those
-# Blinter rules fails the job where the baseline below does not hold it,
-# and the job fails as well where Blinter read a number of files other
+# For PowerShell a finding of any severity fails the job, Information
+# included, since CONTRIBUTING.md's last section names that rule set at
+# every severity as the style. So does a file PowerShell cannot parse,
+# since nothing in it was read. A finding a SuppressMessageAttribute in
+# the .ps1 suppresses is not reported, and CONTRIBUTING.md's last section
+# says when one is suppressed. The job reads no PSScriptAnalyzer settings
+# file from the tree, so none can turn a rule off. For batch a finding of
+# those Blinter rules fails the job where the baseline below does not hold
+# it, and the job fails as well where Blinter read a number of files other
 # than the number git tracks, or where a tracked .bat or .cmd file holds a
 # LINT:IGNORE directive, which would silence a finding without an entry in
 # the baseline. Blinter's other rules stay by hand, as CONTRIBUTING.md's
@@ -219,20 +219,12 @@ jobs:
           $files = @((git ls-files -z ':(icase)*.ps1' ':(icase)*.psm1' ':(icase)*.psd1') -split "`0" |
             Where-Object { $_ })
           $found = @()
-          $information = @()
           foreach ($f in $files) {
             $path = [WildcardPattern]::Escape($f)
             foreach ($d in Invoke-ScriptAnalyzer -Path $path -Settings @{}) {
-              $text = "$($d.Severity) $($d.RuleName): $($d.Message)"
-              if ($d.Severity -eq 'Information') {
-                $information += "${f}:$($d.Line): $text"
-              } else {
-                $found += "::error file=$f,line=$($d.Line)::$text"
-              }
+              $found += "::error file=$f,line=$($d.Line)::$($d.Severity) $($d.RuleName): $($d.Message)"
             }
           }
-          "$($information.Count) Information findings, which fail nothing"
-          $information
-          "$($found.Count) other findings in $($files.Count) files"
+          "$($found.Count) findings in $($files.Count) files"
           $found
           if ($found.Count -gt 0) { exit 1 }

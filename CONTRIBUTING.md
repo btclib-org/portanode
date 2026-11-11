@@ -417,6 +417,33 @@ A finding it reports is fixed or, where it is no defect, suppressed in
 the script by a `SuppressMessageAttribute` that says why. The same
 command with `-SuppressedOnly` lists the suppressed findings.
 
+**The PowerShell style is PSScriptAnalyzer's default rule set, at every
+severity**, and `script-security.yml` enforces it: its header says what
+fails the job. The style declines none of those rules. A finding of one
+is suppressed only as the paragraph above says; the scripts that call
+`Write-Host`, for example, suppress `PSAvoidUsingWriteHost` for the
+whole file.
+
+The rules PSScriptAnalyzer leaves off until a setting's `Enable` turns
+them on are not part of the style, which is the default set.
+`PSUseConsistentIndentation` and `PSUseConstrainedLanguageMode`, for
+example, each report findings in most of the tree's `.ps1` files with
+their defaults, the launchers among them. Taking them means rewriting
+those files, and nothing that gates a merge runs a launcher starting
+what it launches, as *What neither the gate nor the tests reach* says
+above. `PSUseCompatibleCommands` and `PSUseCompatibleTypes` refuse to
+run until a setting names the target profiles to check against. The
+command above lists these rules with this in place of its
+`Invoke-ScriptAnalyzer` line, before the closing quote:
+
+```powershell
+$c = [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.ConfigurableRule]
+Get-ScriptAnalyzerRule | Where-Object {
+  $_.ImplementingType -and $_.ImplementingType.IsSubclassOf($c) -and
+  -not [Activator]::CreateInstance($_.ImplementingType).Enable } |
+  ForEach-Object RuleName
+```
+
 **`tests/win/node-args.ps1` tests `win/scripts/bitcoin/node-args.ps1`**,
 which the Windows mainnet launcher and the Alice `-clean` launchers use to
 read a running node's network switches and data directory. It is in the
