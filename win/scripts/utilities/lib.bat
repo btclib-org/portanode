@@ -296,10 +296,10 @@ call :normalize_entry_path "%ENTRY_RAW%" FILEPATH_ENTRY
 if not exist "%FILEPATH_FS%" exit /b 0
 if "%CHECKSUM_FILE%"=="" exit /b 0
 REM Appends the one new entry with Add-Content rather than rewriting the file
-REM with Set-Content, matching what README.md documents this file as:
-REM append-only. A rewrite of every line on each call -- and Select-Object
-REM -Unique silently dropping any repeated one, comments included -- is what
-REM Add-Content avoids.
+REM with Set-Content, as README.md's *Checksums* says: an updater never
+REM rewrites an entry. A rewrite of every line on each call -- and
+REM Select-Object -Unique silently dropping any repeated one, comments
+REM included -- is what Add-Content avoids.
 REM Measured on windows-latest (#144): a "^" at end of line continues a
 REM batch file's line only while cmd's quote state is closed at that point;
 REM inside the double-quoted -Command argument below, "^" is a literal
@@ -329,11 +329,10 @@ REM autoload Microsoft.PowerShell.Utility, #420) raises instead, at
 REM command resolution, before ".Hash" is ever reached. Neither throw
 REM aborts more than the one assignment, so without a guard $hash stays
 REM unset either way, coerces to an empty string in $entry, and
-REM Add-Content still appends an entry whose hash field is empty into
-REM the append-only checksums.sha256. $fh is checked before ".Hash" is
-REM read, so either failure leaves it unset and exits 1 with nothing
-REM appended. :verify_checksum and :installed_version below test the
-REM same way.
+REM Add-Content still appends an entry whose hash field is empty, which
+REM no updater then rewrites. $fh is checked before ".Hash" is read, so
+REM either failure leaves it unset and exits 1 with nothing appended.
+REM :verify_checksum and :installed_version below test the same way.
 powershell -NoProfile -Command "& { $file = $env:FILEPATH_FS; $version = $env:VERSION_LABEL; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $file; if (-not $fh) { Write-Host ('Error: could not hash the source of ' + $env:FILEPATH_ENTRY + '; not appending to win/checksums.sha256.'); exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  ' + $env:FILEPATH_ENTRY + '  version=' + $version; $existing = Get-Content -LiteralPath $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -LiteralPath $checksum -Value $entry } }"
 if errorlevel 1 exit /b 1
 exit /b 0

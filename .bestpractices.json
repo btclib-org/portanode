@@ -125,7 +125,7 @@
   "hardened_site_status": "Met",
   "hardening_justification": "On macOS and Linux the update, rollback, verify and validate scripts run under set -euo pipefail, so an unexpected failure stops them. The PGP check fails closed. https://github.com/btclib-org/portanode/blob/main/linux/scripts/utilities/update-bitcoin.sh",
   "hardening_status": "Met",
-  "implement_secure_design_justification": "Fail-safe defaults: an update without enough good signatures from pinned keys is refused, and a rollback refuses to run while the node is up. Checksums are append-only. set-permissions restricts the data directories to the owner where the filesystem allows. https://github.com/btclib-org/portanode/blob/main/README.md#updating-binaries",
+  "implement_secure_design_justification": "Fail-safe defaults: an update without enough good signatures from pinned keys is refused, and a rollback refuses to run while the node is up. No updater rewrites a checksum entry. set-permissions restricts the data directories to the owner where the filesystem allows. https://github.com/btclib-org/portanode/blob/main/README.md#updating-binaries",
   "implement_secure_design_status": "Met",
   "input_validation_justification": "Menus accept only their listed numbers and reject anything else. A pin-file line that is not a 40-hex fingerprint, a min-signatures= line or a comment refuses the update. https://github.com/btclib-org/portanode/blob/main/README.md#updating-binaries",
   "input_validation_status": "Met",
