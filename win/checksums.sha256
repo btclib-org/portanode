@@ -1,5 +1,5 @@
 # SHA-256 checksums for Bitcoin and Electrum binaries
-# Verify with: win/scripts/utilities/verify-binaries.bat, which passes a path
+# Verify with: .\win\scripts\utilities\verify-binaries.bat, which passes a path
 # when any of its entries matches the installed file.
 # Format: <sha256>  <path>  version=<semver>
 # Integrity/rollback only, NOT authenticity: entries are recorded by the updater
