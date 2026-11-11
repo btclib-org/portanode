@@ -25,3 +25,10 @@ f3758e23589e6c009ec644b6b0cefc401852de2f5a69fa0d8faca8827e87de4b  win/bin/bitcoi
 c7668a5b5ed9bc580baf827c5a87738b1f6c79aab1efaffedf5307b37034a849  win/bin/bitcoin.exe  version=31.0
 665f3cbe3c5695d0eef734a42d5307cbff6d48f7a5fdcfbfc3c32dbdb23f0d05  win/bin/bitcoind.exe  version=31.0
 368a40ac1b11ede03721ede742b3c55f83fe54276a7b586319e9a257b8fb692a  win/bin/electrum.exe  version=4.7.0
+9e4de906b83ec00b1d8d518de4689fd01c2c3a94abd5e73440836132a68044de  win/bin/bitcoin-qt.exe  version=32.1
+426dfb6b61e092285670d6fb0639cdeb4f216603f13fe04538e661fa0a6817e2  win/bin/bitcoind.exe  version=32.1
+789aad6f43da30961b7e6f4fe5356cf6ea9688d34874078a17371d9f5cea52ef  win/bin/bitcoin-cli.exe  version=32.1
+249e0be4587eada67fcc5e3777c33a46767bf013764542964e94c03438fc85da  win/bin/bitcoin-wallet.exe  version=32.1
+de0d708603949bda7f4dc2058fb02218aab74b173f759f048e0f060de14c366f  win/bin/bitcoin-tx.exe  version=32.1
+e36de59de65cea7793238ab58ecdf518f8c15821fb221eb2e21398cb61558938  win/bin/bitcoin-util.exe  version=32.1
+08dde61abe99e7bf83fc9c2b44c0b22394830782c1a18a689e064fc8c980db8e  win/bin/bitcoin.exe  version=32.1
