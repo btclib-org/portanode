@@ -480,6 +480,14 @@ _pids_outside_own_line() {
 # prints a pid, or where pgrep exits 0 and prints none; 1 where no other
 # process matches; 2 or more where pgrep or ps is missing or failed.
 #
+# pgrep exits 1 both where nothing matches and, as busybox pgrep does,
+# where it refuses an option such as -i, which it then reports on stderr
+# only (ISS 810). So an exit 1 counts as "no match" only where the same
+# pgrep, given the same options and the pattern ".", finds a process, and
+# the answer is 2 otherwise. A working pgrep always finds one: GNU procps
+# and busybox pgrep leave out only themselves, so this shell matches, and
+# macOS pgrep, which leaves out its ancestors, still lists the rest.
+#
 # GNU procps pgrep leaves out only itself, so where the folder's path
 # matches <pattern>, the shell running the script matches, and so does a
 # launcher that started it (ISS 808, ISS 836). macOS pgrep leaves out its
@@ -494,6 +502,10 @@ _pids_outside_own_line() {
 pgrep_outside_own_line() {
     local rc=0 found table self="${BASHPID:-$$}"
     found="$(exec pgrep -f -i "$1")" || rc=$?
+    if [ "$rc" -eq 1 ]; then
+        pgrep -f -i . > /dev/null 2>&1 || return 2
+        return 1
+    fi
     [ "$rc" -eq 0 ] && [ -n "$found" ] || return "$rc"
     table="$(ps -A -o pid= -o ppid=)" || return 2
     found="$(_pids_outside_own_line "$self" "${found//$'\n'/ }" "$table")" \

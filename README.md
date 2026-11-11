@@ -416,8 +416,8 @@ message naming it:
   `bitcoin-cli` first, then the process list, then the datadir's
   `.cookie` and `bitcoind.pid`. For Electrum they read the process list
   alone, so where it is restricted a running Electrum can go unseen. On
-  macOS and Linux, where `pgrep` is missing, they print `unknown` in place
-  of `no`, and on Linux also where `pgrep` or `ps` fails.
+  macOS and Linux, where `pgrep` is missing or fails, they print `unknown`
+  in place of `no`, and on Linux also where `ps` fails.
 
 ### Getting Help
 

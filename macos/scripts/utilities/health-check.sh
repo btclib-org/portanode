@@ -30,15 +30,18 @@ fi
 # pgrep on macOS/BSD uses extended regular expressions, so alternation is "|"
 # (a GNU-BRE "\|" matches a literal pipe and never matches a real process).
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt|bitcoin-qt.app"
-# Without pgrep a process the other passes miss may still be running, so the
-# status lines read "unknown" rather than "no".
+# Without pgrep, or where pgrep fails, a process the other passes miss may
+# still be running, so the status lines read "unknown" rather than "no".
 PGREP_FOUND="no"
 if command -v pgrep >/dev/null 2>&1; then
     PGREP_FOUND="yes"
 fi
 PGREP_OUTPUT=""
+PGREP_FAILED="no"
 if [ "$PGREP_FOUND" = "yes" ]; then
-    PGREP_OUTPUT="$(pgrep -f -i "$BTC_PGREP_PATTERN" 2>&1 || true)"
+    PGREP_RC=0
+    PGREP_OUTPUT="$(pgrep -f -i "$BTC_PGREP_PATTERN" 2>&1)" || PGREP_RC=$?
+    [ "$PGREP_RC" -le 1 ] || PGREP_FAILED="yes"
 fi
 if echo "$PGREP_OUTPUT" | grep -qi "cannot get process list"; then
     echo "Note: process listing unavailable; falling back to CLI/artifacts."
@@ -165,6 +168,9 @@ else
     elif [ "$PGREP_FOUND" != "yes" ]; then
         echo "Bitcoin running: unknown (pgrep not found)"
         echo "Bitcoin sync: unknown"
+    elif [ "$PGREP_FAILED" = "yes" ]; then
+        echo "Bitcoin running: unknown (pgrep failed)"
+        echo "Bitcoin sync: unknown"
     else
         echo "Bitcoin running: no"
         echo "Bitcoin sync: n/a"
@@ -174,13 +180,20 @@ fi
 # Electrum status
 ELECTRUM_RUNNING="no"
 ELECTRUM_METHOD=""
-ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)$"
+# The bundle alternative is update-electrum.sh's, which says why it ends at
+# a space as well as at the line's end.
+ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)( |\$)"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|/Electrum$|/electrum$"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|python.*electrum"
-if [ "$PGREP_FOUND" = "yes" ] && \
-   pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null; then
-    ELECTRUM_RUNNING="yes"
-    ELECTRUM_METHOD="pgrep"
+PGREP_FAILED="no"
+if [ "$PGREP_FOUND" = "yes" ]; then
+    PGREP_RC=0
+    pgrep -f -i "$ELECTRUM_PGREP_PATTERN" > /dev/null || PGREP_RC=$?
+    case "$PGREP_RC" in
+        0) ELECTRUM_RUNNING="yes"; ELECTRUM_METHOD="pgrep" ;;
+        1) ;;
+        *) PGREP_FAILED="yes" ;;
+    esac
 fi
 if [ "$ELECTRUM_RUNNING" != "yes" ] && command -v ps >/dev/null 2>&1; then
     if ps -ax -o comm= 2>/dev/null | awk '
@@ -195,6 +208,8 @@ if [ "$ELECTRUM_RUNNING" = "yes" ] && [ -n "$ELECTRUM_METHOD" ]; then
     echo "Electrum running: yes (${ELECTRUM_METHOD})"
 elif [ "$PGREP_FOUND" != "yes" ]; then
     echo "Electrum running: unknown (pgrep not found)"
+elif [ "$PGREP_FAILED" = "yes" ]; then
+    echo "Electrum running: unknown (pgrep failed)"
 else
     echo "Electrum running: $ELECTRUM_RUNNING"
 fi

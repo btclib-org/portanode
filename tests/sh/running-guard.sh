@@ -45,12 +45,53 @@ EOF
 printf '#!/bin/sh\necho 1\n' > "$STUBS/sysctl"
 chmod +x "$STUBS/curl" "$STUBS/uname" "$STUBS/sysctl"
 
-# pgrep_answering <status>: prints a directory whose pgrep exits <status>.
+# pgrep_answering <status>: prints a directory whose pgrep exits <status>,
+# except for the pattern ".", for which it finds a process, as a pgrep that
+# understands its options does.
 pgrep_answering() {
     mkdir -p "$WORK/pgrep-$1"
-    printf '#!/bin/sh\nexit %s\n' "$1" > "$WORK/pgrep-$1/pgrep"
+    # shellcheck disable=SC2016 # the stand-in expands it
+    printf '#!/bin/sh\nfor a; do :; done\n[ "$a" = . ] && echo 1 && exit 0\nexit %s\n' \
+        "$1" > "$WORK/pgrep-$1/pgrep"
     chmod +x "$WORK/pgrep-$1/pgrep"
     printf '%s\n' "$WORK/pgrep-$1"
+}
+
+# Busybox pgrep has no -i: getopt32 refuses it, prints the usage on stderr
+# and exits 1, the status of "no match" (procps/pgrep.c and
+# libbb/getopt32.c in busybox; ISS 810). Without -i this one finds a
+# process.
+BUSYBOX="$WORK/pgrep-busybox"
+mkdir -p "$BUSYBOX"
+cat > "$BUSYBOX/pgrep" <<'EOF'
+#!/bin/sh
+for a; do
+    case "$a" in
+        -i)
+            echo "pgrep: invalid option -- 'i'" >&2
+            echo "Usage: pgrep [-flanovx] [-s SID|-P PPID|PATTERN]" >&2
+            exit 1
+            ;;
+    esac
+done
+echo 4242
+EOF
+chmod +x "$BUSYBOX/pgrep"
+
+# pgrep_listing <name> <command line>...: prints a directory whose pgrep
+# reads its last argument as an extended regular expression, ignoring case,
+# as pgrep -f -i does, and prints 4242 where one of the command lines
+# matches it.
+pgrep_listing() {
+    local dir="$WORK/pgrep-$1"
+    shift
+    mkdir -p "$dir"
+    printf '%s\n' "$@" > "$dir/table"
+    # shellcheck disable=SC2016 # the stand-in expands it
+    printf '#!/bin/sh\nfor a; do :; done\ngrep -Eiq -e "$a" "%s" || exit 1\necho 4242\n' \
+        "$dir/table" > "$dir/pgrep"
+    chmod +x "$dir/pgrep"
+    printf '%s\n' "$dir"
 }
 
 # run_script <PATH prefix> <ostype> <arch> <script> [argument...]: the script's
@@ -109,6 +150,9 @@ while read -r script ostype arch name doing past; do
         stops_for_a_node "$out" "$name" "$doing"
     out="$(run_script "$(pgrep_answering 1):" "$ostype" "$arch" "$script" "${args[@]}")"
     check "$script goes on where pgrep finds no process" passes "$out" "$past"
+    out="$(run_script "$BUSYBOX:" "$ostype" "$arch" "$script" "${args[@]}")"
+    check "$script refuses where pgrep refuses -i, as busybox pgrep does" \
+        refused "$out" "$name" "$doing"
 done <<'EOF'
 linux/scripts/utilities/update-bitcoin.sh linux-gnu x86_64 Bitcoin_Core updating --dry-run:
 linux/scripts/utilities/update-electrum.sh linux-gnu x86_64 Electrum updating --dry-run:
@@ -119,6 +163,26 @@ macos/scripts/utilities/update-electrum.sh darwin24 arm64 Electrum updating --dr
 macos/scripts/utilities/rollback-bitcoin.sh darwin24 arm64 Bitcoin_Core rolling_back No_backup_found
 macos/scripts/utilities/rollback-electrum.sh darwin24 arm64 Electrum rolling_back No_backup_found
 EOF
+
+# The Electrum launchers start the bundle with arguments ("open --args"),
+# which ps shows after the bundle's executable, whichever of the two names
+# the bundle ships it under.
+BUNDLE="/Volumes/PortaNode/macos/bin/Electrum.app/Contents/MacOS"
+for exe in Electrum run_electrum; do
+    listing="$(pgrep_listing "listing-$exe" \
+        "$BUNDLE/$exe -D /Volumes/PortaNode/electrum-datadir --oneserver")"
+    while read -r script doing; do
+        args=(--dry-run)
+        case "$script" in update-*) args+=(--version 99.0) ;; esac
+        out="$(run_script "$listing:" darwin24 arm64 \
+            "macos/scripts/utilities/$script" "${args[@]}")"
+        check "macos $script stops where $exe runs with arguments" \
+            stops_for_a_node "$out" Electrum "${doing//_/ }"
+    done <<'EOF'
+update-electrum.sh updating
+rollback-electrum.sh rolling_back
+EOF
+done
 
 # What the refusal protects: a rollback that passes its guard replaces the
 # binary, and one without pgrep leaves it.

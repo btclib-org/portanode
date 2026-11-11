@@ -109,7 +109,11 @@ esac
 [ -f "$src" ] || exit 22
 if [ -n "$out" ]; then cp "$src" "$out"; else cat "$src"; fi
 EOF
-printf '#!/bin/sh\nexit 1\n' > "$STUBS/pgrep"
+# pgrep finds no process, and finds one for the pattern ".", as a pgrep
+# that understands its options does (pgrep_outside_own_line, in
+# shared/lib.sh).
+printf '#!/bin/sh\nfor a; do :; done\n[ "$a" = . ] && echo 1 && exit 0\nexit 1\n' \
+    > "$STUBS/pgrep"
 printf '#!/bin/sh\necho "$STUB_ARCH"\n' > "$STUBS/uname"
 printf '#!/bin/sh\necho "$*" >> "$CURL_LOG.hdiutil"\nexit 1\n' > "$STUBS/hdiutil"
 # sysctl prints $STUB_SYSCTL, and at "error" fails as an unknown oid does.
