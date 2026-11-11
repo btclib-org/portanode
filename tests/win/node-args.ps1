@@ -3,9 +3,9 @@
 # LICENSE file or https://opensource.org/license/mit for the full text.
 
 # Tests win/scripts/bitcoin/node-args.ps1, which reads a running node's
-# network switches for the Windows mainnet launcher and the guard of the
-# Alice -clean launchers. It starts no process and reads no process list,
-# so PowerShell runs it on any system:
+# network switches and data directory for the Windows mainnet launcher and
+# the guard of the Alice -clean launchers. It starts no process and reads no
+# process list, so PowerShell runs it on any system:
 #
 #   pwsh -NoProfile -File tests/win/node-args.ps1
 #   powershell -NoProfile -ExecutionPolicy Bypass -File tests\win\node-args.ps1
@@ -67,6 +67,8 @@ $mainnet = @(
   # ISS 828: a backslash before a quote, as Windows reads it.
   ($qt + ' -datadir="C:\a\" -testnet'),
   ($qt + ' -uacomment="a"" -testnet"'),
+  # ISS 826: Core reads no switch after a lone "-".
+  "$qt - -regtest",
   $qt
 )
 foreach ($c in $mainnet) {
@@ -159,13 +161,152 @@ $chains = @(
   @(($qt + ' -blocknotify="echo \"%s\"" -regtest'), 'regtest'),
   @(($qt + ' -datadir="C:\a\\" -regtest'), 'regtest'),
   @(($qt + ' -datadir="C:\a\" -regtest'), 'main'),
-  @(($qt + ' -uacomment="a"" -regtest"'), 'main')
+  @(($qt + ' -uacomment="a"" -regtest"'), 'main'),
+  # ISS 826: Core reads no switch after a lone "-".
+  @("$qt - -regtest", 'main'),
+  @("$qt `"-`" -regtest", 'main'),
+  @("$qt -regtest -", 'regtest'),
+  @("$qt -regtest - -noregtest", 'regtest'),
+  # ISS 830: Core trims only ASCII white space before the value's integer.
+  @(("$qt -noregtest=" + [char]0xA0 + '1'), 'regtest'),
+  @(("$qt -regtest=" + [char]0xA0 + '1'), 'main'),
+  @(("$qt -regtest=" + [char]0x2003 + '1'), 'main'),
+  @(("$qt -regtest=" + [char]11 + [char]12 + '1'), 'regtest'),
+  @(("$qt -noregtest=" + [char]11 + '1'), 'main')
 )
 foreach ($c in $chains) {
   Test-Case -Description "chain: $($c[0])" -Got "$(Get-NodeChain $c[0])" -Want "$($c[1])"
 }
 foreach ($c in "$qt -chain=regtest -regtest", "$qt -regtest -testnet") {
   Test-Case -Description "chain, two networks: $c" -Got ($null -eq (Get-NodeChain $c)) -Want $true
+}
+
+# ISS 830: the white space Core trims, and only that.
+$values = @(
+  @(' 0', $true),
+  @("`t`n`r0", $true),
+  @(([string][char]11 + [char]12 + '0'), $true),
+  @(([string][char]11 + '1'), $false),
+  @(([string][char]0xA0 + '1'), $true),
+  @(([string][char]0x2003 + '1'), $true),
+  @(('1' + [char]0xA0), $false),
+  @(([string][char]0xA0), $true)
+)
+foreach ($c in $values) {
+  $shown = -join ($c[0].ToCharArray() | ForEach-Object { 'U+{0:X4}' -f [int]$_ })
+  Test-Case -Description "value reads false: $shown" -Got (Test-ValueReadsFalse $c[0]) -Want $c[1]
+}
+
+# ISS 831: the data directory a node names, and the spellings the -clean
+# guard counts as one.
+$dd = 'C:\r\bitcoin-datadir'
+$datadirs = @(
+  @("$qt -datadir=$dd", $dd),
+  @("$qt -datadir=`"$dd`"", $dd),
+  @("$qt /datadir=$dd", $dd),
+  @("$qt --DataDir=$dd", $dd),
+  @("$qt -datadir=D:\x -datadir=$dd", $dd),
+  @("$qt -datadir", ''),
+  @("$qt -datadir=$dd - -datadir=D:\x", $dd)
+)
+foreach ($c in $datadirs) {
+  Test-Case -Description "datadir: $($c[0])" -Got "$(Get-NodeDatadir $c[0])" -Want $c[1]
+}
+foreach ($c in "$qt", "$qt -uacomment=-datadir=$dd", "$qt - -datadir=$dd") {
+  Test-Case -Description "datadir, none: $c" -Got ($null -eq (Get-NodeDatadir $c)) -Want $true
+}
+
+$sameDatadir = @(
+  $dd,
+  'C:\r\bitcoin-datadir\',
+  'C:/r/bitcoin-datadir',
+  'C:/r/bitcoin-datadir/',
+  'C:\r\.\bitcoin-datadir',
+  'C:\r\\bitcoin-datadir',
+  'C:\r\x\..\bitcoin-datadir',
+  'C:\..\r\bitcoin-datadir',
+  'c:\R\Bitcoin-Datadir',
+  'C:\r\bitcoin-datadir.',
+  'C:\r.\bitcoin-datadir',
+  'C:\r\bitcoin-datadir. .',
+  'C:\r\bitcoin-datadir ',
+  'C:\r\bitcoin-datadir.\'
+)
+# Device paths, which GetFullPath does not take back to the drive's path.
+$deviceDatadir = @(
+  '\\.\C:\r\bitcoin-datadir',
+  '\\.\C:\r\.\x\..\bitcoin-datadir.',
+  '\\?\C:\r\bitcoin-datadir',
+  '\\?\C:\r\bitcoin-datadir\'
+)
+foreach ($d in @($sameDatadir) + $deviceDatadir) {
+  # A space ends an unquoted value, and a backslash before the closing quote
+  # would escape it.
+  $forms = @()
+  if (-not $d.Contains(' ')) { $forms += "-datadir=$d", "/datadir=$d" }
+  if (-not $d.EndsWith('\')) { $forms += "-datadir=`"$d`"" }
+  foreach ($form in $forms) {
+    $line = "$qt $form -regtest"
+    Test-Case -Description "on datadir: $line" -Got (Test-NodeOnDatadir $line $dd 'regtest') -Want $true
+  }
+}
+$otherDatadir = @(
+  "$qt -datadir=$dd\regtest_bob -regtest",
+  "$qt -datadir=C:\r\bitcoin-datadir2 -regtest",
+  "$qt -datadir=C:\r\bitcoin-datadir\.. -regtest",
+  "$qt -datadir=$dd -datadir=D:\x -regtest",
+  "$qt -uacomment=-datadir=$dd -regtest",
+  "$qt - -datadir=$dd -regtest",
+  "$qt -regtest",
+  "$qt -datadir=$dd",
+  "$qt -datadir=$dd - -regtest",
+  # Windows normalizes no "\\?\" path, so its "." stays a name.
+  "$qt -datadir=\\?\C:\r\.\bitcoin-datadir -regtest",
+  "$qt -datadir=\\.\Volume{b75e2c83-0000-0000-0000-602f00000000}\r -regtest",
+  # Both splits read the backslash and the quote as a quote inside the path.
+  ($qt + ' -datadir="' + $dd + '\" -regtest')
+)
+foreach ($line in $otherDatadir) {
+  Test-Case -Description "not on datadir: $line" -Got (Test-NodeOnDatadir $line $dd 'regtest') -Want $false
+}
+Test-Case -Description 'on datadir, any network' -Got (Test-NodeOnDatadir "$qt /datadir=$dd/" $dd '') -Want $true
+Test-Case -Description 'on datadir, datadir with a trailing separator' `
+  -Got (Test-NodeOnDatadir "$qt -datadir=$dd -regtest" 'C:\r\\bitcoin-datadir\' 'regtest') -Want $true
+# Up to v30.0 Core reads -regtest here, and from v31.0 it does not.
+Test-Case -Description 'on datadir, either split' `
+  -Got (Test-NodeOnDatadir ($qt + ' -datadir=' + $dd + ' -rpcpassword="a"" -regtest') $dd 'regtest') -Want $true
+# Up to v30.0 Core reads -regtest and the second -datadir here, and from
+# v31.0 neither: no one version reads both the data directory and regtest.
+Test-Case -Description 'not on datadir, the two halves from two splits' `
+  -Got (Test-NodeOnDatadir ($qt + ' -datadir=' + $dd + ' -rpcpassword="a"" -regtest -datadir=D:\x') $dd 'regtest') -Want $false
+
+$keys = @(
+  @('C:\a\.\b\..\c\', 'C:\a\c'),
+  @('C:\..\..\a', 'C:\a'),
+  @('\\srv\share\..\..\a', '\\srv\share\a'),
+  @('//srv/share/a/./b', '\\srv\share\a\b'),
+  @('\a\..\b', '\b'),
+  @('C:\', 'C:'),
+  @('C:\a\...\b', 'C:\a\...\b'),
+  @('C:\a.\b..', 'C:\a\b'),
+  @('C:\a\b. . ', 'C:\a\b'),
+  @('C:\a\b \', 'C:\a\b '),
+  @('\\.\C:\a\..\b.', 'C:\b'),
+  @('\\?\C:\a\..\b.\', 'C:\a\..\b.'),
+  @('\\.\Volume{x}\a\..', '\\.\Volume{x}\a\..')
+)
+foreach ($c in $keys) {
+  Test-Case -Description "datadir key: $($c[0])" -Got (ConvertTo-DatadirKey $c[0]) -Want $c[1]
+}
+# On Windows the key of an absolute path that is not a device path is the
+# path GetFullPath normalizes, its trailing separator dropped. GetFullPath
+# would join a relative path to the working directory.
+if ($env:OS -eq 'Windows_NT') {
+  $absolute = @($keys | ForEach-Object { $_[0] } | Where-Object { $_ -notmatch '^\\([^\\]|\\[.?]\\)' })
+  foreach ($d in @($sameDatadir) + $absolute) {
+    Test-Case -Description "datadir key, GetFullPath: $d" `
+      -Got (ConvertTo-DatadirKey $d) -Want ([IO.Path]::GetFullPath($d).TrimEnd([char]'\'))
+  }
 }
 
 Test-Case -Description 'split: quoted program and value' `

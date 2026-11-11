@@ -628,8 +628,9 @@ question names it.
   no parameter, none of the three reaching a root;
   `fetch-https.ps1` and `save-response.ps1` take `$Uri` and `$OutFile`
   and reach no root either;
-  `win/scripts/bitcoin/node-args.ps1` and its test,
-  `tests/win/node-args.ps1`, read command lines and reach no root either;
+  `win/scripts/bitcoin/node-args.ps1` reads command lines and takes a
+  data directory under the root in `$Datadir`, from the `.bat` that calls
+  it, and its test, `tests/win/node-args.ps1`, reaches no root;
   `tests/lib.ps1` and `tests/run.ps1` take no root;
   the other files of `tests/win/` hold the checkout's root in `$repo`, a
   test's path that no launcher consumes;
