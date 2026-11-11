@@ -56,8 +56,9 @@ core_majors() {
 }
 
 # latest_major <checksums>...: the highest Core major the files record.
-# The tree states the bundled version nowhere else, so this is the
-# reference each file is held to: a file the others have moved past fails.
+# The tree states the bundled version nowhere else, so it is the
+# reference each file is held to: an entry of major latest - count or
+# lower fails, even in a file whose own newest major would pass it.
 latest_major() {
     local f
     for f in "$@"; do core_majors "$f"; done | grep -E '^[0-9]+$' | LC_ALL=C sort -n | tail -n 1
@@ -113,10 +114,10 @@ check "a Core entry with no version is refused" \
 check "a Core entry whose major is not digits is refused" \
     refused nondigit "$zeros  win/bin/bitcoind.exe  version=x.1"
 
-# A file whose newest entries are a major behind the others, which its own
-# highest major would pass.
+# win's entries of the latest major moved count majors down: the file's
+# own newest major would pass them, and the other files' does not.
 sed "s/  version=$latest\./  version=$old./" "$REPO/win/checksums.sha256" >"$TMP/stale.sha256"
 if supported_only "$TMP/stale.sha256" "$count" "$latest" >/dev/null; then stale=passes; else stale=refused; fi
-check "a file a major behind the others is refused" same refused "$stale"
+check "an entry below the window the other files set is refused" same refused "$stale"
 
 finish
