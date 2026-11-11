@@ -1,10 +1,10 @@
 # SHA-256 checksums for Bitcoin and Electrum binaries
-# Verify with: sed 's/  version=.*//' macos/checksums.sha256 | shasum -a 256 -c -
-# The sed step is not optional: -c reads an entry's version field as part of
-# the path, so without it a file whose hashes all match still fails.
-# shasum -c reports an .app bundle's entry "FAILED open or read": it holds
-# shared/utilities/lib.sh's tree_hash of the whole bundle, which
-# macos/scripts/utilities/verify-binaries.sh checks.
+# Verify with: macos/scripts/utilities/verify-binaries.sh
+# A path carries an entry for each version recorded, and the script passes
+# it where any of them matches. A check of each line on its own, as
+# shasum -c makes, reports FAILED for every version not installed, and
+# cannot read an .app bundle's entry, shared/utilities/lib.sh's tree_hash
+# of the whole bundle.
 # Format: <sha256>  <path>  version=<semver>
 # Note: macOS app bundles may change hash after codesign or quarantine changes.
 # Integrity/rollback only, NOT authenticity: entries are recorded by the updater
