@@ -228,8 +228,12 @@ macos/bin`, rather than with anything naming the cause.
    the release notes, the vulnerabilities it fixed and the signed tag.
    Once it lands, open each URL the script's `--drift` prints for this
    repository, one for each section of the form, and save the form at
-   each. `--drift` then prints nothing for this repository. An advisory
-   this repository publishes is owed the same review.
+   each. Whoever cannot
+   sign in to bestpractices.dev comments on the answers' pull request
+   that the save is owed, so that the debt is on record and not in
+   anybody's memory, and whoever next can saves it. The step stays open
+   until `--drift` prints nothing for this repository. An advisory this
+   repository publishes is owed the same review.
 1. Open a separate pull request that bumps `VERSION` to `YYYY.M`, the
    month that sorts above the day just tagged — see *The version string*
    above. It does not travel with the release: every command above reads
