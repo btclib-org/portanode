@@ -145,6 +145,38 @@ check "documented residual: a datadir holding \" -\" reads as its part before it
 PROCS="$BIN -datadir=bitcoin-datadir -regtest"$'\n'
 check "a datadir that does not exist is compared as spelled" \
     answers 1 regtest_node_running_on "$TMP/absent"
+check "a datadir under a directory that does not exist is compared as spelled" \
+    answers 1 regtest_node_running_on "$TMP/absent/regtest"
+
+# A datadir that may exist and does not resolve: a node with any -datadir
+# that does not spell it answers 2, and the spelling still answers 0.
+: >"$TMP/file"
+ln -s "$TMP/gone" "$TMP/dangling"
+for own in "$TMP/file" "$TMP/file/regtest" "$TMP/dangling"; do
+    PROCS="$BIN -datadir=$TMP/other -regtest"$'\n'
+    check "regtest node on another datadir, the guard's not resolving: $own" \
+        answers 2 regtest_node_running_on "$own"
+    PROCS="$BIN -datadir=$own -regtest"$'\n'
+    check "regtest node on the datadir as spelled, the guard's not resolving: $own" \
+        answers 0 regtest_node_running_on "$own"
+    for args in "-datadir=$TMP/other" "-regtest"; do
+        PROCS="$BIN $args"$'\n'
+        check "no regtest node with a -datadir, the guard's not resolving: $own, $args" \
+            answers 1 regtest_node_running_on "$own"
+    done
+done
+# A directory that cannot be entered, which root enters all the same.
+if [ "$(id -u)" -ne 0 ]; then
+    mkdir -p "$TMP/locked/bitcoin-datadir"
+    ln -s "$TMP/locked/bitcoin-datadir" "$TMP/to-locked"
+    chmod 000 "$TMP/locked"
+    PROCS="$BIN -datadir=$TMP/to-locked -regtest"$'\n'
+    check "regtest node through a link, the guard's datadir not enterable" \
+        answers 2 regtest_node_running_on "$TMP/locked/bitcoin-datadir"
+    chmod 755 "$TMP/locked"
+else
+    echo "ok - skipped: the datadir that cannot be entered (root enters it)"
+fi
 
 # Two letters outside ASCII that differ in case: one directory on a volume
 # that ignores case, two on one that does not, and the node counts on both.

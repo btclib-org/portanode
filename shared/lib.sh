@@ -396,6 +396,22 @@ _real_dir() {
     printf '%s\n' "$real"
 }
 
+# _absent <path>: 0 where <path> is absolute and is known not to exist: the
+# nearest of its ancestors that exists is a directory _real_dir can enter,
+# and nothing below it, not even a symbolic link leading nowhere, stands on
+# the way to <path>. 1 otherwise, as where an ancestor cannot be entered and
+# <path> may exist under it.
+_absent() {
+    local dir=$1
+    case $dir in /*) ;; *) return 1 ;; esac
+    [ -e "$dir" ] || [ -L "$dir" ] && return 1
+    until [ -e "$dir" ] || [ -L "$dir" ]; do
+        dir=${dir%/*}
+        dir=${dir:-/}
+    done
+    _real_dir "$dir" >/dev/null
+}
+
 # _fold <string>: <string> with its ASCII letters in lower case.
 _fold() {
     printf '%s' "$1" | LC_ALL=C tr '[:upper:]' '[:lower:]'
@@ -459,6 +475,19 @@ _regtest_node_resolved() (
     exit "$answer"
 )
 
+# _regtest_datadir_given <process list>: 0 where a line that selects regtest
+# holds a -datadir, as _regtest_node_resolved reads one; 1 otherwise.
+_regtest_datadir_given() (
+    LC_ALL=C
+    while IFS= read -r line; do
+        case $line in *[Rr][Ee][Gg][Tt][Ee][Ss][Tt]*) ;; *) continue ;; esac
+        low="$(_fold " $line ")"
+        _line_selects_network "$low" regtest regtest || continue
+        case $low in *" -datadir="* | *" --datadir="*) exit 0 ;; esac
+    done <<<"$1"
+    exit 1
+)
+
 # _regtest_node_named <datadir> <process list>: regtest_node_running_on's
 # search by the datadir's spelling, with the same answers.
 #
@@ -497,9 +526,12 @@ _regtest_node_named() {
 # with a -datadir naming <datadir> and selects regtest, in either order and
 # in any form Core reads as regtest; 1 where none was; 2 where the process
 # list could not be read or searched, ps may not print <datadir> as itself
-# (_ps_shows), or, where <datadir> resolves, a process that selects regtest
-# has a -datadir whose directory is not known (_regtest_node_resolved),
-# which a caller about to delete something treats as 0.
+# (_ps_shows), or a process that selects regtest has a -datadir that is not
+# known to name another directory, which a caller about to delete something
+# treats as 0. That last is a -datadir whose directory is not known
+# (_regtest_node_resolved) where <datadir> resolves, and any -datadir that
+# does not spell <datadir> (_regtest_datadir_given) where <datadir> neither
+# resolves nor is known not to exist (_absent).
 #
 # Where <datadir> resolves (_real_dir), a -datadir names it where it
 # resolves to the same directory, or to a path that spells <datadir>'s
@@ -507,7 +539,7 @@ _regtest_node_named() {
 # -datadir names it where it spells it, ignoring case and a trailing slash,
 # as a whole argument, so a node on a directory inside <datadir> does not
 # answer for it. Core refuses a -datadir that is not a directory, so where
-# <datadir> does not resolve, no node uses it under another name.
+# <datadir> does not exist, no node uses it under another name.
 #
 # Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
 # toward "running" costs a refusal, the other way a deleted datadir.
@@ -519,6 +551,8 @@ regtest_node_running_on() {
         _regtest_node_resolved "$real" "$procs"
         by_path=$?
         [ "$by_path" -eq 0 ] && return 0
+    elif ! _absent "$1"; then
+        _regtest_datadir_given "$procs" && by_path=2
     fi
     _regtest_node_named "$1" "$procs"
     by_name=$?
