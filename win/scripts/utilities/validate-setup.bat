@@ -120,6 +120,7 @@ if "%PRUNED%"=="0" if %FREE_GB% lss 700 (
     echo unpruned mainnet full sync needs 700GB; enable pruning,
     echo or use testnet/regtest, if this is not one.
 )
+
 :free_space_done
 
 echo Setup validation completed.

@@ -1100,6 +1100,11 @@
     "text": "set \"ROOTDIR=%PORTANODE_ROOT%\""
   },
   {
+    "code": "S020",
+    "file": "../win/scripts/root.bat",
+    "text": "echo PORTANODE_ROOT is set to \"%PORTANODE_ROOT%\", which is not a PortaNode folder: it holds no VERSION beside macos\\, win\\ or linux\\. Unset PORTANODE_ROOT, or set it to the folder. 1>&2"
+  },
+  {
     "code": "W004",
     "file": "../win/scripts/root.bat",
     "text": "goto :find_root"
@@ -1118,6 +1123,11 @@
     "code": "W061",
     "file": "../win/scripts/root.bat",
     "text": "pushd \"%SystemRoot%\\System32\" >nul 2>&1"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/clean-artifacts.bat",
+    "text": "powershell -NoProfile -Command \"& { $root = $env:ROOTDIR; $skip = @('bitcoin-datadir','electrum-datadir'); $paths = (Get-ChildItem -LiteralPath $root -Force -ErrorAction SilentlyContinue | Where-Object { $skip -notcontains $_.Name }).FullName; if ($paths) { Get-ChildItem -LiteralPath $paths -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq 'ehthumbs.db' -or $_.Name -eq 'Thumbs.db' -or $_.Name -like '*.stackdump' } | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue } } }\""
   },
   {
     "code": "W028",
@@ -1173,6 +1183,26 @@
     "code": "E047",
     "file": "../win/scripts/utilities/health-check.bat",
     "text": "for /f \"usebackq delims=\" %%J in (`powershell -NoProfile -Command \"& { try { & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\\bitcoin-datadir') getblockchaininfo 2>$null } catch { '' } }\"`) do set BTC_INFO=%%J"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\free-space-gb.ps1 -Path $env:ROOTDIR; exit $LASTEXITCODE\"`) do set FREE_GB=%%F"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "for /f \"usebackq delims=\" %%J in (`powershell -NoProfile -Command \"& { try { $info = & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\\bitcoin-datadir') getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { ([math]::Floor([decimal]$info.verificationprogress * 10000) / 100).ToString('F2', [cultureinfo]::InvariantCulture) } } catch { '' } }\"`) do set SYNC=%%J"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "for /f \"usebackq delims=\" %%J in (`powershell -NoProfile -Command \"& { try { & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\\bitcoin-datadir') getblockchaininfo 2>$null } catch { '' } }\"`) do set BTC_INFO=%%J"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/health-check.bat",
+    "text": "for /f \"usebackq delims=\" %%P in (`powershell -NoProfile -Command \"& { $p = Get-Process electrum -ErrorAction SilentlyContinue; if ($p) { $p | Select-Object -ExpandProperty Path } }\"`) do ("
   },
   {
     "code": "SEC009",
@@ -1298,6 +1328,61 @@
     "code": "E021",
     "file": "../win/scripts/utilities/lib.bat",
     "text": "if /i \"%RR_HEAD%\"==\"%RR_ROOT%\" call set \"RR_PATH=%%RR_PATH:~%RR_LEN%%%\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "echo Error: cannot tell whether %GUARD_NAME% is running: tasklist is missing or failed. Not %GUARD_DOING%."
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "for /f \"tokens=1 delims= \" %%L in ('tasklist /nh /fi \"imagename eq %~3\" 2^>nul ^&^& echo portanode-listed') do ("
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -Command \"& { $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:IV_FILE_FS -ErrorAction SilentlyContinue; if (-not $fh) { exit 0 } foreach ($l in (Get-Content -LiteralPath $env:IV_CHECKSUM)) { $w = $l.Trim() -split '\\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\\','/') -ieq $env:IV_ENTRY_ENTRY) { if ($l -match 'version=(\\S+)') { Write-Output $matches[1] } break } } }\"`) do set \"%IV_OUTVAR%=%%V\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "if not \"%FILEPATH_FS:~1,1%\"==\":\" if not \"%FILEPATH_FS:~0,1%\"==\"\\\" set \"FILEPATH_FS=%ROOTDIR%\\%FILEPATH_FS%\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "powershell -NoProfile -Command \"& { $file = $env:FILEPATH_FS; $version = $env:VERSION_LABEL; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { Write-Host 'Warning: win/checksums.sha256 not found; skipping.'; exit 0 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $file; if (-not $fh) { Write-Host ('Error: could not hash the source of ' + $env:FILEPATH_ENTRY + '; not appending to win/checksums.sha256.'); exit 1 } $hash = $fh.Hash.ToLower(); $entry = $hash + '  ' + $env:FILEPATH_ENTRY + '  version=' + $version; $existing = Get-Content -LiteralPath $checksum; if ($existing -notcontains $entry) { Add-Content -Encoding ASCII -LiteralPath $checksum -Value $entry } }\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "powershell -NoProfile -Command \"& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $q = [char]34; $p = Start-Process -FilePath 'cmd.exe' -ArgumentList ('/d /v:off /c gpg --batch --list-keys --with-colons > ' + $q + '%%WNP_ANSWER_FILE%%.out' + $q + ' 2> ' + $q + '%%WNP_ANSWER_FILE%%.err' + $q) -WindowStyle Hidden -PassThru; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { taskkill.exe /pid $p.Id /t /f }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }\" >nul 2>&1"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "powershell -NoProfile -Command \"& { $path = $env:CHECKPATH_ENTRY; $checksum = $env:CHECKSUM_FILE; if (-not (Test-Path -LiteralPath $checksum)) { exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath $env:FILEPATH_FS; if (-not $fh) { Write-Host ('Error: could not hash ' + $env:FILEPATH_REL + '.'); exit 1 } $found = $false; foreach ($l in (Get-Content -LiteralPath $checksum)) { $w = $l.Trim() -split '\\s+'; if ($w.Count -ge 2 -and $w[0] -ieq $fh.Hash -and $w[1].Replace('\\','/') -ieq $path) { $found = $true; break } } if (-not $found) { exit 1 } }\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "powershell -NoProfile -Command \"& { $src = $env:INS_SRC; $dest = $env:INS_DEST; $name = Split-Path -Leaf $dest; $want = Get-FileHash -Algorithm SHA256 -LiteralPath $src; if (-not $want) { Write-Host ('Error: cannot hash the source of ' + $name + '.'); exit 1 } foreach ($i in 1..5) { try { Copy-Item -LiteralPath $src -Destination $dest -Force -ErrorAction Stop } catch { Write-Host ('Error: copying ' + $name + ' failed: ' + $_.Exception.Message); exit 1 } $got = Get-FileHash -Algorithm SHA256 -LiteralPath $dest -ErrorAction SilentlyContinue; if ($got -and $got.Hash -eq $want.Hash) { exit 0 } Write-Host ('Warning: ' + $name + ' corrupted on write (attempt ' + $i + '/5); retrying...') } Write-Host ('Error: ' + $name + ' still corrupt after 5 attempts.'); Write-Host 'The destination filesystem may be unreliable.'; exit 1 }\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "powershell -NoProfile -Command \"& { try { $file = $env:PPK_FILE; %PIN_READER_PS%; if ($pins.Count -eq 0) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins no key -- verification would refuse ' + $env:PPK_WHAT + '.'); exit 0 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for -- verification would refuse ' + $env:PPK_WHAT + '.'); exit 0 }; foreach ($p in ($pins.Keys | Sort-Object)) { Write-Output ('Pinned key ' + $p + ' in ' + $env:PPK_NAME + '.') }; Write-Output ('Verification asks for ' + $min + ' good signature(s) from distinct pinned keys.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "powershell -NoProfile -Command \"& { try { if ([string]::IsNullOrEmpty($env:FPR_FILE)) { Write-Output ('Error: no file of pinned fingerprints given, so ' + $env:LABEL + ' is refused.'); exit 1 }; $file = $env:FPR_FILE; %PIN_READER_PS%; if ($pins.Count -eq 0) { Write-Output ('Error: ' + $name + ' pins no key, so ' + $env:LABEL + ' is refused.'); Write-Output 'Add to it the fingerprints of the signers you trust.'; exit 1 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('Error: ' + $name + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for, so ' + $env:LABEL + ' is refused.'); exit 1 }; $sigs = New-Object System.Collections.ArrayList; foreach ($line in [IO.File]::ReadAllLines($env:STATUS_FILE)) { $w = $line.Split(' '); if ($w.Count -lt 2 -or $w[0] -cne '[GNUPG:]') { continue }; if ($w[1] -ceq 'NEWSIG') { [void]$sigs.Add(@{ goods = 0; valids = 0; revoked = $false; gid = ''; sfpr = ''; primary = '' }); continue }; if ($sigs.Count -eq 0) { continue }; $s = $sigs[$sigs.Count - 1]; if ($w[1] -ceq 'GOODSIG') { $s['goods'] += 1; $s['gid'] = $w[2].ToUpperInvariant() } elseif ($w[1] -ceq 'VALIDSIG') { $s['valids'] += 1; $s['sfpr'] = $w[2].ToUpperInvariant(); if ($w.Count -gt 11) { $s['primary'] = $w[11].ToUpperInvariant() } } elseif ($w[1] -ceq 'REVKEYSIG' -or $w[1] -ceq 'KEYREVOKED') { $s['revoked'] = $true } }; $counted = @{}; foreach ($s in $sigs) { if ($s['goods'] -eq 1 -and $s['valids'] -eq 1 -and -not $s['revoked'] -and $s['gid'].Length -ge 16 -and $s['sfpr'].EndsWith($s['gid'], [StringComparison]::Ordinal) -and $pins.ContainsKey($s['primary'])) { $counted[$s['primary']] = $true } }; if ($counted.Count -lt [int]$min) { Write-Output ('Error: ' + $env:LABEL + ' carries good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; it asks for ' + $min + '.'); Write-Output 'A key counts once, and not at all where it is expired or revoked.'; exit 1 }; Write-Output ($env:LABEL + ': good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; ' + $min + ' required.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "set \"PIN_READER_PS=$name = [IO.Path]::GetFileName($file); $pins = @{}; $min = '1'; $minSet = $false; if (Test-Path -LiteralPath $file) { $bytes = [IO.File]::ReadAllBytes($file); if ($bytes -contains 0) { Write-Output ('Error: ' + $name + ' holds a NUL byte, as a UTF-16 file does.'); exit 1 }; $text = [Text.Encoding]::GetEncoding(28591).GetString($bytes); if ($text.StartsWith([string][char]0xEF + [char]0xBB + [char]0xBF, [StringComparison]::Ordinal)) { $text = $text.Substring(3) }; $n = 0; foreach ($l in ($text -split '\\r\\n|\\r|\\n')) { $n++; $f = $l -creplace '[ \\t\\v\\f]', ''; if ($f.Length -eq 0 -or $f.StartsWith('#', [StringComparison]::Ordinal)) { continue }; if ($f.StartsWith('min-signatures=', [StringComparison]::Ordinal)) { if ($minSet) { Write-Output ('Error: line ' + $n + ' of ' + $name + ' sets min-signatures a second time.'); exit 1 }; $min = $f.Substring(15); $minSet = $true; if ($min -cnotmatch '^[1-9][0-9]*$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' does not set min-signatures to a whole number from 1: ' + $f); exit 1 }; continue }; if ($f -cnotmatch '^[0-9A-Fa-f]{40}$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' is not a 40-hex fingerprint: ' + $f); exit 1 }; $pins[$f.ToUpperInvariant()] = $true } }\""
   },
   {
     "code": "SEC011",
@@ -1455,6 +1540,11 @@
     "text": "set \"LOG_FILE=%ROOTDIR%\\bitcoin-datadir\\debug.log\""
   },
   {
+    "code": "S020",
+    "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\monitor-bitcoin-log.ps1 -RootDir $env:ROOTDIR %NO_NOTIFY_ARG%; exit $LASTEXITCODE\""
+  },
+  {
     "code": "SEC009",
     "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
     "text": "powershell -NoProfile -ExecutionPolicy Bypass ^"
@@ -1513,6 +1603,41 @@
     "code": "E006",
     "file": "../win/scripts/utilities/rollback-bitcoin.bat",
     "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :installed_version \"%%BACKUP_DIR%%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%%CHECKSUM_FILE%%\" BACKUPVER"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :installed_version \"%%ROOTDIR%%\\win\\bin\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%%CHECKSUM_FILE%%\" CURRENTVER"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_checksum \"%%BACKUP_DIR%%\\bitcoin-cli.exe\" \"win/bin/bitcoin-cli.exe\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_checksum \"%%BACKUP_DIR%%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_checksum \"%%BACKUP_DIR%%\\bitcoin-tx.exe\" \"win/bin/bitcoin-tx.exe\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_checksum \"%%BACKUP_DIR%%\\bitcoin-util.exe\" \"win/bin/bitcoin-util.exe\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_checksum \"%%BACKUP_DIR%%\\bitcoin-wallet.exe\" \"win/bin/bitcoin-wallet.exe\""
   },
   {
     "code": "W028",
@@ -1640,6 +1765,16 @@
     "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
   },
   {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :installed_version \"%%BACKUP_DIR%%\\electrum.exe\" \"win/bin/electrum.exe\" \"%%CHECKSUM_FILE%%\" BACKUPVER"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rollback-electrum.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :installed_version \"%%ROOTDIR%%\\win\\bin\\electrum.exe\" \"win/bin/electrum.exe\" \"%%CHECKSUM_FILE%%\" CURRENTVER"
+  },
+  {
     "code": "W028",
     "file": "../win/scripts/utilities/rollback-electrum.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
@@ -1705,6 +1840,11 @@
     "text": "set \"LOG_FILE=%ROOTDIR%\\bitcoin-datadir\\debug.log\""
   },
   {
+    "code": "S020",
+    "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
+    "text": "powershell -NoProfile -Command \"& { try { Copy-Item -Force -LiteralPath $env:LOG_FILE -Destination ($env:LOG_FILE + '.1') -ErrorAction Stop } catch { Write-Host ('Error: copying bitcoin-datadir\\debug.log to debug.log.1 failed: ' + $_.Exception.Message); Write-Host 'debug.log was not rotated.'; exit 1 } try { Clear-Content -LiteralPath $env:LOG_FILE -ErrorAction Stop } catch { Write-Host ('Error: emptying bitcoin-datadir\\debug.log failed: ' + $_.Exception.Message); Write-Host 'Its content is also in debug.log.1.'; exit 1 } }\""
+  },
+  {
     "code": "W028",
     "file": "../win/scripts/utilities/rotate-bitcoin-log.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
@@ -1743,6 +1883,26 @@
     "code": "E010",
     "file": "../win/scripts/utilities/set-permissions.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\filesystem-type.ps1 -Path $env:TARGET; exit $LASTEXITCODE\"`) do set \"FS_NAME=%%F\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\set-datadir-acl.ps1 -Path $env:BDD -Account ($env:USERDOMAIN + '\\' + $env:USERNAME); exit $LASTEXITCODE\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\set-datadir-acl.ps1 -Path $env:EDD -Account ($env:USERDOMAIN + '\\' + $env:USERNAME); exit $LASTEXITCODE\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/set-permissions.bat",
+    "text": "powershell -NoProfile -Command \"& { try { $rules = [Security.AccessControl.DirectorySecurity]::new($env:TARGET, 'Access').GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]) } catch { exit 1 }; try { $sid = [Security.Principal.NTAccount]::new($env:USERDOMAIN + '\\' + $env:USERNAME).Translate([Security.Principal.SecurityIdentifier]) } catch { exit 3 }; $granted = 0; $other = 0; foreach ($r in $rules) { if ($r.IdentityReference.Equals($sid) -and -not $r.IsInherited -and $r.AccessControlType -eq 'Allow' -and $r.FileSystemRights -eq 'FullControl' -and $r.InheritanceFlags -eq 'ContainerInherit, ObjectInherit' -and $r.PropagationFlags -eq 'None') { $granted++ } else { $other++ } }; if ($granted -eq 0) { exit 3 }; if ($other -gt 0) { exit 4 }; exit 0 }\""
   },
   {
     "code": "SEC009",
@@ -1873,6 +2033,81 @@
     "code": "E010",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\compare-versions.ps1 -Installed $env:CURRENT -Requested $env:VERSION -Allow $env:ALLOW_DOWNGRADE; exit $LASTEXITCODE\"`) do set VERDICT=%%R"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\free-space-gb.ps1 -Path $env:ROOTDIR; exit $LASTEXITCODE\"`) do set FREE_GB=%%F"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\latest-bitcoin-version.ps1; exit $LASTEXITCODE\"`) do set VERSION=%%V"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :installed_version \"%%BIN_DIR%%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%%CHECKSUM_FILE%%\" CURRENT"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :preview_pinned_keys \"%%ROOTDIR%%\\keys\\bitcoin-core.fingerprints\" \"keys\\bitcoin-core.fingerprints\" \"the update\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\SHA256SUMS.asc\" \"%%TMPDIR%%\\SHA256SUMS\" \"SHA256SUMS\" \"%%ROOTDIR%%\\keys\\bitcoin-core.fingerprints\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "echo Refusing to install Bitcoin Core !VERSION!: it cannot be compared with the installed !CURRENT!."
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\bitcoin-%%VERSION%%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%%VERSION%%\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "for /f \"usebackq delims=\" %%G in (`powershell -NoProfile -Command \"[guid]::NewGuid().ToString('N')\"`) do set \"TMP_ID=%%G\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "for /f \"usebackq delims=\" %%L in (`powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; (& .\\fetch-https.ps1 -Uri $env:URL -Method Head -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }\"`) do set \"ARCHIVE_LEN=%%L\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -Command \"& { $want = @(); foreach ($l in (Get-Content -LiteralPath ($env:TMPDIR + '\\SHA256SUMS'))) { if ($l -match '^([0-9A-Fa-f]{64}) [ *](.+)$' -and $matches[2] -ceq $env:FILE) { $want += $matches[1] } } if ($want.Count -eq 0) { Write-Host 'Checksum entry not found.'; exit 1 } $fh = Get-FileHash -Algorithm SHA256 -LiteralPath ($env:TMPDIR + '\\' + $env:FILE); if (-not $fh) { Write-Host 'Checksum failed.'; exit 1 } foreach ($h in $want) { if (-not ($h -ieq $fh.Hash)) { Write-Host 'Checksum failed.'; exit 1 } } Write-Host ($env:FILE + ': OK') }\" || goto :error"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -Command \"& { try { Expand-Archive -Force -LiteralPath ($env:TMPDIR + '\\' + $env:FILE) -DestinationPath ($env:TMPDIR + '\\') -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:CHECKSUM_SIG_URL -OutFile ($env:TMPDIR + '\\SHA256SUMS.asc') } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\\SHA256SUMS') } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-bitcoin.bat",
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
   },
   {
     "code": "SEC009",
@@ -2215,6 +2450,61 @@
     "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\compare-versions.ps1 -Installed $env:CURRENT -Requested $env:VERSION -Allow $env:ALLOW_DOWNGRADE; exit $LASTEXITCODE\"`) do set VERDICT=%%R"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\free-space-gb.ps1 -Path $env:ROOTDIR; exit $LASTEXITCODE\"`) do set FREE_GB=%%F"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\latest-electrum-version.ps1; exit $LASTEXITCODE\"`) do set VERSION=%%V"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :installed_version \"%%BIN_DIR%%\\electrum.exe\" \"win/bin/electrum.exe\" \"%%CHECKSUM_FILE%%\" CURRENT"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :preview_pinned_keys \"%%ROOTDIR%%\\keys\\electrum.fingerprints\" \"keys\\electrum.fingerprints\" \"the download\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\%%FILE%%\" \"win/bin/electrum.exe\" \"%%VERSION%%\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\%%SIG_FILE%%\" \"%%TMPDIR%%\\%%FILE%%\" \"Electrum\" \"%%ROOTDIR%%\\keys\\electrum.fingerprints\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "for /f \"usebackq delims=\" %%G in (`powershell -NoProfile -Command \"[guid]::NewGuid().ToString('N')\"`) do set \"TMP_ID=%%G\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "for /f \"usebackq delims=\" %%L in (`powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; (& .\\fetch-https.ps1 -Uri $env:URL -Method Head -TimeoutSec 30).Headers['Content-Length'] } catch { '' } }\"`) do set \"ARCHIVE_LEN=%%L\""
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri $env:URL -OutFile ($env:TMPDIR + '\\' + $env:FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/update-electrum.bat",
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\fetch-https.ps1 -Uri ($env:URL + '.asc') -OutFile ($env:TMPDIR + '\\' + $env:SIG_FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }\" || goto :error"
+  },
+  {
     "code": "SEC009",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
@@ -2460,6 +2750,11 @@
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
+    "code": "S020",
+    "file": "../win/scripts/utilities/validate-setup.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\free-space-gb.ps1 -Path $env:ROOTDIR; exit $LASTEXITCODE\"`) do set FREE_GB=%%F"
+  },
+  {
     "code": "SEC009",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
@@ -2508,6 +2803,11 @@
     "code": "E006",
     "file": "../win/scripts/utilities/verify-binaries.bat",
     "text": "if not exist \"%ROOTDIR%\\%CHECKSUM_FILE%\" ("
+  },
+  {
+    "code": "S020",
+    "file": "../win/scripts/utilities/verify-binaries.bat",
+    "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\verify-binaries.ps1 -RootDir $env:ROOTDIR; exit $LASTEXITCODE\""
   },
   {
     "code": "SEC009",

@@ -61,8 +61,8 @@
 # Run it by hand, as above; reconsider it when it reads a `^`
 # continuation.
 #
-# PSScriptAnalyzer's default rules and Blinter's Error, Security and
-# Warning rules run in CI all the same, in
+# PSScriptAnalyzer's default rules and the Blinter rules the batch style
+# keeps run in CI all the same, in
 # .github/workflows/script-security.yml, and the costs above do not
 # stand in the way of that job. It runs Blinter unmodified and this tree
 # conveys none of it, and the AGPL "affirms your unlimited permission to

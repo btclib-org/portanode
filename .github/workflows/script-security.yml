@@ -1,10 +1,10 @@
 ---
 name: script-security
 
-# the default rules of PSScriptAnalyzer and the Error, Security and
-# Warning rules of Blinter, over every tracked .ps1 and .bat script: the
-# hooks lint.yml runs read these files as text, and .pre-commit-config.yaml's
-# header says why neither tool is a hook.
+# the default rules of PSScriptAnalyzer and the Blinter rules the batch
+# style keeps, over every tracked .ps1 and .bat script: the hooks lint.yml
+# runs read these files as text, and .pre-commit-config.yaml's header says
+# why neither tool is a hook.
 #
 # For PowerShell a finding of any severity fails the job, Information
 # included, since CONTRIBUTING.md's last section names that rule set at
@@ -17,8 +17,8 @@ name: script-security
 # it, and the job fails as well where Blinter read a number of files other
 # than the number git tracks, or where a tracked .bat or .cmd file holds a
 # LINT:IGNORE directive, which would silence a finding without an entry in
-# the baseline. Blinter's other rules stay by hand, as CONTRIBUTING.md's
-# last section says.
+# the baseline. CONTRIBUTING.md's last section names the batch style and
+# the rules it declines, which .github/blinter.ini turns off.
 #
 # It fails too on a byte in those files that is neither printable ASCII nor
 # ASCII whitespace, and on a CR not followed by LF. These two checks are
@@ -31,10 +31,10 @@ name: script-security
 # A Blinter finding that is no defect is accepted. .pre-commit-config.yaml's
 # header says why for the Error and Security rules, and
 # .github/blinter-reasons.md for the Warning rules, one section per rule.
-# .github/blinter-baseline.json records each accepted finding by rule code,
-# file and the text of the line, not its number, so an edit elsewhere in
-# the file does not move it. .github/blinter.ini limits Blinter to those
-# three severities.
+# The batch style in CONTRIBUTING.md's last section says what else is
+# accepted. .github/blinter-baseline.json records each accepted finding by
+# rule code, file and the text of the line, not its number, so an edit
+# elsewhere in the file does not move it.
 # Blinter fails on a finding the baseline does not hold, and on an entry no
 # finding matches. Blinter skips an entry whose file it did not read, so the
 # job fails on an entry whose file git does not track as well. The file is
