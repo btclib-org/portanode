@@ -189,12 +189,15 @@ other spelling of the path than one differing in case or in a trailing
 
 The mainnet launcher refuses to start while a mainnet node is running.
 It reads a node's flags as whole arguments, so a path holding
-`-regtest` is not the flag. On macOS and Linux a network flag read as
-true anywhere on the line selects that network, where Bitcoin Core reads
-only the last value, so `-testnet -testnet=0` can hide a mainnet node;
-a path with a space before a flag-shaped word still reads as the flag.
-On Windows the last value wins, as in Core (`node-args.ps1`). Bitcoin
-Core itself refuses a second node on one data directory.
+`-regtest` is not the flag. Like Bitcoin Core, it reads no flag after a
+lone `-`. On macOS and Linux a network flag read as true before a lone
+`-` selects that network, where Core reads only the last value, so
+`-testnet -testnet=0` can hide a mainnet node; a path with a space
+before a flag-shaped word still reads as the flag. There a node under
+`/Volumes/My - Drive` reads as one with no network flag, so the launcher
+refuses to start while it runs. On Windows the last value wins, as in
+Core (`node-args.ps1`). Bitcoin Core itself refuses a second node on one
+data directory.
 
 **Electrum and its servers.** The plain `mainnet` launcher uses
 Electrum's own server choice, and `mainnet-local-server-only` talks to a
