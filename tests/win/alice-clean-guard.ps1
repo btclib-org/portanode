@@ -53,8 +53,6 @@ $refused = @(
   @('bitcoin-qt', '-chain=regtest -datadir="{d}"'),
   @('bitcoind', '-datadir={d} -noregtest=0'),
   @('bitcoind', '-rpcpassword=a\" -regtest -datadir={d}'),
-  # Core up to v30.0 reads -regtest here, Core from v31.0 does not.
-  @('bitcoind', '-datadir={d} -rpcpassword="a"" -regtest'),
   # ISS 830: Core trims no U+00A0, so this is a double negative.
   @('bitcoind', ('-datadir={d} -noregtest=' + [char]0xA0 + '1')),
   # ISS 831: other spellings of the same -datadir.
@@ -70,6 +68,8 @@ $allowed = @(
   @('bitcoind', '-datadir={d} -regtest=0'),
   @('bitcoind', '-datadir={d} -uacomment=-chain=regtest'),
   @('bitcoind', '-datadir={d} -uacomment="a\" -regtest"'),
+  # "" inside a quoted run is a literal quote, so -regtest is in the value.
+  @('bitcoind', '-datadir={d} -rpcpassword="a"" -regtest'),
   @('bitcoind', '-datadir={d}\regtest_bob -chain=regtest'),
   @('bitcoin-qt', '-chain=regtest -datadir={d}\regtest_bob'),
   # ISS 826: Core reads no switch after a lone "-".
