@@ -297,6 +297,12 @@ process_running_with() {
 # value whose leading integer is not zero: "-regtest=2" is true, "-regtest=0"
 # and "-regtest=abc" are false. "-noflag" is false, and "-noflag=0" is true.
 # The network is a flag or "-chain=<name>", testnet3's name there being "test".
+#
+# Core reads no argument after a lone "-", and mainnet_node_running reads no
+# flag there either. A program path holding " - ", as /Volumes/My - Drive,
+# then reads as a node with no network flag. regtest_node_running_on reads
+# past a lone "-", so that such a path cannot hide a node from it. Both
+# readings err toward "running".
 
 # _line_has_arg <padded line> <argument>: 0 where the line holds <argument>
 # as a whole argument, in either dash form.
@@ -431,7 +437,7 @@ regtest_node_running_on() {
 # The network flags are read as whole arguments, so a node whose path holds
 # "-testnet" is still a mainnet node.
 #
-# A network flag read as true anywhere on the line selects that network, though
+# A network flag read as true before a lone "-" selects that network, though
 # Core reads only the last one, so a repeated flag can hide a mainnet node.
 mainnet_node_running() {
     local procs line pad net
@@ -445,6 +451,7 @@ mainnet_node_running() {
             *) continue ;;
         esac
         pad=" $line "
+        pad="${pad%%" - "*} "
         for net in "${nets[@]}"; do
             if _line_selects_network "$pad" "${net%%:*}" "${net##*:}"; then
                 continue 2

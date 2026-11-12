@@ -53,10 +53,16 @@ for args in \
     "--chain=regtest --datadir=$D" \
     "-uacomment=x -regtest -rpcport=1 -datadir=$D -listen=0" \
     "-datadir=$D/ -regtest" \
-    "-DATADIR=$D -REGTEST"; do
+    "-DATADIR=$D -REGTEST" \
+    "-datadir=$D - -regtest"; do
     PROCS="$BIN $args"$'\n'
     check "regtest node found: $args" answers 0 regtest_node_running_on "$D"
 done
+
+# ISS 885: the regtest guard reads past a lone "-", where Core stops, so that
+# a program path holding " - " cannot hide a regtest node from it.
+PROCS="/Volumes/My - Drive/portanode/macos/bin/bitcoind -regtest -datadir=$D"$'\n'
+check "regtest node found under /Volumes/My - Drive" answers 0 regtest_node_running_on "$D"
 
 PROCS="/usr/bin/bitcoind -regtest -datadir=$D"$'\n'
 check "bitcoind found" answers 0 regtest_node_running_on "$D"
@@ -98,6 +104,9 @@ for args in \
     "-chain=testnet" \
     "-chain=testnet3" \
     "-datadir=$D" \
+    "-datadir=/d - -regtest" \
+    "- -testnet" \
+    "- -chain=signet" \
     ""; do
     PROCS="$BIN $args"$'\n'
     check "mainnet node found: $args" answers 0 mainnet_node_running
@@ -120,6 +129,7 @@ for args in \
     "-chain=regtest" \
     "-chain=signet" \
     "-datadir=/Volumes/btc-testnet-old -regtest" \
+    "-regtest - -x" \
     "-REGTEST"; do
     PROCS="$BIN $args"$'\n'
     check "mainnet node not found: $args" answers 1 mainnet_node_running
@@ -145,6 +155,12 @@ done
 # a false alarm, on the safe side.
 PROCS=$'/bin/bash /Volumes/Bitcoin-Qt Drive/portanode/linux/scripts/bitcoin/mainnet-8333-qt.sh\n'
 check "mainnet node found under /Volumes/Bitcoin-Qt Drive" answers 0 mainnet_node_running
+
+# ISS 885: the mainnet check reads no flag after a lone "-", as Core reads
+# none. A program path holding " - " then reads as a node with no network
+# flag: a false alarm, on the safe side.
+PROCS=$'/Volumes/My - Drive/portanode/macos/bin/bitcoind -regtest\n'
+check "mainnet node found under /Volumes/My - Drive" answers 0 mainnet_node_running
 
 # A process list that cannot be read answers 2 and not "no node".
 _process_args() {
