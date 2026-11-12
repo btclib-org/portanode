@@ -6,7 +6,10 @@
 # The Bob and Carol macOS/Linux regtest launchers must stop when their
 # datadir cannot be created, before any Bitcoin Core binary is started.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -22,7 +25,7 @@ mkdir -p "$ROOT/linux/bin" "$ROOT/macos/bin/Bitcoin-Qt.app/Contents/MacOS" "$ROO
 touch "$ROOT/VERSION"
 : > "$ROOT/bitcoin-datadir"
 
-cat > "$TMP/bitcoin-binary" <<'EOF'
+cat > "$TMP/bitcoin-binary" << 'EOF'
 #!/bin/sh
 printf '%s\n' "$0" >> "$PORTANODE_TEST_STARTS"
 EOF
@@ -36,15 +39,15 @@ cp "$TMP/bitcoin-binary" "$ROOT/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-
 
 # Clean launchers delete their datadir before recreating it. Keep the blocker
 # in place while letting that earlier step pass, so the test reaches mkdir.
-cat > "$STUBS/rm" <<'EOF'
+cat > "$STUBS/rm" << 'EOF'
 #!/bin/sh
 exit 0
 EOF
-cat > "$STUBS/ps" <<'EOF'
+cat > "$STUBS/ps" << 'EOF'
 #!/bin/sh
 printf 'unrelated-process\n'
 EOF
-cat > "$STUBS/grep" <<'EOF'
+cat > "$STUBS/grep" << 'EOF'
 #!/bin/sh
 exit 1
 EOF
@@ -72,11 +75,11 @@ launchers=(
 run_launcher() {
     local input="$1" launcher="$2" started="$3" path="$PATH" output status
     case "$launcher" in *-clean*) path="$STUBS:$PATH" ;; esac
-    output="$(printf '%b' "$input" | \
-        PORTANODE_ROOT="$ROOT" \
-        PORTANODE_TEST_STARTS="$started" \
-        PATH="$path" \
-        "$BASH" "$REPO/$launcher" 2>&1)"
+    output="$(printf '%b' "$input" \
+        | PORTANODE_ROOT="$ROOT" \
+            PORTANODE_TEST_STARTS="$started" \
+            PATH="$path" \
+            "$BASH" "$REPO/$launcher" 2>&1)"
     status=$?
     printf '%s\nexit %s\n' "$output" "$status"
 }
@@ -94,7 +97,7 @@ for launcher in "${launchers[@]}"; do
     check "$name reports a datadir creation error" \
         contains "$output" "Error: could not create $datadir"
     check "$name exits 1 when the datadir cannot be created" \
-        same "exit 1" "$(tail -n 1 <<<"$output")"
+        same "exit 1" "$(tail -n 1 <<< "$output")"
     if [ -e "$started" ]; then
         check "$name does not start Bitcoin Core after the creation error" \
             same absent present

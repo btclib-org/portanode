@@ -8,7 +8,10 @@
 # tree with a PATH of its own. bitcoin-cli, jq and pgrep are stand-ins, and bc
 # is the machine's where it has one.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -60,7 +63,7 @@ with_bc() {
     cp -PR "$NO_BC"/. "$dir/"
     if [ -n "${2:-}" ]; then
         stand_in "$dir" bc "$2"
-    elif command -v bc >/dev/null 2>&1; then
+    elif command -v bc > /dev/null 2>&1; then
         ln -s "$(command -v bc)" "$dir/bc"
     else
         stand_in "$dir" bc "LC_ALL=C exec awk '{ printf \"%.4f\\n\", \$1 * \$3 }'"
@@ -79,7 +82,7 @@ BC_PARTIAL="$(with_bc bc-partial 'echo 50; exit 1')"
 comma_locale() {
     local loc
     for loc in it_IT.UTF-8 de_DE.UTF-8; do
-        if [ "$(LC_ALL=$loc "$BASH" -c 'printf "%.1f" 1' 2>/dev/null)" = "1,0" ]; then
+        if [ "$(LC_ALL=$loc "$BASH" -c 'printf "%.1f" 1' 2> /dev/null)" = "1,0" ]; then
             printf '%s\n' "$loc"
             return 0
         fi
@@ -98,13 +101,13 @@ health_check() {
 reads() {
     local want="$1" out
     shift
-    out="$(health_check "$@" 2>/dev/null)"
+    out="$(health_check "$@" 2> /dev/null)"
     same "Bitcoin sync: $want" "$(printf '%s\n' "$out" | grep '^Bitcoin sync')"
 }
 
 # says_nothing <platform> <path> <progress> <locale>: stderr is empty.
 says_nothing() {
-    same "" "$(health_check "$@" 2>&1 >/dev/null)"
+    same "" "$(health_check "$@" 2>&1 > /dev/null)"
 }
 
 # Where the machine has no such locale, one is built for this file. glibc
@@ -112,8 +115,8 @@ says_nothing() {
 if ! COMMA="$(comma_locale)"; then
     export LOCPATH="$TMP/locales"
     mkdir -p "$LOCPATH"
-    if command -v localedef >/dev/null 2>&1; then
-        localedef -i it_IT -f UTF-8 "$LOCPATH/it_IT.UTF-8" >/dev/null 2>&1
+    if command -v localedef > /dev/null 2>&1; then
+        localedef -i it_IT -f UTF-8 "$LOCPATH/it_IT.UTF-8" > /dev/null 2>&1
     fi
     COMMA="$(comma_locale)" || COMMA=""
 fi

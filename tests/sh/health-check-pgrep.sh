@@ -9,7 +9,10 @@
 # are stand-ins, so that no process of this machine decides a case, except in
 # the cases under bitcoind-usb at the end.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -78,7 +81,7 @@ health_check() {
 # prints <platform> <path> <line>...: the health-check prints each line whole.
 prints() {
     local out line
-    out="$(health_check "$1" "$2" 2>/dev/null)"
+    out="$(health_check "$1" "$2" 2> /dev/null)"
     shift 2
     for line in "$@"; do
         printf '%s\n' "$out" | grep -qxF "$line" && continue
@@ -89,7 +92,7 @@ prints() {
 
 # says_nothing <platform> <path>: stderr is empty.
 says_nothing() {
-    same "" "$(health_check "$1" "$2" 2>&1 >/dev/null)"
+    same "" "$(health_check "$1" "$2" 2>&1 > /dev/null)"
 }
 
 for platform in linux macos; do
@@ -146,7 +149,7 @@ for platform in linux macos; do
             "Bitcoin running: unknown (pgrep or ps failed)" \
             "Bitcoin sync: unknown" \
             "Electrum running: unknown (pgrep or ps failed)"
-    done <<EOF
+    done << EOF
 $PGREP_FAILS a pgrep that fails
 $PGREP_FAILS3 a pgrep that fails with status 3
 $BUSYBOX a pgrep that refuses -i
@@ -207,7 +210,11 @@ if [ -z "$platform" ]; then
     echo "ok - skipped: the cases under bitcoind-usb (neither macOS nor Linux)"
 elif ! command -v pgrep > /dev/null; then
     echo "ok - skipped: the cases under bitcoind-usb (pgrep not found)"
-elif hold_node_lock; lock_rc=$?; [ "$lock_rc" -ne 0 ]; then
+elif
+    hold_node_lock
+    lock_rc=$?
+    [ "$lock_rc" -ne 0 ]
+then
     case "$lock_rc" in
         1) why="another run held $NODE_LOCK for five minutes" ;;
         2) why="$NODE_LOCK cannot be opened" ;;
@@ -226,7 +233,7 @@ else
     if outside_match; then
         echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"
     else
-        out="$(health_check "$platform" "$REAL" 2>/dev/null)"
+        out="$(health_check "$platform" "$REAL" 2> /dev/null)"
         if outside_match; then
             echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"
         else
@@ -242,7 +249,7 @@ else
     node=$!
     out=""
     if node_listed "$node" "$BTC_PATTERN"; then
-        out="$(health_check "$platform" "$REAL" 2>/dev/null)"
+        out="$(health_check "$platform" "$REAL" 2> /dev/null)"
     fi
     kill "$node"
     wait "$node" 2> /dev/null

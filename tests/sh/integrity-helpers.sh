@@ -10,7 +10,10 @@
 # skipped off macOS. The file has no shebang and no executable bit.
 set -euo pipefail
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -22,7 +25,10 @@ T="$(mktemp -d "${TMPDIR:-/tmp}/portanode-integrity-test.XXXXXX")"
 trap 'chmod -R u+rwX "${T:?}" 2>/dev/null; rm -rf "${T:?}"' EXIT
 
 pass() { echo "ok - $1"; }
-fail() { echo "not ok - $1"; TESTS_FAILED=$((TESTS_FAILED + 1)); }
+fail() {
+    echo "not ok - $1"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+}
 skip() { echo "ok - SKIP: $1"; }
 
 # run_expect WANT COMMAND...: WANT is "ok" for exit status 0 and "refused"
@@ -32,8 +38,8 @@ run_expect() {
     local want="$1" rc=0
     shift
     "$@" > "$T/out" 2>&1 || rc=$?
-    if { [ "$want" = ok ] && [ "$rc" -eq 0 ]; } ||
-       { [ "$want" = refused ] && [ "$rc" -ne 0 ]; }; then
+    if { [ "$want" = ok ] && [ "$rc" -eq 0 ]; } \
+        || { [ "$want" = refused ] && [ "$rc" -ne 0 ]; }; then
         return 0
     fi
     echo "  exit $rc"
@@ -59,7 +65,10 @@ printf 'app' > "$S/a.zip"
 printf 'other' > "$S/xa.zip"
 line() { printf '%s  %s\n' "$(sha "$S/$1")" "$2"; }
 
-{ line a.zip a.zip; line b.tar.gz b.tar.gz; } > "$S/both"
+{
+    line a.zip a.zip
+    line b.tar.gz b.tar.gz
+} > "$S/both"
 expect ok "verify_sha256sums passes two names each listed once" \
     verify_sha256sums "$S" both a.zip b.tar.gz
 
@@ -67,15 +76,25 @@ line b.tar.gz b.tar.gz > "$S/one"
 expect refused "verify_sha256sums refuses a name SHA256SUMS does not list" \
     verify_sha256sums "$S" one a.zip b.tar.gz
 
-{ line xa.zip xa.zip; line b.tar.gz b.tar.gz; } > "$S/substring"
+{
+    line xa.zip xa.zip
+    line b.tar.gz b.tar.gz
+} > "$S/substring"
 expect refused "verify_sha256sums refuses a name listed only inside another" \
     verify_sha256sums "$S" substring a.zip b.tar.gz
 
-{ line a.zip a.zip; line a.zip a.zip; line b.tar.gz b.tar.gz; } > "$S/twice"
+{
+    line a.zip a.zip
+    line a.zip a.zip
+    line b.tar.gz b.tar.gz
+} > "$S/twice"
 expect refused "verify_sha256sums refuses a name listed twice" \
     verify_sha256sums "$S" twice a.zip b.tar.gz
 
-{ line xa.zip a.zip; line b.tar.gz b.tar.gz; } > "$S/wrong"
+{
+    line xa.zip a.zip
+    line b.tar.gz b.tar.gz
+} > "$S/wrong"
 expect refused "verify_sha256sums refuses a listed name whose hash differs" \
     verify_sha256sums "$S" wrong a.zip b.tar.gz
 
@@ -141,8 +160,11 @@ if [ "$(id -u)" -eq 0 ]; then
 else
     chmod 000 "$B/Contents/Resources/other.py"
     # shellcheck disable=SC2329 # run through check, as "$@"
-    unreadable() { local h rc=0; h="$(tree_hash "$1")" || rc=$?; \
-        [ "$rc" -ne 0 ] && [ -z "$h" ]; }
+    unreadable() {
+        local h rc=0
+        h="$(tree_hash "$1")" || rc=$?
+        [ "$rc" -ne 0 ] && [ -z "$h" ]
+    }
     expect ok "tree_hash prints nothing and fails on an unreadable file" \
         unreadable "$B"
     # Under the updaters' set -euo pipefail, with each bash at hand (macOS's
@@ -150,7 +172,7 @@ else
     # stderr holds shasum's or sha256sum's refusal and nothing else.
     # A file and not -c: kcov's PS4 reads BASH_SOURCE, which a -c shell leaves
     # unset, and under set -eu that ends the shell at its first traced line.
-    cat > "$T/tree-hash-refusal.sh" <<'EOF'
+    cat > "$T/tree-hash-refusal.sh" << 'EOF'
 set -euo pipefail
 . "$1"
 tree_hash "$2"
@@ -161,8 +183,8 @@ EOF
         td="$(mktemp -d "$T/tmpdir.XXXXXX")"
         out="$(TMPDIR="$td" "$sh" "$T/tree-hash-refusal.sh" \
             "$REPO/shared/utilities/lib.sh" "$B" 2>&1)" || rc=$?
-        [ "$rc" -ne 0 ] && [ -z "$(ls -A "$td")" ] &&
-            ! printf '%s\n' "$out" | grep -qv 'Permission denied'
+        [ "$rc" -ne 0 ] && [ -z "$(ls -A "$td")" ] \
+            && ! printf '%s\n' "$out" | grep -qv 'Permission denied'
     }
     for sh in $(printf '%s\n' "$BASH" /bin/bash | sort -u); do
         [ -x "$sh" ] || continue
@@ -222,11 +244,11 @@ rollback() {
         > "$T/out" 2>&1 || rc=$?
     if grep -q 'is running\. Stop it' "$T/out"; then
         skip "$what ($name is running here)"
-    elif [ "$want" = ok ] && [ "$rc" -eq 0 ] &&
-         grep -q 'checksum recognized' "$T/out"; then
+    elif [ "$want" = ok ] && [ "$rc" -eq 0 ] \
+        && grep -q 'checksum recognized' "$T/out"; then
         pass "$what"
-    elif [ "$want" = refused ] && [ "$rc" -ne 0 ] &&
-         grep -q 'checksum is not recognized' "$T/out"; then
+    elif [ "$want" = refused ] && [ "$rc" -ne 0 ] \
+        && grep -q 'checksum is not recognized' "$T/out"; then
         pass "$what"
     else
         fail "$what (exit $rc)"

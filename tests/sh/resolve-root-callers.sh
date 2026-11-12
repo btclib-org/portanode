@@ -10,7 +10,10 @@
 
 set -u
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -76,12 +79,18 @@ expect_refused "PORTANODE_ROOT naming a file" "$TMP/good/VERSION"
 # Unset or empty, the walk runs: a root above start_dir is found, and
 # with none above it start_dir comes back.
 check "unset PORTANODE_ROOT walks to the root above" \
-    same "$walk" "$(unset PORTANODE_ROOT; resolve_root "$TMP/walk/x/y")"
+    same "$walk" "$(
+        unset PORTANODE_ROOT
+        resolve_root "$TMP/walk/x/y"
+    )"
 check "empty PORTANODE_ROOT walks to the root above" \
     same "$walk" "$(PORTANODE_ROOT='' resolve_root "$TMP/walk/x/y")"
 nested="$(cd "$TMP/nested/a/b" && pwd -P)"
 check "with no root above, the walk returns start_dir" \
-    same "$nested" "$(unset PORTANODE_ROOT; resolve_root "$TMP/nested/a/b")"
+    same "$nested" "$(
+        unset PORTANODE_ROOT
+        resolve_root "$TMP/nested/a/b"
+    )"
 
 # Every script that calls resolve_root stops on a refused PORTANODE_ROOT
 # before it prints a ROOTDIR or builds a path on it. Each runs as a user

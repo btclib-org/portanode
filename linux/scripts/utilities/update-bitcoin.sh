@@ -8,7 +8,10 @@ set -euo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
@@ -34,7 +37,7 @@ while [ $# -gt 0 ]; do
             ;;
         *)
             echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" \
-              "[--allow-downgrade]" >&2
+                "[--allow-downgrade]" >&2
             exit 1
             ;;
     esac
@@ -56,7 +59,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             ;;
         *)
             echo "Unsupported architecture: $ARCH" \
-                 "(bitcoincore.org ships x86_64 and aarch64 for Linux)."
+                "(bitcoincore.org ships x86_64 and aarch64 for Linux)."
             exit 1
             ;;
     esac
@@ -103,18 +106,18 @@ else
     # and a fixed exit 1 in place of curl's own status. The candidate
     # probe below is where the silence is real: -fsIL carries no -S.
     INDEX_HTML="$(curl_https -fsSL --max-time 300 -H "User-Agent: PortaNode" \
-      https://bitcoincore.org/bin/)" || {
+        https://bitcoincore.org/bin/)" || {
         echo "Failed to fetch the release index from bitcoincore.org" \
-             "(curl --max-time 300)."
+            "(curl --max-time 300)."
         exit 1
     }
     # grep exits 1 where no line is left, which under pipefail would end the
     # run before the message below that names the publisher.
     CANDIDATES="$(
-      echo "$INDEX_HTML" \
-        | sed -nE 's/.*href="bitcoin-core-([0-9]+\.[0-9]+(\.[0-9]+)?)\/".*/\1/p' \
-        | { grep -vE '^0\.' || true; } \
-        | sort -t. -k1,1nr -k2,2nr -k3,3nr
+        echo "$INDEX_HTML" \
+            | sed -nE 's/.*href="bitcoin-core-([0-9]+\.[0-9]+(\.[0-9]+)?)\/".*/\1/p' \
+            | { grep -vE '^0\.' || true; } \
+            | sort -t. -k1,1nr -k2,2nr -k3,3nr
     )"
     VERSION=""
     for candidate in $CANDIDATES; do
@@ -134,14 +137,14 @@ else
             break
         elif [ "$curl_rc" -eq 28 ]; then
             echo "Skipping ${candidate}: bitcoincore.org did not answer" \
-                 "within 30 seconds."
+                "within 30 seconds."
         else
             echo "Skipping ${candidate} (no ${ARCH_TAG}-${OS} archive published)."
         fi
     done
     if [ -z "$VERSION" ]; then
         echo "Failed to find a Bitcoin Core release with a" \
-             "${ARCH_TAG}-${OS} archive on bitcoincore.org."
+            "${ARCH_TAG}-${OS} archive on bitcoincore.org."
         exit 1
     fi
     FILE="$(release_file "$VERSION")"
@@ -149,11 +152,11 @@ else
 fi
 
 CURRENT="$(installed_version \
-  "$BIN_DIR/bitcoin-qt" \
-  "linux/bin/bitcoin-qt" \
-  "$ROOTDIR/linux/checksums.sha256")"
+    "$BIN_DIR/bitcoin-qt" \
+    "linux/bin/bitcoin-qt" \
+    "$ROOTDIR/linux/checksums.sha256")"
 refuse_downgrade "$CURRENT" "$VERSION" "$ALLOW_DOWNGRADE" "Bitcoin Core" \
-  || exit 1
+    || exit 1
 
 # Prevent updates while running. pgrep on the runner images this targets is
 # GNU procps, whose -f/-i mean the same as the BSD pgrep update-bitcoin.sh
@@ -168,29 +171,29 @@ CHECKSUM_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/SHA256SUMS"
 # shellcheck disable=SC2140 # a line continuation building one URL, not the
 # "A"B"C" concatenation shellcheck reads it as -- see update-bitcoin.sh
 # (macOS), which disables the same false positive for the same reason.
-CHECKSUM_SIG_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/"\
-"SHA256SUMS.asc"
+CHECKSUM_SIG_URL="https://bitcoincore.org/bin/bitcoin-core-${VERSION}/""\
+SHA256SUMS.asc"
 
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "--dry-run: nothing will be downloaded, verified or installed."
     echo "Would install Bitcoin Core ${VERSION} (currently installed: ${CURRENT})."
     echo "Would fetch: $URL"
     echo "Would verify against: $CHECKSUM_URL (signed by $CHECKSUM_SIG_URL)"
-    if command -v gpg >/dev/null 2>&1; then
+    if command -v gpg > /dev/null 2>&1; then
         # grep -c exits 1 when it counts zero, which under pipefail makes
         # this assignment's own status 1 -- an empty keyring is exactly
         # the case the warning below exists for, and set -e would end the
         # script here instead of reaching it. The count itself is still
         # correct: grep already printed "0" into the substitution before
         # exiting non-zero, so the fallback only restates it.
-        PUBKEYS="$(gpg --list-keys --with-colons 2>/dev/null | grep -c '^pub')" \
-          || PUBKEYS=0
+        PUBKEYS="$(gpg --list-keys --with-colons 2> /dev/null | grep -c '^pub')" \
+            || PUBKEYS=0
         echo "gpg: found, ${PUBKEYS} public key(s) in the local keyring."
         if [ "$PUBKEYS" -eq 0 ]; then
             echo "Warning: with none imported, verification would fail closed."
         fi
         preview_pinned_keys "$ROOTDIR/keys/bitcoin-core.fingerprints" \
-          "keys/bitcoin-core.fingerprints" "the update"
+            "keys/bitcoin-core.fingerprints" "the update"
     else
         echo "gpg: not found -- verification would fail closed."
     fi
@@ -206,12 +209,12 @@ if [ "$DRY_RUN" -eq 1 ]; then
     # connection -- otherwise ends the run at this assignment, with the
     # free-space line below unreached.
     ARCHIVE_LEN="$(curl_https -fsIL --max-time 30 "$URL" \
-      | tr -d '\r' \
-      | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
-      || ARCHIVE_LEN=""
+        | tr -d '\r' \
+        | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
+        || ARCHIVE_LEN=""
     if [ -n "$ARCHIVE_LEN" ]; then
         echo "Archive size: $((ARCHIVE_LEN / 1024 / 1024)) MB" \
-             "(downloaded to local temp storage, not the removable disk)."
+            "(downloaded to local temp storage, not the removable disk)."
     else
         # Printed rather than the block falling silent: with no line at
         # all, an estimate that could not be made reads the same as one
@@ -223,7 +226,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
         # in its own message, printing only where curl exits 28 -- the
         # status curl returns when the time-out period is reached.
         echo "Archive size: unknown (the HEAD request returned no" \
-             "Content-Length)."
+            "Content-Length)."
     fi
     df -h "$ROOTDIR" | awk -v r="$ROOTDIR" 'NR==2 {print "Free space at " r ": " $4}'
     exit 0
@@ -249,10 +252,10 @@ curl_https -fL -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 # Verify (fails closed). Same fingerprints file as the other two platforms,
 # so this is no new trust decision.
 if ! pgp_verify_or_fail \
-  "$TMP_DIR/SHA256SUMS.asc" \
-  "$TMP_DIR/SHA256SUMS" \
-  "SHA256SUMS" \
-  "$ROOTDIR/keys/bitcoin-core.fingerprints"; then
+    "$TMP_DIR/SHA256SUMS.asc" \
+    "$TMP_DIR/SHA256SUMS" \
+    "SHA256SUMS" \
+    "$ROOTDIR/keys/bitcoin-core.fingerprints"; then
     exit 1
 fi
 if ! verify_sha256sums "$TMP_DIR" SHA256SUMS "$FILE"; then
@@ -275,7 +278,7 @@ done
 
 for b in $BIN_NAMES; do
     update_checksum "$TMP_BIN_DIR/$b" "linux/bin/$b" "$VERSION" \
-      "$ROOTDIR/linux/checksums.sha256"
+        "$ROOTDIR/linux/checksums.sha256"
 done
 
 # Replace binaries. Everything below copies from the local temp dir onto
@@ -309,7 +312,7 @@ echo "Verifying installed binaries against checksums.sha256..."
 vfail=0
 for b in $BIN_NAMES; do
     verify_checksum_entry "$BIN_DIR/$b" "linux/bin/$b" \
-      "$ROOTDIR/linux/checksums.sha256" "$b" || vfail=1
+        "$ROOTDIR/linux/checksums.sha256" "$b" || vfail=1
 done
 if [ "$vfail" -ne 0 ]; then
     echo "Error: post-install verification failed (filesystem corruption?)."

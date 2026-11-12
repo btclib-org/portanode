@@ -7,7 +7,10 @@
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -43,16 +46,16 @@ echo "Cleaning artifacts..."
 # too. -delete is avoided for the reason that holds here as well: it
 # implies -depth, which turns -prune off.
 cd "$ROOTDIR" || exit 1
-PRUNE_DATADIRS=( \( -path ./bitcoin-datadir -o -path ./electrum-datadir \) \
-                 -prune -o )
+PRUNE_DATADIRS=(\( -path ./bitcoin-datadir -o -path ./electrum-datadir \)
+    -prune -o)
 
 find . "${PRUNE_DATADIRS[@]}" -name ".goutputstream-*" -type f \
-  -exec rm -f {} +
+    -exec rm -f {} +
 find . "${PRUNE_DATADIRS[@]}" -name ".Trash" -type d \
-  -exec rm -rf {} + \
-  2>/dev/null || true
+    -exec rm -rf {} + \
+    2> /dev/null || true
 find . "${PRUNE_DATADIRS[@]}" -name ".Trash-*" -type d \
-  -exec rm -rf {} + \
-  2>/dev/null || true
+    -exec rm -rf {} + \
+    2> /dev/null || true
 
 echo "Cleanup complete."

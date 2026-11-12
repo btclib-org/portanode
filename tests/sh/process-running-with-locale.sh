@@ -11,7 +11,10 @@
 
 set -u
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -85,7 +88,7 @@ ASCII_DIR="${ASCII_ARG#-datadir=}"
 hold_node_lock || true
 # The "; :" keeps bash from replacing itself with sleep, which would drop
 # the arguments from the command line.
-"$BASH" -c 'sleep 60; :' bitcoind -regtest "$ARG" "$ASCII_ARG" 2>/dev/null &
+"$BASH" -c 'sleep 60; :' bitcoind -regtest "$ARG" "$ASCII_ARG" 2> /dev/null &
 CHILD=$!
 trap 'pkill -P "$CHILD" 2>/dev/null; kill "$CHILD" 2>/dev/null' EXIT
 

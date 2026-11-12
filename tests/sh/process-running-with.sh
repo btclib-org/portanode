@@ -5,7 +5,10 @@
 # shellcheck shell=bash
 # process_running_with, in shared/lib.sh.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -18,14 +21,14 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # the "; :" keeps bash from replacing itself with sleep, which would drop
 # the marker from the command line.
 MARKER="portanode-test-$$-(a+[b"
-"$BASH" -c 'sleep 60; :' "$MARKER" 2>/dev/null &
+"$BASH" -c 'sleep 60; :' "$MARKER" 2> /dev/null &
 CHILD=$!
 trap 'pkill -P "$CHILD" 2>/dev/null; kill "$CHILD" 2>/dev/null' EXIT
 
 # ps lists the child once it has started; this waits up to five seconds.
 for _ in 1 2 3 4 5 6 7 8 9 10; do
     procs="$(ps -A -ww -o args=)"
-    grep -q -F -e "$MARKER" <<<"$procs" && break
+    grep -q -F -e "$MARKER" <<< "$procs" && break
     sleep 0.5
 done
 

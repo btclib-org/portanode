@@ -8,7 +8,10 @@ set -euo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=macos/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
@@ -58,31 +61,31 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         # gives beside its own check.
         rc=0
         verify_checksum_entry \
-          "$BACKUP_DIR/Electrum.app" \
-          "macos/bin/Electrum.app" \
-          "$CHECKSUM_FILE" \
-          "backup" || rc=$?
+            "$BACKUP_DIR/Electrum.app" \
+            "macos/bin/Electrum.app" \
+            "$CHECKSUM_FILE" \
+            "backup" || rc=$?
         if [ "$rc" -ne 0 ]; then
             if [ "$rc" -eq 1 ]; then
                 echo "Error: the backup's checksum is not recognized: no" \
-                     "macos/bin/Electrum.app entry in" \
-                     "macos/checksums.sha256 matches it."
+                    "macos/bin/Electrum.app entry in" \
+                    "macos/checksums.sha256 matches it."
             fi
             exit 1
         fi
 
         if [ "$DRY_RUN" -eq 1 ]; then
             BACKUP_VERSION="$(installed_version "$BACKUP_BIN" \
-              "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-              "$CHECKSUM_FILE")"
+                "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+                "$CHECKSUM_FILE")"
             CURRENT_VERSION="$(installed_version \
-              "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-              "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-              "$CHECKSUM_FILE")"
+                "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+                "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+                "$CHECKSUM_FILE")"
             echo "--dry-run: nothing will be changed."
             echo "Backup found in macos/bin/backup/electrum, checksum" \
-                 "recognized:" \
-                 "version ${BACKUP_VERSION}."
+                "recognized:" \
+                "version ${BACKUP_VERSION}."
             echo "Currently installed: ${CURRENT_VERSION}."
             echo "Would replace macos/bin/Electrum.app with the backup."
             exit 0
@@ -108,15 +111,15 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         fi
         if ! mv "$BACKUP_DIR/Electrum.app" "$APP"; then
             echo "Error: restoring macos/bin/Electrum.app from the backup" \
-                 "failed."
+                "failed."
             if [ -n "$OUTGOING" ]; then
                 if mv "$OUTGOING" "$APP"; then
                     echo "macos/bin/Electrum.app is the version that was" \
-                         "installed, and the backup is untouched."
+                        "installed, and the backup is untouched."
                 else
                     echo "The version that was installed is at" \
-                         "${OUTGOING#"$ROOTDIR"/} and has to be moved back" \
-                         "by hand."
+                        "${OUTGOING#"$ROOTDIR"/} and has to be moved back" \
+                        "by hand."
                 fi
             fi
             exit 1
@@ -124,7 +127,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         if [ -n "$OUTGOING" ]; then
             rm -rf "${OUTGOING:?}"
         fi
-        rmdir "$BACKUP_DIR" 2>/dev/null || true
+        rmdir "$BACKUP_DIR" 2> /dev/null || true
     else
         echo "Electrum.app not found in backup"
         debug_list_dir "$BACKUP_DIR"
@@ -137,5 +140,5 @@ fi
 
 echo "Rollback complete"
 echo "The backup in macos/bin/backup/electrum is consumed: a second rollback" \
-     "has nothing to restore."
+    "has nothing to restore."
 echo "update-electrum.sh is what installs the current release again."

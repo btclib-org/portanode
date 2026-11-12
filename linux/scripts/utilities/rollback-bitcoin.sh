@@ -8,7 +8,10 @@ set -euo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
@@ -73,7 +76,7 @@ for b in $BIN_NAMES; do
         FOUND_ANY=1
         rc=0
         verify_checksum_entry "$BACKUP_DIR/$b" "linux/bin/$b" \
-          "$CHECKSUM_FILE" "backup binary ($b)" || rc=$?
+            "$CHECKSUM_FILE" "backup binary ($b)" || rc=$?
         if [ "$rc" -ne 0 ]; then
             if [ "$rc" -eq 1 ]; then
                 echo "Error: backup binary checksum not recognized for $b."
@@ -91,13 +94,13 @@ if [ "$DRY_RUN" -eq 1 ]; then
     BACKUP_VERSION="unknown"
     if [ -f "$BACKUP_DIR/bitcoin-qt" ]; then
         BACKUP_VERSION="$(installed_version "$BACKUP_DIR/bitcoin-qt" \
-          "linux/bin/bitcoin-qt" "$CHECKSUM_FILE")"
+            "linux/bin/bitcoin-qt" "$CHECKSUM_FILE")"
     fi
     CURRENT_VERSION="$(installed_version "$BIN_DIR/bitcoin-qt" \
-      "linux/bin/bitcoin-qt" "$CHECKSUM_FILE")"
+        "linux/bin/bitcoin-qt" "$CHECKSUM_FILE")"
     echo "--dry-run: nothing will be changed."
     echo "Backup found in linux/bin/backup/bitcoin, checksum recognized:" \
-         "version ${BACKUP_VERSION}."
+        "version ${BACKUP_VERSION}."
     echo "Currently installed: ${CURRENT_VERSION}."
     echo "Would replace linux/bin binaries with the backup."
     exit 0
@@ -124,15 +127,15 @@ for b in $BIN_NAMES; do
 done
 if [ "$FAILED" -ne 0 ]; then
     echo "The rollback stopped before restoring every binary. What it did" \
-         "not move is still in linux/bin/backup/bitcoin. Once the cause is" \
-         "cleared, move what is left there into linux/bin by hand, or run" \
-         "update-bitcoin.sh to install the current release over whatever" \
-         "linux/bin now holds."
+        "not move is still in linux/bin/backup/bitcoin. Once the cause is" \
+        "cleared, move what is left there into linux/bin by hand, or run" \
+        "update-bitcoin.sh to install the current release over whatever" \
+        "linux/bin now holds."
     exit 1
 fi
-rmdir "$BACKUP_DIR" 2>/dev/null || true
+rmdir "$BACKUP_DIR" 2> /dev/null || true
 
 echo "Rollback complete"
 echo "The backup in linux/bin/backup/bitcoin is consumed: a second rollback" \
-     "has nothing to restore."
+    "has nothing to restore."
 echo "update-bitcoin.sh is what installs the current release again."

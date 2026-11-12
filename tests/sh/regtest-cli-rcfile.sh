@@ -7,7 +7,10 @@
 # rcfile defining btc. The rcfile must delete itself once bash has read it,
 # so a session leaves no portanode-*-cli-rc* file in the temporary directory.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -25,7 +28,7 @@ mkdir -p "$ROOT/linux/bin" "$ROOT/macos/bin" "$ROOT/win" "$ROOT/bitcoin-datadir"
 touch "$ROOT/VERSION"
 
 # bitcoind returns at once, as -daemon does; bitcoin-cli records its arguments.
-cat > "$TMP/bitcoin-binary" <<'EOF'
+cat > "$TMP/bitcoin-binary" << 'EOF'
 #!/bin/sh
 printf '%s %s\n' "${0##*/}" "$*" >> "$PORTANODE_TEST_CALLS"
 EOF
@@ -36,7 +39,7 @@ for platform in linux macos; do
 done
 
 # The clean launchers look for a node on their datadir before wiping it.
-cat > "$STUBS/ps" <<'EOF'
+cat > "$STUBS/ps" << 'EOF'
 #!/bin/sh
 printf 'unrelated-process\n'
 EOF
@@ -87,13 +90,13 @@ for launcher in "${launchers[@]}"; do
     # shellcheck disable=SC2016
     input='btc getblockcount\necho "rcfile=${RCFILE-unset}"\n'
     case "$launcher" in *-clean*) input="\\n$input" ;; esac
-    output="$(printf '%b' "$input" | \
-        HOME="$TMP/home" \
-        TMPDIR="$tmpdir" \
-        PORTANODE_ROOT="$ROOT" \
-        PORTANODE_TEST_CALLS="$calls" \
-        PATH="$path" \
-        "$BASH" "$REPO/$launcher" 2>&1)"
+    output="$(printf '%b' "$input" \
+        | HOME="$TMP/home" \
+            TMPDIR="$tmpdir" \
+            PORTANODE_ROOT="$ROOT" \
+            PORTANODE_TEST_CALLS="$calls" \
+            PATH="$path" \
+            "$BASH" "$REPO/$launcher" 2>&1)"
 
     left=none
     for file in "$tmpdir"/portanode-*-cli-rc*; do

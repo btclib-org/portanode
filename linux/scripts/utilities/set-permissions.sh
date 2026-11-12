@@ -7,7 +7,10 @@
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -32,11 +35,11 @@ fi
 # the answer.
 filesystem_type() {
     local dir="$1" fstype=""
-    if command -v findmnt >/dev/null 2>&1; then
-        fstype="$(findmnt -n -o FSTYPE --target "$dir" 2>/dev/null | tail -1)"
+    if command -v findmnt > /dev/null 2>&1; then
+        fstype="$(findmnt -n -o FSTYPE --target "$dir" 2> /dev/null | tail -1)"
     fi
     if [ -z "$fstype" ]; then
-        fstype="$(stat -f -c '%T' "$dir" 2>/dev/null || true)"
+        fstype="$(stat -f -c '%T' "$dir" 2> /dev/null || true)"
     fi
     printf "%s" "$fstype"
 }
@@ -82,9 +85,9 @@ restrict() {
     local dir="$1" fstype="$2"
     local rc=0
     case "$fstype" in
-        exfat|vfat|msdos|fat)
-            chmod -R u=rwX,go= "$dir" 2>/dev/null || rc=$?
-            chmod 700 "$dir" 2>/dev/null || rc=$?
+        exfat | vfat | msdos | fat)
+            chmod -R u=rwX,go= "$dir" 2> /dev/null || rc=$?
+            chmod 700 "$dir" 2> /dev/null || rc=$?
             ;;
         *)
             chmod -R u=rwX,go= "$dir" || rc=$?
@@ -96,8 +99,8 @@ restrict() {
 
 mount_options() {
     local dir="$1"
-    command -v findmnt >/dev/null 2>&1 || return 0
-    findmnt -n -o OPTIONS --target "$dir" 2>/dev/null | tail -1
+    command -v findmnt > /dev/null 2>&1 || return 0
+    findmnt -n -o OPTIONS --target "$dir" 2> /dev/null | tail -1
 }
 
 # A default ACL set on $dir is inherited by every subdirectory created
@@ -142,20 +145,20 @@ mount_options() {
 report_default_acl() {
     local dir="$1"
     local rel="${dir#"$ROOTDIR/"}"
-    if ! command -v getfacl >/dev/null 2>&1; then
+    if ! command -v getfacl > /dev/null 2>&1; then
         echo "Note: getfacl is not installed; whether $rel or a" \
-             "directory under it carries a default POSIX ACL, which" \
-             "chmod does not touch, could not be checked."
+            "directory under it carries a default POSIX ACL, which" \
+            "chmod does not touch, could not be checked."
         return
     fi
-    if find -H "$dir" -type d -exec getfacl -p {} + 2>/dev/null \
+    if find -H "$dir" -type d -exec getfacl -p {} + 2> /dev/null \
         | grep -q '^default:'; then
         echo "Warning: $rel or a directory under it carries a default" \
-             "POSIX ACL, which chmod does not touch: a file created" \
-             "under that directory afterward takes its mode from the" \
-             "ACL rather than from the umask. find -H \"$dir\" -type d" \
-             "-exec getfacl -p {} + lists which directory; setfacl -k" \
-             "-R \"$dir\" clears every one under $rel, itself included."
+            "POSIX ACL, which chmod does not touch: a file created" \
+            "under that directory afterward takes its mode from the" \
+            "ACL rather than from the umask. find -H \"$dir\" -type d" \
+            "-exec getfacl -p {} + lists which directory; setfacl -k" \
+            "-R \"$dir\" clears every one under $rel, itself included."
     fi
 }
 
@@ -268,18 +271,18 @@ report_permission_effect() {
     local dir="$1" chmod_rc="$2" fstype="$3"
     local rel mode opts status=0
     rel="${dir#"$ROOTDIR/"}"
-    mode="$(stat -L -c '%a' "$dir" 2>/dev/null || true)"
+    mode="$(stat -L -c '%a' "$dir" 2> /dev/null || true)"
     opts="$(mount_options "$dir")"
 
     case "$fstype" in
-        exfat|vfat|msdos|fat)
+        exfat | vfat | msdos | fat)
             echo "Warning: $rel is on $fstype, which stores no Unix mode." \
-                 "The chmod above changed nothing on disk; $rel reads" \
-                 "${mode:-unknown} because the mount says so, and every" \
-                 "other directory on the volume reads the same."
+                "The chmod above changed nothing on disk; $rel reads" \
+                "${mode:-unknown} because the mount says so, and every" \
+                "other directory on the volume reads the same."
             if [ "$chmod_rc" -ne 0 ]; then
                 echo "chmod itself was refused (exit $chmod_rc), the volume" \
-                     "not being mounted for this user."
+                    "not being mounted for this user."
             fi
             if [ -n "$opts" ]; then
                 echo "Mount options: $opts"
@@ -288,25 +291,25 @@ report_permission_effect() {
             ;;
         "")
             echo "Warning: could not determine the filesystem of $rel; it" \
-                 "reads ${mode:-unknown} after the chmod above."
+                "reads ${mode:-unknown} after the chmod above."
             report_default_acl "$dir"
             return 1
             ;;
         *)
             if [ "$mode" != "700" ]; then
                 echo "Warning: $rel is on $fstype, which stores a Unix" \
-                     "mode, and reads ${mode:-unknown} rather than 700" \
-                     "after the chmod above (chmod exit $chmod_rc)."
+                    "mode, and reads ${mode:-unknown} rather than 700" \
+                    "after the chmod above (chmod exit $chmod_rc)."
                 status=1
             elif [ "$chmod_rc" -ne 0 ]; then
                 echo "Warning: $rel is on $fstype and reads 700, but" \
-                     "chmod exited $chmod_rc: at least one path it was" \
-                     "given kept the mode it had. List what under $rel" \
-                     "is not owner-only with: find \"$dir\" -perm /077"
+                    "chmod exited $chmod_rc: at least one path it was" \
+                    "given kept the mode it had. List what under $rel" \
+                    "is not owner-only with: find \"$dir\" -perm /077"
                 status=1
             else
                 echo "$rel is on $fstype, which stores a Unix mode, and" \
-                     "reads 700: restricted to its owner."
+                    "reads 700: restricted to its owner."
             fi
             report_default_acl "$dir"
             return "$status"
@@ -333,16 +336,16 @@ report_permission_effect "$ROOTDIR/electrum-datadir" "$ELECTRUM_RC" \
 # used in.
 if [ "$BITCOIN_STATUS" -eq 2 ] || [ "$ELECTRUM_STATUS" -eq 2 ]; then
     echo "Restricting such a volume is a mount option and not a chmod:" \
-         "uid=<your uid>,fmask=077,dmask=077 makes every file and directory" \
-         "on it owner-only and keeps the execute bit the launchers and the" \
-         "linux/bin binaries need. fmask=133 is the setting that takes that" \
-         "bit away and stops them starting. Unmounting the volume and" \
-         "mounting it again with uid=<your uid>,fmask=077,dmask=077 is what" \
-         "applies them: a mount -o remount naming another mask exits 0 and" \
-         "leaves the mask in force as it was."
+        "uid=<your uid>,fmask=077,dmask=077 makes every file and directory" \
+        "on it owner-only and keeps the execute bit the launchers and the" \
+        "linux/bin binaries need. fmask=133 is the setting that takes that" \
+        "bit away and stops them starting. Unmounting the volume and" \
+        "mounting it again with uid=<your uid>,fmask=077,dmask=077 is what" \
+        "applies them: a mount -o remount naming another mask exits 0 and" \
+        "leaves the mask in force as it was."
     echo "A mount option restricts this machine only: the next one mounts" \
-         "the volume with its own. Encryption or physical control of the" \
-         "device is what restricts it everywhere."
+        "the volume with its own. Encryption or physical control of the" \
+        "device is what restricts it everywhere."
 fi
 
 # The higher of the two is what the script exits with, which orders the

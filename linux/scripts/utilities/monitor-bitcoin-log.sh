@@ -7,7 +7,10 @@
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -53,13 +56,13 @@ fi
 # such a run can deliver.
 notify_desktop() {
     local title="$1" message="$2"
-    if ! command -v notify-send >/dev/null 2>&1; then
+    if ! command -v notify-send > /dev/null 2>&1; then
         echo "Note: notify-send not found; the errors above are the report."
         return 0
     fi
-    if ! notify-send "$title" "$message" 2>/dev/null; then
+    if ! notify-send "$title" "$message" 2> /dev/null; then
         echo "Note: notify-send reached no notification daemon; the errors" \
-             "above are the report."
+            "above are the report."
     fi
     return 0
 }
@@ -71,7 +74,7 @@ else
     LAST_OFFSET=0
 fi
 case "$LAST_OFFSET" in
-    ''|*[!0-9]*) LAST_OFFSET=0 ;;
+    '' | *[!0-9]*) LAST_OFFSET=0 ;;
 esac
 
 # Current size in bytes, from the filesystem's own metadata rather than by
@@ -102,10 +105,10 @@ if [ "$CURRENT_SIZE" -gt "$LAST_OFFSET" ]; then
     # before they are captured, because bash drops a NUL from a captured
     # string.
     MATCHES=$(
-      tail -c "+$((LAST_OFFSET+1))" "$LOG_FILE" \
-        | grep -a -i "error\\|warning\\|failed" \
-        | escape_controls
-      exit "${PIPESTATUS[0]}"
+        tail -c "+$((LAST_OFFSET + 1))" "$LOG_FILE" \
+            | grep -a -i "error\\|warning\\|failed" \
+            | escape_controls
+        exit "${PIPESTATUS[0]}"
     ) || {
         echo "Error: bitcoin-datadir/debug.log could not be read."
         exit 1

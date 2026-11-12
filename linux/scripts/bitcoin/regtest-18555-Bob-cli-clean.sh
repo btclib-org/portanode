@@ -10,20 +10,23 @@
 # below and the root walk into the wrong directory -- is resolved a
 # link at a time instead.
 resolve_symlink() {
-  local target="$1" dir
-  while [ -L "$target" ]; do
-    dir="$(cd -P "$(dirname "$target")" && pwd)"
-    target="$(readlink "$target")"
-    case "$target" in
-      /*) ;;
-      *) target="$dir/$target" ;;
-    esac
-  done
-  printf '%s\n' "$target"
+    local target="$1" dir
+    while [ -L "$target" ]; do
+        dir="$(cd -P "$(dirname "$target")" && pwd)"
+        target="$(readlink "$target")"
+        case "$target" in
+            /*) ;;
+            *) target="$dir/$target" ;;
+        esac
+    done
+    printf '%s\n' "$target"
 }
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd -P)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -119,15 +122,15 @@ FILENAME="${BASENAME%.*}"
 # (8333/8332, 18333/18332, 18444/18443).
 RPCPORT=18554
 "$BTC_D" \
-  -daemon \
-  -uacomment="${FILENAME}" \
-  -datadir="${DATADIR}" \
-  -regtest \
-  -port=18555 \
-  -rpcport="${RPCPORT}" \
-  -rpcallowip=127.0.0.1 \
-  -addnode=localhost:18444 \
-  -addnode=localhost:18666
+    -daemon \
+    -uacomment="${FILENAME}" \
+    -datadir="${DATADIR}" \
+    -regtest \
+    -port=18555 \
+    -rpcport="${RPCPORT}" \
+    -rpcallowip=127.0.0.1 \
+    -addnode=localhost:18444 \
+    -addnode=localhost:18666
 
 # Linux bitcoind supports -daemon the same way macOS's does, so the daemon
 # forks and returns here too, and this window becomes the CLI session

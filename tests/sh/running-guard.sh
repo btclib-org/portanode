@@ -14,7 +14,10 @@
 # of symlinks to /bin and /usr/bin without pgrep, to which a case adds the
 # pgrep it needs. Needs no network.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -32,12 +35,12 @@ ln -sf /bin/* /usr/bin/* "$NO_PGREP/"
 rm -f "$NO_PGREP/pgrep"
 
 # A HEAD request succeeds and any other fails, so no script downloads anything.
-cat > "$STUBS/curl" <<'EOF'
+cat > "$STUBS/curl" << 'EOF'
 #!/bin/sh
 for a in "$@"; do [ "$a" = "-fsIL" ] && exit 0; done
 exit 22
 EOF
-cat > "$STUBS/uname" <<'EOF'
+cat > "$STUBS/uname" << 'EOF'
 #!/bin/sh
 echo "$STUB_ARCH"
 EOF
@@ -63,7 +66,7 @@ pgrep_answering() {
 # process.
 BUSYBOX="$WORK/pgrep-busybox"
 mkdir -p "$BUSYBOX"
-cat > "$BUSYBOX/pgrep" <<'EOF'
+cat > "$BUSYBOX/pgrep" << 'EOF'
 #!/bin/sh
 for a; do
     case "$a" in
@@ -107,14 +110,14 @@ run_script() {
 # refused <text> <name> <doing>: 0 where the script could not tell, said so and
 # exited 1.
 refused() {
-    contains "$1" "Error: cannot tell whether $2 is running" &&
-        contains "$1" "Not $3." && contains "$1" "status=1"
+    contains "$1" "Error: cannot tell whether $2 is running" \
+        && contains "$1" "Not $3." && contains "$1" "status=1"
 }
 
 # stops_for_a_node <text> <name> <doing>
 stops_for_a_node() {
-    contains "$1" "Error: $2 is running. Stop it before $3." &&
-        contains "$1" "status=1"
+    contains "$1" "Error: $2 is running. Stop it before $3." \
+        && contains "$1" "status=1"
 }
 
 # passes <text> <past>: 0 where the script went past the guard, which <past>,
@@ -153,7 +156,7 @@ while read -r script ostype arch name doing past; do
     out="$(run_script "$BUSYBOX:" "$ostype" "$arch" "$script" "${args[@]}")"
     check "$script refuses where pgrep refuses -i, as busybox pgrep does" \
         refused "$out" "$name" "$doing"
-done <<'EOF'
+done << 'EOF'
 linux/scripts/utilities/update-bitcoin.sh linux-gnu x86_64 Bitcoin_Core updating --dry-run:
 linux/scripts/utilities/update-electrum.sh linux-gnu x86_64 Electrum updating --dry-run:
 linux/scripts/utilities/rollback-bitcoin.sh linux-gnu x86_64 Bitcoin_Core rolling_back No_backup_found
@@ -178,7 +181,7 @@ for exe in Electrum run_electrum; do
             "macos/scripts/utilities/$script" "${args[@]}")"
         check "macos $script stops where $exe runs with arguments" \
             stops_for_a_node "$out" Electrum "${doing//_/ }"
-    done <<'EOF'
+    done << 'EOF'
 update-electrum.sh updating
 rollback-electrum.sh rolling_back
 EOF
@@ -276,7 +279,11 @@ child_node_refused() {
 }
 if [ -z "$REAL_PGREP" ]; then
     echo "ok - skipped: pgrep not found"
-elif hold_node_lock; lock_rc=$?; [ "$lock_rc" -ne 0 ]; then
+elif
+    hold_node_lock
+    lock_rc=$?
+    [ "$lock_rc" -ne 0 ]
+then
     case "$lock_rc" in
         1) why="another run held $NODE_LOCK for five minutes" ;;
         2) why="$NODE_LOCK cannot be opened" ;;
@@ -320,7 +327,7 @@ else
         wait "$node" 2> /dev/null
         check "$script under bitcoind-usb stops where a node runs" \
             stops_for_a_node "$out" "Bitcoin Core" "$doing"
-    done <<'EOF'
+    done << 'EOF'
 linux/scripts/utilities/update-bitcoin.sh linux-gnu x86_64 updating --dry-run:
 linux/scripts/utilities/rollback-bitcoin.sh linux-gnu x86_64 rolling_back No_backup_found
 macos/scripts/utilities/update-bitcoin.sh darwin24 arm64 updating --dry-run:
