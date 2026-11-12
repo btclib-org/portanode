@@ -210,7 +210,12 @@ for a in "$@"; do [ "$a" = "-fsIL" ] && exit 0; done
 echo '<a href="bitcoin-core-27.0/">bitcoin-core-27.0/</a>'
 echo '<a href="4.0.0/">4.0.0/</a>'
 EOF
-printf '#!/bin/sh\nexit 1\n' > "$STUBS/pgrep"
+# pgrep finds no process, and finds one for the pattern ".", as a pgrep
+# that understands its options does (pgrep_outside_own_line, in
+# shared/lib.sh).
+# shellcheck disable=SC2016 # the stand-in expands it
+printf '#!/bin/sh\nfor a; do :; done\n[ "$a" = . ] && echo 1 && exit 0\nexit 1\n' \
+    > "$STUBS/pgrep"
 cat > "$STUBS/uname" <<'EOF'
 #!/bin/sh
 echo "$STUB_ARCH"

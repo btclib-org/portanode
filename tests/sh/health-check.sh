@@ -43,7 +43,13 @@ done
 stand_in "$NO_BC" bitcoin-cli "echo '{}'"
 # shellcheck disable=SC2016 # the stand-in expands it
 stand_in "$NO_BC" jq 'printf "%s\n" "$PORTANODE_TEST_SYNC"'
-stand_in "$NO_BC" pgrep 'exit 1'
+# pgrep finds no process, and finds one for the pattern ".", as a pgrep
+# that understands its options does (pgrep_outside_own_line, in
+# shared/lib.sh).
+# shellcheck disable=SC2016 # the stand-in expands it
+stand_in "$NO_BC" pgrep 'for a; do :; done
+[ "$a" = . ] && echo 1 && exit 0
+exit 1'
 
 # with_bc <name> [body]: prints a PATH directory holding every tool above and
 # a bc with that body, or the machine's bc where no body is given. Without

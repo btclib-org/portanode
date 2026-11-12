@@ -62,7 +62,12 @@ CLI="$(with_tools cli bitcoin-cli "echo '{}'")"
 PS_BITCOIN="$(with_tools ps-bitcoin ps 'echo bitcoind')"
 PS_ELECTRUM="$(with_tools ps-electrum \
     ps 'echo /Applications/Electrum.app/Contents/MacOS/run_electrum')"
-PGREP_NONE="$(with_tools pgrep-none pgrep 'exit 1')"
+# This pgrep finds a process for the pattern ".", as one that understands
+# its options does (pgrep_outside_own_line, in shared/lib.sh).
+# shellcheck disable=SC2016 # the stand-in expands it
+PGREP_NONE="$(with_tools pgrep-none pgrep 'for a; do :; done
+[ "$a" = . ] && echo 1 && exit 0
+exit 1')"
 PGREP_MATCH="$(with_tools pgrep-match pgrep 'echo 4242')"
 
 # health_check <platform> <path>: runs the health-check.
@@ -125,20 +130,61 @@ done
 check "macos: without pgrep the ps pass still finds Electrum" \
     prints macos "$PS_ELECTRUM" "Electrum running: yes (ps)"
 
-# On Linux a pgrep that fails, or a ps that cannot say whose a process is,
-# leaves both answers unknown.
+# A pgrep that fails, one that refuses -i as busybox pgrep does
+# (tests/sh/running-guard.sh), or a ps that cannot say whose a process is,
+# leaves both answers unknown. Status 3 is what macOS pgrep's manual gives
+# for an internal error.
 PGREP_FAILS="$(with_tools pgrep-fails pgrep 'exit 2')"
+PGREP_FAILS3="$(with_tools pgrep-fails-3 pgrep 'exit 3')"
+BUSYBOX="$(with_tools pgrep-busybox pgrep 'echo "pgrep: invalid option -- '"'i'"'" >&2
+exit 1')"
 PS_FAILS="$(with_tools ps-fails pgrep 'echo 4242' ps 'exit 1')"
-while read -r tools what; do
-    check "linux: $what reads as unknown" \
-        prints linux "$tools" \
-        "Bitcoin running: unknown (pgrep or ps failed)" \
-        "Bitcoin sync: unknown" \
-        "Electrum running: unknown (pgrep or ps failed)"
-done <<EOF
+for platform in linux macos; do
+    while read -r tools what; do
+        check "$platform: $what reads as unknown" \
+            prints "$platform" "$tools" \
+            "Bitcoin running: unknown (pgrep or ps failed)" \
+            "Bitcoin sync: unknown" \
+            "Electrum running: unknown (pgrep or ps failed)"
+    done <<EOF
 $PGREP_FAILS a pgrep that fails
+$PGREP_FAILS3 a pgrep that fails with status 3
+$BUSYBOX a pgrep that refuses -i
 $PS_FAILS a match where ps fails
 EOF
+done
+
+# On macOS, where pgrep finds no Electrum, the ps pass over process names
+# decides, so a ps that fails there, or none on PATH, leaves Electrum
+# unknown.
+# shellcheck disable=SC2016 # the stand-in expands it
+PS_FAILS_ONLY="$(with_tools ps-fails-only pgrep 'for a; do :; done
+[ "$a" = . ] && echo 1 && exit 0
+exit 1' ps 'exit 1')"
+check "macos: a ps that fails after pgrep finds no Electrum reads as unknown" \
+    prints macos "$PS_FAILS_ONLY" \
+    "Electrum running: unknown (pgrep or ps failed)"
+# shellcheck disable=SC2016 # the stand-in expands it
+NO_PS="$(with_tools no-ps pgrep 'for a; do :; done
+[ "$a" = . ] && echo 1 && exit 0
+exit 1')"
+rm "$NO_PS/ps"
+check "macos: without ps, after pgrep finds no Electrum, it reads as unknown" \
+    prints macos "$NO_PS" "Electrum running: unknown (ps not found)"
+
+# The Electrum launchers start the bundle with arguments, whichever name
+# the bundle ships its executable under. This pgrep matches its pattern
+# against that command line, as pgrep -f -i does.
+for exe in Electrum run_electrum; do
+    printf '%s\n' \
+        "/Volumes/PortaNode/macos/bin/Electrum.app/Contents/MacOS/$exe -D /x" \
+        > "$TMP/table-$exe"
+    tools="$(with_tools "listing-$exe" pgrep "for a; do :; done
+grep -Eiq -e \"\$a\" '$TMP/table-$exe' || exit 1
+echo 4242")"
+    check "macos: $exe started with arguments reads as running" \
+        prints macos "$tools" "Electrum running: yes (pgrep)"
+done
 
 # A folder whose path holds the node pattern (ISS 836): the health-check's
 # own command line matches it, which GNU procps pgrep reports. These cases

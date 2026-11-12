@@ -66,13 +66,16 @@ trap cleanup EXIT
 
 echo "Updating Electrum..."
 
-# Prevent updates while running. The last alternative catches a source
-# or extracted-tree invocation of a script named run_electrum outside
-# the app bundle, anchored to where a program name can appear -- the
-# start of the command line or right after a path separator, ending at
+# Prevent updates while running. The first alternative, the bundle's
+# executable, ends at a space as well as at the line's end, because the
+# Electrum launchers start the bundle with arguments ("open --args"), and
+# ps shows them after the executable's path. The last alternative catches
+# a source or extracted-tree invocation of a script named run_electrum
+# outside the app bundle, anchored to where a program name can appear --
+# the start of the command line or right after a path separator, ending at
 # a space or the line's end -- so a process that merely carries
 # "run_electrum" among its own arguments is not matched.
-ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)$"
+ELECTRUM_PGREP_PATTERN="Electrum.app/Contents/MacOS/(Electrum|run_electrum)( |\$)"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|/Electrum$|/electrum$"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|python.*electrum"
 ELECTRUM_PGREP_PATTERN="${ELECTRUM_PGREP_PATTERN}|(^|/)run_electrum( |\$)"
