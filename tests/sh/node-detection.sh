@@ -279,12 +279,12 @@ check "regtest in the configuration files: a NUL byte in bitcoin.conf" \
 # Any other byte is read as itself under a UTF-8 locale too, a Latin-1
 # comment included, which BSD tr refuses under that locale. The locale is
 # set as a launcher's caller sets it: LANG, with no LC_ALL.
+under_lang() {
+    local lang="$1"
+    shift
+    (unset LC_ALL LC_CTYPE; LANG=$lang; export LANG; "$@")
+}
 if loc="$(_utf8_locale)"; then
-    under_lang() {
-        local lang="$1"
-        shift
-        (unset LC_ALL LC_CTYPE; LANG=$lang; export LANG; "$@")
-    }
     printf '# comment \351\ntxindex=1\n' >"$CONF/bitcoin.conf"
     check "no network in bitcoin.conf, with a Latin-1 comment, under LANG=$loc" \
         under_lang "$loc" answers 1 regtest_node_running_on "$CONF"
@@ -422,13 +422,7 @@ PROCS=$'/Volumes/My - Drive/portanode/macos/bin/bitcoind -regtest\n'
 check "mainnet node found under /Volumes/My - Drive" answers 0 mainnet_node_running
 
 # ISS 906: a value holding a byte that is not UTF-8 reads as Core reads it
-# under a UTF-8 locale too, with LC_ALL unset.
-under_lang() {
-    unset LC_ALL LC_CTYPE
-    export LANG="$1"
-    shift
-    "$@"
-}
+# under a UTF-8 locale too, with LC_ALL unset (under_lang, above).
 if loc="$(_utf8_locale)"; then
     PROCS="$BIN -datadir=$D -regtest="$'\xe9\n'
     check "no regtest node under LANG=$loc: -regtest=<0xE9>" \
