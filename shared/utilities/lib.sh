@@ -30,6 +30,14 @@ _UTILS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$_UTILS_LIB_DIR/../lib.sh"
 unset _UTILS_LIB_DIR
 
+# The good signatures from distinct keys of keys/ that an update needs, as
+# #783 decided. win/scripts/utilities/update-bitcoin.bat and
+# update-electrum.bat pass the same numbers.
+# shellcheck disable=SC2034 # read by the updaters that source this file
+BITCOIN_CORE_MIN_SIGNATURES=3
+# shellcheck disable=SC2034 # read by the updaters that source this file
+ELECTRUM_MIN_SIGNATURES=1
+
 debug_list_dir() {
     local dir="$1"
     local entries
@@ -209,139 +217,105 @@ verify_sha256sums() {
     fi
 }
 
-# pinned_fingerprints FPR_FILE OUT_VAR [MIN_VAR]
+# keyring_is_readable KEYRING
 #
-# Sets OUT_VAR to the fingerprints FPR_FILE pins, one per line, and MIN_VAR,
-# where given, to the number of signatures it asks for, and returns 0; or
-# prints the reason and returns 1 where the file is not one it accepts.
-# pgp_verify_or_fail and the updaters' --dry-run previews both read the file
-# through it, so a preview reports the pin the verification enforces.
-# The file is read as bytes, by a rule win/scripts/utilities/lib.bat's
-# :verify_pgp_signature applies too: a UTF-8 byte order mark opening the file
-# is dropped; CRLF, LF and CR each end a line, which is how .NET's
-# ReadAllLines splits; a file holding a NUL byte is refused, bash having no
-# way to keep one. Each line has its ASCII spaces, tabs, vertical tabs and
-# form feeds removed, so the spaced form gpg --fingerprint prints pins as the
-# unspaced one does, and is then skipped where it is empty or starts with #,
-# pinned where it is 40 characters from [0-9A-Fa-f], read as the number of
-# signatures where it is min-signatures= and a whole number from 1, and
-# refused otherwise, naming the line: a key ID or a truncated paste skipped
-# instead would pin one key fewer than the reader meant, with nothing
-# printed. A second min-signatures line is refused too, and a file without
-# one asks for 1.
-# Every other byte stays, U+00A0 included, so a line holding one is refused
-# rather than read by whatever the locale calls a space. Nothing here asks the
-# locale: measured on macOS under it_IT.UTF-8, tr -d '[:space:]' stops at the
-# first byte that is not UTF-8 and prints nothing after it, so a pin line
-# opening with byte 0xA0 would read as empty and pin nothing.
-# The whole file is read before any fingerprint is matched, so a malformed
-# line refuses wherever it sits. A path that exists and is not a readable
-# file is refused too, and a path that does not exist pins nothing.
-pinned_fingerprints() {
-    # Locals carry a prefix: printf -v assigns the name nearest in scope, so
-    # a local sharing the caller's OUT_VAR name would receive the result.
-    local _pf_file="$1"
-    local _pf_out="$2"
-    local _pf_min_out="${3:-}"
-    local _pf_name _pf_text _pf_fpr _pf_pins="" _pf_line="" _pf_n=0 _pf_min=""
-    local _pf_nl=$'\n' _pf_cr=$'\r' _pf_ws=$' \t\v\f' _pf_bom=$'\xef\xbb\xbf'
-    printf -v "$_pf_out" '%s' ""
-    [ -z "$_pf_min_out" ] || printf -v "$_pf_min_out" '%s' 1
-    [ -e "$_pf_file" ] || return 0
-    _pf_name="$(basename "$_pf_file")"
-    if [ ! -f "$_pf_file" ] || [ ! -r "$_pf_file" ]; then
-        echo "Error: ${_pf_name} is not a readable file."
-        return 1
-    fi
-    if [ "$(LC_ALL=C tr -d '\000' < "$_pf_file" | wc -c)" -ne \
-        "$(wc -c < "$_pf_file")" ]; then
-        echo "Error: ${_pf_name} holds a NUL byte, as a UTF-16 file does."
-        return 1
-    fi
-    _pf_text="$(< "$_pf_file")"
-    _pf_text=${_pf_text#"$_pf_bom"}
-    _pf_text=${_pf_text//$_pf_cr$_pf_nl/$_pf_nl}
-    _pf_text=${_pf_text//$_pf_cr/$_pf_nl}
-    while IFS= read -r _pf_line; do
-        _pf_n=$((_pf_n + 1))
-        _pf_fpr=${_pf_line//[$_pf_ws]/}
-        case "$_pf_fpr" in '' | \#*) continue ;; *) ;; esac
-        if [[ "$_pf_fpr" == min-signatures=* ]]; then
-            if [ -n "$_pf_min" ]; then
-                echo "Error: line ${_pf_n} of ${_pf_name} sets min-signatures" \
-                    "a second time."
-                return 1
-            fi
-            _pf_min=${_pf_fpr#min-signatures=}
-            if ! [[ "$_pf_min" =~ ^[123456789][0123456789]*$ ]]; then
-                echo "Error: line ${_pf_n} of ${_pf_name} does not set" \
-                    "min-signatures to a whole number from 1: ${_pf_fpr}"
-                return 1
-            fi
-            continue
-        fi
-        if ! [[ "$_pf_fpr" =~ ^[0-9ABCDEFabcdef]{40}$ ]]; then
-            echo "Error: line ${_pf_n} of ${_pf_name} is not a 40-hex" \
-                "fingerprint: ${_pf_fpr}"
-            return 1
-        fi
-        _pf_pins="${_pf_pins:+${_pf_pins}${_pf_nl}}${_pf_fpr}"
-    done <<< "$_pf_text"
-    printf -v "$_pf_out" '%s' "$_pf_pins"
-    if [ -n "$_pf_min_out" ] && [ -n "$_pf_min" ]; then
-        printf -v "$_pf_min_out" '%s' "$_pf_min"
-    fi
-    return 0
+# Returns 0 where KEYRING is a readable file holding at least one byte.
+# pgp_verify_or_fail and the updaters' --dry-run previews both ask it, so a
+# preview reports the refusal the verification makes.
+keyring_is_readable() {
+    [ -n "$1" ] && [ -f "$1" ] && [ -r "$1" ] && [ -s "$1" ]
 }
 
-# pgp_verify_or_fail SIG_FILE DATA_FILE LABEL FPR_FILE
+# pgp_verify_or_fail SIG_FILE DATA_FILE LABEL KEYRING MIN
 #
-# Verifies DATA_FILE against the detached SIG_FILE. FAILS CLOSED: returns
-# non-zero (so the caller aborts the install) unless SIG_FILE carries good
-# signatures from as many distinct keys pinned in FPR_FILE as its
-# min-signatures asks for (pinned_fingerprints reads the file). A file that
-# pins no key refuses.
+# Verifies DATA_FILE against the detached SIG_FILE with the keys in KEYRING
+# alone. FAILS CLOSED: returns non-zero (so the caller aborts the install)
+# unless SIG_FILE carries good signatures from MIN distinct keys of KEYRING.
+# gpg runs in a home of its own, made empty for the call in SIG_FILE's folder,
+# with KEYRING copied in as its only keyring: it reads no option, key or trust
+# setting of the user's, so a key the user imported does not count. The
+# updaters download into a folder of their own whose EXIT trap removes it, so
+# that trap removes the home too where the run is interrupted. The copy is
+# named without a slash, which gpg reads as a file of that home, so the call
+# is the one win/scripts/utilities/lib.bat's :verify_pgp_signature makes.
+# --batch is not passed: measured in #783 with gpg 2.5.24, it stops this
+# command at the first signature whose key is absent.
 pgp_verify_or_fail() {
     local sig_file="$1"
     local data_file="$2"
     local label="$3"
-    local fpr_file="${4:-}"
+    local keyring="${4:-}"
+    local min_sigs="${5:-}"
+    local keyring_name gpg_home rc
 
     if ! command -v gpg > /dev/null 2>&1; then
         echo "Error: gpg not found; cannot verify ${label}."
-        echo "Install gpg (e.g. 'brew install gnupg') and import the signing" \
-            "key."
+        echo "Install gpg (e.g. 'brew install gnupg')."
+        return 1
+    fi
+    keyring_name="$(basename "${keyring:-keyring}")"
+    if ! keyring_is_readable "$keyring"; then
+        echo "Error: ${keyring_name} is missing, empty or unreadable," \
+            "so ${label} is refused."
+        return 1
+    fi
+    # The length test keeps a MIN too large for bash's integers away from
+    # -lt, which errors on it rather than answering.
+    if ! [[ "$min_sigs" =~ ^[123456789][0123456789]{0,8}$ ]]; then
+        echo "Error: ${min_sigs:-no number} is not a number of signatures" \
+            "to ask for, so ${label} is refused."
         return 1
     fi
 
     echo "Verifying ${label} signature..."
-    local status_file
-    status_file="$(mktemp)"
-    gpg --status-fd 1 --verify "$sig_file" "$data_file" 1> "$status_file" \
-        2> /dev/null || true
+    # mktemp fails where the folder is missing or not writable; gpg then
+    # never runs.
+    gpg_home="$(mktemp -d "$(dirname "$sig_file")/gpg-home.XXXXXX")" \
+        || gpg_home=""
+    if [ -z "$gpg_home" ] || ! cp "$keyring" "$gpg_home/keys.gpg"; then
+        echo "Error: no folder could be made for gpg to verify ${label} in;" \
+            "whether the signature is good is unknown."
+        [ -z "$gpg_home" ] || rm -rf "$gpg_home"
+        return 1
+    fi
+    gpg --homedir "$gpg_home" --no-default-keyring --keyring keys.gpg \
+        --status-fd 1 --verify "$sig_file" "$data_file" \
+        1> "$gpg_home/status" 2> /dev/null || true
+    rc=0
+    pgp_read_status "$gpg_home/status" "$label" "$keyring_name" "$min_sigs" \
+        || rc=$?
+    rm -rf "$gpg_home"
+    return "$rc"
+}
+
+# pgp_read_status STATUS_FILE LABEL KEYRING_NAME MIN
+#
+# Reads the status lines gpg wrote for pgp_verify_or_fail, and returns 0
+# where they hold good signatures from MIN distinct keys.
+pgp_read_status() {
+    local status_file="$1"
+    local label="$2"
+    local keyring_name="$3"
+    local min_sigs="$4"
+    local n_good n_weak counts
 
     # A status file that is absent or empty is gpg's answer lost rather
     # than a signature refused, and the greps below cannot separate the
     # two: on a name no file answers to, grep exits non-zero exactly as
-    # it does on a file holding no GOODSIG. Measured on ubuntu-latest,
-    # mktemp fails where TMPDIR names a directory that is missing or not
-    # writable; status_file is then empty, the redirection above is never
-    # opened and gpg does not run at all, which is why its exit status is
-    # not what is read here. Where gpg does run it writes a status line
-    # for a signature it refuses as much as for one it accepts, and the
-    # tests below are what read that. -s rather than -e, an empty file
+    # it does on a file holding no GOODSIG. Where gpg does run it writes a
+    # status line for a signature it refuses as much as for one it
+    # accepts, which is why its exit status is not what is read here, and
+    # the tests below are what read that. -s rather than -e, an empty file
     # answering no more than a missing one; no case measured here
     # separates the two.
     if [ ! -s "$status_file" ]; then
         echo "Error: gpg's status output for ${label} was not read;" \
             "whether the signature is good is unknown."
-        rm -f "$status_file"
         return 1
     fi
 
     if grep -q '^\[GNUPG:\] BADSIG' "$status_file"; then
         echo "Error: BAD PGP signature on ${label}."
-        rm -f "$status_file"
         return 1
     fi
 
@@ -355,17 +329,17 @@ pgp_verify_or_fail() {
     # one upstream asks for; nothing in this tree states a minimum gpg,
     # and the oldest measured against it is 2.4.4.
     # gpg's own exit status does not separate them either: a key that is
-    # not imported and a signature file that cannot be opened both leave
-    # 2. Nor does the FAILURE line, which reads "verify" for a signature
-    # file that is missing, empty or unreadable and "gpg-exit" for one
-    # holding something that is not a signature and for a file to check
-    # that cannot be opened; a test on it would leave those last two on
-    # the keyring message.
+    # not in the keyring and a signature file that cannot be opened both
+    # leave 2. Nor does the FAILURE line, which reads "verify" for a
+    # signature file that is missing, empty or unreadable and "gpg-exit"
+    # for one holding something that is not a signature and for a file to
+    # check that cannot be opened; a test on it would leave those last two
+    # on the keyring message.
     # Measured with gpg 2.5.21 on macOS and gpg 2.4.4 on ubuntu-latest:
     # NEWSIG is present for a good signature, for a tampered one and for
-    # a key that is not imported, and absent where the signature file is
-    # missing, empty, unreadable or not a signature and where the file it
-    # signs is missing or unreadable.
+    # a key that is not in the keyring, and absent where the signature
+    # file is missing, empty, unreadable or not a signature and where the
+    # file it signs is missing or unreadable.
     # The advice below names no cause, several reaching it alike. A
     # signature file that is present and readable and merely not a
     # signature is one of them -- the shape a download answering 200 with
@@ -374,101 +348,102 @@ pgp_verify_or_fail() {
     if ! grep -q '^\[GNUPG:\] NEWSIG' "$status_file"; then
         echo "Error: gpg found no PGP signature to check on ${label}."
         echo "Check the signature file and the file it signs."
-        rm -f "$status_file"
-        return 1
-    fi
-
-    if ! grep -q '^\[GNUPG:\] GOODSIG' "$status_file"; then
-        echo "Error: no valid PGP signature on ${label}" \
-            "(is the signer's key imported?)."
-        echo "Import the signing key."
-        rm -f "$status_file"
-        return 1
-    fi
-
-    # Pinning: count the distinct pinned keys that made a good signature,
-    # and require min-signatures of them. pinned_fingerprints above reads
-    # the file, and a file it does not accept refuses rather than pinning
-    # nothing.
-    local fpr_name pins min_sigs n_pins n_good
-    if [ -z "$fpr_file" ]; then
-        echo "Error: no file of pinned fingerprints given, so ${label} is" \
-            "refused."
-        rm -f "$status_file"
-        return 1
-    fi
-    fpr_name="$(basename "$fpr_file")"
-    if ! pinned_fingerprints "$fpr_file" pins min_sigs; then
-        echo "Error: ${fpr_name} was not accepted as a list of pinned" \
-            "fingerprints, so ${label} is refused."
-        rm -f "$status_file"
-        return 1
-    fi
-    if [ -z "$pins" ]; then
-        echo "Error: ${fpr_name} pins no key, so ${label} is refused."
-        echo "Add to it the fingerprints of the signers you trust."
-        rm -f "$status_file"
-        return 1
-    fi
-    pins="$(printf '%s\n' "$pins" | tr 'abcdef' 'ABCDEF' | LC_ALL=C sort -u)"
-    n_pins="$(printf '%s\n' "$pins" | wc -l | tr -d ' ')"
-    # The length test keeps a min-signatures too large for bash's integers
-    # away from -lt, which errors on it rather than answering.
-    if [ "${#min_sigs}" -gt 9 ] || [ "$n_pins" -lt "$min_sigs" ]; then
-        echo "Error: ${fpr_name} pins ${n_pins} key(s), fewer than the" \
-            "${min_sigs} signatures it asks for, so ${label} is refused."
-        rm -f "$status_file"
         return 1
     fi
 
     # gpg's doc/DETAILS starts each signature's status lines with NEWSIG,
     # and the lines up to the next NEWSIG are that signature's. One counts
     # where it has exactly one GOODSIG and one VALIDSIG, the GOODSIG's key
-    # ID ends the VALIDSIG's signing-key fingerprint, and the VALIDSIG's
-    # primary-key fingerprint, its tenth argument, is pinned. Read apart,
-    # a GOODSIG from one key and a VALIDSIG from another would add up to a
-    # signature neither made. KEYREVOKED or REVKEYSIG in the same block
-    # keeps it out: measured with gpg 2.5.24, a revoked key's signature
-    # carries REVKEYSIG, VALIDSIG and KEYREVOKED, and an expired key's
-    # carries EXPKEYSIG in place of GOODSIG. A key signing twice counts
-    # once.
-    n_good="$(awk -v pins="$(printf '%s' "$pins" | tr '\n' ' ')" '
+    # ID ends the VALIDSIG's signing-key fingerprint, the VALIDSIG's
+    # primary-key fingerprint, its tenth argument, is 40 or 64 hex digits,
+    # and its hash algorithm, its eighth, is a number above 3: 1, 2 and 3
+    # are MD5, SHA-1 and RIPEMD-160, which RFC 9580, section 9.5, says an
+    # implementation must not validate a recent signature depending on. It
+    # is counted by that fingerprint, so a key signing twice counts once.
+    # Read apart, a GOODSIG from one key and a VALIDSIG from another would
+    # add up to a signature neither made. KEYREVOKED or REVKEYSIG in the
+    # same block keeps it out: measured with gpg 2.5.24, a revoked key's
+    # signature carries REVKEYSIG, VALIDSIG and KEYREVOKED, and an expired
+    # key's carries EXPKEYSIG in place of GOODSIG.
+    # A signature that passes every test but its hash is counted apart, so
+    # that the refusal can name the hash. So is one gpg could not check
+    # where its ERRSIG gives hash 1, 2 or 3 and a code other than 9, which
+    # doc/DETAILS gives as a missing key: measured with gpg 2.5.24, a key's
+    # signature over MD5 gives ERRSIG with code 5 where the keyring holds
+    # the key and 9 where it does not, while one over SHA-1 or RIPEMD-160
+    # gives GOODSIG and VALIDSIG.
+    counts="$(awk '
         function flush() {
-            if (open && goods == 1 && valids == 1 && !revoked &&
+            if (open && errs == 1 && goods == 0 && valids == 0 &&
+                errhash ~ /^[0123456789]+$/ && errhash + 0 >= 1 &&
+                errhash + 0 <= 3 && errrc != "9") {
+                weak++
+                return
+            }
+            if (!(open && goods == 1 && valids == 1 && !revoked &&
                 length(gid) >= 16 && length(sfpr) >= length(gid) &&
                 substr(sfpr, length(sfpr) - length(gid) + 1) == gid &&
-                (primary in pinned) && !(primary in counted)) {
+                (length(primary) == 40 || length(primary) == 64) &&
+                primary !~ /[^0123456789ABCDEF]/ &&
+                hash ~ /^[0123456789]+$/))
+                return
+            if (hash + 0 > 3 && !(primary in counted)) {
                 counted[primary] = 1
                 n++
-            }
+            } else if (hash + 0 >= 1 && hash + 0 <= 3)
+                weak++
         }
-        BEGIN { split(pins, list, " "); for (i in list) pinned[list[i]] = 1 }
         $1 != "[GNUPG:]" { next }
         $2 == "NEWSIG" {
             flush()
-            open = 1; goods = 0; valids = 0; revoked = 0
-            gid = ""; sfpr = ""; primary = ""
+            open = 1; goods = 0; valids = 0; revoked = 0; errs = 0
+            gid = ""; sfpr = ""; primary = ""; hash = ""
+            errhash = ""; errrc = ""
             next
         }
+        $2 == "ERRSIG" { errs++; errhash = $5; errrc = $8 }
         $2 == "GOODSIG" { goods++; gid = toupper($3) }
-        $2 == "VALIDSIG" { valids++; sfpr = toupper($3); primary = toupper($12) }
+        $2 == "VALIDSIG" {
+            valids++; sfpr = toupper($3); hash = $10; primary = toupper($12)
+        }
         $2 == "REVKEYSIG" || $2 == "KEYREVOKED" { revoked = 1 }
-        END { flush(); print n + 0 }
-    ' "$status_file")" || n_good=0
-    case "$n_good" in '' | *[!0123456789]*) n_good=0 ;; *) ;; esac
-    if [ "$n_good" -lt "$min_sigs" ]; then
-        echo "Error: ${label} carries good signatures from ${n_good} key(s)" \
-            "pinned in ${fpr_name}; it asks for ${min_sigs}."
-        echo "A key counts once, and not at all where it is expired or" \
-            "revoked."
-        rm -f "$status_file"
+        END { flush(); print n + 0, weak + 0 }
+    ' "$status_file")" || counts=""
+    read -r n_good n_weak <<< "$counts"
+    case "$n_good" in
+        '' | *[!0123456789]*) n_good=0 ;;
+        *) ;;
+    esac
+    case "$n_weak" in
+        '' | *[!0123456789]*) n_weak=0 ;;
+        *) ;;
+    esac
+    if ! grep -q '^\[GNUPG:\] GOODSIG' "$status_file"; then
+        echo "Error: no PGP signature on ${label} verifies against a key in" \
+            "${keyring_name}."
+        pgp_weak_line "$n_weak" "$label"
         return 1
     fi
-    echo "${label}: good signatures from ${n_good} key(s) pinned in" \
-        "${fpr_name}; ${min_sigs} required."
-
-    rm -f "$status_file"
+    if [ "$n_good" -lt "$min_sigs" ]; then
+        echo "Error: ${label} carries good signatures from ${n_good} key(s)" \
+            "in ${keyring_name}; it asks for ${min_sigs}."
+        pgp_weak_line "$n_weak" "$label"
+        echo "A key counts once, and not at all where it is expired or" \
+            "revoked."
+        return 1
+    fi
+    echo "${label}: good signatures from ${n_good} key(s) in" \
+        "${keyring_name}; ${min_sigs} required."
     return 0
+}
+
+# pgp_weak_line N LABEL: where N is above 0, says that N signatures on
+# LABEL were refused for their hash.
+pgp_weak_line() {
+    if [ "$1" -gt 0 ]; then
+        echo "$1 signature(s) on $2 use MD5, SHA-1 or RIPEMD-160, a weak" \
+            "hash, and do not count."
+    fi
 }
 
 update_checksum() {
@@ -623,58 +598,22 @@ installed_version() {
     ' "$checksum_file"
 }
 
-# preview_pinned_keys FPR_FILE NAME WHAT
+# preview_keyring KEYRING NAME WHAT MIN
 #
 # For an updater's --dry-run, with gpg found: prints what pgp_verify_or_fail
-# would make of FPR_FILE. It reads the file through pinned_fingerprints and
-# counts the distinct pins as that does, and reports the cases it refuses:
-# a file pinned_fingerprints does not accept, a file that pins no key, and a
-# file that pins fewer keys than its min-signatures asks for. Otherwise it
-# prints each pinned key and whether the local keyring holds it, and says so
-# where the keyring holds fewer of them than min-signatures asks for.
-# NAME is the file as the reader knows it (keys/electrum.fingerprints) and
-# WHAT is what a refusal would stop (the download). Always returns 0: a
+# would make of KEYRING before any signature is read. A keyring that
+# keyring_is_readable refuses would refuse WHAT (the download); otherwise
+# it prints the MIN good signatures verification asks for. NAME is the
+# keyring as the reader knows it (keys/electrum.gpg). Always returns 0: a
 # preview reports and does not end the run.
-preview_pinned_keys() {
-    local _pk_file="$1"
-    local _pk_name="$2"
-    local _pk_what="$3"
-    local _pk_pins _pk_min _pk_fpr _pk_n _pk_found=0
-    if ! pinned_fingerprints "$_pk_file" _pk_pins _pk_min; then
-        echo "gpg: found, but ${_pk_name} was not accepted as a list of" \
-            "pinned fingerprints -- verification would refuse ${_pk_what}."
+preview_keyring() {
+    if ! keyring_is_readable "$1"; then
+        echo "gpg: found, but ${2} is missing, empty or unreadable --" \
+            "verification would refuse ${3}."
         return 0
     fi
-    if [ -z "$_pk_pins" ]; then
-        echo "gpg: found, but ${_pk_name} pins no key -- verification would" \
-            "refuse ${_pk_what}."
-        return 0
-    fi
-    _pk_pins="$(printf '%s\n' "$_pk_pins" | tr 'abcdef' 'ABCDEF' \
-        | LC_ALL=C sort -u)"
-    _pk_n="$(printf '%s\n' "$_pk_pins" | wc -l | tr -d ' ')"
-    if [ "${#_pk_min}" -gt 9 ] || [ "$_pk_n" -lt "$_pk_min" ]; then
-        echo "gpg: found, but ${_pk_name} pins ${_pk_n} key(s), fewer than" \
-            "the ${_pk_min} signatures it asks for -- verification would" \
-            "refuse ${_pk_what}."
-        return 0
-    fi
-    while IFS= read -r _pk_fpr; do
-        if gpg --list-keys "$_pk_fpr" > /dev/null 2>&1; then
-            echo "gpg: found, pinned key $_pk_fpr is in the local keyring."
-            _pk_found=$((_pk_found + 1))
-        else
-            echo "gpg: found, but pinned key $_pk_fpr is NOT in the local" \
-                "keyring."
-        fi
-    done <<< "$_pk_pins"
-    echo "Verification asks for ${_pk_min} good signature(s) from distinct" \
-        "pinned keys."
-    if [ "$_pk_found" -lt "$_pk_min" ]; then
-        echo "Only ${_pk_found} pinned key(s) in the local keyring, fewer" \
-            "than the ${_pk_min} signatures asked for -- verification" \
-            "would fail closed."
-    fi
+    echo "gpg: found. Verification asks for ${4} good signature(s) from" \
+        "distinct keys in ${2}."
     return 0
 }
 

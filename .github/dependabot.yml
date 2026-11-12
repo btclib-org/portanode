@@ -3,8 +3,8 @@
 # manifest and no lock file -- `git ls-files 'pyproject.toml' 'uv.lock'
 # 'Gemfile'` is empty -- so the actions the workflows pin are the whole
 # of what this file points dependabot at, and the binaries the update
-# scripts install are pinned by `keys/*.fingerprints` and verified by
-# PGP rather than resolved by anybody's resolver.
+# scripts install are verified by PGP against the keyrings in `keys/`
+# rather than resolved by anybody's resolver.
 #
 # The pre-commit hook revisions are the other thing this repository pins
 # and are not below: dependabot's `pre-commit` ecosystem exists, and the

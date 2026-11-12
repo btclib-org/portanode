@@ -53,24 +53,15 @@ Each accepted `W001` has one of these shapes:
 ## W002 Missing ERRORLEVEL check
 
 Blinter looks for `errorlevel` or `if not` on the command's line and the
-three lines after it. Each accepted `W002` has one of these shapes:
-
-- **A `powershell` line ends in `|| goto :error`.** These are downloads
-  in `update-bitcoin.bat` and `update-electrum.bat`, and the checksum
-  test in `update-bitcoin.bat`.
-- **`:warn_if_no_pubkeys` in `win\scripts\utilities\lib.bat` reads
-  its answer from a file.** The file is emptied before `powershell`
-  runs, and the label warns where the answer is empty.
-- **A `del` removes a temporary file under `%TEMP%`.** These are in
-  `win\scripts\utilities\lib.bat`, and their output goes to `nul`. A
-  failed `del` leaves the file behind and changes nothing the label
-  returns.
+three lines after it. Each accepted `W002` is a `powershell` line that
+ends in `|| goto :error`: the downloads in `update-bitcoin.bat` and
+`update-electrum.bat`, and the checksum test in `update-bitcoin.bat`.
 
 ## W003 Operation without error handling
 
 Blinter makes the test `W002` describes on `powershell` and on other
 external commands. Every accepted `W003` is on a `powershell` line of
-the first two shapes `W002` lists.
+the shape `W002` gives.
 
 ## W004 Potential infinite loop
 
@@ -126,13 +117,6 @@ Blinter reads a `for` whose block opens within the twenty lines after
 another `for` as nested in it. The accepted `W023` is the verification
 loop in `update-bitcoin.bat`. The `for` before it ends on its own line,
 so the loop is not nested.
-
-## W025 Missing error handling
-
-Blinter looks for a `||` outside quotes on the command's line, and for
-`errorlevel`, or for `if` and a space, on that line and the two lines
-after it. Each accepted `W025` is a `del` that removes a temporary file
-under `%TEMP%`, for the reason `W002` gives.
 
 ## W028 Errorlevel handling difference between .bat/.cmd
 

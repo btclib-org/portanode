@@ -277,34 +277,57 @@ message naming it:
   `linux/scripts/utilities/validate-setup.sh`. Then test with the
   regtest scripts.
 - **PGP verification fails closed.** Update scripts abort the install unless the
-  download carries a valid PGP signature. This requires `gpg` to be installed
-  and the signer's key imported: a detached signature file typically carries
-  no public key, so `gpg` can validate only against a key already in the
-  local keyring. For Electrum a missing key — not a missing signature — is
-  the usual cause of a validation failure; for Bitcoin Core it is a pin
-  file that lists no key yet, below. Nothing skips the check: where it
-  fails, fix what the error names — install `gpg`, import the key, or pin
-  the signers you trust — and run the update again.
-    - **Bitcoin Core signing keys**: obtain builder keys from
-      [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys),
-      import the ones you trust with `gpg --import`, and list their
-      fingerprints in `keys/bitcoin-core.fingerprints`. No key ships there,
-      so a Bitcoin Core update is refused until you do. Only the pinned
-      builders who signed that release count, so pin more than 3.
-    - **Electrum signing key**: obtain the release signing key from electrum.org
-      (Download page) and import with `gpg --import`.
-    - **Key pinning**: `keys/electrum.fingerprints` and
-      `keys/bitcoin-core.fingerprints` list pinned signer fingerprints. A
-      download needs good signatures from as many distinct listed keys as
-      the file's `min-signatures=` line asks for, 1 where it has none. An
-      expired or revoked key does not count, so refresh an expired key
-      (`gpg --refresh-keys <fingerprint>`, or import it again); a file
-      listing no key refuses every update. Electrum ships pinned to its
-      release key; the Bitcoin Core file asks for 3. A line is read with
-      its spaces removed, so a fingerprint pasted as `gpg --fingerprint`
-      prints it pins; a line that is then neither 40 hex characters, a
-      `min-signatures=` line nor a `#` comment refuses the update and is
-      named in the error.
+  download carries good PGP signatures from enough of the keys `keys/` ships.
+  This requires `gpg` to be installed. No key has to be imported, and a key
+  in your own keyring does not count: `gpg` runs in a home of its own, made
+  empty for the run, with the keyring from `keys/` as its only keyring.
+  Nothing skips the check: where it fails, fix what the error names and run
+  the update again.
+    - **Bitcoin Core**: `keys/bitcoin-core.gpg` holds the keys of the
+      builders who sign its releases regularly, chosen in
+      [ISS 783](https://github.com/btclib-org/portanode/issues/783), and an
+      update needs good signatures from 3 of them.
+    - **Electrum**: `keys/electrum.gpg` holds its release key, and a download
+      needs its signature.
+    - An expired or revoked key does not count, so a key that expires stops
+      counting until the tree changes. Nor does a signature made with MD5,
+      SHA-1 or RIPEMD-160, which RFC 9580 says not to rely on. The number of
+      signatures asked for is in `shared/utilities/lib.sh` and in the Windows
+      updaters.
+    - **How a key changes**: a key that is added, dropped, rotated or renewed
+      is a pull request that rewrites the keyring. Take Bitcoin Core's keys
+      from the `builder-keys/` folder of
+      [bitcoin-core/guix.sigs](https://github.com/bitcoin-core/guix.sigs) and
+      Electrum's from the `pubkeys/` folder of
+      [spesmilo/electrum](https://github.com/spesmilo/electrum), at a commit
+      the pull request names. Put the key files the keyring is to hold, and
+      nothing else, in one folder, and write the keyring from them in a
+      scratch home:
+
+      ```shell
+      h=$(mktemp -d)
+      printf '%s\0' <folder>/* | LC_ALL=C sort -z |
+        xargs -0 gpg --homedir "$h" --batch --import
+      gpg --homedir "$h" --export --export-options export-minimal \
+        > keys/bitcoin-core.gpg
+      gpgconf --homedir "$h" --kill all
+      rm -rf "$h"
+      ```
+
+      `gpg` writes the keys in the order it imported them, so the files are
+      imported sorted by name. A reviewer can then rebuild the keyring from
+      the same files and compare it byte for byte: with gpg 2.5.24 these
+      commands write the same bytes each time. This lists what a keyring
+      holds:
+
+      ```shell
+      h=$(mktemp -d)
+      gpg --homedir "$h" --no-default-keyring \
+        --keyring "$PWD/keys/bitcoin-core.gpg" --list-keys
+      gpgconf --homedir "$h" --kill all
+      rm -rf "$h"
+      ```
+
 - **If an updater cannot run** — no network access to bitcoincore.org or
   electrum.org, or a release the updater's scraper does not find — download
   the binary by hand from
@@ -333,8 +356,8 @@ message naming it:
   majors (*Version Compatibility* below); a rollback refuses a backup no entry
   matches. These files provide **integrity and rollback** checks (detecting
   corruption/tampering of an already-installed binary), not authenticity —
-  authenticity comes from the PGP step above. Where to get each project's
-  signing key is the *PGP verification fails closed* bullet above.
+  authenticity comes from the PGP step above. The *PGP verification fails
+  closed* bullet above says which keys `keys/` ships and where they come from.
 
 ### Expected Binaries by OS
 
@@ -518,12 +541,11 @@ this, and this is what that person reads; the policy for reporting
 something that *is* a vulnerability is the organization's, shown on
 [the Security tab](https://github.com/btclib-org/portanode/security/policy).
 
-- **The trust root is the keys in your own GPG keyring**, and this
-  repository cannot establish it for you. `keys/*.fingerprints` pins
-  which signer is accepted once a key is imported; it does not say the
-  key you imported is the publisher's. Verify a fingerprint against the
-  publisher's own site before importing, which is what *Updating
-  Binaries* above asks.
+- **The trust root is the keyrings in `keys/`**, which come with this
+  repository: a copy whose release tag verifies (`VERIFYING.md`) ships the
+  keys its pull requests reviewed. They are taken from the publishers'
+  repositories, as *Updating Binaries* above says, and whether a key there
+  is its signer's own is what those repositories establish, not this one.
 - **`checksums.sha256` is integrity and not authenticity.** It detects a
   binary that changed under you; it says nothing about where the binary
   came from, that being what the PGP step decides. A checksum entry is

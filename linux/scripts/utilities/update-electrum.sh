@@ -176,10 +176,8 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "Would install Electrum ${VERSION} (currently installed: ${CURRENT})."
     echo "Would fetch: $URL"
     if command -v gpg > /dev/null 2>&1; then
-        # The helper reads the file as pgp_verify_or_fail does, so the pins
-        # named here are the ones the real run enforces.
-        preview_pinned_keys "$ROOTDIR/keys/electrum.fingerprints" \
-            "keys/electrum.fingerprints" "the download"
+        preview_keyring "$ROOTDIR/keys/electrum.gpg" "keys/electrum.gpg" \
+            "the download" "$ELECTRUM_MIN_SIGNATURES"
     else
         echo "gpg: not found -- verification would fail closed."
     fi
@@ -229,7 +227,8 @@ if ! pgp_verify_or_fail \
     "$TMP_DIR/$FILE.asc" \
     "$TMP_DIR/$FILE" \
     "Electrum" \
-    "$ROOTDIR/keys/electrum.fingerprints"; then
+    "$ROOTDIR/keys/electrum.gpg" \
+    "$ELECTRUM_MIN_SIGNATURES"; then
     exit 1
 fi
 

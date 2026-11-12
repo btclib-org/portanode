@@ -32,12 +32,10 @@ run_electrum binary
 # defaults to. Without an eol here git stores whichever one last
 # touched the file rather than converging them, so eol=lf normalizes every
 # write to the format that shared appender and shasum already produce.
-# keys/*.fingerprints is never written by a script, but is the same kind of
-# plain text list and gets the same treatment for the same reason -- a
-# second unattributed text format in the tree is one more thing to notice
-# missing.
 */checksums.sha256 text eol=lf
-keys/*.fingerprints text eol=lf
+# keys/*.gpg are OpenPGP keyrings, bytes that gpg reads as written: no line
+# ending is converted and no diff is shown as text.
+keys/*.gpg binary
 
 # There is no pyproject.toml here, so each tool's configuration is a file
 # of its own and these are the formats those files are written in.

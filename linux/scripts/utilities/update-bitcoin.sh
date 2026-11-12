@@ -180,20 +180,8 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "Would fetch: $URL"
     echo "Would verify against: $CHECKSUM_URL (signed by $CHECKSUM_SIG_URL)"
     if command -v gpg > /dev/null 2>&1; then
-        # grep -c exits 1 when it counts zero, which under pipefail makes
-        # this assignment's own status 1 -- an empty keyring is exactly
-        # the case the warning below exists for, and set -e would end the
-        # script here instead of reaching it. The count itself is still
-        # correct: grep already printed "0" into the substitution before
-        # exiting non-zero, so the fallback only restates it.
-        PUBKEYS="$(gpg --list-keys --with-colons 2> /dev/null | grep -c '^pub')" \
-            || PUBKEYS=0
-        echo "gpg: found, ${PUBKEYS} public key(s) in the local keyring."
-        if [ "$PUBKEYS" -eq 0 ]; then
-            echo "Warning: with none imported, verification would fail closed."
-        fi
-        preview_pinned_keys "$ROOTDIR/keys/bitcoin-core.fingerprints" \
-            "keys/bitcoin-core.fingerprints" "the update"
+        preview_keyring "$ROOTDIR/keys/bitcoin-core.gpg" \
+            "keys/bitcoin-core.gpg" "the update" "$BITCOIN_CORE_MIN_SIGNATURES"
     else
         echo "gpg: not found -- verification would fail closed."
     fi
@@ -249,13 +237,14 @@ curl_https -fL -o "$TMP_DIR/SHA256SUMS" "$CHECKSUM_URL"
 echo "Downloading $CHECKSUM_SIG_URL..."
 curl_https -fL -o "$TMP_DIR/SHA256SUMS.asc" "$CHECKSUM_SIG_URL"
 
-# Verify (fails closed). Same fingerprints file as the other two platforms,
-# so this is no new trust decision.
+# Verify (fails closed). Same keyring as the other two platforms, so this
+# is no new trust decision.
 if ! pgp_verify_or_fail \
     "$TMP_DIR/SHA256SUMS.asc" \
     "$TMP_DIR/SHA256SUMS" \
     "SHA256SUMS" \
-    "$ROOTDIR/keys/bitcoin-core.fingerprints"; then
+    "$ROOTDIR/keys/bitcoin-core.gpg" \
+    "$BITCOIN_CORE_MIN_SIGNATURES"; then
     exit 1
 fi
 if ! verify_sha256sums "$TMP_DIR" SHA256SUMS "$FILE"; then
