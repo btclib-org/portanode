@@ -434,6 +434,132 @@ foreach ($c in $stubbed) {
     -Got (Get-Answer $c[0] $c[1]) -Want $c[2]
 }
 
+# ISS 887: the network a node selects in its configuration files, read as a
+# node on the data directory the guard is given. Each case names the files
+# it writes there, and what Get-NodeNetwork answers: a network, "null" where
+# it selects more than one, "threw" where it cannot tell.
+$confDir = Join-Path ([IO.Path]::GetTempPath()) ('portanode-node-conf-' + [guid]::NewGuid())
+New-Item -ItemType Directory -Path $confDir | Out-Null
+try {
+  $onConf = "$qt -datadir=`"$confDir`""
+  # Core compares names byte for byte, so a byte order mark, a zero-width
+  # space or a soft hyphen makes a name of its own.
+  $bom = [char]0xFEFF
+  $zw = [char]0x200B
+  $shy = [char]0xAD
+  $confCases = @(
+    @(@{ 'bitcoin.conf' = "${bom}chain=main`nchain=regtest`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "${bom}regtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "regtest=1`nno${zw}regtest=1`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "regtest=1`nno${shy}regtest=1`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "[$zw]`nregtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "${bom}[regtest]`n" }, '', 'threw'),
+    @(@{ 'bitcoin.conf' = "regtest=1`nincludeconf=x.conf`n"; 'x.conf' = "${bom}noregtest=1`n" }, '', 'regtest'),
+    # Core trims vertical tab and form feed before the value's integer.
+    @(@{ 'bitcoin.conf' = "regtest=$([char]11)1`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "regtest=$([char]12)1`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "rpcpassword=x # a comment`n" }, '', 'threw'),
+    # Core refuses more than one network before it reads the included files.
+    @(@{ 'bitcoin.conf' = "regtest=1`nsignet=1`nincludeconf=x.conf`n"; 'x.conf' = "regtest=0`n" }, '', 'null'),
+    @(@{ 'bitcoin.conf' = "chain=regtest`nsignet=1`nincludeconf=x.conf`n"; 'x.conf' = "nochain=1`n" }, '', 'null'),
+    # shared/lib.sh cannot read a NUL byte as Core does, so neither guard reads one.
+    @(@{ 'bitcoin.conf' = "noregtest=$([char]0)1`n" }, '', 'threw'),
+    # Core reads no switch after a lone "-".
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '- -noconf', 'regtest'),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '- -regtest=0', 'regtest'),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "txindex=1`n" }, '', 'main'),
+    @(@{}, '', 'main'),
+    @(@{ 'bitcoin.conf' = "chain=regtest`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "  regtest = 1 # a comment`r`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = 'regtest=1' }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "noregtest=0`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "regtest=1`nnoregtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "#regtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "Regtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "[regtest]`nregtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "regtest.regtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "[regtest]`n[]`nregtest=1`n" }, '', 'regtest'),
+    # -chain takes its first value in the files after their last negation.
+    @(@{ 'bitcoin.conf' = "chain=regtest`nchain=main`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "chain=main`nnochain=1`nchain=regtest`nchain=main`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "chain=regtest`nnochain=1`n" }, '', '0'),
+    # The command line wins, but Core skips a negation there.
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-regtest=0', 'main'),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-noregtest', 'regtest'),
+    @(@{ 'bitcoin.conf' = "chain=regtest`n" }, '-chain=main', 'main'),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-chain=main', 'null'),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-noconf', 'main'),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-conf=bitcoin.conf -noconf', 'main'),
+    @(@{ 'x.conf' = "regtest=1`n" }, '-conf=x.conf', 'regtest'),
+    @(@{ 'x.conf' = "regtest=1`n" }, "-conf=`"$(Join-Path $confDir 'x.conf')`"", 'regtest'),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-conf=x.conf', 'threw'),
+    @(@{}, '-conf', 'threw'),
+    @(@{ 'bitcoin.conf' = "regtest`n" }, '', 'threw'),
+    @(@{ 'bitcoin.conf' = "-regtest=1`n" }, '', 'threw'),
+    # The files that includeconf names, the top's and the selected network's.
+    @(@{ 'bitcoin.conf' = "includeconf=x.conf`n"; 'x.conf' = "regtest=1`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "includeconf=x.conf`n"; 'x.conf' = "regtest=1`n" }, '-noincludeconf', 'main'),
+    @(@{ 'bitcoin.conf' = "includeconf=x.conf`nnoincludeconf=1`n"; 'x.conf' = "regtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "[main]`nincludeconf=x.conf`n"; 'x.conf' = "regtest=1`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "[test]`nincludeconf=x.conf`n"; 'x.conf' = "regtest=1`n" }, '', 'main'),
+    @(@{ 'bitcoin.conf' = "regtest=0`nincludeconf=x.conf`n"; 'x.conf' = "regtest=1`n" }, '', 'regtest'),
+    @(@{ 'bitcoin.conf' = "includeconf=x.conf`n" }, '', 'threw'),
+    @(@{ 'bitcoin.conf' = "noincludeconf=0`n" }, '', 'threw')
+  )
+  foreach ($c in $confCases) {
+    Get-ChildItem -LiteralPath $confDir | Remove-Item -Force
+    foreach ($name in $c[0].Keys) { [IO.File]::WriteAllText((Join-Path $confDir $name), $c[0][$name]) }
+    $line = "$onConf $($c[1])"
+    $got = try { $n = Get-NodeNetwork $line $confDir; if ($null -eq $n) { 'null' } else { $n } } catch { 'threw' }
+    $files = ($c[0].Keys | Sort-Object | ForEach-Object { "$_ = $($c[0][$_] -replace "`r", '\r' -replace "`n", '\n')" }) -join ', '
+    $files = [regex]::Replace($files, '[^\x20-\x7E]', { param($m) 'U+{0:X4}' -f [int][char]$m.Value })
+    Test-Case -Description "conf network: $($c[1]) with $files" -Got $got -Want $c[2]
+  }
+  # What the guard of the Alice -clean launchers asks.
+  Get-ChildItem -LiteralPath $confDir | Remove-Item -Force
+  [IO.File]::WriteAllText((Join-Path $confDir 'bitcoin.conf'), "regtest=1`n")
+  Test-Case -Description 'on datadir, regtest in bitcoin.conf' -Got (Test-NodeOnDatadir $onConf $confDir 'regtest') -Want $true
+  [IO.File]::WriteAllText((Join-Path $confDir 'bitcoin.conf'), "txindex=1`n")
+  Test-Case -Description 'on datadir, no network in bitcoin.conf' `
+    -Got (Test-NodeOnDatadir $onConf $confDir 'regtest') -Want $false
+  # A node whose command line and files select more than one network, which
+  # Core refuses, counts.
+  [IO.File]::WriteAllText((Join-Path $confDir 'bitcoin.conf'), "chain=main`n")
+  Test-Case -Description 'on datadir, -regtest and chain=main in bitcoin.conf' `
+    -Got (Test-NodeOnDatadir "$onConf -regtest" $confDir 'regtest') -Want $true
+  [IO.File]::WriteAllText((Join-Path $confDir 'bitcoin.conf'), "regtest.includeconf=x.conf`n")
+  [IO.File]::WriteAllText((Join-Path $confDir 'x.conf'), "chain=main`n")
+  Test-Case -Description 'on datadir, -regtest and chain=main in an included file' `
+    -Got (Test-NodeOnDatadir "$onConf -regtest" $confDir 'regtest') -Want $true
+  [IO.File]::WriteAllText((Join-Path $confDir 'bitcoin.conf'), "regtest=1`nsignet=1`nincludeconf=x.conf`n")
+  [IO.File]::WriteAllText((Join-Path $confDir 'x.conf'), "regtest=0`n")
+  Test-Case -Description 'on datadir, regtest and signet, then regtest=0 in an included file' `
+    -Got (Test-NodeOnDatadir $onConf $confDir 'regtest') -Want $true
+  [IO.File]::WriteAllText((Join-Path $confDir 'bitcoin.conf'), "chain=regtest`nsignet=1`nincludeconf=x.conf`n")
+  [IO.File]::WriteAllText((Join-Path $confDir 'x.conf'), "nochain=1`n")
+  Test-Case -Description 'on datadir, chain=regtest and signet, then nochain=1 in an included file' `
+    -Got (Test-NodeOnDatadir $onConf $confDir 'regtest') -Want $true
+  [IO.File]::WriteAllText((Join-Path $confDir 'bitcoin.conf'), "signet=1`ntestnet=1`n")
+  Remove-Item -LiteralPath (Join-Path $confDir 'x.conf')
+  Test-Case -Description 'on datadir, signet and testnet' `
+    -Got (Test-NodeOnDatadir $onConf $confDir 'regtest') -Want $true
+  # A byte that is not UTF-8, as in a Latin-1 comment, is read as Core reads it.
+  $latin1 = [Text.Encoding]::GetEncoding(28591)
+  [IO.File]::WriteAllBytes((Join-Path $confDir 'bitcoin.conf'), $latin1.GetBytes("# comment $([char]0xE9)`ntxindex=1`n"))
+  Test-Case -Description 'conf network: a Latin-1 comment, no network' -Got (Get-NodeNetwork $onConf $confDir) -Want 'main'
+  [IO.File]::WriteAllBytes((Join-Path $confDir 'bitcoin.conf'), $latin1.GetBytes("regtest=1`n# comment $([char]0xE9)`n"))
+  Test-Case -Description 'conf network: a Latin-1 comment, regtest' -Got (Get-NodeNetwork $onConf $confDir) -Want 'regtest'
+  # A file that cannot be read stops the guard only for a node that may be
+  # on its data directory.
+  Test-Case -Description 'on datadir, -conf names a missing file' `
+    -Got (Get-Answer "$onConf -conf=missing.conf" $confDir) -Want 'threw'
+  Test-Case -Description 'on another datadir, -conf names a missing file' `
+    -Got (Get-Answer "$qt -datadir=C:\other -conf=missing.conf" $confDir) -Want 'False'
+} finally {
+  Remove-Item -LiteralPath $confDir -Recurse -Force
+}
+
 if ($script:failed -gt 0) {
   Write-Output "$script:failed case(s) failed"
   exit 1

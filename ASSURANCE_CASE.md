@@ -177,25 +177,28 @@ has to pass the probe the walk applies, a `VERSION` beside `macos/`,
 deletes regtest data only when it finds no node running on it. On macOS
 and Linux it reads the command line `ps` prints, which keeps no argument
 boundaries, so a flag counts only as a word of its own
-(`regtest_node_running_on` in `shared/lib.sh`). On Windows it reads the
-node's network as the mainnet launcher does, below, splitting the
-command line as the Bitcoin Core releases `README.md`'s *Version
-Compatibility* supports split it. On every platform it reads the command
-line alone, so it does not count a node that selects regtest in
-`bitcoin.conf` ([ISS 887]). Where its own data directory exists, it
-resolves that directory and the node's `-datadir` and compares the two,
-so a junction, a symbolic link or another spelling of the path does not
-hide a node, and a node's `-datadir` that is relative or does not
-resolve stops it as a node on the directory does. On Windows, where the
-two final paths differ, the directories still match by volume serial
-number and file index. Where its own data directory does not resolve and
-is not known to be missing, any regtest node's `-datadir` that does not
-spell it stops it. On macOS and Linux a node's `-datadir` is read up to
-each following space in turn, and counts as resolving only where a
-reading that ends before a word starting with `-`, or at the end of the
-line, resolves. A `-datadir` holding a space followed by `-` that does
-not resolve, where its part before that space does, reads as the
-directory that part names.
+(`regtest_node_running_on` in `shared/lib.sh`). On Windows it splits the
+command line as the mainnet launcher does, below, and as the Bitcoin
+Core releases `README.md`'s *Version Compatibility* supports split it.
+On every platform it also reads the network from `bitcoin.conf`, or the
+file `-conf` names, and from the files they include. It reads them for
+every node that names a `-datadir`, as Bitcoin Core reads them for a
+node on the launcher's own data directory, and as they are now, not as
+they were when the node started. Where it cannot read one that Core
+would read, it stops, unless the node's `-datadir` is known to name
+another directory. Where its own data directory exists, it resolves that
+directory and the node's `-datadir` and compares the two, so a junction,
+a symbolic link or another spelling of the path does not hide a node,
+and a node's `-datadir` that is relative or does not resolve stops it as
+a node on the directory does. On Windows, where the two final paths
+differ, the directories still match by volume serial number and file
+index. Where its own data directory does not resolve and is not known to
+be missing, any regtest node's `-datadir` that does not spell it stops
+it. On macOS and Linux a node's `-datadir` is read up to each following
+space in turn, and counts as resolving only where a reading that ends
+before a word starting with `-`, or at the end of the line, resolves. A
+`-datadir` holding a space followed by `-` that does not resolve, where
+its part before that space does, reads as the directory that part names.
 
 The mainnet launcher refuses to start while a mainnet node is running.
 It reads a node's flags as whole arguments, so a path holding
@@ -308,5 +311,3 @@ to, and what counters each.
   (`script-security.yml`; `REPOSITORY.md`'s *What gates a merge*).
 - **Secrets in the tree.** `detect-secrets` runs as a hook of the lint
   gate, against `.secrets.baseline`.
-
-[ISS 887]: https://github.com/btclib-org/portanode/issues/887
