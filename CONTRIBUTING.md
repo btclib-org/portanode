@@ -512,12 +512,11 @@ The style declines these rules:
 - `P016`, `P019`, `P022` and `P023` report a variable appended to, a
   `!name!` read, a redirection to `nul` and a `set /a` inside a `for`
   loop. Appending is how a batch file builds a list, delayed expansion
-  is how a loop reads a variable it sets, and `set /a` is cmd.exe's only
-  arithmetic. Blinter also reads every line after a `for /f` that a `^`
-  continues as inside that loop, for the reason `W068` gives in
-  `.github/blinter-reasons.md`. Each finding of these rules here is on
-  such a line, except one: the `>nul` of a `find` that a loop in
-  `health-check.bat` runs for its errorlevel.
+  is how a loop reads a variable it sets, a redirection to `nul` drops
+  output nobody reads, and `set /a` is cmd.exe's only arithmetic.
+  Blinter also reads every line after a `for /f` that a `^` continues as
+  inside that loop, for the reason `W068` gives in
+  `.github/blinter-reasons.md`.
 - `P024` reports a file's second `setlocal`. Every `.bat` here but
   `root.bat` and the `lib.bat` files opens with
   `setlocal disabledelayedexpansion`, for the reason the root launchers'
