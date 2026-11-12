@@ -4,7 +4,8 @@ REM Distributed under the MIT software license, see the accompanying
 REM LICENSE file or https://opensource.org/license/mit for the full text.
 
 REM Shared guard for the Electrum launchers beside this file, called by label:
-REM     call "%SCRIPT_DIR%lib.bat" :label [arguments]
+REM     call "%%SCRIPT_DIR%%lib.bat" :label [arguments]
+REM written as win\scripts\root.bat says at its head.
 REM It prints its own message and returns 1 where the caller must stop, so a
 REM caller writes: if errorlevel 1 exit /b 1
 set "ACTION=%~1"
@@ -70,7 +71,7 @@ REM
 REM Both searches run with System32 as the current directory, and their
 REM answers are read once it is changed back: root.bat's :leave_folder
 REM says why.
-call "%LIB_DIR%..\root.bat" :leave_folder
+call "%%LIB_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 exit /b 1
 cmd /d /c exit 1
 findstr /m /c:"run_electrum" < "%ELECTRUM_EXE%" >nul

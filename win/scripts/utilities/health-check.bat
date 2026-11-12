@@ -18,17 +18,17 @@ REM root.bat and lib.bat among them: a call re-parses its own target
 REM and its arguments under that same pass and strips a second time,
 REM from a bang-delimited read as readily as from a percent one (#411).
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 REM System32 is the current directory from here to each popd: root.bat's
 REM :leave_folder says why.
-call "%SCRIPT_DIR%..\root.bat" :leave_folder
+call "%%SCRIPT_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -59,7 +59,7 @@ set "BTC_CLI="
 set "BTC_CLI_SHOWN="
 set "BTC_BIN=%ROOTDIR%\win\bin\bitcoin-cli.exe"
 if exist "%BTC_BIN%" set "BTC_CLI=%BTC_BIN%"
-if defined BTC_CLI call "%SCRIPT_DIR%lib.bat" :rootdir_relative "%BTC_BIN%" BTC_CLI_SHOWN
+if defined BTC_CLI call "%%SCRIPT_DIR%%lib.bat" :rootdir_relative "%%BTC_BIN%%" BTC_CLI_SHOWN
 REM "where" is the PATH lookup cmd.exe has, and it prints every match,
 REM so the guard inside the loop keeps the first line -- the one the
 REM shell itself would run. What it finds sits outside the folder, so
@@ -250,5 +250,5 @@ REM the :pause_if_own_console call: its target is built on SCRIPT_DIR,
 REM and a call under delayed expansion strips a bang out of it (#411).
 endlocal
 popd >nul 2>&1
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0

@@ -10,10 +10,10 @@ REM Explicitly disabled above (line 2) rather than merely not enabled,
 REM for the reason rollback-bitcoin.bat's own comment gives, and for a
 REM second one that file does not meet: "call" re-parses its own target
 REM path and its arguments under the delayed-expansion pass, so with
-REM that pass on every call "%SCRIPT_DIR%lib.bat" line below loses a
-REM "!" the mount path carries -- out of the target itself rather than
-REM only out of the argument beside it, and whichever form that
-REM argument takes. Measured on windows-latest, calling a .bat under
+REM that pass on a call of "%SCRIPT_DIR%lib.bat", the form measured,
+REM loses a "!" the mount path carries -- out of the target itself
+REM rather than only out of the argument beside it, and whichever form
+REM that argument takes. Measured on windows-latest, calling a .bat under
 REM C:\Port!Node with an argument built the same way: with delayed
 REM expansion off the callee runs and receives C:\Port!Node\x.txt
 REM unchanged; with it on the callee is not reached at all, cmd.exe
@@ -32,9 +32,9 @@ REM in a "setlocal enabledelayedexpansion ... endlocal" scope. Every
 REM such scope holds echoes and no call: a call inside one would be
 REM back at the paragraph above.
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -60,7 +60,7 @@ if "%~1"=="--allow-downgrade" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--version ^<v^>] [--dry-run] [--allow-downgrade]
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
@@ -73,7 +73,7 @@ REM FILE against ROOTDIR.
 pushd "%SystemRoot%\System32" >nul 2>&1
 if /i not "%CD%"=="%SystemRoot%\System32" (
     echo Error: cannot change to the Windows System32 directory.
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -110,20 +110,20 @@ if "%VERSION%"=="INDEX_UNREACHABLE" (
     echo Error: failed to fetch the release index from
     echo bitcoincore.org ^(Invoke-WebRequest -TimeoutSec 300^).
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 if "%VERSION%"=="PROBE_TIMEOUT" (
     echo Error: bitcoincore.org did not answer a release's win64
     echo archive check within 30 seconds.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 if not defined VERSION (
     echo Error: could not determine a Bitcoin Core release with a win64 build.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 setlocal enabledelayedexpansion
@@ -143,7 +143,7 @@ set "URL=%BASE_URL%%FILE%"
 set "CHECKSUM_URL=%BASE_URL%SHA256SUMS"
 set "CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc"
 set "CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256"
-call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENT
+call "%%SCRIPT_DIR%%lib.bat" :installed_version "%%BIN_DIR%%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%%CHECKSUM_FILE%%" CURRENT
 set VERDICT=
 REM compare-versions.ps1's header has the rule. Run from its own
 REM directory by a relative name: win/scripts/root.ps1 says why.
@@ -155,7 +155,7 @@ if "!VERDICT!"=="MALFORMED" (
     echo Refusing to install Bitcoin Core !VERSION!: a version is digits and dots.
     endlocal
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 if "!VERDICT!"=="OLDER" (
@@ -166,7 +166,7 @@ if "!VERDICT!"=="OLDER" (
 endlocal
 echo Run again with --allow-downgrade to install it anyway.
 popd >nul 2>&1
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :downgrade_checked
 
@@ -176,16 +176,16 @@ setlocal enabledelayedexpansion
 echo Updating Bitcoin Core to !VERSION!...
 endlocal
 
-call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Bitcoin Core" updating bitcoind.exe
+call "%%SCRIPT_DIR%%lib.bat" :refuse_while_running "Bitcoin Core" updating bitcoind.exe
 if errorlevel 1 (
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
-call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Bitcoin Core" updating bitcoin-qt.exe
+call "%%SCRIPT_DIR%%lib.bat" :refuse_while_running "Bitcoin Core" updating bitcoin-qt.exe
 if errorlevel 1 (
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -208,8 +208,8 @@ endlocal
 where gpg >nul 2>&1
 if %errorlevel%==0 (
     echo gpg: found.
-    call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
-    call "%SCRIPT_DIR%lib.bat" :preview_pinned_keys "%ROOTDIR%\keys\bitcoin-core.fingerprints" "keys\bitcoin-core.fingerprints" "the update"
+    call "%%SCRIPT_DIR%%lib.bat" :warn_if_no_pubkeys
+    call "%%SCRIPT_DIR%%lib.bat" :preview_pinned_keys "%%ROOTDIR%%\keys\bitcoin-core.fingerprints" "keys\bitcoin-core.fingerprints" "the update"
 ) else (
     echo gpg: not found -- verification would fail closed.
 )
@@ -301,7 +301,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.Servic
 powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\fetch-https.ps1 -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\SHA256SUMS') } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\fetch-https.ps1 -Uri $env:CHECKSUM_SIG_URL -OutFile ($env:TMPDIR + '\SHA256SUMS.asc') } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
-call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\SHA256SUMS.asc" "%TMPDIR%\SHA256SUMS" "SHA256SUMS" "%ROOTDIR%\keys\bitcoin-core.fingerprints"
+call "%%SCRIPT_DIR%%lib.bat" :verify_pgp_signature "%%TMPDIR%%\SHA256SUMS.asc" "%%TMPDIR%%\SHA256SUMS" "SHA256SUMS" "%%ROOTDIR%%\keys\bitcoin-core.fingerprints"
 if errorlevel 1 goto :error
 
 REM A SHA256SUMS line counts where its name field is FILE, whole and in
@@ -347,7 +347,7 @@ REM Every .exe in the archive's bin directory goes through lib.bat's
 REM :install_verified, which compares the copy with its source; the
 REM first one it fails on ends the install.
 for %%F in ("%TMPDIR%\bitcoin-%VERSION%\bin\*.exe") do (
-  call "%SCRIPT_DIR%lib.bat" :install_verified "%%~fF" "%BIN_DIR%\%%~nxF"
+  call "%%SCRIPT_DIR%%lib.bat" :install_verified "%%~fF" "%%BIN_DIR%%\%%~nxF"
   if errorlevel 1 goto :install_failed
 )
 goto :install_done
@@ -359,7 +359,7 @@ goto :error
 REM The entries are hashed from the files extracted from the archive
 REM checked above, and the loop below checks the installed copies
 REM against them.
-for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call "%SCRIPT_DIR%lib.bat" :update_checksum "%TMPDIR%\bitcoin-%VERSION%\bin\%%E.exe" "win/bin/%%E.exe" "%VERSION%"
+for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call "%%SCRIPT_DIR%%lib.bat" :update_checksum "%%TMPDIR%%\bitcoin-%%VERSION%%\bin\%%E.exe" "win/bin/%%E.exe" "%%VERSION%%"
 
 REM Flat rather than the "if ... ( )" this replaced: VERR is set inside
 REM the loop and tested after it, which one block would read as VERR
@@ -369,7 +369,7 @@ REM rather than an expansion made when it is parsed.
 echo Verifying installed binaries against checksums.sha256...
 set "VERR=0"
 for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do (
-  call "%SCRIPT_DIR%lib.bat" :verify_checksum "win/bin/%%E.exe" "win/bin/%%E.exe"
+  call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "win/bin/%%E.exe" "win/bin/%%E.exe"
   if errorlevel 1 set "VERR=1"
 )
 if "%VERR%"=="1" (
@@ -395,7 +395,7 @@ REM Above endlocal, which discards SCRIPT_DIR: measured on
 REM windows-latest, one line below it the same call answers
 REM '"..\root.bat"' is not recognized as an internal or external
 REM command, and no wait happens.
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 REM One physical line: cmd.exe expands %STATUS% when it reads this
 REM line, before the endlocal on the same line runs, where a separate
 REM "exit /b %STATUS%" line would read it after endlocal had already

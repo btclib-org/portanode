@@ -291,8 +291,8 @@ REM :install_verified's comment gives.
 set "FILEPATH_RAW=%~1"
 set "ENTRY_RAW=%~2"
 set "VERSION_LABEL=%~3"
-call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
-call :normalize_entry_path "%ENTRY_RAW%" FILEPATH_ENTRY
+call :normalize_fs_path "%%FILEPATH_RAW%%" FILEPATH_FS
+call :normalize_entry_path "%%ENTRY_RAW%%" FILEPATH_ENTRY
 if not exist "%FILEPATH_FS%" exit /b 0
 if "%CHECKSUM_FILE%"=="" exit /b 0
 REM Appends the one new entry with Add-Content rather than rewriting the file
@@ -340,8 +340,8 @@ exit /b 0
 :verify_checksum
 set "FILEPATH_RAW=%~1"
 set "CHECKPATH_RAW=%~2"
-call :normalize_fs_path "%FILEPATH_RAW%" FILEPATH_FS
-call :normalize_entry_path "%CHECKPATH_RAW%" CHECKPATH_ENTRY
+call :normalize_fs_path "%%FILEPATH_RAW%%" FILEPATH_FS
+call :normalize_entry_path "%%CHECKPATH_RAW%%" CHECKPATH_ENTRY
 REM A relative FILE is taken against ROOTDIR, not against the current
 REM directory, which the updaters keep outside the folder (#656).
 if not "%FILEPATH_FS:~1,1%"==":" if not "%FILEPATH_FS:~0,1%"=="\" set "FILEPATH_FS=%ROOTDIR%\%FILEPATH_FS%"
@@ -349,12 +349,12 @@ REM Fails CLOSED on a missing file, converging on
 REM shared/utilities/lib.sh's verify_checksum_entry, which returns
 REM non-zero on the same case.
 if exist "%FILEPATH_FS%" goto :verify_checksum_found
-call :rootdir_relative "%FILEPATH_FS%" FILEPATH_REL
+call :rootdir_relative "%%FILEPATH_FS%%" FILEPATH_REL
 echo Error: %FILEPATH_REL% not found.
 exit /b 1
 :verify_checksum_found
 if "%CHECKSUM_FILE%"=="" exit /b 1
-call :rootdir_relative "%FILEPATH_FS%" FILEPATH_REL
+call :rootdir_relative "%%FILEPATH_FS%%" FILEPATH_REL
 REM Built as one physical line: see :update_checksum's comment above on
 REM why a "^" split across this block's open quote is not a continuation.
 REM "-not" rather than "!" for the reason :update_checksum's comment
@@ -407,8 +407,8 @@ set "IV_FILE_RAW=%~1"
 set "IV_ENTRY_RAW=%~2"
 set "IV_CHECKSUM=%~3"
 set "IV_OUTVAR=%~4"
-call :normalize_fs_path "%IV_FILE_RAW%" IV_FILE_FS
-call :normalize_entry_path "%IV_ENTRY_RAW%" IV_ENTRY_ENTRY
+call :normalize_fs_path "%%IV_FILE_RAW%%" IV_FILE_FS
+call :normalize_entry_path "%%IV_ENTRY_RAW%%" IV_ENTRY_ENTRY
 set "%IV_OUTVAR%=unknown"
 if not exist "%IV_FILE_FS%" exit /b 0
 if not exist "%IV_CHECKSUM%" exit /b 0
@@ -426,17 +426,35 @@ REM PATH with the ROOTDIR prefix removed, for a message: the folder is
 REM mounted at a different point on every machine it is plugged into, so a
 REM message quoting the mount point tells the reader where this run
 REM happened rather than which file in the folder is meant. A path outside
-REM the folder carries no such prefix and comes back unchanged.
-REM "call set" is what expands ROOTDIR inside the pattern: cmd reads the
-REM percent signs of "%PATH:%ROOTDIR%\=%" as three pairs and substitutes
-REM nothing, where the second parse a "call" adds sees one pair around an
-REM already-expanded ROOTDIR. The guard is for an unset ROOTDIR, which
-REM would leave the pattern a bare backslash and strip every separator in
-REM the path.
+REM the folder carries no such prefix and comes back unchanged, and so
+REM does every path where ROOTDIR is unset.
+REM
+REM The prefix is cut by its length, and no path is in a call's arguments
+REM before the call's own parse: a "call" doubles each "^" in its
+REM arguments, as win\scripts\root.bat says at its head, so a pattern
+REM built from ROOTDIR there matches no path whose folder holds one
+REM (#892). The loop counts the characters of ROOTDIR and its separator
+REM one "call set" at a time, only the count reaching a call's arguments
+REM before their second parse. The "if /i" before the last "call" compares
+REM the two paths outside that call's arguments, where no "^" is doubled,
+REM and ignores case.
 :rootdir_relative
 set "RR_PATH=%~1"
 set "RR_OUTVAR=%~2"
-if defined ROOTDIR call set "RR_PATH=%%RR_PATH:%ROOTDIR%\=%%"
+if not defined ROOTDIR goto :rootdir_relative_done
+if not defined RR_PATH goto :rootdir_relative_done
+set "RR_ROOT=%ROOTDIR%\"
+if "%ROOTDIR:~-1%"=="\" set "RR_ROOT=%ROOTDIR%"
+set "RR_LEN=0"
+:rootdir_relative_count
+call set "RR_CHAR=%%RR_ROOT:~%RR_LEN%,1%%"
+if defined RR_CHAR (
+    set /a "RR_LEN+=1"
+    goto :rootdir_relative_count
+)
+call set "RR_HEAD=%%RR_PATH:~0,%RR_LEN%%%"
+if /i "%RR_HEAD%"=="%RR_ROOT%" call set "RR_PATH=%%RR_PATH:~%RR_LEN%%%"
+:rootdir_relative_done
 set "%RR_OUTVAR%=%RR_PATH%"
 exit /b 0
 

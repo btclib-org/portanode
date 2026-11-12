@@ -15,17 +15,17 @@ REM holding one is legal on exFAT and NTFS alike (#374). Nothing here
 REM reads a bang-delimited variable, so disabling it outright costs
 REM nothing.
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 REM System32 is the current directory from here to each popd: root.bat's
 REM :leave_folder says why.
-call "%SCRIPT_DIR%..\root.bat" :leave_folder
+call "%%SCRIPT_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -58,11 +58,11 @@ powershell -NoProfile -Command "& { $root = $env:ROOTDIR; $skip = @('bitcoin-dat
 if errorlevel 1 (
     echo Error: PowerShell did not run the cleanup.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 echo Cleanup complete.
 popd >nul 2>&1
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0

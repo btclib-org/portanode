@@ -19,9 +19,9 @@ REM "setlocal" keeps whatever state the caller left the pass at, and the
 REM caller here is the console this was started from. The measurement is
 REM in win\scripts\root.bat, above :resolve_root (#473).
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 echo ROOTDIR is "%ROOTDIR%"
@@ -40,13 +40,13 @@ echo WALLETDIR is "%WALLETDIR%"
 
 if not exist "%ROOTDIR%\win\bin\bitcoind.exe" (
     echo Error: Binary not found at "win\bin\bitcoind.exe"
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 if not exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
     echo Error: Binary not found at "win\bin\bitcoin-cli.exe"
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -54,7 +54,7 @@ if not exist "%ROOTDIR%\bitcoin-datadir\regtest_carol\" (
     mkdir "%ROOTDIR%\bitcoin-datadir\regtest_carol"
     if errorlevel 1 (
         echo Error: could not create "bitcoin-datadir\regtest_carol".
-        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+        call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
         exit /b 1
     )
 )
@@ -72,10 +72,11 @@ set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
 set BITCOIND_CMD=%BITCOIND_CMD% -regtest -port=18666 -rpcport=18665 -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18444
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
-REM Wrapped and expanded late: see regtest-18444-Alice-cli.bat (#757).
+set CLI_CMD="%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest -rpcport=18665"
+REM Both commands wrapped and expanded late, and the console run without
+REM a "call": see regtest-18444-Alice-cli.bat (#757, #793).
 REM The start lines' /v:off and full path: see regtest-18444-Alice-cli.bat
 REM (#766, #672).
 setlocal enabledelayedexpansion
 start "" "%SystemRoot%\System32\cmd.exe" /v:off /k "!BITCOIND_CMD!"
-endlocal
-start "" "%SystemRoot%\System32\cmd.exe" /v:off /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest -rpcport=18665"
+start "" "%SystemRoot%\System32\cmd.exe" /v:off /k "!CLI_CMD!"

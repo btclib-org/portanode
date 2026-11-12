@@ -37,7 +37,7 @@
   {
     "code": "W033",
     "file": "../Bitcoin-Launcher.bat",
-    "text": "call \"%SCRIPT%\""
+    "text": "call \"%%SCRIPT%%\""
   },
   {
     "code": "E006",
@@ -77,7 +77,7 @@
   {
     "code": "W033",
     "file": "../Electrum-Launcher.bat",
-    "text": "call \"%SCRIPT%\""
+    "text": "call \"%%SCRIPT%%\""
   },
   {
     "code": "E006",
@@ -117,12 +117,7 @@
   {
     "code": "W033",
     "file": "../Utilities-Launcher.bat",
-    "text": "call \"%SCRIPT%\""
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/bitcoin/lib.bat",
-    "text": "REM     call \"%SCRIPT_DIR%lib.bat\" :label [arguments]"
+    "text": "call \"%%SCRIPT%%\""
   },
   {
     "code": "E006",
@@ -272,7 +267,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli-clean.bat",
-    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k \"!CLI_CMD!\""
   },
   {
     "code": "W028",
@@ -342,7 +337,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18444-Alice-cli.bat",
-    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k \"!CLI_CMD!\""
   },
   {
     "code": "W028",
@@ -472,7 +467,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli-clean.bat",
-    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18554\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k \"!CLI_CMD!\""
   },
   {
     "code": "W028",
@@ -547,7 +542,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18555-Bob-cli.bat",
-    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18554\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k \"!CLI_CMD!\""
   },
   {
     "code": "W028",
@@ -692,7 +687,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli-clean.bat",
-    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18665\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k \"!CLI_CMD!\""
   },
   {
     "code": "W028",
@@ -767,7 +762,7 @@
   {
     "code": "W001",
     "file": "../win/scripts/bitcoin/regtest-18666-Carol-cli.bat",
-    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k call \"%SCRIPT_DIR%lib.bat\" :cli_console \"%~n0\" \"-regtest -rpcport=18665\""
+    "text": "start \"\" \"%SystemRoot%\\System32\\cmd.exe\" /v:off /k \"!CLI_CMD!\""
   },
   {
     "code": "W028",
@@ -915,11 +910,6 @@
     "text": "set \"SCRIPT_DIR=%~dp0\""
   },
   {
-    "code": "E006",
-    "file": "../win/scripts/electrum/lib.bat",
-    "text": "REM     call \"%SCRIPT_DIR%lib.bat\" :label [arguments]"
-  },
-  {
     "code": "W011",
     "file": "../win/scripts/electrum/lib.bat",
     "text": "findstr /m /c:\"is_portable\" < \"%ELECTRUM_EXE%\" >nul"
@@ -938,11 +928,6 @@
     "code": "W061",
     "file": "../win/scripts/electrum/lib.bat",
     "text": "popd >nul 2>&1"
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/electrum/mainnet-local-server-only.bat",
-    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
   },
   {
     "code": "E006",
@@ -977,11 +962,6 @@
   {
     "code": "E006",
     "file": "../win/scripts/electrum/mainnet.bat",
-    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/electrum/mainnet.bat",
     "text": "echo ROOTDIR is \"%ROOTDIR%\""
   },
   {
@@ -1008,11 +988,6 @@
     "code": "W028",
     "file": "../win/scripts/electrum/mainnet.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/electrum/regtest.bat",
-    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
   },
   {
     "code": "E006",
@@ -1047,11 +1022,6 @@
   {
     "code": "E006",
     "file": "../win/scripts/electrum/testnet3.bat",
-    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/electrum/testnet3.bat",
     "text": "--dir \"%ROOTDIR%\\electrum-datadir\" --testnet"
   },
   {
@@ -1078,11 +1048,6 @@
     "code": "W028",
     "file": "../win/scripts/electrum/testnet3.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/electrum/testnet4.bat",
-    "text": "\"%ROOTDIR%\\win\\bin\\electrum.exe\""
   },
   {
     "code": "E006",
@@ -1287,7 +1252,7 @@
   {
     "code": "W068",
     "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if defined BTC_CLI call \"%SCRIPT_DIR%lib.bat\" :rootdir_relative \"%BTC_BIN%\" BTC_CLI_SHOWN"
+    "text": "if defined BTC_CLI call \"%%SCRIPT_DIR%%lib.bat\" :rootdir_relative \"%%BTC_BIN%%\" BTC_CLI_SHOWN"
   },
   {
     "code": "W068",
@@ -1320,14 +1285,19 @@
     "text": "if not exist \"%IV_FILE_FS%\" exit /b 0"
   },
   {
-    "code": "E021",
+    "code": "E006",
     "file": "../win/scripts/utilities/lib.bat",
-    "text": "REM percent signs of \"%PATH:%ROOTDIR%\\=%\" as three pairs and substitutes"
+    "text": "set \"RR_ROOT=%ROOTDIR%\\\""
   },
   {
     "code": "E021",
     "file": "../win/scripts/utilities/lib.bat",
-    "text": "if defined ROOTDIR call set \"RR_PATH=%%RR_PATH:%ROOTDIR%\\=%%\""
+    "text": "call set \"RR_CHAR=%%RR_ROOT:~%RR_LEN%,1%%\""
+  },
+  {
+    "code": "E021",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "if /i \"%RR_HEAD%\"==\"%RR_ROOT%\" call set \"RR_PATH=%%RR_PATH:~%RR_LEN%%%\""
   },
   {
     "code": "SEC011",
@@ -1465,6 +1435,21 @@
     "text": "set \"ACTION=%~1\""
   },
   {
+    "code": "W033",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "call set \"RR_CHAR=%%RR_ROOT:~%RR_LEN%,1%%\""
+  },
+  {
+    "code": "W033",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "call set \"RR_HEAD=%%RR_PATH:~0,%RR_LEN%%%\""
+  },
+  {
+    "code": "W047",
+    "file": "../win/scripts/utilities/lib.bat",
+    "text": "if \"%ROOTDIR:~-1%\"==\"\\\" set \"RR_ROOT=%ROOTDIR%\""
+  },
+  {
     "code": "E006",
     "file": "../win/scripts/utilities/monitor-bitcoin-log.bat",
     "text": "set \"LOG_FILE=%ROOTDIR%\\bitcoin-datadir\\debug.log\""
@@ -1503,11 +1488,6 @@
     "code": "E006",
     "file": "../win/scripts/utilities/rollback-bitcoin.bat",
     "text": "REM them; each \"%BACKUPVER%\"/\"%CURRENTVER%\" below is its own"
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/utilities/rollback-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%ROOTDIR%\\win\\bin\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%CHECKSUM_FILE%\" CURRENTVER"
   },
   {
     "code": "E006",
@@ -1633,11 +1613,6 @@
     "code": "E006",
     "file": "../win/scripts/utilities/rollback-electrum.bat",
     "text": "REM them; each \"%BACKUPVER%\"/\"%CURRENTVER%\" below is its own"
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/utilities/rollback-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%ROOTDIR%\\win\\bin\\electrum.exe\" \"win/bin/electrum.exe\" \"%CHECKSUM_FILE%\" CURRENTVER"
   },
   {
     "code": "E006",
@@ -1857,16 +1832,6 @@
   {
     "code": "E006",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :preview_pinned_keys \"%ROOTDIR%\\keys\\bitcoin-core.fingerprints\" \"keys\\bitcoin-core.fingerprints\" \"the update\""
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\SHA256SUMS.asc\" \"%TMPDIR%\\SHA256SUMS\" \"SHA256SUMS\" \"%ROOTDIR%\\keys\\bitcoin-core.fingerprints\""
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "echo Free space at !ROOTDIR!: !FREE_GB! GB"
   },
   {
@@ -2062,12 +2027,12 @@
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :installed_version \"%BIN_DIR%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%CHECKSUM_FILE%\" CURRENT"
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :installed_version \"%%BIN_DIR%%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%%CHECKSUM_FILE%%\" CURRENT"
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\SHA256SUMS.asc\" \"%TMPDIR%\\SHA256SUMS\" \"SHA256SUMS\" \"%ROOTDIR%\\keys\\bitcoin-core.fingerprints\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\SHA256SUMS.asc\" \"%%TMPDIR%%\\SHA256SUMS\" \"SHA256SUMS\" \"%%ROOTDIR%%\\keys\\bitcoin-core.fingerprints\""
   },
   {
     "code": "W068",
@@ -2087,12 +2052,12 @@
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\bitcoin-%VERSION%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%VERSION%\""
+    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\bitcoin-%%VERSION%%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%%VERSION%%\""
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\bitcoin-%VERSION%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%VERSION%\""
+    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\bitcoin-%%VERSION%%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%%VERSION%%\""
   },
   {
     "code": "W068",
@@ -2203,16 +2168,6 @@
     "code": "E006",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "REM quotes %ROOTDIR%, and every echo of it or of a URL built on it"
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :preview_pinned_keys \"%ROOTDIR%\\keys\\electrum.fingerprints\" \"keys\\electrum.fingerprints\" \"the download\""
-  },
-  {
-    "code": "E006",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
   },
   {
     "code": "E006",
@@ -2347,42 +2302,42 @@
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :install_verified \"%TMPDIR%\\%FILE%\" \"%BIN_DIR%\\electrum.exe\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :install_verified \"%%TMPDIR%%\\%%FILE%%\" \"%%BIN_DIR%%\\electrum.exe\""
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :install_verified \"%TMPDIR%\\%FILE%\" \"%BIN_DIR%\\electrum.exe\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :install_verified \"%%TMPDIR%%\\%%FILE%%\" \"%%BIN_DIR%%\\electrum.exe\""
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\%FILE%\" \"win/bin/electrum.exe\" \"%VERSION%\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\%%FILE%%\" \"win/bin/electrum.exe\" \"%%VERSION%%\""
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\%FILE%\" \"win/bin/electrum.exe\" \"%VERSION%\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\%%FILE%%\" \"win/bin/electrum.exe\" \"%%VERSION%%\""
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :update_checksum \"%TMPDIR%\\%FILE%\" \"win/bin/electrum.exe\" \"%VERSION%\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\%%FILE%%\" \"win/bin/electrum.exe\" \"%%VERSION%%\""
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\%%SIG_FILE%%\" \"%%TMPDIR%%\\%%FILE%%\" \"Electrum\" \"%%ROOTDIR%%\\keys\\electrum.fingerprints\""
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\%%SIG_FILE%%\" \"%%TMPDIR%%\\%%FILE%%\" \"Electrum\" \"%%ROOTDIR%%\\keys\\electrum.fingerprints\""
   },
   {
     "code": "W068",
     "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%SCRIPT_DIR%lib.bat\" :verify_pgp_signature \"%TMPDIR%\\%SIG_FILE%\" \"%TMPDIR%\\%FILE%\" \"Electrum\" \"%ROOTDIR%\\keys\\electrum.fingerprints\""
+    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\%%SIG_FILE%%\" \"%%TMPDIR%%\\%%FILE%%\" \"Electrum\" \"%%ROOTDIR%%\\keys\\electrum.fingerprints\""
   },
   {
     "code": "W068",

@@ -7,9 +7,9 @@ REM LICENSE file or https://opensource.org/license/mit for the full text.
 REM Rollback Last Electrum Update
 
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 set "BACKUP_DIR=%ROOTDIR%\win\bin\backup\electrum"
@@ -32,15 +32,15 @@ if "%~1"=="--dry-run" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--dry-run]
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
 REM System32 is the current directory from here to each popd: root.bat's
 REM :leave_folder says why.
-call "%SCRIPT_DIR%..\root.bat" :leave_folder
+call "%%SCRIPT_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -50,17 +50,17 @@ REM operation whichever script does it, and a rollback is run when something has
 REM just gone wrong, which is when Electrum is most likely to still be up. The
 REM filter is that script's, repeated here rather than shared, so a change to
 REM one is owed to the other.
-call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Electrum" "rolling back" electrum.exe
+call "%%SCRIPT_DIR%%lib.bat" :refuse_while_running "Electrum" "rolling back" electrum.exe
 if errorlevel 1 (
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 if not exist "%BACKUP_DIR%" (
     echo No backup found in win\bin\backup\electrum
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -69,22 +69,22 @@ echo Rolling back Electrum binaries...
 if not exist "%CHECKSUM_FILE%" (
     echo Error: win\checksums.sha256 not found.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
-call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\electrum.exe" "win/bin/electrum.exe"
+call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "%%BACKUP_DIR%%\electrum.exe" "win/bin/electrum.exe"
 if errorlevel 1 (
     echo Error: backup binary checksum not recognized for electrum.exe.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 if not exist "%BACKUP_DIR%\electrum.exe" (
     echo Backup files not found in win\bin\backup\electrum
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -95,8 +95,8 @@ REM entered -- empty -- rather than as :installed_version just set
 REM them; each "%BACKUPVER%"/"%CURRENTVER%" below is its own
 REM statement, read fresh at the line that runs it.
 if not "%DRY_RUN%"=="1" goto :do_rollback
-call "%SCRIPT_DIR%lib.bat" :installed_version "%BACKUP_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" BACKUPVER
-call "%SCRIPT_DIR%lib.bat" :installed_version "%ROOTDIR%\win\bin\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENTVER
+call "%%SCRIPT_DIR%%lib.bat" :installed_version "%%BACKUP_DIR%%\electrum.exe" "win/bin/electrum.exe" "%%CHECKSUM_FILE%%" BACKUPVER
+call "%%SCRIPT_DIR%%lib.bat" :installed_version "%%ROOTDIR%%\win\bin\electrum.exe" "win/bin/electrum.exe" "%%CHECKSUM_FILE%%" CURRENTVER
 echo --dry-run: nothing will be changed.
 echo Backup found in win\bin\backup\electrum, checksum recognized: version %BACKUPVER%.
 echo Currently installed: %CURRENTVER%.
@@ -119,7 +119,7 @@ move /y "%BACKUP_DIR%\electrum.exe" "%ROOTDIR%\win\bin\" >nul
 if errorlevel 1 (
     echo Error: restoring win\bin\electrum.exe from the backup failed.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 if exist "%BACKUP_DIR%" rmdir "%BACKUP_DIR%" >nul 2>&1
@@ -129,5 +129,5 @@ echo The backup in win\bin\backup\electrum is consumed: a second rollback has no
 echo update-electrum.bat is what installs the current release again.
 
 popd >nul 2>&1
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0

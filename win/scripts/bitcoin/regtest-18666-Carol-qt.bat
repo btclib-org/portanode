@@ -17,9 +17,9 @@ REM "setlocal" keeps whatever state the caller left the pass at, and the
 REM caller here is the console this was started from. The measurement is
 REM in win\scripts\root.bat, above :resolve_root (#473).
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 echo ROOTDIR is "%ROOTDIR%"
@@ -38,7 +38,7 @@ echo WALLETDIR is "%WALLETDIR%"
 
 if not exist "%ROOTDIR%\win\bin\bitcoin-qt.exe" (
     echo Error: Binary not found at "win\bin\bitcoin-qt.exe"
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -46,7 +46,7 @@ if not exist "%ROOTDIR%\bitcoin-datadir\regtest_carol\" (
     mkdir "%ROOTDIR%\bitcoin-datadir\regtest_carol"
     if errorlevel 1 (
         echo Error: could not create "bitcoin-datadir\regtest_carol".
-        call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+        call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
         exit /b 1
     )
 )
