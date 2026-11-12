@@ -89,6 +89,137 @@ done
 PROCS=$'/bin/ls\n/usr/bin/vim notes\n'
 check "no node running" answers 1 regtest_node_running_on "$D"
 
+# ISS 888: on a datadir that exists, a node's -datadir counts by the
+# directory it resolves to. One that is relative or does not resolve
+# answers 2.
+TMP="$(mktemp -d)" || exit 1
+trap 'rm -rf "$TMP"' EXIT
+REAL="$TMP/My Drive/portanode/bitcoin-datadir"
+mkdir -p "$REAL" "$TMP/My Drive/portanode/x" "$TMP/other" "$TMP/My"
+ln -s "$REAL" "$TMP/link"
+for args in \
+    "-datadir=$TMP/link -regtest" \
+    "-regtest -datadir=$TMP/link/" \
+    "-DATADIR=$TMP/link -REGTEST" \
+    "-Chain=RegTest -datadir=$TMP/link" \
+    "-datadir=$TMP/link -noRegTest=0" \
+    "--datadir=$TMP/My Drive/portanode/x/../bitcoin-datadir -regtest" \
+    "-datadir=/$REAL -regtest" \
+    "-datadir=$TMP//My Drive/./portanode/bitcoin-datadir -regtest -listen=0"; do
+    PROCS="$BIN $args"$'\n'
+    check "regtest node found by its resolved datadir: $args" \
+        answers 0 regtest_node_running_on "$REAL"
+done
+PROCS="$BIN -datadir=$REAL -regtest"$'\n'
+check "regtest node found through a link in the datadir given" \
+    answers 0 regtest_node_running_on "$TMP/link"
+for args in \
+    "-datadir=$TMP/other -regtest" \
+    "-datadir=$TMP/My Drive/portanode/x -regtest" \
+    "-datadir=bitcoin-datadir" \
+    "-uacomment=-datadir=bitcoin-datadir -datadir=$TMP/other -regtest" \
+    "-regtest -datadir=$TMP/other"; do
+    PROCS="$BIN $args"$'\n'
+    check "regtest node not found by its resolved datadir: $args" \
+        answers 1 regtest_node_running_on "$REAL"
+done
+for args in \
+    "-datadir=bitcoin-datadir -regtest" \
+    "-datadir=./bitcoin-datadir -regtest" \
+    "-datadir=$TMP/absent -regtest" \
+    "-datadir=$TMP/My Drive/absent -regtest"; do
+    PROCS="$BIN $args"$'\n'
+    check "regtest node whose datadir is not known: $args" \
+        answers 2 regtest_node_running_on "$REAL"
+done
+# "$TMP/My" resolves, but no word starting with "-" follows it.
+PROCS="$BIN -datadir=$TMP/My Drive/gone -regtest"$'\n'
+check "regtest node whose datadir is not known, with a shorter reading that resolves" \
+    answers 2 regtest_node_running_on "$REAL"
+# The residual ASSURANCE_CASE.md's *The launcher and its environment* states
+# last: "$TMP/other -c" does not exist, so the -datadir reads as
+# "$TMP/other", another directory than the guard's.
+PROCS="$BIN -datadir=$TMP/other -c -regtest"$'\n'
+check "documented residual: a datadir holding \" -\" reads as its part before it" \
+    answers 1 regtest_node_running_on "$REAL"
+PROCS="$BIN -datadir=bitcoin-datadir -regtest"$'\n'
+check "a datadir that does not exist is compared as spelled" \
+    answers 1 regtest_node_running_on "$TMP/absent"
+check "a datadir under a directory that does not exist is compared as spelled" \
+    answers 1 regtest_node_running_on "$TMP/absent/regtest"
+
+# A datadir that may exist and does not resolve: a node with any -datadir
+# that does not spell it answers 2, and the spelling still answers 0.
+: >"$TMP/file"
+ln -s "$TMP/gone" "$TMP/dangling"
+for own in "$TMP/file" "$TMP/file/regtest" "$TMP/dangling"; do
+    PROCS="$BIN -datadir=$TMP/other -regtest"$'\n'
+    check "regtest node on another datadir, the guard's not resolving: $own" \
+        answers 2 regtest_node_running_on "$own"
+    PROCS="$BIN -datadir=$own -regtest"$'\n'
+    check "regtest node on the datadir as spelled, the guard's not resolving: $own" \
+        answers 0 regtest_node_running_on "$own"
+    for args in "-datadir=$TMP/other" "-regtest"; do
+        PROCS="$BIN $args"$'\n'
+        check "no regtest node with a -datadir, the guard's not resolving: $own, $args" \
+            answers 1 regtest_node_running_on "$own"
+    done
+done
+# A directory that cannot be entered, which root enters all the same.
+if [ "$(id -u)" -ne 0 ]; then
+    mkdir -p "$TMP/locked/bitcoin-datadir"
+    ln -s "$TMP/locked/bitcoin-datadir" "$TMP/to-locked"
+    chmod 000 "$TMP/locked"
+    PROCS="$BIN -datadir=$TMP/to-locked -regtest"$'\n'
+    check "regtest node through a link, the guard's datadir not enterable" \
+        answers 2 regtest_node_running_on "$TMP/locked/bitcoin-datadir"
+    chmod 755 "$TMP/locked"
+else
+    echo "ok - skipped: the datadir that cannot be entered (root enters it)"
+fi
+
+# Two letters outside ASCII that differ in case: one directory on a volume
+# that ignores case, two on one that does not, and the node counts on both.
+U=$(printf '\303\211lan')
+L=$(printf '\303\251LAN')
+mkdir -p "$TMP/$U" "$TMP/$L"
+PROCS="$BIN -datadir=$TMP/./$L -regtest"$'\n'
+check "regtest node found by its resolved datadir, differing in case outside ASCII" \
+    answers 0 regtest_node_running_on "$TMP/$U"
+
+# Without a UTF-8 locale, a datadir that resolves outside ASCII cannot be
+# compared as spelled: the same directory answers 0, any other 2.
+R=$(printf 'r\303\251el')
+mkdir -p "$TMP/$R"
+ln -s "$TMP/$R" "$TMP/linkA"
+ln -s "$TMP/$R" "$TMP/linkB"
+no_utf8() {
+    _utf8_locale() { return 1; }
+    answers "$@"
+}
+PROCS="$BIN -datadir=$TMP/linkB -regtest"$'\n'
+check "regtest node found through another link, with no UTF-8 locale" \
+    no_utf8 0 regtest_node_running_on "$TMP/linkA"
+PROCS="$BIN -datadir=$TMP/other -regtest"$'\n'
+check "regtest node on another datadir, with no UTF-8 locale" \
+    no_utf8 2 regtest_node_running_on "$TMP/linkA"
+
+# macOS pwd -P keeps the NFC or NFD form of a name as it was given, and
+# macOS opens the one directory for both.
+if [ "$(uname)" = Darwin ]; then
+    NFC=$(printf '\303\251t\303\251')
+    NFD=$(printf 'e\314\201te\314\201')
+    mkdir -p "$TMP/$NFD"
+    PROCS="$BIN -datadir=$TMP/$NFC -regtest"$'\n'
+    check "regtest node found by its datadir in NFC, the guard's in NFD" \
+        answers 0 regtest_node_running_on "$TMP/$NFD"
+    PROCS="$BIN -datadir=$TMP/$NFD -regtest"$'\n'
+    check "regtest node found by its datadir in NFD, the guard's in NFC" \
+        answers 0 regtest_node_running_on "$TMP/$NFC"
+else
+    echo "ok - skipped: the NFC and NFD cases (they run on macOS only)"
+fi
+
 # Mainnet check (ISS 662): the network flags count only as whole arguments.
 for args in \
     "-datadir=/Volumes/btc-testnet-old" \

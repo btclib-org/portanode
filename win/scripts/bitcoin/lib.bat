@@ -10,10 +10,8 @@ REM a caller writes: if errorlevel 1 exit /b 1
 REM
 REM A guard that asks whether a node is running reads the command line of every
 REM running process, Win32_Process being where Windows keeps it, and so needs
-REM powershell.exe. A node given the same directory under another name -- a
-REM substituted drive, a junction, an 8.3 short path -- is not recognized, and
-REM neither is a node of another user, whose command line the query returns
-REM empty.
+REM powershell.exe. A node of another user is not recognized: the query
+REM returns its command line empty.
 REM
 REM A label that takes a data directory takes it relative to ROOTDIR and
 REM joins the two itself. Its refusal prints the relative name: the folder

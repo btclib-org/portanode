@@ -382,13 +382,114 @@ _regtest_node_by_grep() {
     return 1
 }
 
-# regtest_node_running_on <datadir>: 0 where a running process was started
-# with -datadir=<datadir> and selects regtest, in either order and in any
-# form Core reads as regtest; 1 where none was; 2 where the process list
-# could not be read or searched, or ps may not print <datadir> as itself
-# (_ps_shows), which a caller about to delete something treats as 0.
-# The datadir is compared ignoring case and a trailing slash, and as a whole
-# argument, so a node on a directory inside <datadir> does not answer for it.
+# _real_dir <dir>: the directory <dir> names, with every symbolic link, "."
+# and ".." resolved and every run of "/" read as one; 1 where <dir> is not
+# absolute or cannot be entered. The letters keep the case given, as macOS
+# pwd -P prints them on a volume that ignores case. cd and pwd are bash's
+# own, so no realpath(1) is needed. bash's pwd -P keeps exactly two leading
+# slashes, and this keeps one.
+_real_dir() {
+    local real
+    case $1 in /*) ;; *) return 1 ;; esac
+    real="$(CDPATH='' cd -P -- "$1" 2>/dev/null && pwd -P)" || return 1
+    case $real in //*) real=${real#/} ;; esac
+    printf '%s\n' "$real"
+}
+
+# _absent <path>: 0 where <path> is absolute and is known not to exist: the
+# nearest of its ancestors that exists is a directory _real_dir can enter,
+# and nothing below it, not even a symbolic link leading nowhere, stands on
+# the way to <path>. 1 otherwise, as where an ancestor cannot be entered and
+# <path> may exist under it.
+_absent() {
+    local dir=$1
+    case $dir in /*) ;; *) return 1 ;; esac
+    [ -e "$dir" ] || [ -L "$dir" ] && return 1
+    until [ -e "$dir" ] || [ -L "$dir" ]; do
+        dir=${dir%/*}
+        dir=${dir:-/}
+    done
+    _real_dir "$dir" >/dev/null
+}
+
+# _fold <string>: <string> with its ASCII letters in lower case.
+_fold() {
+    printf '%s' "$1" | LC_ALL=C tr '[:upper:]' '[:lower:]'
+}
+
+# _regtest_node_resolved <real datadir> <process list>: regtest_node_running_on's
+# search by resolved path. 0 where a line that selects regtest has a reading
+# of a -datadir, below, that _real_dir resolves, and the result is the same
+# file as <real datadir> or _regtest_node_named counts it as <real datadir>; 2
+# where such a line has a -datadir that is not absolute or not known, or
+# _regtest_node_named answers 2 on a reading; 1 otherwise. The same file is
+# found by device and inode, which match where macOS pwd -P keeps the NFC or
+# NFD form of a name as given and the node used the other form.
+#
+# ps prints no argument boundaries, so a value is read up to each space after
+# it in turn, the last reading ending with the line. One of those readings is
+# the argument the node was given, and each is tried. A shorter reading can
+# resolve to another directory, so the -datadir is known only where a reading
+# that ends before a word starting with "-", or with the line, resolves. A
+# -datadir holding " -" that does not resolve, where its part before " -"
+# does, still reads as known, as that other directory.
+_regtest_node_resolved() (
+    LC_ALL=C
+    answer=1
+    while IFS= read -r line; do
+        # Each spelling _line_selects_network reads as regtest holds this.
+        case $line in *[Rr][Ee][Gg][Tt][Ee][Ss][Tt]*) ;; *) continue ;; esac
+        pad=" $line "
+        low="$(_fold "$pad")"
+        _line_selects_network "$low" regtest regtest || continue
+        off=0
+        while :; do
+            rest=${low:off}
+            case $rest in *-datadir=*) ;; *) break ;; esac
+            head=${rest%%-datadir=*}
+            start=$((off + ${#head}))
+            off=$((start + 9))
+            case ${low:0:start} in *" " | *" -") ;; *) continue ;; esac
+            value=${pad:off}
+            case $value in /*) ;; *) answer=2; continue ;; esac
+            reading=""
+            known=1
+            while [ -n "$value" ]; do
+                reading="$reading${value%%" "*}"
+                value=${value#*" "}
+                if real="$(_real_dir "$reading")"; then
+                    [ "$real" -ef "$1" ] && exit 0
+                    _regtest_node_named "$1" " -regtest -datadir=$real"
+                    case $? in
+                        0) exit 0 ;;
+                        1) ;;
+                        *) answer=2 ;;
+                    esac
+                    case $value in "" | -*) known=0 ;; esac
+                fi
+                reading="$reading "
+            done
+            [ "$known" -eq 0 ] || answer=2
+        done
+    done <<<"$2"
+    exit "$answer"
+)
+
+# _regtest_datadir_given <process list>: 0 where a line that selects regtest
+# holds a -datadir, as _regtest_node_resolved reads one; 1 otherwise.
+_regtest_datadir_given() (
+    LC_ALL=C
+    while IFS= read -r line; do
+        case $line in *[Rr][Ee][Gg][Tt][Ee][Ss][Tt]*) ;; *) continue ;; esac
+        low="$(_fold " $line ")"
+        _line_selects_network "$low" regtest regtest || continue
+        case $low in *" -datadir="* | *" --datadir="*) exit 0 ;; esac
+    done <<<"$1"
+    exit 1
+)
+
+# _regtest_node_named <datadir> <process list>: regtest_node_running_on's
+# search by the datadir's spelling, with the same answers.
 #
 # A datadir in printable ASCII is searched under C, where tr folds case
 # and fails on no byte. Any other datadir is searched under the UTF-8
@@ -398,32 +499,65 @@ _regtest_node_by_grep() {
 # it. A miss is 1 only where the process list is valid UTF-8, because BSD
 # tr fails on a byte that is not, and GNU tr and BSD grep pass over a line
 # holding one without the letter folded or found; otherwise it is 2.
-#
-# Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
-# toward "running" costs a refusal, the other way a deleted datadir.
-regtest_node_running_on() {
-    local procs loc first
-    _ps_shows "$1" || return 2
-    procs="$(_process_args)" || return 2
+_regtest_node_named() {
+    local loc first
     if (LC_ALL=C; case $1 in *[!\ -~]*) exit 1 ;; esac); then
-        _regtest_node_in C "$1" "$procs"
+        _regtest_node_in C "$1" "$2"
         return $?
     fi
     loc="$(_utf8_locale)" || return 2
-    _regtest_node_in "$loc" "$1" "$procs"
+    _regtest_node_in "$loc" "$1" "$2"
     first=$?
     [ "$first" -eq 0 ] && return 0
-    _regtest_node_in C "$1" "$procs"
+    _regtest_node_in C "$1" "$2"
     case $? in
         0) return 0 ;;
         1) ;;
         *) first=2 ;;
     esac
-    _regtest_node_by_grep "$loc" "$1" "$procs" && return 0
+    _regtest_node_by_grep "$loc" "$1" "$2" && return 0
     [ "$first" -eq 1 ] || return 2
-    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$procs"
+    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$2"
     [ $? -eq 1 ] && return 1
     return 2
+}
+
+# regtest_node_running_on <datadir>: 0 where a running process was started
+# with a -datadir naming <datadir> and selects regtest, in either order and
+# in any form Core reads as regtest; 1 where none was; 2 where the process
+# list could not be read or searched, ps may not print <datadir> as itself
+# (_ps_shows), or a process that selects regtest has a -datadir that is not
+# known to name another directory, which a caller about to delete something
+# treats as 0. That last is a -datadir whose directory is not known
+# (_regtest_node_resolved) where <datadir> resolves, and any -datadir that
+# does not spell <datadir> (_regtest_datadir_given) where <datadir> neither
+# resolves nor is known not to exist (_absent).
+#
+# Where <datadir> resolves (_real_dir), a -datadir names it where it
+# resolves to the same directory, or to a path that spells <datadir>'s
+# resolved path ignoring case, whatever its own spelling. Either way a
+# -datadir names it where it spells it, ignoring case and a trailing slash,
+# as a whole argument, so a node on a directory inside <datadir> does not
+# answer for it. Core refuses a -datadir that is not a directory, so where
+# <datadir> does not exist, no node uses it under another name.
+#
+# Any process counts, not only a bitcoin-qt or bitcoind: a guard that errs
+# toward "running" costs a refusal, the other way a deleted datadir.
+regtest_node_running_on() {
+    local procs real by_path=1 by_name
+    _ps_shows "$1" || return 2
+    procs="$(_process_args)" || return 2
+    if real="$(_real_dir "$1")"; then
+        _regtest_node_resolved "$real" "$procs"
+        by_path=$?
+        [ "$by_path" -eq 0 ] && return 0
+    elif ! _absent "$1"; then
+        _regtest_datadir_given "$procs" && by_path=2
+    fi
+    _regtest_node_named "$1" "$procs"
+    by_name=$?
+    [ "$by_name" -eq 1 ] && return "$by_path"
+    return "$by_name"
 }
 
 # mainnet_node_running: 0 where a running bitcoin-qt or bitcoind selects no

@@ -204,15 +204,108 @@ function ConvertTo-DatadirKey {
   return $key
 }
 
+function Resolve-Datadir {
+  # The file or directory $Path names, read through one handle. Path is its
+  # final path, as GetFinalPathNameByHandle gives it, the volume named by its
+  # NT device path: junctions, symbolic links, substituted drives and 8.3
+  # names resolved. Volume and Index are its volume serial number and file
+  # index, as GetFileInformationByHandle gives them. Null where Windows
+  # answers that $Path does not exist, with ERROR_FILE_NOT_FOUND or
+  # ERROR_PATH_NOT_FOUND; any other failure throws. A relative $Path is read
+  # against this process's working directory. Off Windows, where only the
+  # tests run this file, it resolves nothing.
+  param([string]$Path)
+  if ($env:OS -ne 'Windows_NT') { return $null }
+  if (-not ('PortaNode.DatadirFile' -as [type])) {
+    Add-Type -Namespace PortaNode -Name DatadirFile -MemberDefinition @'
+[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+private static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFileW(
+  string name, uint access, uint share, IntPtr security, uint disposition,
+  uint flags, IntPtr template);
+// CreateFileW with its error read before any other call can replace it. No
+// access asked, every sharing mode, OPEN_EXISTING, and
+// FILE_FLAG_BACKUP_SEMANTICS, without which a directory does not open.
+public static Microsoft.Win32.SafeHandles.SafeFileHandle Open(string name, out int error) {
+  Microsoft.Win32.SafeHandles.SafeFileHandle handle = CreateFileW(
+    name, 0, 7, IntPtr.Zero, 3, 0x02000000, IntPtr.Zero);
+  error = Marshal.GetLastWin32Error();
+  return handle;
+}
+[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+public static extern uint GetFinalPathNameByHandleW(
+  Microsoft.Win32.SafeHandles.SafeFileHandle file, System.Text.StringBuilder path,
+  uint size, uint flags);
+// BY_HANDLE_FILE_INFORMATION, each FILETIME as its two halves.
+[StructLayout(LayoutKind.Sequential)]
+public struct FileInformation {
+  public uint Attributes;
+  public uint CreatedLow, CreatedHigh, AccessedLow, AccessedHigh, WrittenLow, WrittenHigh;
+  public uint VolumeSerialNumber;
+  public uint SizeHigh, SizeLow, Links, IndexHigh, IndexLow;
+}
+[DllImport("kernel32.dll", SetLastError = true)]
+public static extern bool GetFileInformationByHandle(
+  Microsoft.Win32.SafeHandles.SafeFileHandle file, out FileInformation information);
+'@
+  }
+  $err = 0
+  $handle = [PortaNode.DatadirFile]::Open($Path, [ref]$err)
+  try {
+    if ($handle.IsInvalid) {
+      if ($err -eq 2 -or $err -eq 3) { return $null }
+      throw "cannot open '$Path': Windows error $err"
+    }
+    $size = 32768
+    $final = New-Object System.Text.StringBuilder $size
+    # 2 is VOLUME_NAME_NT.
+    $length = [PortaNode.DatadirFile]::GetFinalPathNameByHandleW($handle, $final, $size, 2)
+    if ($length -eq 0 -or $length -ge $size) { throw "cannot read the final path of '$Path'" }
+    $info = New-Object PortaNode.DatadirFile+FileInformation
+    if (-not [PortaNode.DatadirFile]::GetFileInformationByHandle($handle, [ref]$info)) {
+      throw "cannot read the file index of '$Path'"
+    }
+    return [pscustomobject]@{
+      Path = $final.ToString()
+      Volume = $info.VolumeSerialNumber
+      Index = ([uint64]$info.IndexHigh -shl 32) -bor $info.IndexLow
+    }
+  } finally {
+    $handle.Dispose()
+  }
+}
+
 function Test-NodeOnDatadir {
-  # True where a node's command line names $Datadir as its data directory,
-  # compared by ConvertTo-DatadirKey with case ignored, and, where $Chain is
-  # not empty, selects the network Get-NodeChain names $Chain.
+  # True where a node's command line names $Datadir as its data directory
+  # and, where $Chain is not empty, selects the network Get-NodeChain names
+  # $Chain.
+  #
+  # The two directories are compared through Resolve-Datadir: by final path,
+  # with case ignored, and where those differ, by volume serial number and
+  # file index. It throws where the caller cannot tell whether the node uses
+  # $Datadir: the node's directory is not a full path, which Core reads
+  # against the node's own working directory, or does not resolve; $Datadir
+  # does not resolve and Windows does not answer that it is missing; or the
+  # paths differ and a serial number or an index is zero. Core refuses a
+  # -datadir that is not a directory, so where Windows answers that $Datadir
+  # does not exist (ERROR_FILE_NOT_FOUND or ERROR_PATH_NOT_FOUND), the two
+  # are compared by ConvertTo-DatadirKey alone.
   param([string]$CommandLine, [string]$Datadir, [string]$Chain)
   $d = Get-NodeDatadir $CommandLine
-  return ($null -ne $d -and [string]::Equals((ConvertTo-DatadirKey $d),
-      (ConvertTo-DatadirKey $Datadir), [StringComparison]::OrdinalIgnoreCase) -and
-    (-not $Chain -or (Get-NodeChain $CommandLine) -ceq $Chain))
+  if ($null -eq $d -or ($Chain -and (Get-NodeChain $CommandLine) -cne $Chain)) { return $false }
+  if ([string]::Equals((ConvertTo-DatadirKey $d), (ConvertTo-DatadirKey $Datadir),
+      [StringComparison]::OrdinalIgnoreCase)) { return $true }
+  $own = Resolve-Datadir $Datadir
+  if ($null -eq $own) { return $false }
+  $node = $null
+  if ($d -match '^([A-Za-z]:[\\/]|[\\/][\\/])') {
+    $node = Resolve-Datadir $d
+  }
+  if ($null -eq $node) { throw "cannot resolve the data directory '$d' of a running node" }
+  if ([string]::Equals($node.Path, $own.Path, [StringComparison]::OrdinalIgnoreCase)) { return $true }
+  if ($node.Volume -eq 0 -or $node.Index -eq 0 -or $own.Volume -eq 0 -or $own.Index -eq 0) {
+    throw "cannot identify the data directory '$d' of a running node"
+  }
+  return ($node.Volume -eq $own.Volume -and $node.Index -eq $own.Index)
 }
 
 function Test-MainnetNode {

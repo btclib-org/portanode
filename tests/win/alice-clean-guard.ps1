@@ -6,7 +6,9 @@
 # runs: it refuses where a node on bitcoin-datadir selects regtest on its
 # command line, as win\scripts\bitcoin\node-args.ps1 reads it (#679), and
 # goes on where the node selects another network or uses another data
-# directory.
+# directory. It refuses as well where the node reaches bitcoin-datadir
+# through a junction, and says it cannot tell where the node's data
+# directory is relative or does not exist (ISS 888).
 #
 # The stand-in is a program that sleeps, under the name of a node binary,
 # started with the arguments of the case. The binaries under win\bin are
@@ -29,8 +31,12 @@ $datadir = Join-Path $root 'bitcoin-datadir'
 $netdir = Join-Path $datadir 'regtest'
 $wallet = Join-Path $netdir 'wallet.dat'
 $nodes = Join-Path $tmp 'nodes'
+$junction = Join-Path $tmp 'junction'
 
-New-Item -ItemType Directory -Path (Join-Path $root 'win\bin'), $netdir, $nodes | Out-Null
+# A node's data directory exists, or Core does not start: so does Bob's here.
+New-Item -ItemType Directory -Path (Join-Path $root 'win\bin'), $netdir, $nodes,
+  (Join-Path $datadir 'regtest_bob') | Out-Null
+New-Item -ItemType Junction -Path $junction -Target $datadir | Out-Null
 foreach ($name in 'VERSION', 'win\bin\bitcoind.exe', 'win\bin\bitcoin-cli.exe',
   'win\bin\bitcoin-qt.exe') {
   New-Item -ItemType File -Path (Join-Path $root $name) | Out-Null
@@ -45,7 +51,8 @@ Remove-Item Env:PORTANODE_TEST_STUB
 Copy-Item -LiteralPath (Join-Path $nodes 'bitcoind.exe') -Destination (Join-Path $nodes 'bitcoin-qt.exe')
 
 # {d} stands for bitcoin-datadir's full path, {f} for the same with forward
-# slashes, and {r} for the folder's root.
+# slashes, {r} for the folder's root, and {j} for a junction to
+# bitcoin-datadir.
 $refused = @(
   @('bitcoind', '-datadir={d} -regtest'),
   @('bitcoind', '-regtest -datadir={d}'),
@@ -61,7 +68,11 @@ $refused = @(
   @('bitcoind', '-datadir={f} -regtest'),
   @('bitcoin-qt', '-regtest -datadir="{r}\.\bitcoin-datadir"'),
   @('bitcoind', '-datadir="{d}. " -regtest'),
-  @('bitcoind', '-datadir=\\.\{d} -regtest'))
+  @('bitcoind', '-datadir=\\.\{d} -regtest'),
+  @('bitcoind', '-datadir={j} -regtest'))
+$unknown = @(
+  @('bitcoind', '-datadir=bitcoin-datadir -regtest'),
+  @('bitcoind', '-datadir={r}\absent -regtest'))
 $allowed = @(
   @('bitcoind', '-datadir={d}'),
   @('bitcoind', '-datadir={d} -chain=main'),
@@ -84,7 +95,7 @@ function Invoke-Launcher {
   }
   $node = Start-Process -FilePath (Join-Path $nodes "$Image.exe") -PassThru `
     -WindowStyle Hidden -ArgumentList $Arguments.Replace('{d}', $datadir).Replace(
-      '{f}', $datadir.Replace('\', '/')).Replace('{r}', $root)
+      '{f}', $datadir.Replace('\', '/')).Replace('{r}', $root).Replace('{j}', $junction)
   Push-Location -LiteralPath $repo
   try {
     # The line answers the launcher's pause.
@@ -107,6 +118,13 @@ try {
       Test-Contain "$name exits 1" $text 'status=1'
       Test-Same "$name deletes nothing" 'True' "$(Test-Path -LiteralPath $wallet)"
     }
+    foreach ($case in $unknown) {
+      $name = "$bat, $($case[0]) $($case[1])"
+      $text = Invoke-Launcher -Bat $bat -Image $case[0] -Arguments $case[1]
+      Test-Contain "$name cannot tell" $text 'Error: could not tell whether a Bitcoin node is using'
+      Test-Contain "$name exits 1" $text 'status=1'
+      Test-Same "$name deletes nothing" 'True' "$(Test-Path -LiteralPath $wallet)"
+    }
     foreach ($case in $allowed) {
       $name = "$bat, $($case[0]) $($case[1])"
       $text = Invoke-Launcher -Bat $bat -Image $case[0] -Arguments $case[1]
@@ -116,6 +134,8 @@ try {
   }
 } finally {
   $held.Dispose()
+  # Deleting the junction alone leaves its target where it is.
+  [IO.Directory]::Delete($junction)
   Remove-Item Env:PORTANODE_ROOT -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath $tmp -Recurse -Force
 }
