@@ -193,12 +193,25 @@ macos/bin`, rather than with anything naming the cause.
 1. Publish the release, its body being the section just written:
 
     ```shell
-    gh release create "v$(cat VERSION)" --title "v$(cat VERSION)" \
-      --notes-file <(awk -v v="$(cat VERSION)" \
+    notes=$(mktemp) && \
+      awk -v v="$(cat VERSION)" \
         '$0 ~ "^## v" v "$" || $0 ~ "^## \\[" v "\\]" {f=1; next}
          f && /^## / {exit} f' \
-        RELEASE_NOTES.md)
+        RELEASE_NOTES.md > "$notes" && \
+      grep -q '[^[:space:]]' "$notes" && \
+      gh release create "v$(cat VERSION)" --title "v$(cat VERSION)" \
+        --notes-file "$notes"
     ```
+
+    The notes go to a file of their own before `gh` sees them, and not
+    through `--notes-file <(awk …)`: the shell ignores a process
+    substitution's exit status, so an `awk` that cannot open
+    `RELEASE_NOTES.md`, or that finds no section for the version, hands
+    `gh` an empty file and the release goes out with no notes. Here
+    `awk` stops the chain where it cannot read the file, and `grep`
+    where the section has no non-blank line. Either way nothing has been
+    published yet: the tag is already pushed and stays, so fix the notes
+    and run this step again rather than cut the tag again.
 
     `awk` and not `sed -n '/start/,/end/p'`: that range prints the
     heading that ends it, and trimming the last line with `sed '$d'`
