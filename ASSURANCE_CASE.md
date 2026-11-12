@@ -177,16 +177,15 @@ beside `macos/`, `win/` or `linux/`, or the launcher stops. An Alice
 `-clean` launcher deletes regtest data only when it finds no node
 running on it. On macOS and Linux it reads each argument of a command
 line whole (`regtest_node_running_on` in `shared/lib.sh`). On Windows it
-reads the node's network as the mainnet launcher does, below, and also
-splits the command line as Bitcoin Core up to v30.0 did, so it counts a
-node whose command line either version reads as running regtest on that
-data directory. On every platform it reads the command line alone, so
-it does not count a node that selects regtest in `bitcoin.conf`, and it
-does not count one that reaches the data directory by a path only the
-filesystem resolves to it, as a junction, a symbolic link or a relative
-path does. On macOS and Linux it counts no other spelling of the path
-than one differing in case or in a trailing `/`. [ISS 887] and
-[ISS 888] track these.
+reads the node's network as the mainnet launcher does, below, splitting
+the command line as the Bitcoin Core releases `README.md`'s *Version
+Compatibility* supports split it. On every platform it reads the command
+line alone, so it does not count a node that selects regtest in
+`bitcoin.conf`, and it does not count one that reaches the data
+directory by a path only the filesystem resolves to it, as a junction, a
+symbolic link or a relative path does. On macOS and Linux it counts no
+other spelling of the path than one differing in case or in a trailing
+`/`. [ISS 887] and [ISS 888] track these.
 
 The mainnet launcher refuses to start while a mainnet node is running.
 It reads a node's flags as whole arguments, so a path holding

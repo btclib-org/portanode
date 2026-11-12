@@ -36,8 +36,7 @@ REM tells a regtest node from the mainnet node sharing bitcoin-datadir with
 REM it. node-args.ps1 beside this file reads the network and the data
 REM directory from the command line, as its header says (#679), and is
 REM dot-sourced as :require_no_mainnet_node says. Test-NodeOnDatadir there
-REM says when a node counts, reading its command line as Core up to v30.0
-REM and Core from v31.0 split it: either version may be the one running.
+REM says when a node counts.
 REM
 REM Windows refuses to delete a file another process holds open rather than
 REM deleting it, so a clean start run under a live node leaves a data
