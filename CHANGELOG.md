@@ -13,6 +13,79 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
+## v2026.11.13
+
+PortaNode supports Bitcoin Core 31 and 32, and the Alice `-clean`
+launchers find a regtest node on their data directory by its resolved
+path and by its `bitcoin.conf`.
+
+### Bitcoin Core 31 and 32 are the supported majors
+
+The macOS and Windows checksum files record Core 32.1, and the Windows
+file drops the 30.2 entries, so a 30.2 install reads `FAILED` there
+(closes #817).
+
+### The health checks cut the sync percentage
+
+A node behind the tip reads at most 99.99%, where rounding could read
+100.00% (closes #803).
+
+### The checksum files name `verify-binaries`
+
+Their headers point at it, on macOS, Windows and Linux (closes #876).
+
+### The Alice `-clean` guards compare resolved paths
+
+They resolve a node's `-datadir` and their own data directory before
+comparing them, on Windows also by volume and file index (closes #888).
+
+### The Alice `-clean` guards read `bitcoin.conf`
+
+They read the network from it and from the files it includes, as Core
+does (closes #887).
+
+### The Windows guards read a command line as Core 31 and 32 do
+
+They split it once, dropping the pre-v31 reading (closes #867), stop at
+a lone `-` (closes #826), trim only Core's white space (closes #830) and
+read `-datadir` in every spelling Core reads (closes #831).
+
+### The mainnet guard on macOS and Linux
+
+It reads no flag after a lone `-` (closes #885), reads switch values
+under `LC_ALL=C` (closes #906), and counts a node only where
+`bitcoin-qt` or `bitcoind` ends a path (closes #675).
+
+### A `pgrep` that refuses its options stops an update
+
+The updaters and the rollbacks refuse, the health check reads unknown,
+and a macOS Electrum started with arguments is found (closes #810).
+
+### The Windows launchers run from a folder holding a caret
+
+A path such as `a ^ b` no longer stops them (closes #793 and #892).
+
+### The launchers' menus and setup check
+
+The `.bat` menus clear the choice before each prompt (closes #686).
+`validate-setup.bat` warns on a missing data directory (closes #691).
+
+### The regtest `-cli` rcfile deletes itself once read
+
+It no longer stays on disk after the launcher reads it (closes #669).
+
+### The Electrum launchers on macOS and Linux
+
+They stop when `electrum-datadir` cannot be created (closes #746), and
+their log monitors escape a byte 0x80 to 0x9F outside a UTF-8 character
+(closes #827).
+
+### Tests, checks and records
+
+Script security runs PSScriptAnalyzer at every severity and a newer
+Blinter, the bestpractices.dev answers are in the tree, and the shared
+files and the pins move.
+
 ## v2026.11.7
 
 The macOS Bitcoin Core updater installs the arm64 build only, and the

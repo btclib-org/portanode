@@ -17,6 +17,26 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
+## v2026.11.13
+
+**On Windows, a Bitcoin Core 30.2 install no longer verifies.** The
+supported majors are 31 and 32: `verify-binaries` reads a 30.2 install
+as `FAILED`, and a rollback to a 30.2 backup is refused. Update with
+`win/scripts/utilities/update-bitcoin.bat` to a supported release.
+
+**On macOS and Linux, a node whose program path holds a hyphen between
+spaces counts as a mainnet node**, as a regtest node started from
+`/Volumes/My - Drive` does, and the mainnet launcher refuses to start
+beside it. Stop that node first, or move the folder to a path without
+one.
+
+**An Alice `-clean` launcher stops where it cannot tell whether a
+regtest node runs on its data directory**: a node whose `-datadir` is
+relative, empty or does not resolve, and a `bitcoin.conf` or included
+file Core would read that is missing, unreadable or holds a line Core
+does not parse. Stop that node, or fix or restore the file, and run it
+again.
+
 ## v2026.11.7
 
 **On an Intel Mac, `update-bitcoin` stops with an error.** The updater
