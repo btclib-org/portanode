@@ -50,7 +50,7 @@ $noTasklist = Add-CommandDir 'no-tasklist'
 $noFind = Add-CommandDir 'no-find' 'tasklist'
 # findstr exits non-zero on tasklist's arguments, as a listing that fails does.
 $failingTasklist = Add-CommandDir 'failing-tasklist'
-Copy-SystemCommand 'findstr' $failingTasklist 'tasklist'
+Copy-SystemCommand -Name 'findstr' -Dir $failingTasklist -As 'tasklist'
 
 # A tasklist that answers its first call with a listing holding no process, and
 # fails every later one. It counts its calls in a file beside it.
@@ -130,12 +130,12 @@ try {
     "$((Get-CommandStatus $failingTasklist $listing) -ne 0)"
 
   # One listing answers the guard: no later call can fail unread.
-  $text = Invoke-Script 'rollback-electrum.bat' @('--dry-run') $oneListing
+  $text = Invoke-Script -Script 'rollback-electrum.bat' -Arguments @('--dry-run') -Dir $oneListing
   Test-Same 'the guard runs tasklist once for an image' '1' `
     "$((Get-Item -LiteralPath $oneListingCalls -ErrorAction SilentlyContinue).Length)"
   Test-Contain 'the listing it read lets rollback-electrum.bat go on' $text 'No backup found'
   Remove-Item -LiteralPath $oneListingCalls -ErrorAction SilentlyContinue
-  $text = Invoke-Script 'rollback-bitcoin.bat' @('--dry-run') $oneListing
+  $text = Invoke-Script -Script 'rollback-bitcoin.bat' -Arguments @('--dry-run') -Dir $oneListing
   Test-Contain 'rollback-bitcoin.bat refuses where the second image''s listing fails' $text `
     'Error: cannot tell whether Bitcoin Core is running'
 
@@ -143,7 +143,7 @@ try {
     foreach ($case in @(
         @('without tasklist', $noTasklist),
         @('where tasklist fails', $failingTasklist))) {
-      $text = Invoke-Script $s.File $s.Arguments $case[1]
+      $text = Invoke-Script -Script $s.File -Arguments $s.Arguments -Dir $case[1]
       Test-Contain "$($s.File) cannot tell $($case[0])" $text `
         "Error: cannot tell whether $($s.Name) is running"
       Test-Contain "$($s.File) refuses $($case[0])" $text "Not $($s.Doing)."
@@ -152,7 +152,7 @@ try {
 
     # $s.Past is printed only after the guard.
     foreach ($case in @(@('where no process is found', ''), @('without find', $noFind))) {
-      $text = Invoke-Script $s.File $s.Arguments $case[1]
+      $text = Invoke-Script -Script $s.File -Arguments $s.Arguments -Dir $case[1]
       Test-Contain "$($s.File) goes on $($case[0])" $text $s.Past
       Test-Same "$($s.File) says nothing of a process $($case[0])" 'False' `
         "$($text -match 'cannot tell|is running')"
@@ -161,7 +161,7 @@ try {
     # A copy of ping under the name of each image is a process tasklist lists.
     foreach ($image in $s.Images) {
       $dir = Join-Path $tmp "running-$image"
-      if (-not (Test-Path -LiteralPath $dir)) { Copy-SystemCommand 'ping' $dir $image }
+      if (-not (Test-Path -LiteralPath $dir)) { Copy-SystemCommand -Name 'ping' -Dir $dir -As $image }
       $process = Start-Process -FilePath (Join-Path $dir "$image.exe") -PassThru `
         -WindowStyle Hidden -ArgumentList '-n', '120', '127.0.0.1'
       try {
