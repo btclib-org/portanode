@@ -44,7 +44,8 @@ $env:PORTANODE_TEST_STUB = 'class P { static void Main() { System.Threading.Thre
 Remove-Item Env:PORTANODE_TEST_STUB
 Copy-Item -LiteralPath (Join-Path $nodes 'bitcoind.exe') -Destination (Join-Path $nodes 'bitcoin-qt.exe')
 
-# {d} stands for bitcoin-datadir's full path.
+# {d} stands for bitcoin-datadir's full path, {f} for the same with forward
+# slashes, and {r} for the folder's root.
 $refused = @(
   @('bitcoind', '-datadir={d} -regtest'),
   @('bitcoind', '-regtest -datadir={d}'),
@@ -53,7 +54,16 @@ $refused = @(
   @('bitcoind', '-datadir={d} -noregtest=0'),
   @('bitcoind', '-rpcpassword=a\" -regtest -datadir={d}'),
   # Core up to v30.0 reads -regtest here, Core from v31.0 does not.
-  @('bitcoind', '-datadir={d} -rpcpassword="a"" -regtest'))
+  @('bitcoind', '-datadir={d} -rpcpassword="a"" -regtest'),
+  # ISS 830: Core trims no U+00A0, so this is a double negative.
+  @('bitcoind', ('-datadir={d} -noregtest=' + [char]0xA0 + '1')),
+  # ISS 831: other spellings of the same -datadir.
+  @('bitcoind', '/datadir={d} -regtest'),
+  @('bitcoind', '-DATADIR={d}\ -regtest'),
+  @('bitcoind', '-datadir={f} -regtest'),
+  @('bitcoin-qt', '-regtest -datadir="{r}\.\bitcoin-datadir"'),
+  @('bitcoind', '-datadir="{d}. " -regtest'),
+  @('bitcoind', '-datadir=\\.\{d} -regtest'))
 $allowed = @(
   @('bitcoind', '-datadir={d}'),
   @('bitcoind', '-datadir={d} -chain=main'),
@@ -61,7 +71,9 @@ $allowed = @(
   @('bitcoind', '-datadir={d} -uacomment=-chain=regtest'),
   @('bitcoind', '-datadir={d} -uacomment="a\" -regtest"'),
   @('bitcoind', '-datadir={d}\regtest_bob -chain=regtest'),
-  @('bitcoin-qt', '-chain=regtest -datadir={d}\regtest_bob'))
+  @('bitcoin-qt', '-chain=regtest -datadir={d}\regtest_bob'),
+  # ISS 826: Core reads no switch after a lone "-".
+  @('bitcoind', '-datadir={d} - -regtest'))
 
 # Runs $Bat whole while the stand-in $Image runs with $Arguments, and returns
 # its output and status.
@@ -71,7 +83,8 @@ function Invoke-Launcher {
     New-Item -ItemType File -Path $wallet | Out-Null
   }
   $node = Start-Process -FilePath (Join-Path $nodes "$Image.exe") -PassThru `
-    -WindowStyle Hidden -ArgumentList $Arguments.Replace('{d}', $datadir)
+    -WindowStyle Hidden -ArgumentList $Arguments.Replace('{d}', $datadir).Replace(
+      '{f}', $datadir.Replace('\', '/')).Replace('{r}', $root)
   Push-Location -LiteralPath $repo
   try {
     # The line answers the launcher's pause.
