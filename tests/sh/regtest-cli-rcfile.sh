@@ -89,7 +89,7 @@ for launcher in "${launchers[@]}"; do
     # RCFILE expands in the session, not here.
     # shellcheck disable=SC2016
     input='btc getblockcount\necho "rcfile=${RCFILE-unset}"\n'
-    case "$launcher" in *-clean*) input="\\n$input" ;; esac
+    case "$launcher" in *-clean*) input="\\n$input" ;; *) ;; esac
     output="$(printf '%b' "$input" \
         | HOME="$TMP/home" \
             TMPDIR="$tmpdir" \

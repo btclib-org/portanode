@@ -112,6 +112,7 @@ sync_percent() (
     percent="$(echo "$fraction * 100" | bc -l 2> /dev/null)" || exit 1
     case "$percent" in
         '' | *[!0-9.]*) exit 1 ;;
+        *) ;;
     esac
     printf '%.2f' "$percent" 2> /dev/null
 )
@@ -220,7 +221,7 @@ _process_args() {
 _printable_ascii() {
     (
         LC_ALL=C
-        case $1 in *[![:print:]]*) exit 1 ;; esac
+        case $1 in *[![:print:]]*) exit 1 ;; *) ;; esac
     )
 }
 
@@ -240,7 +241,7 @@ _ps_shows() {
     [ $? -eq 1 ] || return 1
     (
         LC_ALL=$loc
-        case $1 in *[![:print:]]*) exit 1 ;; esac
+        case $1 in *[![:print:]]*) exit 1 ;; *) ;; esac
     )
 }
 
@@ -345,6 +346,7 @@ _line_selects_network() (
             "$2="*) _value_reads_false "${word#*=}" || exit 0 ;;
             "no$2="*) _value_reads_false "${word#*=}" && exit 0 ;;
             "chain=$3") exit 0 ;;
+            *) ;;
         esac
     done
     exit 1
@@ -369,7 +371,7 @@ _conf_entries() {
         -eq "$(LC_ALL=C wc -c < "$1")" ] || return 1
     while IFS= read -r line || [ -n "$line" ]; do
         hash=0
-        case $line in *"#"*) hash=1 ;; esac
+        case $line in *"#"*) hash=1 ;; *) ;; esac
         line=${line%%"#"*}
         line=${line#"${line%%[!"$ws"]*}"}
         line=${line%"${line##*[!"$ws"]}"}
@@ -385,7 +387,7 @@ _conf_entries() {
         esac
         key=${line%%=*}
         key=$prefix${key%"${key##*[!"$ws"]}"}
-        case $hash$key in 1*rpcpassword*) return 1 ;; esac
+        case $hash$key in 1*rpcpassword*) return 1 ;; *) ;; esac
         value=${line#*=}
         value=${value#"${value%%[!"$ws"]*}"}
         case $key in *.*) ;; *) key=".$key" ;; esac
@@ -398,7 +400,7 @@ _conf_entries() {
 _section_settings() {
     local e
     while IFS= read -r e; do
-        case $e in "$2."*) printf '%s\n' "${e#"$2."}" ;; esac
+        case $e in "$2."*) printf '%s\n' "${e#"$2."}" ;; *) ;; esac
     done <<< "$1"
 }
 
@@ -412,6 +414,7 @@ _setting_values() {
         case $s in
             "$2="*) printf '=%s\n' "${s#*=}" ;;
             "no$2="*) if _value_reads_false "${s#*=}"; then echo T; else echo F; fi ;;
+            *) ;;
         esac
     done <<< "$1"
 }
@@ -429,7 +432,7 @@ _after_negation() {
 _network_selected() {
     local v
     v="$(_setting_values "$1" "$3" | LC_ALL=C tail -n 1)"
-    case $v in "" | F) v="$(_setting_values "$2" "$3" | LC_ALL=C tail -n 1)" ;; esac
+    case $v in "" | F) v="$(_setting_values "$2" "$3" | LC_ALL=C tail -n 1)" ;; *) ;; esac
     case $v in
         T) return 0 ;;
         =*) ! _value_reads_false "${v#=}" ;;
@@ -581,7 +584,7 @@ _regtest_by_conf_read() {
         for section in "${chain#=}" ""; do
             v="$(_section_settings "$entries" "$section")"
             v="$(_setting_values "$v" includeconf | _after_negation)"
-            case $'\n'$v$'\n' in *$'\nT\n'*) return 2 ;; esac
+            case $'\n'$v$'\n' in *$'\nT\n'*) return 2 ;; *) ;; esac
             [ -n "$v" ] && files="$files$v"$'\n'
         done
         while IFS= read -r file; do
@@ -669,7 +672,7 @@ _real_dir() {
     local real
     case $1 in /*) ;; *) return 1 ;; esac
     real="$(CDPATH='' cd -P -- "$1" 2> /dev/null && pwd -P)" || return 1
-    case $real in //*) real=${real#/} ;; esac
+    case $real in //*) real=${real#/} ;; *) ;; esac
     printf '%s\n' "$real"
 }
 
@@ -757,7 +760,7 @@ _regtest_node_resolved() (
                             *) answer=2 ;;
                         esac
                     fi
-                    case $value in "" | -*) known=0 ;; esac
+                    case $value in "" | -*) known=0 ;; *) ;; esac
                 fi
                 reading="$reading "
             done
@@ -798,7 +801,7 @@ _regtest_node_named() {
     local loc first
     if (
         LC_ALL=C
-        case $1 in *[!\ -~]*) exit 1 ;; esac
+        case $1 in *[!\ -~]*) exit 1 ;; *) ;; esac
     ) then
         _regtest_node_in C "$1" "$2"
         return $?

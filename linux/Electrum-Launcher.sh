@@ -44,7 +44,7 @@ run_script() {
     fi
     bash "$script"
     local status=$?
-    if [ $status -ne 0 ]; then
+    if [ "$status" -ne 0 ]; then
         echo "Command failed (exit $status)."
     fi
     return 0

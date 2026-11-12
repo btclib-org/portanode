@@ -464,6 +464,7 @@ sig_case() {
             cp "$WORK/other.asc" "$file.asc"
             ;;
         missing) rm -f "$file.asc" ;;
+        *) ;;
     esac
     BEFORE="$(snapshot)"
     case "$script" in
@@ -493,12 +494,14 @@ while read -r script ostype arch; do
     name="$plat $(basename "$script" .sh)"
     case "$script" in
         macos/*bitcoin*) command -v zip > /dev/null || continue ;;
+        *) ;;
     esac
     case "$script" in
         linux/*electrum*)
             check "$name installs what a pinned key signed" \
                 sig_case "$script" "$ostype" "$arch" pinned "Electrum updated to 4.6.0"
             ;;
+        *) ;;
     esac
     check "$name refuses a signature by a key nobody imported" \
         sig_case "$script" "$ostype" "$arch" unimported "no valid PGP signature"
@@ -710,11 +713,11 @@ check "macos update-bitcoin finds no version in an index of malformed ones" \
 for plat in linux macos; do
     if [ "$plat" = linux ]; then os=linux-gnu arch=x86_64; else os=darwin24 arch=arm64; fi
     check "$plat update-electrum takes the one well-formed version of its index" \
-        index_case "$plat/scripts/utilities/update-electrum.sh" $os $arch \
+        index_case "$plat/scripts/utilities/update-electrum.sh" "$os" "$arch" \
         "$ELECTRUM_INDEX_BAD
 <a href=\"4.6.0/\">x</a>" "Would install Electrum 4.6.0"
     check "$plat update-electrum finds no version in an index of malformed ones" \
-        index_case "$plat/scripts/utilities/update-electrum.sh" $os $arch \
+        index_case "$plat/scripts/utilities/update-electrum.sh" "$os" "$arch" \
         "$ELECTRUM_INDEX_BAD" "Failed to determine latest Electrum version"
 done
 

@@ -88,6 +88,7 @@ for launcher in "${launchers[@]}"; do
             check "$name's copy tests $FUSE in place of /dev/fuse" \
                 same "0 1" "$(grep -cE -- '-[rw] /dev/fuse' "$path") $(grep -cxF "$FUSE_STANDIN" "$path")"
             ;;
+        *) ;;
     esac
     started="$TMP/${name//\//-}.started"
     output="$(run_launcher "$path" "$started")"

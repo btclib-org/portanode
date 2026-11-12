@@ -265,7 +265,7 @@ pinned_fingerprints() {
     while IFS= read -r _pf_line; do
         _pf_n=$((_pf_n + 1))
         _pf_fpr=${_pf_line//[$_pf_ws]/}
-        case "$_pf_fpr" in '' | \#*) continue ;; esac
+        case "$_pf_fpr" in '' | \#*) continue ;; *) ;; esac
         if [[ "$_pf_fpr" == min-signatures=* ]]; then
             if [ -n "$_pf_min" ]; then
                 echo "Error: line ${_pf_n} of ${_pf_name} sets min-signatures" \
@@ -455,7 +455,7 @@ pgp_verify_or_fail() {
         $2 == "REVKEYSIG" || $2 == "KEYREVOKED" { revoked = 1 }
         END { flush(); print n + 0 }
     ' "$status_file")" || n_good=0
-    case "$n_good" in '' | *[!0123456789]*) n_good=0 ;; esac
+    case "$n_good" in '' | *[!0123456789]*) n_good=0 ;; *) ;; esac
     if [ "$n_good" -lt "$min_sigs" ]; then
         echo "Error: ${label} carries good signatures from ${n_good} key(s)" \
             "pinned in ${fpr_name}; it asks for ${min_sigs}."
@@ -734,6 +734,7 @@ verify_binaries() {
     while IFS= read -r line; do
         case "$line" in
             "" | \#*) continue ;;
+            *) ;;
         esac
         hash="${line%%[[:space:]]*}"
         rest="${line#"$hash"}"

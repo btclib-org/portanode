@@ -388,6 +388,41 @@ Windows and a Linux machine, from a volume that is not the boot disk —
 which is the case the paths in these scripts exist for, and the one a
 checkout on an internal disk never exercises.
 
+**The bash style is ShellCheck with every optional check but those
+declined below, and shfmt's layout with `-i 4 -ci -bn -sr -ln bash`.**
+The `shellcheck` and `shfmt` hooks enforce it, and
+`.pre-commit-config.yaml` gives their flags. `shfmt` rewrites a file
+whose layout differs, so a run that reports a change is committed and
+run again. Its flags depart from shfmt's defaults — a tab indent, `case`
+patterns level with `case`, an operator ending a continued line, and no
+space after a redirection — because, of the layouts tried on the
+scripts, this one changed the fewest lines.
+
+The style declines these optional checks, each for the reason beside
+it:
+
+- **SC2250**, `require-variable-braces`, asks for `${var}` where `$var`
+  means the same. It changes no behaviour, and taking it rewrites most
+  lines that read a variable.
+- **SC2292**, `require-double-brackets`, asks for `[[ ]]` in place of
+  `[ ]`. The two differ: inside `[[ ]]` an unquoted right side of `=` is
+  a pattern, an unquoted variable is not split, and the operands of
+  `-eq` or `-lt` are evaluated as arithmetic, so a test it rewrites can
+  compare something else.
+- **SC2310**, `check-set-e-suppressed`, reports a function called as a
+  condition, inside which `set -e` does not apply. That is how the
+  updaters call a check whose failure they report:
+  `if ! verify_sha256sums ...; then echo "Checksum failed"`. Called
+  outside the condition, as the rule asks, a failing check ends the
+  script under `set -e` before that message.
+- **SC2312**, `check-extra-masked-returns`, reports a command
+  substitution inside another command, which hides its failure, as on
+  the line where a launcher finds its own directory. Its remedies are a
+  line of its own for the substitution, which under `set -e` ends the
+  script where the hidden failure now goes on and elsewhere changes
+  nothing, or `|| true` inside it, which changes nothing and tells the
+  reader nothing.
+
 **The `.bat` and `.ps1` halves are read by the generic hooks, and by
 `script-security.yml` for PSScriptAnalyzer's findings and for the
 findings of the Blinter rules the batch style keeps** (*What gates a

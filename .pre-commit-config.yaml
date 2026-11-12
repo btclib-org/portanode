@@ -136,12 +136,28 @@ repos:
   # with the reasoning beside them, rather than here: a global disable
   # would silence a real instance of either alongside the false one.
   # This one reads the launchers; actionlint's hook below reads the `run:`
-  # steps.
+  # steps. --enable=all and --exclude are the bash style CONTRIBUTING.md's
+  # last section names: every optional check, but the ones it declines
+  # with their reasons.
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: a6564f5d57444e123433a5c9af733e3975c77229 # frozen: v0.11.0.1-1
     hooks:
       - id: shellcheck
-        args: [-x]
+        args: [-x, --enable=all, "--exclude=SC2250,SC2292,SC2310,SC2312"]
+  # the layout half of the same style. The hook installs shfmt's release
+  # binary, which the hook repository's setup.cfg pins by sha256, and
+  # --write rewrites a file whose layout differs.
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: 479be5958357ba5ab65ce47172117348516860e9 # frozen: v3.14.1-1
+    hooks:
+      - id: shfmt
+        args:
+          - --write
+          - --indent=4
+          - --case-indent
+          - --binary-next-line
+          - --space-redirects
+          - --language-dialect=bash
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
     hooks:

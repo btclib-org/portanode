@@ -58,6 +58,7 @@ case "$UNAME" in
         fi
         exit 0
         ;;
+    *) ;;
 esac
 
 if [ -f "$ROOTDIR/Bitcoin-Launcher.command" ]; then

@@ -74,7 +74,7 @@ launchers=(
 
 run_launcher() {
     local input="$1" launcher="$2" started="$3" path="$PATH" output status
-    case "$launcher" in *-clean*) path="$STUBS:$PATH" ;; esac
+    case "$launcher" in *-clean*) path="$STUBS:$PATH" ;; *) ;; esac
     output="$(printf '%b' "$input" \
         | PORTANODE_ROOT="$ROOT" \
             PORTANODE_TEST_STARTS="$started" \
@@ -90,6 +90,7 @@ for launcher in "${launchers[@]}"; do
     case "$launcher" in
         *Bob*) datadir=bitcoin-datadir/regtest_bob ;;
         *Carol*) datadir=bitcoin-datadir/regtest_carol ;;
+        *) ;;
     esac
     case "$launcher" in *-clean*) input='\n' ;; *) input='' ;; esac
     output="$(run_launcher "$input" "$launcher" "$started")"

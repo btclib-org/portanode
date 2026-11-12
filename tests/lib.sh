@@ -35,6 +35,7 @@ same() {
 contains() {
     case "$1" in
         *"$2"*) return 0 ;;
+        *) ;;
     esac
     printf '  wanted:   %s\n  in:       %s\n' "$2" "$1"
     return 1

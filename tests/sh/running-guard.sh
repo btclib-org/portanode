@@ -126,6 +126,7 @@ passes() {
     contains "$1" "$2" || return 1
     case "$1" in
         *"is running"* | *"cannot tell"*) return 1 ;;
+        *) ;;
     esac
 }
 
@@ -138,7 +139,7 @@ while read -r script ostype arch name doing past; do
     doing="${doing//_/ }"
     past="${past//_/ }"
     args=(--dry-run)
-    case "$script" in */update-*) args+=(--version 99.0) ;; esac
+    case "$script" in */update-*) args+=(--version 99.0) ;; *) ;; esac
 
     out="$(run_script "" "$ostype" "$arch" "$script" "${args[@]}")"
     check "$script refuses without pgrep" refused "$out" "$name" "$doing"
@@ -176,7 +177,7 @@ for exe in Electrum run_electrum; do
         "$BUNDLE/$exe -D /Volumes/PortaNode/electrum-datadir --oneserver")"
     while read -r script doing; do
         args=(--dry-run)
-        case "$script" in update-*) args+=(--version 99.0) ;; esac
+        case "$script" in update-*) args+=(--version 99.0) ;; *) ;; esac
         out="$(run_script "$listing:" darwin24 arm64 \
             "macos/scripts/utilities/$script" "${args[@]}")"
         check "macos $script stops where $exe runs with arguments" \
@@ -305,7 +306,7 @@ else
         doing="${doing//_/ }"
         past="${past//_/ }"
         args=(--dry-run)
-        case "$script" in */update-*) args+=(--version 99.0) ;; esac
+        case "$script" in */update-*) args+=(--version 99.0) ;; *) ;; esac
         what="$script under bitcoind-usb goes on where no node runs"
         if outside_match; then
             echo "ok - skipped: $what (a process matching $BTC_PATTERN runs here)"

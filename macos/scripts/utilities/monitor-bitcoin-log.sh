@@ -48,6 +48,7 @@ else
 fi
 case "$LAST_OFFSET" in
     '' | *[!0-9]*) LAST_OFFSET=0 ;;
+    *) ;;
 esac
 
 # Current size in bytes, from the filesystem's own metadata rather than by
