@@ -283,7 +283,7 @@
   "osps_vm_06_01_status": "Met",
   "osps_vm_06_02_justification": "The required Lint check runs shellcheck on the .sh and .command scripts, zizmor and actionlint on the workflows, and detect-secrets on every file; the required Script security check runs PSScriptAnalyzer's default rules on the .ps1 scripts and Blinter's Error, Security and Warning rules on the .bat scripts, and CodeQL runs over the workflow files. https://github.com/btclib-org/portanode/blob/main/.github/workflows/script-security.yml",
   "osps_vm_06_02_status": "Met",
-  "regression_tests_added50_justification": "Recent fixes add a test in tests/ (#732, #736), but the share over six months is not measured. https://github.com/btclib-org/portanode/blob/main/tests/README.md",
+  "regression_tests_added50_justification": "28 of the 121 bug fixes merged into main since 2026-05-11 added a test under tests/ (23%), and 28 of the 31 merged since the suite began on 2026-10-19 (90%). Counted on 2026-11-12 with python3 -I measure.py bugs-judged.txt, run with gh signed in; the script and the judged list are in https://github.com/btclib-org/portanode/issues/870#issuecomment-6808968516. The maintainer decided on no backfill: the share passes half as the older fixes leave the six-month window, the last of them (#634) on 2027-04-15. https://github.com/btclib-org/portanode/issues/889#issuecomment-6809792970",
   "regression_tests_added50_status": "Unmet",
   "release_notes_justification": "Each GitHub release carries RELEASE_NOTES.md's section for it, written for a user, not a git log. https://github.com/btclib-org/portanode/blob/main/RELEASE_NOTES.md",
   "release_notes_status": "Met",
