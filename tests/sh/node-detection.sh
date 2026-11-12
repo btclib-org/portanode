@@ -293,6 +293,28 @@ check "mainnet node found under /Volumes/Bitcoin-Qt Drive" answers 0 mainnet_nod
 PROCS=$'/Volumes/My - Drive/portanode/macos/bin/bitcoind -regtest\n'
 check "mainnet node found under /Volumes/My - Drive" answers 0 mainnet_node_running
 
+# ISS 906: a value holding a byte that is not UTF-8 reads as Core reads it
+# under a UTF-8 locale too, with LC_ALL unset.
+under_lang() {
+    unset LC_ALL LC_CTYPE
+    export LANG="$1"
+    shift
+    "$@"
+}
+if loc="$(_utf8_locale)"; then
+    PROCS="$BIN -datadir=$D -regtest="$'\xe9\n'
+    check "no regtest node under LANG=$loc: -regtest=<0xE9>" \
+        under_lang "$loc" answers 1 regtest_node_running_on "$D"
+    PROCS="$BIN -datadir=$D -regtest=0"$'\xe9\n'
+    check "no regtest node under LANG=$loc: -regtest=0<0xE9>" \
+        under_lang "$loc" answers 1 regtest_node_running_on "$D"
+    PROCS="/x/bitcoind -testnet="$'\xe9\n'
+    check "mainnet node found under LANG=$loc: -testnet=<0xE9>" \
+        under_lang "$loc" answers 0 mainnet_node_running
+else
+    echo "ok - skipped: the cases that need a UTF-8 locale (this machine has none)"
+fi
+
 # A process list that cannot be read answers 2 and not "no node".
 _process_args() {
     return 1

@@ -312,6 +312,9 @@ _line_has_arg() {
 
 # _value_reads_false <value>: 0 where Core reads the boolean value as false:
 # a value that is not empty and whose leading integer is zero or absent.
+# The match reads bytes only under C, where _line_selects_network calls it:
+# under UTF-8, [^0-9] matches no byte that is not UTF-8, so "0<0xE9>" and
+# "<0xE9>" would read as true, where Core reads both as false.
 _value_reads_false() {
     local re='^0*($|[^0-9])'
     [ -n "$1" ] && [[ ${1#[+-]} =~ $re ]]
@@ -319,10 +322,10 @@ _value_reads_false() {
 
 # _line_selects_network <line> <flag> <chain>: 0 where the line selects the
 # network named <flag> as a flag and <chain> as a "-chain" value, in any form
-# above. The line may be padded.
-_line_selects_network() {
-    local word
-    local -a words
+# above. The line may be padded. It reads the line under C, whatever the
+# caller's locale.
+_line_selects_network() (
+    LC_ALL=C
     read -r -a words <<<"$1"
     for word in "${words[@]}"; do
         case $word in
@@ -331,14 +334,14 @@ _line_selects_network() {
             *) continue ;;
         esac
         case $word in
-            "$2") return 0 ;;
-            "$2="*) _value_reads_false "${word#*=}" || return 0 ;;
-            "no$2="*) _value_reads_false "${word#*=}" && return 0 ;;
-            "chain=$3") return 0 ;;
+            "$2") exit 0 ;;
+            "$2="*) _value_reads_false "${word#*=}" || exit 0 ;;
+            "no$2="*) _value_reads_false "${word#*=}" && exit 0 ;;
+            "chain=$3") exit 0 ;;
         esac
     done
-    return 1
-}
+    exit 1
+)
 
 # _regtest_node_in <locale> <datadir> <process list>: regtest_node_running_on's
 # search of one list, its letters folded to lower case by tr under <locale>:
@@ -573,11 +576,14 @@ regtest_node_running_on() {
 #
 # A network flag read as true before a lone "-" selects that network, though
 # Core reads only the last one, so a repeated flag can hide a mainnet node.
-mainnet_node_running() {
-    local procs line pad net
-    local nets=(testnet:test testnet4:testnet4 signet:signet regtest:regtest)
-    procs="$(_process_args)" || return 2
-    procs="$(printf '%s\n' "$procs" | tr '[:upper:]' '[:lower:]')" || return 2
+#
+# The list is read under C, whatever the caller's locale: under UTF-8, BSD tr
+# fails on a byte that is not UTF-8.
+mainnet_node_running() (
+    LC_ALL=C
+    nets=(testnet:test testnet4:testnet4 signet:signet regtest:regtest)
+    procs="$(_process_args)" || exit 2
+    procs="$(printf '%s\n' "$procs" | LC_ALL=C tr '[:upper:]' '[:lower:]')" || exit 2
     while IFS= read -r line; do
         case $line in
             bitcoin-qt | "bitcoin-qt "* | */bitcoin-qt | *"/bitcoin-qt "*) ;;
@@ -591,10 +597,10 @@ mainnet_node_running() {
                 continue 2
             fi
         done
-        return 0
+        exit 0
     done <<<"$procs"
-    return 1
-}
+    exit 1
+)
 
 # _pids_outside_own_line SELF PIDS TABLE
 #
