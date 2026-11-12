@@ -171,21 +171,26 @@ belong. Bitcoin Core binds RPC to the loopback interface
 unless `rpcbind` and `rpcallowip` both say otherwise.
 
 **The launcher and its environment.** The root a launcher resolves
-decides which binaries and which data it uses. A set
-`PORTANODE_ROOT` has to pass the probe the walk applies, a `VERSION`
-beside `macos/`, `win/` or `linux/`, or the launcher stops. An Alice
-`-clean` launcher deletes regtest data only when it finds no node
-running on it. On macOS and Linux it reads each argument of a command
-line whole (`regtest_node_running_on` in `shared/lib.sh`). On Windows it
-reads the node's network as the mainnet launcher does, below, splitting
-the command line as the Bitcoin Core releases `README.md`'s *Version
+decides which binaries and which data it uses. A set `PORTANODE_ROOT`
+has to pass the probe the walk applies, a `VERSION` beside `macos/`,
+`win/` or `linux/`, or the launcher stops. An Alice `-clean` launcher
+deletes regtest data only when it finds no node running on it. On macOS
+and Linux it reads each argument of a command line whole
+(`regtest_node_running_on` in `shared/lib.sh`). On Windows it reads the
+node's network as the mainnet launcher does, below, splitting the
+command line as the Bitcoin Core releases `README.md`'s *Version
 Compatibility* supports split it. On every platform it reads the command
 line alone, so it does not count a node that selects regtest in
-`bitcoin.conf`, and it does not count one that reaches the data
-directory by a path only the filesystem resolves to it, as a junction, a
-symbolic link or a relative path does. On macOS and Linux it counts no
-other spelling of the path than one differing in case or in a trailing
-`/`. [ISS 887] and [ISS 888] track these.
+`bitcoin.conf` ([ISS 887]). Where its own data directory exists, it
+resolves that directory and the node's `-datadir` and compares the two,
+so a junction, a symbolic link or another spelling of the path does not
+hide a node, and a node's `-datadir` that is relative or does not
+resolve stops it as a node on the directory does. On macOS and Linux,
+where `ps` prints no argument boundaries, a node's `-datadir` counts as
+resolving only where a reading of it that ends before a word starting
+with `-`, or at the end of the line, resolves. A `-datadir` holding a
+space followed by `-` that does not resolve, where its part before that
+space does, reads as the directory that part names.
 
 The mainnet launcher refuses to start while a mainnet node is running.
 It reads a node's flags as whole arguments, so a path holding
@@ -300,4 +305,3 @@ to, and what counters each.
   gate, against `.secrets.baseline`.
 
 [ISS 887]: https://github.com/btclib-org/portanode/issues/887
-[ISS 888]: https://github.com/btclib-org/portanode/issues/888

@@ -204,15 +204,69 @@ function ConvertTo-DatadirKey {
   return $key
 }
 
+function Resolve-DatadirPath {
+  # The final path of the file or directory $Path names, as
+  # GetFinalPathNameByHandle gives it, the volume named by its NT device
+  # path: junctions, symbolic links, substituted drives and 8.3 names
+  # resolved. Null where it cannot be opened. A relative $Path is read against
+  # this process's working directory. Off Windows, where only the tests run
+  # this file, it resolves nothing.
+  param([string]$Path)
+  if ($env:OS -ne 'Windows_NT') { return $null }
+  if (-not ('PortaNode.FinalPath' -as [type])) {
+    Add-Type -Namespace PortaNode -Name FinalPath -MemberDefinition @'
+[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+public static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFileW(
+  string name, uint access, uint share, IntPtr security, uint disposition,
+  uint flags, IntPtr template);
+[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+public static extern uint GetFinalPathNameByHandleW(
+  Microsoft.Win32.SafeHandles.SafeFileHandle file, System.Text.StringBuilder path,
+  uint size, uint flags);
+'@
+  }
+  # No access asked, every sharing mode, OPEN_EXISTING, and
+  # FILE_FLAG_BACKUP_SEMANTICS, without which a directory does not open.
+  $handle = [PortaNode.FinalPath]::CreateFileW($Path, 0, 7, [IntPtr]::Zero, 3,
+    0x02000000, [IntPtr]::Zero)
+  try {
+    if ($handle.IsInvalid) { return $null }
+    $size = 32768
+    $final = New-Object System.Text.StringBuilder $size
+    # 2 is VOLUME_NAME_NT.
+    $length = [PortaNode.FinalPath]::GetFinalPathNameByHandleW($handle, $final, $size, 2)
+    if ($length -eq 0 -or $length -ge $size) { return $null }
+    return $final.ToString()
+  } finally {
+    $handle.Dispose()
+  }
+}
+
 function Test-NodeOnDatadir {
-  # True where a node's command line names $Datadir as its data directory,
-  # compared by ConvertTo-DatadirKey with case ignored, and, where $Chain is
-  # not empty, selects the network Get-NodeChain names $Chain.
+  # True where a node's command line names $Datadir as its data directory
+  # and, where $Chain is not empty, selects the network Get-NodeChain names
+  # $Chain.
+  #
+  # The two directories are compared by Resolve-DatadirPath, with case
+  # ignored, so a node reaching $Datadir by any path counts. A node's
+  # directory that is not a full path, which Core reads against the node's
+  # own working directory, or that does not resolve, throws: the caller
+  # cannot tell whether the node uses $Datadir. Core refuses a -datadir that
+  # is not a directory, so where $Datadir itself does not resolve, the two
+  # are compared by ConvertTo-DatadirKey alone.
   param([string]$CommandLine, [string]$Datadir, [string]$Chain)
   $d = Get-NodeDatadir $CommandLine
-  return ($null -ne $d -and [string]::Equals((ConvertTo-DatadirKey $d),
-      (ConvertTo-DatadirKey $Datadir), [StringComparison]::OrdinalIgnoreCase) -and
-    (-not $Chain -or (Get-NodeChain $CommandLine) -ceq $Chain))
+  if ($null -eq $d -or ($Chain -and (Get-NodeChain $CommandLine) -cne $Chain)) { return $false }
+  if ([string]::Equals((ConvertTo-DatadirKey $d), (ConvertTo-DatadirKey $Datadir),
+      [StringComparison]::OrdinalIgnoreCase)) { return $true }
+  $own = Resolve-DatadirPath $Datadir
+  if ($null -eq $own) { return $false }
+  $node = $null
+  if ($d -match '^([A-Za-z]:[\\/]|[\\/][\\/])') {
+    $node = Resolve-DatadirPath $d
+  }
+  if ($null -eq $node) { throw "cannot resolve the data directory '$d' of a running node" }
+  return [string]::Equals($node, $own, [StringComparison]::OrdinalIgnoreCase)
 }
 
 function Test-MainnetNode {

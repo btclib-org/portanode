@@ -332,6 +332,69 @@ foreach ($c in $splits) {
   Test-Case -Description "split: $($c[0])" -Got ((Split-CommandLine $c[0]) -join '|') -Want $c[1]
 }
 
+# ISS 888: on a data directory that exists, a node's -datadir counts by the
+# directory it resolves to. One that is relative or does not resolve throws.
+function Get-Answer {
+  param([string]$CommandLine, [string]$Datadir)
+  try { "$(Test-NodeOnDatadir $CommandLine $Datadir 'regtest')" } catch { 'threw' }
+}
+
+if ($env:OS -eq 'Windows_NT') {
+  $tmp = Join-Path ([IO.Path]::GetTempPath()) ('portanode-node-args-' + [guid]::NewGuid())
+  $real = Join-Path $tmp 'bitcoin-datadir'
+  $junction = Join-Path $tmp 'junction'
+  New-Item -ItemType Directory -Path $real, (Join-Path $tmp 'other') | Out-Null
+  New-Item -ItemType Junction -Path $junction -Target $real | Out-Null
+  try {
+    $resolved = @(
+      @("$qt -datadir=$junction -regtest", $real, 'True'),
+      @("$qt -datadir=`"$junction`" -regtest", $real, 'True'),
+      @("$qt -datadir=$real -regtest", $junction, 'True'),
+      @("$qt -datadir=$tmp\other -regtest", $real, 'False'),
+      @("$qt -datadir=bitcoin-datadir -regtest", $real, 'threw'),
+      @("$qt -datadir=$tmp\absent -regtest", $real, 'threw'),
+      @("$qt -datadir=bitcoin-datadir -regtest", "$tmp\absent", 'False'))
+    foreach ($c in $resolved) {
+      Test-Case -Description "resolved datadir: $($c[0]) on $($c[1])" `
+        -Got (Get-Answer $c[0] $c[1]) -Want $c[2]
+    }
+  } finally {
+    # Deleting the junction alone leaves its target where it is.
+    [IO.Directory]::Delete($junction)
+    Remove-Item -LiteralPath $tmp -Recurse -Force
+  }
+}
+
+# The same rules on any system, with Resolve-DatadirPath replaced by a table.
+$finalPaths = @{
+  'C:\r\bitcoin-datadir' = '\Device\HarddiskVolume1\r\bitcoin-datadir'
+  'D:\link' = '\Device\HarddiskVolume1\R\Bitcoin-Datadir'
+  '\\srv\share\link' = '\Device\HarddiskVolume1\r\bitcoin-datadir'
+  'D:\other' = '\Device\HarddiskVolume2\other'
+}
+function Resolve-DatadirPath {
+  param([string]$Path)
+  return $finalPaths[$Path]
+}
+$stubbed = @(
+  @("$qt -datadir=D:\link -regtest", $dd, 'True'),
+  @("$qt -datadir=\\srv\share\link -regtest", $dd, 'True'),
+  @("$qt -datadir=D:\other -regtest", $dd, 'False'),
+  @("$qt -datadir=D:\link -regtest", 'E:\absent', 'False'),
+  @("$qt -datadir=D:\link", $dd, 'False'),
+  @("$qt -datadir=bitcoin-datadir", $dd, 'False'),
+  @("$qt -datadir=bitcoin-datadir -regtest", $dd, 'threw'),
+  @("$qt -datadir=.\bitcoin-datadir -regtest", $dd, 'threw'),
+  @("$qt -datadir=\r\bitcoin-datadir -regtest", $dd, 'threw'),
+  @("$qt -datadir=C:bitcoin-datadir -regtest", $dd, 'threw'),
+  @("$qt -datadir= -regtest", $dd, 'threw'),
+  @("$qt -datadir=D:\absent -regtest", $dd, 'threw'),
+  @("$qt -datadir=bitcoin-datadir -regtest", 'E:\absent', 'False'))
+foreach ($c in $stubbed) {
+  Test-Case -Description "resolved datadir, stubbed: $($c[0]) on $($c[1])" `
+    -Got (Get-Answer $c[0] $c[1]) -Want $c[2]
+}
+
 if ($script:failed -gt 0) {
   Write-Output "$script:failed case(s) failed"
   exit 1
