@@ -80,11 +80,16 @@ They stop when `electrum-datadir` cannot be created (closes #746), and
 their log monitors escape a byte 0x80 to 0x9F outside a UTF-8 character
 (closes #827).
 
-### Tests, checks and records
+### Script security reads more of the scripts
 
-Script security runs PSScriptAnalyzer at every severity and a newer
-Blinter, the bestpractices.dev answers are in the tree, and the shared
-files and the pins move.
+It runs PSScriptAnalyzer's default rules at every severity (issue #868),
+and Blinter's pin moves (closes #835).
+
+### The bestpractices.dev answers and the shared files
+
+`.bestpractices.json` holds them (issue btclib-org/.github#2153), and
+`CONTRIBUTING.md` takes the shared half again (issue
+btclib-org/.github#2145).
 
 ## v2026.11.7
 

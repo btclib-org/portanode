@@ -31,11 +31,11 @@ beside it. Stop that node first, or move the folder to a path without
 one.
 
 **An Alice `-clean` launcher stops where it cannot tell whether a
-regtest node runs on its data directory**: a node whose `-datadir` is
-relative, empty or does not resolve, and a `bitcoin.conf` or included
-file Core would read that is missing, unreadable or holds a line Core
-does not parse. Stop that node, or fix or restore the file, and run it
-again.
+regtest node runs on its data directory**: a regtest node whose
+`-datadir` is relative, empty or does not resolve, and a `bitcoin.conf`
+or included file Core would read that is missing, unreadable or holds a
+line Core does not parse. Stop that node, or fix or restore the file,
+and run it again.
 
 ## v2026.11.7
 
