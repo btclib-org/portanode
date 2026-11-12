@@ -198,8 +198,12 @@ if [ "$PGREP_FOUND" = "yes" ]; then
         *) PGREP_FAILED="yes" ;;
     esac
 fi
+# A ps that fails here prints nothing, which would read as no Electrum.
+PS_FAILED="no"
 if [ "$ELECTRUM_RUNNING" != "yes" ] && command -v ps >/dev/null 2>&1; then
-    if ps -ax -o comm= 2>/dev/null | awk '
+    if ! PS_COMM="$(ps -ax -o comm= 2>/dev/null)"; then
+        PS_FAILED="yes"
+    elif printf '%s\n' "$PS_COMM" | awk '
         tolower($0) ~ /(electrum|run_electrum)$/ { found=1 }
         END { exit found ? 0 : 1 }
     '; then
@@ -211,7 +215,7 @@ if [ "$ELECTRUM_RUNNING" = "yes" ] && [ -n "$ELECTRUM_METHOD" ]; then
     echo "Electrum running: yes (${ELECTRUM_METHOD})"
 elif [ "$PGREP_FOUND" != "yes" ]; then
     echo "Electrum running: unknown (pgrep not found)"
-elif [ "$PGREP_FAILED" = "yes" ]; then
+elif [ "$PGREP_FAILED" = "yes" ] || [ "$PS_FAILED" = "yes" ]; then
     echo "Electrum running: unknown (pgrep or ps failed)"
 else
     echo "Electrum running: $ELECTRUM_RUNNING"

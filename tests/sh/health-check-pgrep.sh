@@ -154,6 +154,16 @@ $PS_FAILS a match where ps fails
 EOF
 done
 
+# On macOS, where pgrep finds no Electrum, the ps pass over process names
+# decides, so a ps that fails there leaves Electrum unknown.
+# shellcheck disable=SC2016 # the stand-in expands it
+PS_FAILS_ONLY="$(with_tools ps-fails-only pgrep 'for a; do :; done
+[ "$a" = . ] && echo 1 && exit 0
+exit 1' ps 'exit 1')"
+check "macos: a ps that fails after pgrep finds no Electrum reads as unknown" \
+    prints macos "$PS_FAILS_ONLY" \
+    "Electrum running: unknown (pgrep or ps failed)"
+
 # The Electrum launchers start the bundle with arguments, whichever name
 # the bundle ships its executable under. This pgrep matches its pattern
 # against that command line, as pgrep -f -i does.

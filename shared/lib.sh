@@ -484,8 +484,8 @@ _pids_outside_own_line() {
 # where it refuses an option such as -i, which it then reports on stderr
 # only (ISS 810). So an exit 1 counts as "no match" only where the same
 # pgrep, given the same options and the pattern ".", finds a process, and
-# the answer is 2 otherwise. A working pgrep always finds one, as the next
-# paragraph says.
+# the answer is 2 otherwise. A working pgrep always finds one: the next
+# paragraph says which processes each leaves out.
 #
 # GNU procps pgrep leaves out only itself, so where the folder's path
 # matches <pattern>, the shell running the script matches, and so does a
