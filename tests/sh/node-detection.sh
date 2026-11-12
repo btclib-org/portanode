@@ -308,6 +308,7 @@ conf_case 0 "" "bitcoin.conf:[regtest]"$'\n'"[]"$'\n'"regtest=1"$'\n'
 # -chain takes its first value in the files after their last negation.
 conf_case 0 "" "bitcoin.conf:chain=regtest"$'\n'"chain=main"$'\n'
 conf_case 0 "" "bitcoin.conf:chain=main"$'\n'"nochain=1"$'\n'"chain=regtest"$'\n'"chain=main"$'\n'
+# A negated -chain reads as the chain "0", which Core refuses as unknown.
 conf_case 1 "" "bitcoin.conf:chain=regtest"$'\n'"nochain=1"$'\n'
 # The command line wins, but Core skips a negation there.
 conf_case 1 "-regtest=0" "bitcoin.conf:regtest=1"$'\n'
@@ -330,11 +331,18 @@ conf_case 1 "" "bitcoin.conf:[test]"$'\n'"includeconf=x.conf"$'\n' "x.conf:regte
 conf_case 0 "" "bitcoin.conf:regtest=0"$'\n'"includeconf=x.conf"$'\n' "x.conf:regtest=1"$'\n'
 conf_case 2 "" "bitcoin.conf:includeconf=x.conf"$'\n'
 conf_case 2 "" "bitcoin.conf:noincludeconf=0"$'\n'
-# A node on another datadir is read with the guard's files, and answers 1,
-# even where they cannot be read.
+# A node on another datadir answers 1 where the guard's files select
+# regtest, as they do for a node on its datadir, and where they cannot be
+# read. Each case writes the files it reads.
+rm -f "$CONF"/*.conf
+printf 'regtest=1\n' >"$CONF/bitcoin.conf"
+PROCS="$BIN -datadir=$CONF"$'\n'
+check "a node on the datadir, regtest in the guard's bitcoin.conf" \
+    answers 0 regtest_node_running_on "$CONF"
 PROCS="$BIN -datadir=$TMP/other"$'\n'
 check "a node on another datadir, regtest in the guard's bitcoin.conf" \
     answers 1 regtest_node_running_on "$CONF"
+rm -f "$CONF"/*.conf
 PROCS="$BIN -datadir=$TMP/other -conf=missing.conf"$'\n'
 check "a node on another datadir, its -conf missing" \
     answers 1 regtest_node_running_on "$CONF"

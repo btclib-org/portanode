@@ -483,6 +483,7 @@ try {
     # -chain takes its first value in the files after their last negation.
     @(@{ 'bitcoin.conf' = "chain=regtest`nchain=main`n" }, '', 'regtest'),
     @(@{ 'bitcoin.conf' = "chain=main`nnochain=1`nchain=regtest`nchain=main`n" }, '', 'regtest'),
+    # A negated -chain reads as the chain "0", which Core refuses as unknown.
     @(@{ 'bitcoin.conf' = "chain=regtest`nnochain=1`n" }, '', '0'),
     # The command line wins, but Core skips a negation there.
     @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-regtest=0', 'main'),
@@ -550,8 +551,14 @@ try {
   Test-Case -Description 'conf network: a Latin-1 comment, no network' -Got (Get-NodeNetwork $onConf $confDir) -Want 'main'
   [IO.File]::WriteAllBytes((Join-Path $confDir 'bitcoin.conf'), $latin1.GetBytes("regtest=1`n# comment $([char]0xE9)`n"))
   Test-Case -Description 'conf network: a Latin-1 comment, regtest' -Got (Get-NodeNetwork $onConf $confDir) -Want 'regtest'
+  # A node on another datadir does not count where the guard's files select
+  # regtest.
+  [IO.File]::WriteAllText((Join-Path $confDir 'bitcoin.conf'), "regtest=1`n")
+  Test-Case -Description 'on another datadir, regtest in bitcoin.conf' `
+    -Got (Get-Answer "$qt -datadir=C:\other" $confDir) -Want 'False'
   # A file that cannot be read stops the guard only for a node that may be
   # on its data directory.
+  Remove-Item -LiteralPath (Join-Path $confDir 'bitcoin.conf')
   Test-Case -Description 'on datadir, -conf names a missing file' `
     -Got (Get-Answer "$onConf -conf=missing.conf" $confDir) -Want 'threw'
   Test-Case -Description 'on another datadir, -conf names a missing file' `
