@@ -92,7 +92,8 @@ reason][s11-branch].
 **`enforce_admins` is off**, so an administrator can merge past a red
 required check: [GitHub does not apply classic protection to an account
 with admin permission][admins] while it is off. The review still holds
-that merge, through `main-self-merge` below. [Section 11 of the standard
+that merge, through `main-self-merge` below, for every administrator but
+the maintainer, who holds its bypass. [Section 11 of the standard
 sets this value in every tree][s11-branch].
 
 ```shell
@@ -108,7 +109,8 @@ request runs it only where it changes that file, `tests/kcov.sh` or
 `tests/statements.ps1`, and a required check that never runs blocks a merge.
 `scorecard.yml` is not a check on a pull request at all.
 
-What holds a pull request is the review and, for anybody but an
+What holds a pull request is `main-self-merge`, which the maintainer's
+bypass excuses whole on the maintainer's merge, and, for anybody but an
 administrator, the contexts above; what holds every commit that reaches
 `main` is `main-integrity`.
 
@@ -125,8 +127,8 @@ gh api repos/btclib-org/portanode/rulesets --jq '.[].id' | xargs -I{} \
 
 - `main-integrity`, on `refs/heads/main`: required linear history, no
   force push, no deletion. No bypass actor.
-- `main-self-merge`, on `refs/heads/main`: one `pull_request` rule. No
-  bypass actor.
+- `main-self-merge`, on `refs/heads/main`: one `pull_request` rule. One
+  bypass actor, the maintainer, in `pull_request` mode.
 - `tag-integrity`, on `refs/tags/v*`: required signatures. No bypass
   actor.
 
@@ -153,17 +155,20 @@ Classic protection's own copy of the rule is off, as it is in every
 ruleset over `main`: [the standard states that value for every
 repository][s11-branch].
 
-**`main-self-merge` has no bypass actor**, because `README.md` carries
-the OpenSSF Best Practices badge, and [section 11 of the
-standard][s11-branch] allows no bypass in such a tree. So a pull request
-lands only once somebody other than its author has approved it, the
-maintainer's own included. btclib-org/.github's
+**`main-self-merge` has one bypass actor, the maintainer, in
+`pull_request` mode**, so the maintainer can merge without an approval
+from somebody other than the author, and nobody else can. It is the
+organization-wide bypass, which the maintainer keeps until the backlog
+settles, with no date set (btclib-org/.github#2021). Once it is removed,
+the ruleset has no bypass actor, because `README.md` carries the OpenSSF
+Best Practices badge, and [section 11 of the standard][s11-branch]
+allows no bypass in such a tree. btclib-org/.github's
 [`GOVERNANCE.md`][governance], *How a decision is made*, says what is
-done in an emergency. This reads the bypass actors back:
+done in an emergency then. This reads the bypass actors back:
 
 ```shell
 gh api repos/btclib-org/portanode/rulesets/20736361 --jq '.bypass_actors'
-# []
+# [{"actor_id":3296421,"actor_type":"User","bypass_mode":"pull_request"}]
 ```
 
 The rule's own parameters carry more than the approval count, and each is
@@ -178,7 +183,8 @@ gh api repos/btclib-org/portanode/rulesets/20736361 \
 rule is and not only in the setting below. `dismiss_stale_reviews_on_push`
 is on, so a push after an approval asks for the approval again.
 `required_review_thread_resolution` is on, so a thread a reviewer opened
-holds the merge until somebody resolves it.
+holds the merge until somebody resolves it, except the maintainer's
+merge, which the bypass lets past every parameter of the rule.
 `require_extra_approval_for_unattributed_changes` is on, which is what
 asks again when a commit's author is not a recognised account.
 
