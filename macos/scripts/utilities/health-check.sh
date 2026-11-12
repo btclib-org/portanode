@@ -30,9 +30,8 @@ fi
 # pgrep on macOS/BSD uses extended regular expressions, so alternation is "|"
 # (a GNU-BRE "\|" matches a literal pipe and never matches a real process).
 BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt|bitcoin-qt.app"
-# Without pgrep, or where pgrep or ps fails (pgrep_outside_own_line, in
-# shared/lib.sh), a process the other passes miss may still be running, so
-# the status lines read "unknown" rather than "no".
+# Without pgrep, or where pgrep or ps fails, a process the other passes miss
+# may still be running, so the status lines read "unknown" rather than "no".
 PGREP_FOUND="no"
 if command -v pgrep >/dev/null 2>&1; then
     PGREP_FOUND="yes"
@@ -198,9 +197,12 @@ if [ "$PGREP_FOUND" = "yes" ]; then
         *) PGREP_FAILED="yes" ;;
     esac
 fi
-# A ps that fails here prints nothing, which would read as no Electrum.
+# A missing or failing ps leaves Electrum unknown, not "no".
 PS_FAILED="no"
-if [ "$ELECTRUM_RUNNING" != "yes" ] && command -v ps >/dev/null 2>&1; then
+PS_FOUND="yes"
+if [ "$ELECTRUM_RUNNING" != "yes" ] && ! command -v ps >/dev/null 2>&1; then
+    PS_FOUND="no"
+elif [ "$ELECTRUM_RUNNING" != "yes" ]; then
     if ! PS_COMM="$(ps -ax -o comm= 2>/dev/null)"; then
         PS_FAILED="yes"
     elif printf '%s\n' "$PS_COMM" | awk '
@@ -217,6 +219,8 @@ elif [ "$PGREP_FOUND" != "yes" ]; then
     echo "Electrum running: unknown (pgrep not found)"
 elif [ "$PGREP_FAILED" = "yes" ] || [ "$PS_FAILED" = "yes" ]; then
     echo "Electrum running: unknown (pgrep or ps failed)"
+elif [ "$PS_FOUND" != "yes" ]; then
+    echo "Electrum running: unknown (ps not found)"
 else
     echo "Electrum running: $ELECTRUM_RUNNING"
 fi
