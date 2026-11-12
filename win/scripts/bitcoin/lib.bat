@@ -32,10 +32,10 @@ REM Refuse to go on while a Bitcoin node is using the data directory the
 REM first argument names. The second argument, where given, is the network
 REM that node has to select as well, by the name "-chain" takes: it is what
 REM tells a regtest node from the mainnet node sharing bitcoin-datadir with
-REM it. node-args.ps1 beside this file reads the network and the data
-REM directory from the command line, as its header says (#679), and is
-REM dot-sourced as :require_no_mainnet_node says. Test-NodeOnDatadir there
-REM says when a node counts.
+REM it. node-args.ps1 beside this file reads the data directory from the
+REM command line and the network from it and the configuration files, as
+REM its header says (#679), and is dot-sourced as :require_no_mainnet_node
+REM says. Test-NodeOnDatadir there says when a node counts.
 REM
 REM Windows refuses to delete a file another process holds open rather than
 REM deleting it, so a clean start run under a live node leaves a data

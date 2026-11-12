@@ -301,8 +301,9 @@ process_running_with() {
 # Core reads no argument after a lone "-", and mainnet_node_running reads no
 # flag there either. A program path holding " - ", as /Volumes/My - Drive,
 # then reads as a node with no network flag. regtest_node_running_on reads
-# past a lone "-", so that such a path cannot hide a node from it. Both
-# readings err toward "running".
+# past a lone "-", so that such a path cannot hide a node from it, and reads
+# a node's configuration files both with the switches up to it and with all
+# of them (_regtest_by_conf). Both readings err toward "running".
 
 # _line_has_arg <padded line> <argument>: 0 where the line holds <argument>
 # as a whole argument, in either dash form.
@@ -311,13 +312,19 @@ _line_has_arg() {
 }
 
 # _value_reads_false <value>: 0 where Core reads the boolean value as false:
-# a value that is not empty and whose leading integer is zero or absent.
-# The match reads bytes only under C, where _line_selects_network calls it:
-# under UTF-8, [^0-9] matches no byte that is not UTF-8, so "0<0xE9>" and
-# "<0xE9>" would read as true, where Core reads both as false.
+# a value that is not empty and whose leading integer, after white space and
+# one sign, is zero or absent. The white space is Core's: space, tab, line
+# feed, carriage return, vertical tab and form feed (TrimStringView in
+# src/util/string.h).
+#
+# The match reads bytes only under C, which its callers set
+# (_line_selects_network, _regtest_by_conf_read): under UTF-8, [^0-9] matches
+# no byte that is not UTF-8, so "0<0xE9>" and "<0xE9>" would read as true,
+# where Core reads both as false.
 _value_reads_false() {
-    local re='^0*($|[^0-9])'
-    [ -n "$1" ] && [[ ${1#[+-]} =~ $re ]]
+    local re='^0*($|[^0-9])' ws=$' \t\n\r\v\f' v=$1
+    v=${v#"${v%%[!"$ws"]*}"}
+    [ -n "$1" ] && [[ ${v#[+-]} =~ $re ]]
 }
 
 # _line_selects_network <line> <flag> <chain>: 0 where the line selects the
@@ -343,25 +350,278 @@ _line_selects_network() (
     exit 1
 )
 
+# _conf_entries <file>: the settings of a configuration file, in order, as
+# Core reads them (GetConfigOptions in src/common/config.cpp), one
+# "<section>.<name>=<value>" per line, the section empty above the file's
+# first section. A line ends at "#", and white space is space, tab, carriage
+# return and line feed. "[name]" starts a section, and a name holding "."
+# names its own, as "regtest.port". 1 where the file cannot be read or holds
+# a line Core does not parse: one that starts with "-", holds no "=" and is
+# no section, or sets rpcpassword and holds a "#"; 1 also where it holds a
+# NUL byte, which bash drops and Core keeps. Any other byte is read as
+# itself, whatever the caller's locale: the local LC_ALL reaches a command
+# only where the caller exported LC_ALL, so each command is given LC_ALL=C,
+# as the functions below do.
+_conf_entries() {
+    local LC_ALL=C line prefix="" key value hash ws=$' \t\r\n'
+    [ -r "$1" ] || return 1
+    [ "$(LC_ALL=C tr -d '\000' <"$1" | LC_ALL=C wc -c)" \
+        -eq "$(LC_ALL=C wc -c <"$1")" ] || return 1
+    while IFS= read -r line || [ -n "$line" ]; do
+        hash=0
+        case $line in *"#"*) hash=1 ;; esac
+        line=${line%%"#"*}
+        line=${line#"${line%%[!"$ws"]*}"}
+        line=${line%"${line##*[!"$ws"]}"}
+        case $line in
+            "") continue ;;
+            "["*"]") prefix="${line:1:${#line}-2}."; continue ;;
+            -*) return 1 ;;
+            *=*) ;;
+            *) return 1 ;;
+        esac
+        key=${line%%=*}
+        key=$prefix${key%"${key##*[!"$ws"]}"}
+        case $hash$key in 1*rpcpassword*) return 1 ;; esac
+        value=${line#*=}
+        value=${value#"${value%%[!"$ws"]*}"}
+        case $key in *.*) ;; *) key=".$key" ;; esac
+        printf '%s=%s\n' "$key" "$value"
+    done <"$1"
+}
+
+# _section_settings <entries> <section>: the entries of <section>, as
+# _conf_entries prints them, without their section: "<name>=<value>".
+_section_settings() {
+    local e
+    while IFS= read -r e; do
+        case $e in "$2."*) printf '%s\n' "${e#"$2."}" ;; esac
+    done <<<"$1"
+}
+
+# _setting_values <settings> <name>: the values Core keeps for the setting
+# <name>, one per line in order, from <settings>, one "<name>=<value>" per
+# line: "=<value>" for a value, "F" for a negation, as "noregtest=1", "T"
+# for a double one, as "noregtest=0".
+_setting_values() {
+    local s
+    while IFS= read -r s; do
+        case $s in
+            "$2="*) printf '=%s\n' "${s#*=}" ;;
+            "no$2="*) if _value_reads_false "${s#*=}"; then echo T; else echo F; fi ;;
+        esac
+    done <<<"$1"
+}
+
+# _after_negation: the lines of its input after its last "F".
+_after_negation() {
+    LC_ALL=C awk '$0 == "F" { n = 0; next } { v[n++] = $0 } END { for (i = 0; i < n; i++) print v[i] }'
+}
+
+# _network_selected <switches> <entries> <network>: 0 where Core sets the
+# network switch <network> from the command line's switches and the
+# entries above the files' first section, both as _setting_values reads
+# them: its last value on the command line, unless that value is a
+# negation, which Core skips; then its last value in the files.
+_network_selected() {
+    local v
+    v="$(_setting_values "$1" "$3" | LC_ALL=C tail -n 1)"
+    case $v in "" | F) v="$(_setting_values "$2" "$3" | LC_ALL=C tail -n 1)" ;; esac
+    case $v in
+        T) return 0 ;;
+        =*) ! _value_reads_false "${v#=}" ;;
+        *) return 1 ;;
+    esac
+}
+
+# _chain_setting <switches> <entries>: "=<name>" where Core takes "-chain"
+# as <name>, read as _network_selected reads its switches, and nothing
+# where it is not set: its last value on the command line, else its first
+# value in the files after their last negation of it. Core reads a negated
+# "-chain" as "0" and a double one as "1", neither of them a network.
+_chain_setting() {
+    local v
+    v="$(_setting_values "$1" chain | LC_ALL=C tail -n 1)"
+    if [ -z "$v" ]; then
+        v="$(_setting_values "$2" chain)"
+        [ -n "$v" ] || return 0
+        v="$(printf '%s\n' "$v" | _after_negation | LC_ALL=C head -n 1)"
+        v=${v:-F}
+    fi
+    case $v in
+        T) echo "=1" ;;
+        F) echo "=0" ;;
+        *) printf '%s\n' "$v" ;;
+    esac
+}
+
+# _networks_conflict <switches> <entries>: 0 where "-chain" and the network
+# switches, read as _network_selected and _chain_setting read them, select
+# more than one network, which GetChainArg in src/common/args.cpp refuses.
+_networks_conflict() {
+    local n=0 net
+    [ -n "$(_chain_setting "$1" "$2")" ] && n=1
+    for net in regtest signet testnet testnet4; do
+        _network_selected "$1" "$2" "$net" && n=$((n + 1))
+    done
+    [ "$n" -gt 1 ]
+}
+
+# _regtest_by_conf <datadir> <line>: 0 where Core selects regtest from the
+# line's switches and the configuration files it reads for a node on
+# <datadir> (ReadConfigFiles in src/common/config.cpp); 1 where it does not;
+# 2 where a file is missing that has to exist, or cannot be read or parsed
+# (_conf_entries), or where Core fails on a double negation of
+# "includeconf". The switches are read as _line_selects_network reads them,
+# their names ignoring case. The files are read as they are now, not as they
+# were when the node started.
+#
+# The file is "-conf", or bitcoin.conf where it is absent or empty, and a
+# relative one is under <datadir>; "-noconf" reads none. A file that "-conf"
+# names has to exist, as Core requires. ps prints no argument boundaries, so
+# the value of "-conf" is read up to the first space followed by "-", or
+# to the end of the line. Unless the command line holds "-includeconf" in
+# any form, each "includeconf" of that file's section named after the
+# network it selects, then of its top, after the last negation of it, names
+# a file read after it; each of these has to exist. The answer is 0 where
+# the switches and the files select more than one network, before the
+# included files are read or after: Core refuses that node, and
+# Test-NodeOnDatadir in win/scripts/bitcoin/node-args.ps1 counts it too.
+#
+# Not read: a "chain" in the section of the network selected, which Core
+# refuses on a later read as a second network. The answer is 0 where the
+# rest selects regtest, as regtest=1 with "chain=main" under [regtest] does,
+# and 1 where it selects another, as testnet=1 with "chain=regtest" under
+# [test] does; Test-NodeOnDatadir answers the same, and Core runs neither.
+#
+# Core reads no switch after a lone "-", where the line may hold the rest of
+# a program path (above). So where the line holds one, it is read both whole
+# and up to that "-": 0 where either reading answers 0, else 2 where either
+# answers 2.
+_regtest_by_conf() {
+    local whole cut pad=" $2 "
+    case $pad in *" - "*) ;; *) _regtest_by_conf_read "$1" "$2"; return ;; esac
+    _regtest_by_conf_read "$1" "$2"
+    whole=$?
+    [ "$whole" -eq 0 ] && return 0
+    _regtest_by_conf_read "$1" "${pad%%" - "*}"
+    cut=$?
+    [ "$cut" -eq 0 ] && return 0
+    [ "$whole" -eq 2 ] || [ "$cut" -eq 2 ] && return 2
+    return 1
+}
+
+# _regtest_by_conf_read <datadir> <line>: _regtest_by_conf's reading of the
+# whole line.
+_regtest_by_conf_read() {
+    local LC_ALL=C pad low word switches="" v path explicit=1 off a b entries=""
+    local top chain section file files more
+    local -a words
+    pad=" $2 "
+    low="$(_fold "$pad")"
+    read -r -a words <<<"$low"
+    for word in "${words[@]}"; do
+        case $word in
+            --*) word=${word#--} ;;
+            -*) word=${word#-} ;;
+            *) continue ;;
+        esac
+        case $word in *=*) ;; *) word="$word=" ;; esac
+        switches="$switches$word"$'\n'
+    done
+    v="$(_setting_values "$switches" conf | LC_ALL=C tail -n 1)"
+    case $v in
+        "") path=bitcoin.conf; explicit=0 ;;
+        F) path="" ;;
+        T) path=1 ;;
+        =) path=bitcoin.conf ;;
+        *)
+            a=${low%" -conf="*}
+            b=${low%" --conf="*}
+            off=$((${#a} + 7))
+            [ "$a" = "$low" ] && off=0
+            [ "$b" != "$low" ] && [ "$((${#b} + 8))" -gt "$off" ] && off=$((${#b} + 8))
+            path=${pad:off}
+            path=${path%%" -"*}
+            path=${path%"${path##*[! ]}"}
+            ;;
+    esac
+    if [ -n "$path" ]; then
+        case $path in /*) ;; *) path="$1/$path" ;; esac
+        if [ -f "$path" ]; then
+            entries="$(_conf_entries "$path")" || return 2
+        elif [ "$explicit" -eq 1 ] || ! _absent "$path"; then
+            return 2
+        fi
+    fi
+    if [ -n "$entries" ] && [ -z "$(_setting_values "$switches" includeconf)" ]; then
+        top="$(_section_settings "$entries" "")"
+        _networks_conflict "$switches" "$top" && return 0
+        chain="$(_chain_setting "$switches" "$top")"
+        if [ -z "$chain" ]; then
+            chain="=main"
+            for v in regtest:regtest signet:signet testnet:test testnet4:testnet4; do
+                if _network_selected "$switches" "$top" "${v%%:*}"; then
+                    chain="=${v##*:}"
+                    break
+                fi
+            done
+        fi
+        files=""
+        for section in "${chain#=}" ""; do
+            v="$(_section_settings "$entries" "$section")"
+            v="$(_setting_values "$v" includeconf | _after_negation)"
+            case $'\n'$v$'\n' in *$'\nT\n'*) return 2 ;; esac
+            [ -n "$v" ] && files="$files$v"$'\n'
+        done
+        while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            file=${file#=}
+            case $file in /*) ;; *) file="$1/$file" ;; esac
+            [ -f "$file" ] || return 2
+            more="$(_conf_entries "$file")" || return 2
+            entries="$entries"$'\n'"$more"
+        done <<<"$files"
+    fi
+    top="$(_section_settings "$entries" "")"
+    _network_selected "$switches" "$top" regtest && return 0
+    [ "$(_chain_setting "$switches" "$top")" = "=regtest" ] && return 0
+    _networks_conflict "$switches" "$top" && return 0
+    return 1
+}
+
+# _regtest_selected <datadir> <line>: 0 where the line selects regtest, on
+# its command line (_line_selects_network) or through its configuration
+# files (_regtest_by_conf); 1 where it does neither; 2 where
+# _regtest_by_conf cannot tell.
+_regtest_selected() {
+    _line_selects_network "$(_fold " $2 ")" regtest regtest && return 0
+    _regtest_by_conf "$1" "$2"
+}
+
 # _regtest_node_in <locale> <datadir> <process list>: regtest_node_running_on's
 # search of one list, its letters folded to lower case by tr under <locale>:
-# 0 where a line holds a regtest node on the datadir, 1 where none does, 2
-# where tr failed, as BSD tr does under a UTF-8 locale on a byte that is not
-# UTF-8.
+# 0 where a line holds the datadir and selects regtest (_regtest_selected,
+# for a node on the datadir), 1 where none does, 2 where tr failed, as BSD tr
+# does under a UTF-8 locale on a byte that is not UTF-8, or where
+# _regtest_selected cannot tell for a line that holds the datadir.
 _regtest_node_in() {
-    local dir procs line pad
+    local dir procs line orig pad answer=1
     dir="$(printf '%s' "$2" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
     dir="${dir%/}"
     procs="$(printf '%s\n' "$3" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
-    while IFS= read -r line; do
+    while IFS= read -r line && IFS= read -r orig <&3; do
         pad=" $line "
-        if { _line_has_arg "$pad" "datadir=$dir" \
-                || _line_has_arg "$pad" "datadir=$dir/"; } \
-            && _line_selects_network "$pad" regtest regtest; then
-            return 0
+        if _line_has_arg "$pad" "datadir=$dir" || _line_has_arg "$pad" "datadir=$dir/"; then
+            _regtest_selected "$2" "$orig"
+            case $? in
+                0) return 0 ;;
+                1) ;;
+                *) answer=2 ;;
+            esac
         fi
-    done <<<"$procs"
-    return 1
+    done <<<"$procs" 3<<<"$3"
+    return "$answer"
 }
 
 # _regtest_node_by_grep <locale> <datadir> <process list>: the same search
@@ -371,18 +631,22 @@ _regtest_node_in() {
 # folded under C, with the text grep matched, and read as _regtest_node_in
 # reads it.
 _regtest_node_by_grep() {
-    local dir="${2%/}" line found pad
+    local dir="${2%/}" line found pad answer=1
     while IFS= read -r line; do
         pad=" $(printf '%s' "$line" | LC_ALL=C tr '[:upper:]' '[:lower:]') "
         while IFS= read -r found; do
             found="$(printf '%s' "$found" | LC_ALL=C tr '[:upper:]' '[:lower:]')"
-            if { _line_has_arg "$pad" "$found" || _line_has_arg "$pad" "$found/"; } \
-                && _line_selects_network "$pad" regtest regtest; then
-                return 0
+            if _line_has_arg "$pad" "$found" || _line_has_arg "$pad" "$found/"; then
+                _regtest_selected "$2" "$line"
+                case $? in
+                    0) return 0 ;;
+                    1) ;;
+                    *) answer=2 ;;
+                esac
             fi
         done < <(LC_ALL="$1" grep -a -o -i -F -e "datadir=$dir" <<<"$line" 2>/dev/null)
     done < <(LC_ALL="$1" grep -a -i -F -e "datadir=$dir" <<<"$3" 2>/dev/null)
-    return 1
+    return "$answer"
 }
 
 # _real_dir <dir>: the directory <dir> names, with every symbolic link, "."
@@ -421,12 +685,15 @@ _fold() {
 }
 
 # _regtest_node_resolved <real datadir> <process list>: regtest_node_running_on's
-# search by resolved path. 0 where a line that selects regtest has a reading
-# of a -datadir, below, that _real_dir resolves, and the result is the same
-# file as <real datadir> or _regtest_node_named counts it as <real datadir>; 2
-# where such a line has a -datadir that is not absolute or not known, or
-# _regtest_node_named answers 2 on a reading; 1 otherwise. The same file is
-# found by device and inode, which match where macOS pwd -P keeps the NFC or
+# search by resolved path. 0 where a line that selects regtest
+# (_regtest_selected, for a node on <real datadir>) has a reading of a
+# -datadir, below, that _real_dir resolves, and the result is the same file
+# as <real datadir> or _regtest_node_named counts it as <real datadir>; 2
+# where a line that selects regtest, or for which _regtest_selected cannot
+# tell, has a -datadir that is not absolute or not known, or a reading on
+# which _regtest_node_named answers 2, or where _regtest_selected cannot
+# tell for a line that would otherwise answer 0; 1 otherwise. The same file
+# is found by device and inode, which match where macOS pwd -P keeps the NFC or
 # NFD form of a name as given and the node used the other form.
 #
 # ps prints no argument boundaries, so a value is read up to each space after
@@ -440,11 +707,12 @@ _regtest_node_resolved() (
     LC_ALL=C
     answer=1
     while IFS= read -r line; do
-        # Each spelling _line_selects_network reads as regtest holds this.
-        case $line in *[Rr][Ee][Gg][Tt][Ee][Ss][Tt]*) ;; *) continue ;; esac
+        case $line in *[Dd][Aa][Tt][Aa][Dd][Ii][Rr]=*) ;; *) continue ;; esac
+        _regtest_selected "$1" "$line"
+        selected=$?
+        [ "$selected" -eq 1 ] && continue
         pad=" $line "
         low="$(_fold "$pad")"
-        _line_selects_network "$low" regtest regtest || continue
         off=0
         while :; do
             rest=${low:off}
@@ -461,13 +729,17 @@ _regtest_node_resolved() (
                 reading="$reading${value%%" "*}"
                 value=${value#*" "}
                 if real="$(_real_dir "$reading")"; then
-                    [ "$real" -ef "$1" ] && exit 0
-                    _regtest_node_named "$1" " -regtest -datadir=$real"
-                    case $? in
-                        0) exit 0 ;;
-                        1) ;;
-                        *) answer=2 ;;
-                    esac
+                    if [ "$real" -ef "$1" ]; then
+                        [ "$selected" -eq 0 ] && exit 0
+                        answer=2
+                    else
+                        _regtest_node_named "$1" " -regtest -datadir=$real"
+                        case $? in
+                            0) [ "$selected" -eq 0 ] && exit 0; answer=2 ;;
+                            1) ;;
+                            *) answer=2 ;;
+                        esac
+                    fi
                     case $value in "" | -*) known=0 ;; esac
                 fi
                 reading="$reading "
@@ -478,15 +750,18 @@ _regtest_node_resolved() (
     exit "$answer"
 )
 
-# _regtest_datadir_given <process list>: 0 where a line that selects regtest
-# holds a -datadir, as _regtest_node_resolved reads one; 1 otherwise.
+# _regtest_datadir_given <process list> <datadir>: 0 where a line that
+# selects regtest, or where _regtest_selected cannot tell, for a node on
+# <datadir>, holds a -datadir, as _regtest_node_resolved reads one; 1
+# otherwise.
 _regtest_datadir_given() (
     LC_ALL=C
     while IFS= read -r line; do
-        case $line in *[Rr][Ee][Gg][Tt][Ee][Ss][Tt]*) ;; *) continue ;; esac
+        case $line in *[Dd][Aa][Tt][Aa][Dd][Ii][Rr]=*) ;; *) continue ;; esac
         low="$(_fold " $line ")"
-        _line_selects_network "$low" regtest regtest || continue
-        case $low in *" -datadir="* | *" --datadir="*) exit 0 ;; esac
+        case $low in *" -datadir="* | *" --datadir="*) ;; *) continue ;; esac
+        _regtest_selected "$2" "$line"
+        [ $? -eq 1 ] || exit 0
     done <<<"$1"
     exit 1
 )
@@ -527,11 +802,14 @@ _regtest_node_named() {
 
 # regtest_node_running_on <datadir>: 0 where a running process was started
 # with a -datadir naming <datadir> and selects regtest, in either order and
-# in any form Core reads as regtest; 1 where none was; 2 where the process
-# list could not be read or searched, ps may not print <datadir> as itself
-# (_ps_shows), or a process that selects regtest has a -datadir that is not
-# known to name another directory, which a caller about to delete something
-# treats as 0. That last is a -datadir whose directory is not known
+# in any form Core reads as regtest, on its command line or in its
+# configuration files (_regtest_selected); 1 where none was; 2 where the
+# process list could not be read or searched, ps may not print <datadir> as
+# itself (_ps_shows), _regtest_selected cannot tell for a process with such
+# a -datadir, or a process that selects regtest, or for which
+# _regtest_selected cannot tell, has a -datadir that is not known to name
+# another directory, which a caller about to delete something treats as 0.
+# That last is a -datadir whose directory is not known
 # (_regtest_node_resolved) where <datadir> resolves, and any -datadir that
 # does not spell <datadir> (_regtest_datadir_given) where <datadir> neither
 # resolves nor is known not to exist (_absent).
@@ -555,7 +833,7 @@ regtest_node_running_on() {
         by_path=$?
         [ "$by_path" -eq 0 ] && return 0
     elif ! _absent "$1"; then
-        _regtest_datadir_given "$procs" && by_path=2
+        _regtest_datadir_given "$procs" "$1" && by_path=2
     fi
     _regtest_node_named "$1" "$procs"
     by_name=$?
