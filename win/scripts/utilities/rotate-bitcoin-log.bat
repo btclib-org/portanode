@@ -13,9 +13,9 @@ REM an unmatched "!" is stripped out of the expanded "%~dp0" below and
 REM out of every path built on ROOTDIR, and a folder mounted at a path
 REM holding one is legal on exFAT and NTFS alike (#374).
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -24,16 +24,16 @@ set MAX_ROTATIONS=5
 
 if not exist "%LOG_FILE%" (
     echo Log file not found: bitcoin-datadir\debug.log
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 0
 )
 
 REM System32 is the current directory from here to each popd: root.bat's
 REM :leave_folder says why. It is changed before the first rename, so a
 REM failure to change it leaves every archive where it was.
-call "%SCRIPT_DIR%..\root.bat" :leave_folder
+call "%%SCRIPT_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -69,12 +69,12 @@ if exist "%ROOTDIR%\.last_log_offset" del /f /q "%ROOTDIR%\.last_log_offset"
 
 echo Log rotated: bitcoin-datadir\debug.log
 popd >nul 2>&1
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0
 
 :rotate_failed
 popd >nul 2>&1
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 
 REM :rotate_one INDEX -- rename debug.log.INDEX to debug.log.INDEX+1

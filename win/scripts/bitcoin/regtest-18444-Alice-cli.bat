@@ -17,9 +17,9 @@ REM "setlocal" keeps whatever state the caller left the pass at, and the
 REM caller here is the console this was started from. The measurement is
 REM in win\scripts\root.bat, above :resolve_root (#473).
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 echo ROOTDIR is "%ROOTDIR%"
@@ -38,7 +38,7 @@ echo WALLETDIR is "%WALLETDIR%"
 
 if not exist "%ROOTDIR%\win\bin\bitcoind.exe" (
     echo Error: Binary not found at "win\bin\bitcoind.exe"
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -52,7 +52,7 @@ REM already started; the check here stops the launcher before either
 REM console opens.
 if not exist "%ROOTDIR%\win\bin\bitcoin-cli.exe" (
     echo Error: Binary not found at "win\bin\bitcoin-cli.exe"
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -75,17 +75,18 @@ REM anywhere it is not inside an open quote. Measured on windows-latest
 REM with ROOTDIR carrying one: unquoted, BITCOIND_CMD split there and cmd
 REM tried to run the fragment after the "&" as its own command; the
 REM %ROOTDIR% and %DATADIR% below are each now inside their own quote
-REM pair. The CLI console below is a labelled routine in lib.bat rather
-REM than a second command built here: its doskey macro has to quote an
-REM absolute path, and a quote pair inside a command string this file
-REM assembles closes the quote the rest of it depends on, leaving this
-REM same "&" to split the set statement itself before the value is
-REM assigned. lib.bat's :cli_console carries the rest of that reasoning.
+REM pair. The CLI console's doskey macro is defined by a labelled routine
+REM in lib.bat rather than built here: it has to quote an absolute path,
+REM and a quote pair inside a command string this file assembles closes
+REM the quote the rest of it depends on, leaving this same "&" to split
+REM the set statement itself before the value is assigned. lib.bat's
+REM :cli_console carries the rest of that reasoning.
 set BITCOIND_CMD="%ROOTDIR%\win\bin\bitcoind.exe" -uacomment=%~n0
 set BITCOIND_CMD=%BITCOIND_CMD% -datadir="%DATADIR%"
 set BITCOIND_CMD=%BITCOIND_CMD% -regtest -rpcallowip=127.0.0.1
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18555
 set BITCOIND_CMD=%BITCOIND_CMD% -addnode=localhost:18666
+set CLI_CMD="%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"
 REM cmd /k strips the first and the last quote of a command that opens
 REM with one and holds more than two. Passed bare, BITCOIND_CMD loses the
 REM opening quote of the path to bitcoind.exe, and no bitcoind starts,
@@ -94,6 +95,10 @@ REM that pair. The value is expanded late, after cmd has parsed this
 REM line, so an "&" in the folder's path is never parsed here at all.
 REM Expanded at parse time instead, the "&" would be parsed, and would
 REM sit outside every pair: between the value's own inner quotes.
+REM CLI_CMD is passed the same way, and runs lib.bat with no "call": the
+REM folder's path is part of the console's command line, so a "call"
+REM there would double each "^" in it, as win\scripts\root.bat says at
+REM its head (#793).
 REM Both start lines pass /v:off. A console given no /v flag takes delayed
 REM expansion from the DelayedExpansion value of the Command Processor key.
 REM Measured on windows-latest with that value at 1 and no /v flag: with the
@@ -106,5 +111,4 @@ REM planted in the current directory, which is the folder where a launcher
 REM starts from its root (#672).
 setlocal enabledelayedexpansion
 start "" "%SystemRoot%\System32\cmd.exe" /v:off /k "!BITCOIND_CMD!"
-endlocal
-start "" "%SystemRoot%\System32\cmd.exe" /v:off /k call "%SCRIPT_DIR%lib.bat" :cli_console "%~n0" "-regtest"
+start "" "%SystemRoot%\System32\cmd.exe" /v:off /k "!CLI_CMD!"

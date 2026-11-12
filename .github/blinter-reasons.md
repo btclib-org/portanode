@@ -30,7 +30,8 @@ Each accepted `E006` has one of these shapes:
 - **A `lib.bat` label reads a variable its caller sets.** Every caller of
   `win\scripts\bitcoin\lib.bat` resolves `ROOTDIR` before its first call.
   `win\scripts\utilities\lib.bat` tests `CHECKSUM_FILE` for an empty value
-  before it uses it.
+  before it uses it, and `:rootdir_relative` there reads `ROOTDIR` only
+  after `if not defined ROOTDIR` has left the label.
 - **`root.bat` reads `PORTANODE_ROOT` only inside
   `if defined PORTANODE_ROOT`.** The variable is the user's own setting.
 - **The line is a `REM` comment.** Blinter reads its prose as code.
@@ -152,8 +153,10 @@ commands, and no script here reads it there:
 
 Blinter reads a `call` target as running up to the first space or colon,
 drops its quotes, and reports a target that does not end in an
-extension. Every accepted `W033` is the `call "%SCRIPT%"` of a root
-`.bat` launcher, which sets `SCRIPT` to the `.bat` path of a menu entry.
+extension. Each accepted `W033` is the `call "%%SCRIPT%%"` of a root
+`.bat` launcher, which sets `SCRIPT` to the `.bat` path of a menu entry,
+or a `call set` in `:rootdir_relative` in `win\scripts\utilities\lib.bat`,
+whose target is the `set` command.
 
 ## W039 Nested FOR loops without call optimization
 
@@ -165,6 +168,13 @@ Blinter reports a nested `for` with no `call :label`. The accepted
 Blinter reports a nested `for` that reuses the outer loop's variable.
 The accepted `W040` is on the loop `W023` describes, which is not
 nested, so its `%%E` is its own.
+
+## W047 Substring expansion on empty variable
+
+Blinter reports a substring of a variable it cannot show is set. The
+accepted `W047` is the `%ROOTDIR:~-1%` in `:rootdir_relative` in
+`win\scripts\utilities\lib.bat`, which runs only after
+`if not defined ROOTDIR` has left the label.
 
 ## W052 SHIFT inside parenthesized block
 

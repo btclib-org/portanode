@@ -12,10 +12,10 @@
 # .pre-commit-config.yaml's header says an "&" breaks, and expects it to.
 #
 # Then each launcher runs whole under the same folders, from a copy of
-# win\scripts in the folder, or outside it where the folder holds a "^", with
-# a stub for bitcoind.exe that writes the arguments it receives to a file and
-# exits. The stub has to run, with the arguments the set lines build. The set
-# lines can build the right value while the start line still loses it, as
+# win\scripts in the folder, with a stub for bitcoind.exe that writes the
+# arguments it receives to a file and exits. The stub has to run, with the
+# arguments the set lines build. The set lines can build the right value
+# while the start line still loses it, as
 # win\scripts\bitcoin\regtest-18444-Alice-cli.bat says (#757). The CLI
 # console has to read the folder whole too. Each run leaves two consoles
 # open, which cmd /k keeps, and the case closes them. A launcher started
@@ -75,19 +75,18 @@ function Get-ArgumentList {
 }
 
 # Builds the folder: the markers of a root and the binaries, and a copy of
-# win\scripts under $Base. In the copy of lib.bat, the CLI console also writes
+# win\scripts. In the copy of lib.bat, the CLI console also writes
 # the folder as it reads it, as it would read it in the btc macro, to the
 # file $env:CONSOLE_OUT names.
 function Build-Root {
-  param([string]$Root, [string]$Base, [string]$Stub)
+  param([string]$Root, [string]$Stub)
   New-Item -ItemType Directory -Path (Join-Path $Root 'win\bin') | Out-Null
   New-Item -ItemType File -Path (Join-Path $Root 'VERSION') | Out-Null
   New-Item -ItemType File -Path (Join-Path $Root 'win\bin\bitcoin-cli.exe') | Out-Null
   Copy-Item -LiteralPath $Stub -Destination (Join-Path $Root 'win\bin\bitcoind.exe')
-  New-Item -ItemType Directory -Path (Join-Path $Base 'win') -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $repo 'win\scripts') `
-    -Destination (Join-Path $Base 'win\scripts') -Recurse
-  $lib = Join-Path $Base 'win\scripts\bitcoin\lib.bat'
+    -Destination (Join-Path $Root 'win\scripts') -Recurse
+  $lib = Join-Path $Root 'win\scripts\bitcoin\lib.bat'
   $body = foreach ($line in Get-Content -LiteralPath $lib) {
     $line
     if ($line -like 'doskey btc=*') { '> "%CONSOLE_OUT%" echo "%ROOTDIR%"' }
@@ -151,15 +150,12 @@ function Test-Start {
       # A folder of its own per run, so that no run reads another's data.
       $script:n++
       $root = Join-Path $tmp "start$script:n\$r"
-      # A launcher run from a folder holding a "^" exits 1 with "The system
-      # cannot find the path specified", so win\scripts stays outside it.
-      $base = if ($r -like '*^*') { Join-Path $tmp "scripts$script:n" } else { $root }
-      Build-Root -Root $root -Base $base -Stub $stub
+      Build-Root -Root $root -Stub $stub
       $built = Get-Expected -Lines $lines -Root $root -Name $file.BaseName `
         -Datadir ($root + $sub)
       $want = Get-ArgumentList ($built -replace '^BITCOIND_CMD=', '')
       $started = Get-Started -Command $file.Name -Root $root `
-        -From (Join-Path $base 'win\scripts\bitcoin')
+        -From (Join-Path $root 'win\scripts\bitcoin')
       Test-Same "$($file.Name) starts bitcoind under the folder [$r]$Suffix" `
         $want $started.Arguments
       Test-Same "$($file.Name) CLI console reads the folder [$r]$Suffix" `
@@ -230,7 +226,7 @@ try {
   foreach ($file in $launchers) {
     $n++
     $root = Join-Path $tmp "start$n\plant"
-    Build-Root -Root $root -Base $root -Stub $stub
+    Build-Root -Root $root -Stub $stub
     $ran = Join-Path $root 'cmd.ran'
     Set-Content -LiteralPath (Join-Path $root 'cmd.bat') -Encoding Ascii -Value $plant
     Set-Content -LiteralPath (Join-Path $root 'control.bat') -Encoding Ascii `

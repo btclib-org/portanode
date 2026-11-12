@@ -7,9 +7,9 @@ REM LICENSE file or https://opensource.org/license/mit for the full text.
 REM Rollback Bitcoin Core binaries (Windows)
 
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 set "BACKUP_DIR=%ROOTDIR%\win\bin\backup\bitcoin"
@@ -32,15 +32,15 @@ if "%~1"=="--dry-run" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--dry-run]
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
 REM System32 is the current directory from here to each popd: root.bat's
 REM :leave_folder says why.
-call "%SCRIPT_DIR%..\root.bat" :leave_folder
+call "%%SCRIPT_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -50,23 +50,23 @@ REM operation whichever script does it, and a rollback is run when something
 REM has just gone wrong, which is when the node is most likely to still be up.
 REM The filters are that script's, repeated here rather than shared, so a
 REM change to one is owed to the other.
-call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Bitcoin Core" "rolling back" bitcoind.exe
+call "%%SCRIPT_DIR%%lib.bat" :refuse_while_running "Bitcoin Core" "rolling back" bitcoind.exe
 if errorlevel 1 (
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
-call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Bitcoin Core" "rolling back" bitcoin-qt.exe
+call "%%SCRIPT_DIR%%lib.bat" :refuse_while_running "Bitcoin Core" "rolling back" bitcoin-qt.exe
 if errorlevel 1 (
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
 if not exist "%BACKUP_DIR%" (
     echo No backup found in win\bin\backup\bitcoin
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -75,68 +75,68 @@ echo Rolling back Bitcoin binaries...
 if not exist "%CHECKSUM_FILE%" (
     echo Error: win\checksums.sha256 not found.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
-call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe"
+call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "%%BACKUP_DIR%%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe"
 if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-qt.exe.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 if exist "%BACKUP_DIR%\bitcoind.exe" (
-  call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\bitcoind.exe" "win/bin/bitcoind.exe"
+  call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "%%BACKUP_DIR%%\bitcoind.exe" "win/bin/bitcoind.exe"
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoind.exe.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
 if exist "%BACKUP_DIR%\bitcoin-cli.exe" (
-  call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\bitcoin-cli.exe" "win/bin/bitcoin-cli.exe"
+  call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "%%BACKUP_DIR%%\bitcoin-cli.exe" "win/bin/bitcoin-cli.exe"
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-cli.exe.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
 if exist "%BACKUP_DIR%\bitcoin-wallet.exe" (
-  call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\bitcoin-wallet.exe" "win/bin/bitcoin-wallet.exe"
+  call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "%%BACKUP_DIR%%\bitcoin-wallet.exe" "win/bin/bitcoin-wallet.exe"
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-wallet.exe.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
 if exist "%BACKUP_DIR%\bitcoin-tx.exe" (
-  call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\bitcoin-tx.exe" "win/bin/bitcoin-tx.exe"
+  call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "%%BACKUP_DIR%%\bitcoin-tx.exe" "win/bin/bitcoin-tx.exe"
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-tx.exe.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
 if exist "%BACKUP_DIR%\bitcoin-util.exe" (
-  call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\bitcoin-util.exe" "win/bin/bitcoin-util.exe"
+  call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "%%BACKUP_DIR%%\bitcoin-util.exe" "win/bin/bitcoin-util.exe"
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin-util.exe.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
 if exist "%BACKUP_DIR%\bitcoin.exe" (
-  call "%SCRIPT_DIR%lib.bat" :verify_checksum "%BACKUP_DIR%\bitcoin.exe" "win/bin/bitcoin.exe"
+  call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "%%BACKUP_DIR%%\bitcoin.exe" "win/bin/bitcoin.exe"
   if errorlevel 1 (
     echo Error: backup binary checksum not recognized for bitcoin.exe.
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
   )
 )
@@ -144,7 +144,7 @@ if exist "%BACKUP_DIR%\bitcoin.exe" (
 if not exist "%BACKUP_DIR%\bitcoin-qt.exe" (
     echo Backup files not found in win\bin\backup\bitcoin
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -155,8 +155,8 @@ REM entered -- empty -- rather than as :installed_version just set
 REM them; each "%BACKUPVER%"/"%CURRENTVER%" below is its own
 REM statement, read fresh at the line that runs it.
 if not "%DRY_RUN%"=="1" goto :do_rollback
-call "%SCRIPT_DIR%lib.bat" :installed_version "%BACKUP_DIR%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" BACKUPVER
-call "%SCRIPT_DIR%lib.bat" :installed_version "%ROOTDIR%\win\bin\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%CHECKSUM_FILE%" CURRENTVER
+call "%%SCRIPT_DIR%%lib.bat" :installed_version "%%BACKUP_DIR%%\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%%CHECKSUM_FILE%%" BACKUPVER
+call "%%SCRIPT_DIR%%lib.bat" :installed_version "%%ROOTDIR%%\win\bin\bitcoin-qt.exe" "win/bin/bitcoin-qt.exe" "%%CHECKSUM_FILE%%" CURRENTVER
 echo --dry-run: nothing will be changed.
 echo Backup found in win\bin\backup\bitcoin, checksum recognized: version %BACKUPVER%.
 echo Currently installed: %CURRENTVER%.
@@ -195,7 +195,7 @@ echo The backup in win\bin\backup\bitcoin is consumed: a second rollback has not
 echo update-bitcoin.bat is what installs the current release again.
 
 popd >nul 2>&1
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 0
 
 :restore_failed
@@ -204,7 +204,7 @@ echo move is still in win\bin\backup\bitcoin. Once the cause is cleared, move
 echo what is left there into win\bin by hand, or run update-bitcoin.bat to
 echo install the current release over whatever win\bin now holds.
 popd >nul 2>&1
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 
 REM Nothing is deleted before the move, so a move that fails leaves win\bin

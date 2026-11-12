@@ -4,7 +4,8 @@ REM Distributed under the MIT software license, see the accompanying
 REM LICENSE file or https://opensource.org/license/mit for the full text.
 
 REM Shared routines for the Bitcoin launchers beside this file, called by label:
-REM     call "%SCRIPT_DIR%lib.bat" :label [arguments]
+REM     call "%%SCRIPT_DIR%%lib.bat" :label [arguments]
+REM written as win\scripts\root.bat says at its head.
 REM A guard prints its own message and returns 1 where the caller must stop, so
 REM a caller writes: if errorlevel 1 exit /b 1
 REM
@@ -59,7 +60,7 @@ set "PSFIND=%PSFIND% $env:NODE_DATADIR $env:NODE_CHAIN)});"
 set "PSFIND=%PSFIND% if ($p.Count -gt 0) { exit 2 }"
 REM System32 is the current directory around the query: root.bat's
 REM :leave_folder says why.
-call "%LIB_DIR%..\root.bat" :leave_folder
+call "%%LIB_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 exit /b 1
 powershell -NoProfile -ExecutionPolicy Bypass -Command "%PSFIND%"
 set "PSFIND_RC=%ERRORLEVEL%"
@@ -98,7 +99,7 @@ set "PSFIND=%PSFIND% $_.CommandLine -and (Test-MainnetNode $_.CommandLine)});"
 set "PSFIND=%PSFIND% if ($p.Count -gt 0) { exit 2 }"
 REM System32 is the current directory around the query: root.bat's
 REM :leave_folder says why.
-call "%LIB_DIR%..\root.bat" :leave_folder
+call "%%LIB_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 exit /b 1
 powershell -NoProfile -ExecutionPolicy Bypass -Command "%PSFIND%"
 set "PSFIND_RC=%ERRORLEVEL%"
@@ -158,8 +159,8 @@ REM read from the caller's environment rather than passed, the way the
 REM header above says ROOTDIR is. DATADIR arrives already joined,
 REM where a label taking a data directory as an argument takes it
 REM relative and joins it itself. It is a console's own command rather
-REM than a guard, so it is reached as: start "" "...cmd.exe" /v:off /k
-REM call "...lib.bat" :cli_console
+REM than a guard, so a launcher starts a console that runs it:
+REM start "" "...cmd.exe" /v:off /k ""...lib.bat" :cli_console ..."
 REM
 REM The macro names bitcoin-cli.exe by an absolute path under win\bin
 REM rather than by its bare name. Measured on windows-latest with a

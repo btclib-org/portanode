@@ -9,9 +9,9 @@ REM "setlocal" keeps whatever state the caller left the pass at, and the
 REM caller here is the console this was started from. The measurement is
 REM in win\scripts\root.bat, above :resolve_root (#473).
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%win\scripts\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%win\scripts\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%win\scripts\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%win\scripts\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -78,7 +78,7 @@ if not exist "%SCRIPT%" (
     echo Script not found: %SCRIPT_REL%
     goto :eof
 )
-call "%SCRIPT%"
+call "%%SCRIPT%%"
 if errorlevel 1 echo Command failed (exit %errorlevel%).
 goto :eof
 

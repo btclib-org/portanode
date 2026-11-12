@@ -11,9 +11,9 @@ REM below that print a value carry a delayed-expansion scope of their
 REM own: update-bitcoin.bat's own comment on the same two lines gives
 REM the reason for each (#411).
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -39,7 +39,7 @@ if "%~1"=="--allow-downgrade" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--version ^<v^>] [--dry-run] [--allow-downgrade]
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
@@ -48,7 +48,7 @@ REM update-bitcoin.bat's comment on its own pushd gives (#656).
 pushd "%SystemRoot%\System32" >nul 2>&1
 if /i not "%CD%"=="%SystemRoot%\System32" (
     echo Error: cannot change to the Windows System32 directory.
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -60,10 +60,10 @@ set STATUS=0
 
 echo Updating Electrum...
 
-call "%SCRIPT_DIR%lib.bat" :refuse_while_running "Electrum" updating electrum.exe
+call "%%SCRIPT_DIR%%lib.bat" :refuse_while_running "Electrum" updating electrum.exe
 if errorlevel 1 (
     popd >nul 2>&1
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -131,7 +131,7 @@ set "FILE=electrum-%VERSION%.exe"
 set "SIG_FILE=%FILE%.asc"
 set "BASE_URL=https://download.electrum.org/%VERSION%/"
 set "URL=%BASE_URL%%FILE%"
-call "%SCRIPT_DIR%lib.bat" :installed_version "%BIN_DIR%\electrum.exe" "win/bin/electrum.exe" "%CHECKSUM_FILE%" CURRENT
+call "%%SCRIPT_DIR%%lib.bat" :installed_version "%%BIN_DIR%%\electrum.exe" "win/bin/electrum.exe" "%%CHECKSUM_FILE%%" CURRENT
 set VERDICT=
 REM compare-versions.ps1's header has the rule. Run from its own
 REM directory by a relative name: win/scripts/root.ps1 says why.
@@ -172,8 +172,8 @@ endlocal
 where gpg >nul 2>&1
 if %errorlevel%==0 (
     echo gpg: found.
-    call "%SCRIPT_DIR%lib.bat" :warn_if_no_pubkeys
-    call "%SCRIPT_DIR%lib.bat" :preview_pinned_keys "%ROOTDIR%\keys\electrum.fingerprints" "keys\electrum.fingerprints" "the download"
+    call "%%SCRIPT_DIR%%lib.bat" :warn_if_no_pubkeys
+    call "%%SCRIPT_DIR%%lib.bat" :preview_pinned_keys "%%ROOTDIR%%\keys\electrum.fingerprints" "keys\electrum.fingerprints" "the download"
 ) else (
     echo gpg: not found -- verification would fail closed.
 )
@@ -261,7 +261,7 @@ REM lib.bat (#578).
 powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\fetch-https.ps1 -Uri $env:URL -OutFile ($env:TMPDIR + '\' + $env:FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\fetch-https.ps1 -Uri ($env:URL + '.asc') -OutFile ($env:TMPDIR + '\' + $env:SIG_FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
-call "%SCRIPT_DIR%lib.bat" :verify_pgp_signature "%TMPDIR%\%SIG_FILE%" "%TMPDIR%\%FILE%" "Electrum" "%ROOTDIR%\keys\electrum.fingerprints"
+call "%%SCRIPT_DIR%%lib.bat" :verify_pgp_signature "%%TMPDIR%%\%%SIG_FILE%%" "%%TMPDIR%%\%%FILE%%" "Electrum" "%%ROOTDIR%%\keys\electrum.fingerprints"
 if errorlevel 1 goto :error
 
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
@@ -275,15 +275,15 @@ if not exist "%TMPDIR%\%FILE%" (
 REM lib.bat's :install_verified compares the copy with its source, and
 REM the entry below is hashed from that source, the download the
 REM signature was checked on, rather than from the copy it then checks.
-call "%SCRIPT_DIR%lib.bat" :install_verified "%TMPDIR%\%FILE%" "%BIN_DIR%\electrum.exe"
+call "%%SCRIPT_DIR%%lib.bat" :install_verified "%%TMPDIR%%\%%FILE%%" "%%BIN_DIR%%\electrum.exe"
 if errorlevel 1 (
     echo Error: failed to install Electrum.
     goto :error
 )
 
-call "%SCRIPT_DIR%lib.bat" :update_checksum "%TMPDIR%\%FILE%" "win/bin/electrum.exe" "%VERSION%"
+call "%%SCRIPT_DIR%%lib.bat" :update_checksum "%%TMPDIR%%\%%FILE%%" "win/bin/electrum.exe" "%%VERSION%%"
 echo Verifying installed Electrum against checksums.sha256...
-call "%SCRIPT_DIR%lib.bat" :verify_checksum "win/bin/electrum.exe" "win/bin/electrum.exe"
+call "%%SCRIPT_DIR%%lib.bat" :verify_checksum "win/bin/electrum.exe" "win/bin/electrum.exe"
 if errorlevel 1 (
   echo Error: post-install verification failed ^(filesystem corruption?^).
   goto :error
@@ -304,7 +304,7 @@ set STATUS=1
 if defined TMPDIR if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 popd >nul 2>&1
 REM Above endlocal, for the reason update-bitcoin.bat's :cleanup gives.
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 REM One physical line, for the reason update-bitcoin.bat's own
 REM endlocal & exit /b line gives (#362).
 endlocal & exit /b %STATUS%

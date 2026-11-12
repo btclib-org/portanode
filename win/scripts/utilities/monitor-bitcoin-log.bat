@@ -15,9 +15,9 @@ REM holding one is legal on exFAT and NTFS alike (#374). Nothing here
 REM reads a bang-delimited variable, so disabling it outright costs
 REM nothing.
 set "SCRIPT_DIR=%~dp0"
-call "%SCRIPT_DIR%..\root.bat" :resolve_root "%SCRIPT_DIR%" ROOTDIR
+call "%%SCRIPT_DIR%%..\root.bat" :resolve_root "%%SCRIPT_DIR%%" ROOTDIR
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 
@@ -32,21 +32,21 @@ if "%~1"=="--no-notify" (
     goto :parse_args
 )
 echo Usage: %~nx0 [--no-notify]
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
 :args_done
 
 if not exist "%LOG_FILE%" (
     echo Log file not found: bitcoin-datadir\debug.log
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 0
 )
 
 REM System32 is the current directory from here to the popd below:
 REM root.bat's :leave_folder says why.
-call "%SCRIPT_DIR%..\root.bat" :leave_folder
+call "%%SCRIPT_DIR%%..\root.bat" :leave_folder
 if errorlevel 1 (
-    call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+    call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
     exit /b 1
 )
 REM Run from its own directory by a relative name: win/scripts/root.ps1
@@ -56,5 +56,5 @@ powershell -NoProfile -ExecutionPolicy Bypass ^
 set "ERR=%ERRORLEVEL%"
 popd >nul 2>&1
 
-call "%SCRIPT_DIR%..\root.bat" :pause_if_own_console "%~nx0"
+call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b %ERR%

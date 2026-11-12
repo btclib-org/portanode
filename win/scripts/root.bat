@@ -3,6 +3,19 @@ REM Copyright (c) The btclib developers
 REM Distributed under the MIT software license, see the accompanying
 REM LICENSE file or https://opensource.org/license/mit for the full text.
 
+REM Every call of a file or a label in the .bat files, each caller's call
+REM of a label here included, writes its variables as %%NAME%%. A "call"
+REM doubles each "^" in its arguments, then parses them a second time. A
+REM "^" inside quotes outlives the first parse, so a folder path expanded
+REM there reaches the callee with each "^" doubled, and names no file.
+REM The first parse halves each pair of percent signs, and the second
+REM expands the reference after the doubling, so the path arrives whole.
+REM Microsoft's reference for "call" does not document the doubling.
+REM Measured on windows-latest by tests\win\launchers.ps1: its control
+REM passes one value holding a "^" each way, and it runs the launchers
+REM from a folder whose path holds one (#793). tests\win\call-lines.ps1
+REM checks the spelling.
+
 set "ACTION=%~1"
 if "%ACTION%"=="" goto :eof
 shift /1
