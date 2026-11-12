@@ -149,7 +149,9 @@ check "a datadir under a directory that does not exist is compared as spelled" \
     answers 1 regtest_node_running_on "$TMP/absent/regtest"
 
 # A datadir that may exist and does not resolve: a node with any -datadir
-# that does not spell it answers 2, and the spelling still answers 0.
+# that does not spell it answers 2, and the spelling still answers 0. Its
+# bitcoin.conf cannot be read either, so a node with a -datadir that selects
+# no network answers 2 too (ISS 887).
 : >"$TMP/file"
 ln -s "$TMP/gone" "$TMP/dangling"
 for own in "$TMP/file" "$TMP/file/regtest" "$TMP/dangling"; do
@@ -159,11 +161,12 @@ for own in "$TMP/file" "$TMP/file/regtest" "$TMP/dangling"; do
     PROCS="$BIN -datadir=$own -regtest"$'\n'
     check "regtest node on the datadir as spelled, the guard's not resolving: $own" \
         answers 0 regtest_node_running_on "$own"
-    for args in "-datadir=$TMP/other" "-regtest"; do
-        PROCS="$BIN $args"$'\n'
-        check "no regtest node with a -datadir, the guard's not resolving: $own, $args" \
-            answers 1 regtest_node_running_on "$own"
-    done
+    PROCS="$BIN -datadir=$TMP/other"$'\n'
+    check "node with a -datadir, the guard's not resolving: $own" \
+        answers 2 regtest_node_running_on "$own"
+    PROCS="$BIN -regtest"$'\n'
+    check "regtest node with no -datadir, the guard's not resolving: $own" \
+        answers 1 regtest_node_running_on "$own"
 done
 # A directory that cannot be entered, which root enters all the same.
 if [ "$(id -u)" -ne 0 ]; then
@@ -219,6 +222,131 @@ if [ "$(uname)" = Darwin ]; then
 else
     echo "ok - skipped: the NFC and NFD cases (they run on macOS only)"
 fi
+
+# ISS 887: a node on the datadir that selects regtest in its configuration
+# files. Each case writes the files it names, as "<file>:<content>", and
+# expects the guard's answer: 0 where Core selects regtest, 1 where it does
+# not, 2 where the guard cannot tell.
+CONF="$TMP/conf dir/bitcoin-datadir"
+mkdir -p "$CONF"
+conf_case() {
+    local want="$1" args="$2" file shown
+    shift 2
+    shown="$*"
+    shown=${shown//$'\r'/\\r}
+    shown=${shown//$'\n'/\\n}
+    shown=${shown//$'\v'/\\v}
+    shown=${shown//$'\f'/\\f}
+    rm -f "$CONF"/*.conf
+    for file in "$@"; do
+        printf '%s' "${file#*:}" >"$CONF/${file%%:*}"
+    done
+    PROCS="$BIN -datadir=$CONF $args"$'\n'
+    check "regtest in the configuration files: [$args] $shown" \
+        answers "$want" regtest_node_running_on "$CONF"
+}
+conf_case 0 "" "bitcoin.conf:regtest=1"$'\n'
+conf_case 1 "" "bitcoin.conf:txindex=1"$'\n'
+# Core compares names byte for byte, so a byte order mark or a zero-width
+# space makes a name of its own.
+conf_case 0 "" "bitcoin.conf:"$'\xef\xbb\xbf'"chain=main"$'\n'"chain=regtest"$'\n'
+conf_case 1 "" "bitcoin.conf:"$'\xef\xbb\xbf'"regtest=1"$'\n'
+conf_case 0 "" "bitcoin.conf:regtest=1"$'\n'"no"$'\xe2\x80\x8b'"regtest=1"$'\n'
+conf_case 1 "" "bitcoin.conf:["$'\xe2\x80\x8b'"]"$'\n'"regtest=1"$'\n'
+conf_case 2 "" "bitcoin.conf:"$'\xef\xbb\xbf'"[regtest]"$'\n'
+# Core trims vertical tab and form feed before the value's integer.
+conf_case 0 "" "bitcoin.conf:regtest="$'\v'"1"$'\n'
+conf_case 0 "" "bitcoin.conf:regtest="$'\f'"1"$'\n'
+conf_case 2 "" "bitcoin.conf:rpcpassword=x # a comment"$'\n'
+# Core reads no switch after a lone "-".
+conf_case 0 "- -noconf" "bitcoin.conf:regtest=1"$'\n'
+conf_case 0 "- -regtest=0" "bitcoin.conf:regtest=1"$'\n'
+conf_case 0 "- -noincludeconf" "bitcoin.conf:includeconf=x.conf"$'\n' "x.conf:regtest=1"$'\n'
+conf_case 0 "-regtest" "bitcoin.conf:chain=main"$'\n'
+conf_case 0 "-regtest" "bitcoin.conf:regtest.includeconf=x.conf"$'\n' "x.conf:chain=main"$'\n'
+# Core refuses more than one network, before it reads the included files or
+# after, and the guard counts that node, as on Windows.
+conf_case 0 "" "bitcoin.conf:regtest=1"$'\n'"signet=1"$'\n'"includeconf=x.conf"$'\n' "x.conf:regtest=0"$'\n'
+conf_case 0 "" "bitcoin.conf:chain=regtest"$'\n'"signet=1"$'\n'"includeconf=x.conf"$'\n' "x.conf:nochain=1"$'\n'
+conf_case 0 "" "bitcoin.conf:signet=1"$'\n'"testnet=1"$'\n'
+conf_case 0 "" "bitcoin.conf:includeconf=x.conf"$'\n' "x.conf:signet=1"$'\n'"testnet=1"$'\n'
+# bash cannot read a NUL byte as Core does, so the guard cannot tell.
+rm -f "$CONF"/*.conf
+printf 'noregtest=\0001\n' >"$CONF/bitcoin.conf"
+PROCS="$BIN -datadir=$CONF"$'\n'
+check "regtest in the configuration files: a NUL byte in bitcoin.conf" \
+    answers 2 regtest_node_running_on "$CONF"
+# Any other byte is read as itself under a UTF-8 locale too, a Latin-1
+# comment included, which BSD tr refuses under that locale. The locale is
+# set as a launcher's caller sets it: LANG, with no LC_ALL.
+if loc="$(_utf8_locale)"; then
+    under_lang() {
+        local lang="$1"
+        shift
+        (unset LC_ALL LC_CTYPE; LANG=$lang; export LANG; "$@")
+    }
+    printf '# comment \351\ntxindex=1\n' >"$CONF/bitcoin.conf"
+    check "no network in bitcoin.conf, with a Latin-1 comment, under LANG=$loc" \
+        under_lang "$loc" answers 1 regtest_node_running_on "$CONF"
+    printf 'regtest=1\n# comment \351\n' >"$CONF/bitcoin.conf"
+    check "regtest in bitcoin.conf, with a Latin-1 comment, under LANG=$loc" \
+        under_lang "$loc" answers 0 regtest_node_running_on "$CONF"
+else
+    echo "ok - skipped: the Latin-1 comment under a UTF-8 locale (no UTF-8 locale here)"
+fi
+conf_case 1 ""
+conf_case 0 "" "bitcoin.conf:chain=regtest"$'\n'
+conf_case 0 "" "bitcoin.conf:  regtest = 1 # a comment"$'\r\n'
+conf_case 0 "" "bitcoin.conf:regtest=1"
+conf_case 0 "" "bitcoin.conf:noregtest=0"$'\n'
+conf_case 1 "" "bitcoin.conf:regtest=1"$'\n'"noregtest=1"$'\n'
+conf_case 1 "" "bitcoin.conf:#regtest=1"$'\n'
+conf_case 1 "" "bitcoin.conf:Regtest=1"$'\n'
+conf_case 1 "" "bitcoin.conf:[regtest]"$'\n'"regtest=1"$'\n'
+conf_case 1 "" "bitcoin.conf:regtest.regtest=1"$'\n'
+conf_case 0 "" "bitcoin.conf:[regtest]"$'\n'"[]"$'\n'"regtest=1"$'\n'
+# -chain takes its first value in the files after their last negation.
+conf_case 0 "" "bitcoin.conf:chain=regtest"$'\n'"chain=main"$'\n'
+conf_case 0 "" "bitcoin.conf:chain=main"$'\n'"nochain=1"$'\n'"chain=regtest"$'\n'"chain=main"$'\n'
+# A negated -chain reads as the chain "0", which Core refuses as unknown.
+conf_case 1 "" "bitcoin.conf:chain=regtest"$'\n'"nochain=1"$'\n'
+# The command line wins, but Core skips a negation there.
+conf_case 1 "-regtest=0" "bitcoin.conf:regtest=1"$'\n'
+conf_case 0 "-noregtest" "bitcoin.conf:regtest=1"$'\n'
+conf_case 1 "-chain=main" "bitcoin.conf:chain=regtest"$'\n'
+conf_case 1 "-noconf" "bitcoin.conf:regtest=1"$'\n'
+conf_case 1 "-conf=bitcoin.conf -noconf" "bitcoin.conf:regtest=1"$'\n'
+conf_case 0 "-conf=x.conf" "x.conf:regtest=1"$'\n'
+conf_case 0 "-conf=$CONF/x.conf -listen=0" "x.conf:regtest=1"$'\n'
+conf_case 2 "-conf=x.conf" "bitcoin.conf:regtest=1"$'\n'
+conf_case 2 "-conf"
+conf_case 2 "" "bitcoin.conf:regtest"$'\n'
+conf_case 2 "" "bitcoin.conf:-regtest=1"$'\n'
+# The files that includeconf names, the top's and the selected network's.
+conf_case 0 "" "bitcoin.conf:includeconf=x.conf"$'\n' "x.conf:regtest=1"$'\n'
+conf_case 1 "-noincludeconf" "bitcoin.conf:includeconf=x.conf"$'\n' "x.conf:regtest=1"$'\n'
+conf_case 1 "" "bitcoin.conf:includeconf=x.conf"$'\n'"noincludeconf=1"$'\n' "x.conf:regtest=1"$'\n'
+conf_case 0 "" "bitcoin.conf:[main]"$'\n'"includeconf=x.conf"$'\n' "x.conf:regtest=1"$'\n'
+conf_case 1 "" "bitcoin.conf:[test]"$'\n'"includeconf=x.conf"$'\n' "x.conf:regtest=1"$'\n'
+conf_case 0 "" "bitcoin.conf:regtest=0"$'\n'"includeconf=x.conf"$'\n' "x.conf:regtest=1"$'\n'
+conf_case 2 "" "bitcoin.conf:includeconf=x.conf"$'\n'
+conf_case 2 "" "bitcoin.conf:noincludeconf=0"$'\n'
+# A node on another datadir answers 1 where the guard's files select
+# regtest, as they do for a node on its datadir, and where they cannot be
+# read. Each case writes the files it reads.
+rm -f "$CONF"/*.conf
+printf 'regtest=1\n' >"$CONF/bitcoin.conf"
+PROCS="$BIN -datadir=$CONF"$'\n'
+check "a node on the datadir, regtest in the guard's bitcoin.conf" \
+    answers 0 regtest_node_running_on "$CONF"
+PROCS="$BIN -datadir=$TMP/other"$'\n'
+check "a node on another datadir, regtest in the guard's bitcoin.conf" \
+    answers 1 regtest_node_running_on "$CONF"
+rm -f "$CONF"/*.conf
+PROCS="$BIN -datadir=$TMP/other -conf=missing.conf"$'\n'
+check "a node on another datadir, its -conf missing" \
+    answers 1 regtest_node_running_on "$CONF"
+rm -f "$CONF"/*.conf
 
 # Mainnet check (ISS 662): the network flags count only as whole arguments.
 for args in \
