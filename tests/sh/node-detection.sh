@@ -97,6 +97,9 @@ check "no node running" answers 1 regtest_node_running_on "$D"
 # answers 2.
 TMP="$(mktemp -d)" || exit 1
 trap 'rm -rf "$TMP"' EXIT
+# The mainnet check reads a bitcoind's default data directory under HOME:
+# one of the test's own.
+HOME="$TMP/home"
 REAL="$TMP/My Drive/portanode/bitcoin-datadir"
 mkdir -p "$REAL" "$TMP/My Drive/portanode/x" "$TMP/other" "$TMP/My"
 ln -s "$REAL" "$TMP/link"
@@ -428,6 +431,122 @@ check "mainnet node found under /Volumes/Bitcoin-Qt Drive" answers 0 mainnet_nod
 # flag: a false alarm, on the safe side.
 PROCS=$'/Volumes/My - Drive/portanode/macos/bin/bitcoind -regtest\n'
 check "mainnet node found under /Volumes/My - Drive" answers 0 mainnet_node_running
+
+# ISS 903: a node whose flags leave it on mainnet is no mainnet node where
+# its configuration files select another network, read as the regtest guard
+# reads them, in its -datadir or, for a bitcoind, in Core's default data
+# directory. A bitcoin-qt given no -datadir counts: it may use the directory
+# its GUI settings store (ISS 944). Each case writes the files it names, as
+# "<dir>/<file>:<content>", <dir> being main, the directory @main names in
+# the arguments, own, the default directory, or other, the default directory
+# of the other platform. It runs NODE, the Bitcoin-Qt of the cases above
+# unless a case sets it, and expects 1 where the files select another
+# network, and 0 where they do not or cannot be read.
+case $OSTYPE in
+    darwin*)
+        OWN="$HOME/Library/Application Support/Bitcoin"
+        OTHER="$HOME/.bitcoin"
+        ;;
+    *)
+        OWN="$HOME/.bitcoin"
+        OTHER="$HOME/Library/Application Support/Bitcoin"
+        ;;
+esac
+MAIN="$TMP/Mainnet Conf/datadir"
+mkdir -p "$MAIN" "$OWN" "$OTHER"
+mainnet_case() {
+    local want="$1" args="$2" file dir
+    shift 2
+    rm -f "$MAIN"/*.conf "$OWN"/*.conf "$OTHER"/*.conf
+    for file in "$@"; do
+        case $file in
+            main/*) dir=$MAIN ;;
+            own/*) dir=$OWN ;;
+            *) dir=$OTHER ;;
+        esac
+        file=${file#*/}
+        printf '%b\n' "${file#*:}" > "$dir/${file%%:*}"
+    done
+    PROCS="$NODE ${args//@main/$MAIN}"$'\n'
+    check "mainnet, configuration files: ${NODE##*/} [$args] $*" \
+        answers "$want" mainnet_node_running
+}
+NODE=$BIN
+mainnet_case 1 "-datadir=@main" "main/bitcoin.conf:regtest=1"
+mainnet_case 1 "-datadir=@main" "main/bitcoin.conf:testnet=1"
+mainnet_case 1 "-datadir=@main" "main/bitcoin.conf:testnet4=1"
+mainnet_case 1 "-datadir=@main" "main/bitcoin.conf:signet=1"
+mainnet_case 1 "-datadir=@main -listen=0" "main/bitcoin.conf:chain=test"
+mainnet_case 1 "-datadir=@main" "main/bitcoin.conf:includeconf=x.conf" "main/x.conf:regtest=1"
+mainnet_case 1 "-datadir=@main -conf=x.conf" "main/x.conf:regtest=1"
+mainnet_case 0 "-conf=@main/x.conf" "main/x.conf:signet=1"
+mainnet_case 0 "" "own/bitcoin.conf:regtest=1"
+mainnet_case 0 "-datadir=" "own/bitcoin.conf:regtest=1"
+mainnet_case 0 "-datadir=@main -nodatadir" "own/bitcoin.conf:regtest=1"
+NODE=/usr/local/bin/bitcoind
+mainnet_case 1 "-conf=@main/x.conf" "main/x.conf:signet=1"
+mainnet_case 1 "" "own/bitcoin.conf:regtest=1"
+mainnet_case 1 "-datadir=" "own/bitcoin.conf:regtest=1"
+mainnet_case 1 "-datadir=@main -nodatadir" "own/bitcoin.conf:regtest=1"
+mainnet_case 0 "" "own/bitcoin.conf:txindex=1"
+mainnet_case 0 "" "other/bitcoin.conf:regtest=1"
+mainnet_case 0 "-nodatadir=0" "own/bitcoin.conf:regtest=1"
+NODE=$BIN
+mainnet_case 0 "-datadir=@main"
+mainnet_case 0 "-datadir=@main" "main/bitcoin.conf:txindex=1"
+mainnet_case 0 "-datadir=@main" "main/bitcoin.conf:chain=main"
+mainnet_case 0 "-datadir=@main" "main/bitcoin.conf:[regtest]\nregtest=1"
+mainnet_case 0 "-datadir=@main -regtest=0" "main/bitcoin.conf:regtest=1"
+mainnet_case 0 "-datadir=@main -noconf" "main/bitcoin.conf:regtest=1"
+mainnet_case 0 "-datadir=@main" "own/bitcoin.conf:regtest=1"
+mainnet_case 0 "" "other/bitcoin.conf:regtest=1"
+# Core refuses more than one network, and an unknown one.
+mainnet_case 0 "-datadir=@main -chain=main" "main/bitcoin.conf:regtest=1"
+mainnet_case 0 "-datadir=@main" "main/bitcoin.conf:regtest=1\nsignet=1"
+mainnet_case 0 "-datadir=@main" "main/bitcoin.conf:chain=regtestx"
+# Files that cannot be read, and a data directory that cannot be placed:
+# Core reads a relative one against the node's working directory, and a
+# double negation as "1".
+mainnet_case 0 "-datadir=@main" "main/bitcoin.conf:regtest"
+mainnet_case 0 "-datadir=@main" "main/bitcoin.conf:regtest=1\nincludeconf=x.conf"
+mainnet_case 0 "-datadir=@main -conf=x.conf" "main/bitcoin.conf:regtest=1"
+mainnet_case 0 "-datadir=bitcoin-datadir" "own/bitcoin.conf:regtest=1"
+mainnet_case 0 "-nodatadir=0" "own/bitcoin.conf:regtest=1"
+# Core reads no switch after a lone "-", and a program path may hold " - ":
+# the files clear a node only where they do on every reading.
+mainnet_case 0 "-datadir=@main - -regtest" "main/bitcoin.conf:txindex=1"
+mainnet_case 0 "-datadir=@main - -regtest=0" "main/bitcoin.conf:regtest=1"
+mainnet_case 1 "-datadir=@main - -uacomment=x" "main/bitcoin.conf:regtest=1"
+rm -f "$MAIN"/*.conf "$OWN"/*.conf
+printf 'regtest=1\n' > "$OWN/bitcoin.conf"
+PROCS="/Volumes/My - Drive/portanode/macos/bin/bitcoind -datadir=$MAIN"$'\n'
+check "mainnet node found under /Volumes/My - Drive, its -datadir's files selecting no network" \
+    answers 0 mainnet_node_running
+printf 'regtest=1\n' > "$MAIN/bitcoin.conf"
+check "no mainnet node under /Volumes/My - Drive, its -datadir's files selecting regtest" \
+    answers 1 mainnet_node_running
+# Up to that "-" a Bitcoin-Qt names no -datadir, so it counts whatever its
+# files select, its -regtest included; a bitcoind there needs the default
+# files to select another network too.
+QT_DRIVE="/Volumes/My - Drive/portanode/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
+PROCS="$QT_DRIVE -datadir=$MAIN"$'\n'
+check "mainnet Bitcoin-Qt found under /Volumes/My - Drive, both files selecting regtest" \
+    answers 0 mainnet_node_running
+PROCS="$QT_DRIVE -datadir=$MAIN -regtest"$'\n'
+check "mainnet Bitcoin-Qt found under /Volumes/My - Drive with -regtest" \
+    answers 0 mainnet_node_running
+rm -f "$OWN"/*.conf
+PROCS="/Volumes/My - Drive/portanode/macos/bin/bitcoind -datadir=$MAIN"$'\n'
+check "mainnet bitcoind found under /Volumes/My - Drive, only its -datadir's files selecting regtest" \
+    answers 0 mainnet_node_running
+rm -f "$MAIN"/*.conf "$OWN"/*.conf
+# The residual ASSURANCE_CASE.md's *The launcher and its environment* states
+# last: a -datadir of "$MAIN -x" reads as "$MAIN" followed by a switch.
+printf 'regtest=1\n' > "$MAIN/bitcoin.conf"
+PROCS="$BIN -datadir=$MAIN -x"$'\n'
+check "documented residual: a -datadir holding \" -\" reads as its part before it (mainnet)" \
+    answers 1 mainnet_node_running
+rm -f "$MAIN"/*.conf
 
 # ISS 906: a value holding a byte that is not UTF-8 reads as Core reads it
 # under a UTF-8 locale too, with LC_ALL unset (under_lang, above).

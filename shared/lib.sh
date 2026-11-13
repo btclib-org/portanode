@@ -302,9 +302,10 @@ process_running_with() {
 # Core reads no argument after a lone "-", and mainnet_node_running reads no
 # flag there either. A program path holding " - ", as /Volumes/My - Drive,
 # then reads as a node with no network flag. regtest_node_running_on reads
-# past a lone "-", so that such a path cannot hide a node from it, and reads
-# a node's configuration files both with the switches up to it and with all
-# of them (_regtest_by_conf). Both readings err toward "running".
+# past a lone "-", so that such a path cannot hide a node from it. Both read
+# a node's configuration files with the switches up to a lone "-" and with
+# all of them (_regtest_by_conf, _off_mainnet_by_conf). Both readings err
+# toward "running".
 
 # _line_has_arg <padded line> <argument>: 0 where the line holds <argument>
 # as a whole argument, in either dash form.
@@ -319,9 +320,9 @@ _line_has_arg() {
 # src/util/string.h).
 #
 # The match reads bytes only under C, which its callers set
-# (_line_selects_network, _regtest_by_conf_read): under UTF-8, [^0-9] matches
-# no byte that is not UTF-8, so "0<0xE9>" and "<0xE9>" would read as true,
-# where Core reads both as false.
+# (_line_selects_network, _network_by_conf_read, _node_datadir): under UTF-8,
+# [^0-9] matches no byte that is not UTF-8, so "0<0xE9>" and "<0xE9>" would
+# read as true, where Core reads both as false.
 _value_reads_false() {
     local re='^0*($|[^0-9])' ws=$' \t\n\r\v\f' v=$1
     v=${v#"${v%%[!"$ws"]*}"}
@@ -473,10 +474,68 @@ _networks_conflict() {
     [ "$n" -gt 1 ]
 }
 
-# _regtest_by_conf <datadir> <line>: 0 where Core selects regtest from the
+# _selected_network <switches> <entries>: the network Core selects from the
+# switches and the entries, where they select no more than one
+# (_networks_conflict), by the name "-chain" takes: its value where it is
+# set (_chain_setting), else the network switch set, else "main".
+_selected_network() {
+    local chain v
+    chain="$(_chain_setting "$1" "$2")"
+    if [ -n "$chain" ]; then
+        printf '%s\n' "${chain#=}"
+        return
+    fi
+    for v in regtest:regtest signet:signet testnet:test testnet4:testnet4; do
+        if _network_selected "$1" "$2" "${v%%:*}"; then
+            printf '%s\n' "${v##*:}"
+            return
+        fi
+    done
+    echo main
+}
+
+# _line_switches <line>: the switches of the line, one "<name>=<value>" per
+# line, as _setting_values reads them: each word starting with "-" or "--",
+# without its dashes and with its ASCII letters in lower case, "=" added
+# where it holds none.
+_line_switches() {
+    local LC_ALL=C word
+    local -a words
+    read -r -a words <<< "$(_fold " $1 ")"
+    for word in "${words[@]}"; do
+        case $word in
+            --*) word=${word#--} ;;
+            -*) word=${word#-} ;;
+            *) continue ;;
+        esac
+        case $word in *=*) ;; *) word="$word=" ;; esac
+        printf '%s\n' "$word"
+    done
+}
+
+# _arg_value <padded line> <name>: the value of the line's last "-<name>="
+# or "--<name>=", the name read ignoring case and the value as given. ps
+# prints no argument boundaries, so the value is read up to the first space
+# followed by "-", or to the end of the line, without its trailing spaces.
+_arg_value() {
+    local LC_ALL=C low a b off value n=$((${#2} + 3))
+    low="$(_fold "$1")"
+    a=${low%" -$2="*}
+    b=${low%" --$2="*}
+    off=$((${#a} + n))
+    [ "$a" = "$low" ] && off=0
+    [ "$b" != "$low" ] && [ "$((${#b} + n + 1))" -gt "$off" ] && off=$((${#b} + n + 1))
+    value=${1:off}
+    value=${value%%" -"*}
+    printf '%s\n' "${value%"${value##*[! ]}"}"
+}
+
+# _network_by_conf_read <datadir> <line>: the network Core selects from the
 # line's switches and the configuration files it reads for a node on
-# <datadir> (ReadConfigFiles in src/common/config.cpp); 1 where it does not;
-# 2 where a file is missing that has to exist, or cannot be read or parsed
+# <datadir> (ReadConfigFiles in src/common/config.cpp), as
+# _selected_network names it. 1 where they select more than one network,
+# before the included files are read or after, which Core refuses; 2 where a
+# file is missing that has to exist, or cannot be read or parsed
 # (_conf_entries), or where Core fails on a double negation of
 # "includeconf". The switches are read as _line_selects_network reads them,
 # their names ignoring case. The files are read as they are now, not as they
@@ -484,21 +543,72 @@ _networks_conflict() {
 #
 # The file is "-conf", or bitcoin.conf where it is absent or empty, and a
 # relative one is under <datadir>; "-noconf" reads none. A file that "-conf"
-# names has to exist, as Core requires. ps prints no argument boundaries, so
-# the value of "-conf" is read up to the first space followed by "-", or
-# to the end of the line. Unless the command line holds "-includeconf" in
-# any form, each "includeconf" of that file's section named after the
-# network it selects, then of its top, after the last negation of it, names
-# a file read after it; each of these has to exist. The answer is 0 where
-# the switches and the files select more than one network, before the
-# included files are read or after: Core refuses that node, and
-# Test-NodeOnDatadir in win/scripts/bitcoin/node-args.ps1 counts it too.
+# names has to exist, as Core requires. Its name is read as _arg_value reads
+# it. Unless the command line holds "-includeconf" in any form, each
+# "includeconf" of that file's section named after the network it selects,
+# then of its top, after the last negation of it, names a file read after
+# it; each of these has to exist.
 #
 # Not read: a "chain" in the section of the network selected, which Core
-# refuses on a later read as a second network. The answer is 0 where the
-# rest selects regtest, as regtest=1 with "chain=main" under [regtest] does,
-# and 1 where it selects another, as testnet=1 with "chain=regtest" under
-# [test] does; Test-NodeOnDatadir answers the same, and Core runs neither.
+# refuses on a later read as a second network. The rest decides, as
+# Get-NodeNetwork in win/scripts/bitcoin/node-args.ps1 decides it: regtest
+# for regtest=1 with "chain=main" under [regtest], test for testnet=1 with
+# "chain=regtest" under [test]. Core runs neither.
+_network_by_conf_read() {
+    local LC_ALL=C pad switches v path explicit=1 entries=""
+    local top chain section file files more
+    pad=" $2 "
+    switches="$(_line_switches "$2")"
+    v="$(_setting_values "$switches" conf | LC_ALL=C tail -n 1)"
+    case $v in
+        "")
+            path=bitcoin.conf
+            explicit=0
+            ;;
+        F) path="" ;;
+        T) path=1 ;;
+        =) path=bitcoin.conf ;;
+        *) path="$(_arg_value "$pad" conf)" ;;
+    esac
+    if [ -n "$path" ]; then
+        case $path in /*) ;; *) path="$1/$path" ;; esac
+        if [ -f "$path" ]; then
+            entries="$(_conf_entries "$path")" || return 2
+        elif [ "$explicit" -eq 1 ] || ! _absent "$path"; then
+            return 2
+        fi
+    fi
+    if [ -n "$entries" ] && [ -z "$(_setting_values "$switches" includeconf)" ]; then
+        top="$(_section_settings "$entries" "")"
+        _networks_conflict "$switches" "$top" && return 1
+        chain="$(_selected_network "$switches" "$top")"
+        files=""
+        for section in "$chain" ""; do
+            v="$(_section_settings "$entries" "$section")"
+            v="$(_setting_values "$v" includeconf | _after_negation)"
+            case $'\n'$v$'\n' in *$'\nT\n'*) return 2 ;; *) ;; esac
+            [ -n "$v" ] && files="$files$v"$'\n'
+        done
+        while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            file=${file#=}
+            case $file in /*) ;; *) file="$1/$file" ;; esac
+            [ -f "$file" ] || return 2
+            more="$(_conf_entries "$file")" || return 2
+            entries="$entries"$'\n'"$more"
+        done <<< "$files"
+    fi
+    top="$(_section_settings "$entries" "")"
+    _networks_conflict "$switches" "$top" && return 1
+    _selected_network "$switches" "$top"
+}
+
+# _regtest_by_conf <datadir> <line>: 0 where Core selects regtest from the
+# line's switches and the configuration files it reads for a node on
+# <datadir> (_network_by_conf_read); 1 where it does not; 2 where
+# _network_by_conf_read cannot tell. The answer is 0 where they select more
+# than one network: Core refuses that node, and Test-NodeOnDatadir in
+# win/scripts/bitcoin/node-args.ps1 counts it too.
 #
 # Core reads no switch after a lone "-", where the line may hold the rest of
 # a program path (above). So where the line holds one, it is read both whole
@@ -524,83 +634,13 @@ _regtest_by_conf() {
 # _regtest_by_conf_read <datadir> <line>: _regtest_by_conf's reading of the
 # whole line.
 _regtest_by_conf_read() {
-    local LC_ALL=C pad low word switches="" v path explicit=1 off a b entries=""
-    local top chain section file files more
-    local -a words
-    pad=" $2 "
-    low="$(_fold "$pad")"
-    read -r -a words <<< "$low"
-    for word in "${words[@]}"; do
-        case $word in
-            --*) word=${word#--} ;;
-            -*) word=${word#-} ;;
-            *) continue ;;
-        esac
-        case $word in *=*) ;; *) word="$word=" ;; esac
-        switches="$switches$word"$'\n'
-    done
-    v="$(_setting_values "$switches" conf | LC_ALL=C tail -n 1)"
-    case $v in
-        "")
-            path=bitcoin.conf
-            explicit=0
-            ;;
-        F) path="" ;;
-        T) path=1 ;;
-        =) path=bitcoin.conf ;;
-        *)
-            a=${low%" -conf="*}
-            b=${low%" --conf="*}
-            off=$((${#a} + 7))
-            [ "$a" = "$low" ] && off=0
-            [ "$b" != "$low" ] && [ "$((${#b} + 8))" -gt "$off" ] && off=$((${#b} + 8))
-            path=${pad:off}
-            path=${path%%" -"*}
-            path=${path%"${path##*[! ]}"}
-            ;;
+    local net
+    net="$(_network_by_conf_read "$1" "$2")"
+    case $? in
+        0) [ "$net" = regtest ] ;;
+        1) return 0 ;;
+        *) return 2 ;;
     esac
-    if [ -n "$path" ]; then
-        case $path in /*) ;; *) path="$1/$path" ;; esac
-        if [ -f "$path" ]; then
-            entries="$(_conf_entries "$path")" || return 2
-        elif [ "$explicit" -eq 1 ] || ! _absent "$path"; then
-            return 2
-        fi
-    fi
-    if [ -n "$entries" ] && [ -z "$(_setting_values "$switches" includeconf)" ]; then
-        top="$(_section_settings "$entries" "")"
-        _networks_conflict "$switches" "$top" && return 0
-        chain="$(_chain_setting "$switches" "$top")"
-        if [ -z "$chain" ]; then
-            chain="=main"
-            for v in regtest:regtest signet:signet testnet:test testnet4:testnet4; do
-                if _network_selected "$switches" "$top" "${v%%:*}"; then
-                    chain="=${v##*:}"
-                    break
-                fi
-            done
-        fi
-        files=""
-        for section in "${chain#=}" ""; do
-            v="$(_section_settings "$entries" "$section")"
-            v="$(_setting_values "$v" includeconf | _after_negation)"
-            case $'\n'$v$'\n' in *$'\nT\n'*) return 2 ;; *) ;; esac
-            [ -n "$v" ] && files="$files$v"$'\n'
-        done
-        while IFS= read -r file; do
-            [ -n "$file" ] || continue
-            file=${file#=}
-            case $file in /*) ;; *) file="$1/$file" ;; esac
-            [ -f "$file" ] || return 2
-            more="$(_conf_entries "$file")" || return 2
-            entries="$entries"$'\n'"$more"
-        done <<< "$files"
-    fi
-    top="$(_section_settings "$entries" "")"
-    _network_selected "$switches" "$top" regtest && return 0
-    [ "$(_chain_setting "$switches" "$top")" = "=regtest" ] && return 0
-    _networks_conflict "$switches" "$top" && return 0
-    return 1
 }
 
 # _regtest_selected <datadir> <line>: 0 where the line selects regtest, on
@@ -864,6 +904,68 @@ regtest_node_running_on() {
     return "$by_name"
 }
 
+# _node_datadir <line> <program>: the data directory of the node on the
+# line, under which Core reads its configuration files
+# (_network_by_conf_read): its last "-datadir", read as _arg_value reads it.
+# Where none, an empty one or a negated one is given, a bitcoind uses Core's
+# default (GetDefaultDataDir in src/common/args.cpp), under HOME, or under
+# "/" where HOME is empty: "Library/Application Support/Bitcoin" on macOS,
+# ".bitcoin" elsewhere. 1 where <program> is bitcoin-qt and gives none, an
+# empty one or a negated one: bitcoin-qt may use the directory its GUI
+# settings store instead (Intro::showIfNeeded in src/qt/intro.cpp), which is
+# not read here. 1 also where the directory is not absolute: Core reads it
+# against the node's own working directory.
+_node_datadir() {
+    local LC_ALL=C v dir
+    v="$(_setting_values "$(_line_switches "$1")" datadir | LC_ALL=C tail -n 1)"
+    case $v in
+        "" | = | F)
+            [ "$2" = bitcoind ] || return 1
+            case $OSTYPE in
+                darwin*) dir="${HOME:-/}/Library/Application Support/Bitcoin" ;;
+                *) dir="${HOME:-/}/.bitcoin" ;;
+            esac
+            ;;
+        T) dir=1 ;;
+        *) dir="$(_arg_value " $1 " datadir)" ;;
+    esac
+    case $dir in /*) printf '%s\n' "$dir" ;; *) return 1 ;; esac
+}
+
+# _off_mainnet_by_conf <line> <program>: 0 where the node on the line, a
+# bitcoind or a bitcoin-qt as <program> says, selects testnet3, testnet4,
+# signet or regtest on every reading of the line below, from its switches and
+# the configuration files Core reads for it in its data directory
+# (_node_datadir, _network_by_conf_read); 1 otherwise, as where a reading
+# selects mainnet, more than one network or an unknown one, or its files or
+# its data directory cannot be read.
+#
+# Core reads no switch after a lone "-", where the line may hold the rest of
+# a program path (above). So the line is read up to each " - " in turn, and
+# whole.
+_off_mainnet_by_conf() {
+    local LC_ALL=C pad=" $1 " i=0
+    while [ "$i" -lt "${#pad}" ]; do
+        if [ "${pad:i:3}" = " - " ]; then
+            _off_mainnet_read "${pad:0:i}" "$2" || return 1
+        fi
+        i=$((i + 1))
+    done
+    _off_mainnet_read "$pad" "$2"
+}
+
+# _off_mainnet_read <line> <program>: _off_mainnet_by_conf's reading of the
+# whole line.
+_off_mainnet_read() {
+    local LC_ALL=C dir net
+    dir="$(_node_datadir "$1" "$2")" || return 1
+    net="$(_network_by_conf_read "$dir" "$1")" || return 1
+    case $net in
+        test | testnet4 | signet | regtest) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # mainnet_node_running: 0 where a running bitcoin-qt or bitcoind selects no
 # network other than mainnet; 1 where none does; 2 where the process list
 # could not be read. A line is a node when "bitcoin-qt" or "bitcoind",
@@ -878,17 +980,25 @@ regtest_node_running_on() {
 # A network flag read as true before a lone "-" selects that network, though
 # Core reads only the last one, so a repeated flag can hide a mainnet node.
 #
+# A node whose flags select mainnet is still not one where its configuration
+# files select another network (_off_mainnet_by_conf). A line that reads as
+# both programs reads as bitcoin-qt there.
+#
 # The list is read under C, whatever the caller's locale: under UTF-8, BSD tr
 # fails on a byte that is not UTF-8.
 mainnet_node_running() (
     LC_ALL=C
     nets=(testnet:test testnet4:testnet4 signet:signet regtest:regtest)
     procs="$(_process_args)" || exit 2
-    procs="$(printf '%s\n' "$procs" | LC_ALL=C tr '[:upper:]' '[:lower:]')" || exit 2
-    while IFS= read -r line; do
+    low="$(printf '%s\n' "$procs" | LC_ALL=C tr '[:upper:]' '[:lower:]')" || exit 2
+    while IFS= read -r line && IFS= read -r orig <&3; do
         case $line in
-            bitcoin-qt | "bitcoin-qt "* | */bitcoin-qt | *"/bitcoin-qt "*) ;;
-            bitcoind | "bitcoind "* | */bitcoind | *"/bitcoind "*) ;;
+            bitcoin-qt | "bitcoin-qt "* | */bitcoin-qt | *"/bitcoin-qt "*)
+                program=bitcoin-qt
+                ;;
+            bitcoind | "bitcoind "* | */bitcoind | *"/bitcoind "*)
+                program=bitcoind
+                ;;
             *) continue ;;
         esac
         pad=" $line "
@@ -898,8 +1008,9 @@ mainnet_node_running() (
                 continue 2
             fi
         done
+        _off_mainnet_by_conf "$orig" "$program" && continue
         exit 0
-    done <<< "$procs"
+    done <<< "$low" 3<<< "$procs"
     exit 1
 )
 
