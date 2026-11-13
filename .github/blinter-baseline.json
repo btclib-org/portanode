@@ -175,6 +175,11 @@
     "text": "title %~1"
   },
   {
+    "code": "W014",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "exit /b 0"
+  },
+  {
     "code": "W028",
     "file": "../win/scripts/bitcoin/lib.bat",
     "text": "set \"ACTION=%~1\""

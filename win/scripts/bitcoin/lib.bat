@@ -114,14 +114,12 @@ exit /b 0
 
 :require_confirmed
 REM Waits for the line that answers a clean launcher's "Press Enter" prompt,
-REM and refuses where none comes. pause went on at any key and, with stdin
-REM redirected, at end of input as well, so a run with stdin from nul or
-REM from a pipe already drained deleted the data directory unasked (#932).
-REM set /p cannot tell the two apart, leaving its variable as it was for an
-REM empty line and at end of input alike, so the line is read by PowerShell,
-REM whose ReadLine returns null at end of input and an empty string for an
-REM empty line. Any status but 0 refuses, a PowerShell that did not run
-REM included: what follows is a deletion.
+REM and refuses where none comes: end of input, with stdin from nul or from a
+REM pipe already drained, is no answer (#932). set /p leaves its variable as
+REM it was for an empty line and at end of input alike, so the line is read
+REM by PowerShell, whose ReadLine returns null at end of input and an empty
+REM string for an empty line. Any status but 0 refuses, a PowerShell that did
+REM not run included: what follows is a deletion.
 setlocal
 set "PSREAD=if ($null -eq [Console]::In.ReadLine()) { exit 2 }"
 REM System32 is the current directory around the read: root.bat's

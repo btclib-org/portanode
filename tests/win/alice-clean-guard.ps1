@@ -100,7 +100,8 @@ function Invoke-Launcher {
       '{f}', $datadir.Replace('\', '/')).Replace('{r}', $root).Replace('{j}', $junction)
   Push-Location -LiteralPath $repo
   try {
-    # The line answers the launcher's pause.
+    # The line answers the launcher's Press Enter prompt, which
+    # :require_confirmed in win\scripts\bitcoin\lib.bat reads.
     $out = @('') | & cmd.exe /d /c ('.\win\scripts\bitcoin\' + $Bat) 2>&1
     (($out | Out-String) + "status=$LASTEXITCODE")
   } finally {
