@@ -19,11 +19,12 @@ case checks, and exits 1 where any case failed or any test file exited
 non-zero.
 
 What the suite does not reach is a launcher starting Bitcoin Core or
-Electrum: no binary is in the tree. `win/regtest-cli-command.ps1` comes
-closest: it runs the Windows regtest CLI launchers with a stand-in for
-`bitcoind.exe` that records the arguments it is given. CI runs the menus
-from each runner's checkout, on the platforms `CONTRIBUTING.md`'s last
-section names.
+Electrum: no binary is in the tree. A test that runs a launcher that far
+gives it stand-ins that record the arguments they are given, as
+`sh/bitcoin-launchers.sh` does for the macOS and Linux Bitcoin launchers
+and `win/regtest-cli-command.ps1` for the Windows regtest CLI launchers.
+CI runs the menus from each runner's checkout, on the platforms
+`CONTRIBUTING.md`'s last section names.
 
 ## Coverage
 
