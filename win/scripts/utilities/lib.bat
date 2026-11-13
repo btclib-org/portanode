@@ -215,10 +215,11 @@ REM read, as shared/utilities/lib.sh's preview_keyring does. NAME is the
 REM keyring as the user knows it and WHAT is what a refusal would stop.
 REM Always exits 0: a preview reports and does not end the run.
 :preview_keyring
+set "PK_FILE=%~1"
 set "PK_NAME=%~2"
 set "PK_WHAT=%~3"
 set "PK_MIN=%~4"
-call :keyring_is_readable "%~1"
+call :keyring_is_readable "%%PK_FILE%%"
 if errorlevel 1 goto :preview_keyring_refused
 echo gpg: found. Verification asks for %PK_MIN% good signature(s) from
 echo distinct keys in %PK_NAME%.
