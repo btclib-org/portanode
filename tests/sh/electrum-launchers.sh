@@ -175,7 +175,7 @@ stops() {
 # named when kcov first read it.
 links_and_path() {
     local launcher="$1" what="$2" dir out links
-    links="$(mktemp -d "${TMP}/links.XXXXXX")"
+    links="$(mktemp -d "${TMP}/links.XXXXXX")" || return 1
     mkdir "${links}/first"
     ln -s ../second "${links}/first/link"
     ln -s "${launcher}" "${links}/second"
@@ -320,7 +320,7 @@ for name in mainnet mainnet-local-server-only regtest testnet3 testnet4; do
     check "${what} without python3 still starts Electrum" started "${args}"
 
     make_root
-    links_and_path "${launcher}" "${what}"
+    links_and_path "${launcher}" "${what}" || exit 1
 done
 
 for name in mainnet mainnet-local-server-only regtest testnet3 testnet4; do
@@ -402,7 +402,7 @@ for name in mainnet mainnet-local-server-only regtest testnet3 testnet4; do
     check "${what} without perl still opens the bundle" started "${args}"
 
     make_root
-    links_and_path "${launcher}" "${what}"
+    links_and_path "${launcher}" "${what}" || exit 1
 done
 
 finish

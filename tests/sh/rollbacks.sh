@@ -22,7 +22,7 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=shared/utilities/lib.sh
 . "$REPO/shared/utilities/lib.sh"
 
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d)" || exit 1
 TMP="$(cd "$TMP" && pwd -P)"
 trap 'rm -rf "$TMP"' EXIT
 

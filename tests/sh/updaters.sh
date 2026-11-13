@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tests.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tests.XXXXXX")" || exit 1
 SERVER_PIDS=""
 # shellcheck disable=SC2329 # invoked by the EXIT trap below
 cleanup() {

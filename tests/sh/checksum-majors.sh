@@ -17,7 +17,7 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
 
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d)" || exit 1
 trap 'rm -rf "$TMP"' EXIT
 
 # supported_count <readme>: how many Core majors Version Compatibility

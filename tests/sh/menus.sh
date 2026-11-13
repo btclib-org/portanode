@@ -123,7 +123,7 @@ stub() {
 # It prints the path of the first link.
 chain() {
     local dir
-    dir="$(mktemp -d "${TMP}/link.XXXXXX")"
+    dir="$(mktemp -d "${TMP}/link.XXXXXX")" || return 1
     ln -s "$1" "${dir}/absolute"
     ln -s absolute "${dir}/relative"
     printf '%s\n' "${dir}/relative"
@@ -169,8 +169,9 @@ for name in Bitcoin Electrum Utilities; do
         "Darwin ${name}-Launcher.command"; do
         platform="${pair%% *}"
         menu="${pair#* }"
+        link="$(chain "${launcher}")" || exit 1
         out="$(run '' env PATH="${TMP}/${platform}:${PATH}" \
-            PORTANODE_ROOT="${ROOT}" "${BASH}" "$(chain "${launcher}")")"
+            PORTANODE_ROOT="${ROOT}" "${BASH}" "${link}")"
         check "${name}-Launcher.sh on ${platform} opens ${menu}" \
             same "$(printf 'ran %s\n\nexit 0' "${menu}")" "${out}"
         out="$(run '' env PATH="${TMP}/${platform}:${PATH}" \
@@ -213,8 +214,9 @@ for name in Bitcoin Electrum Utilities; do
             check "${menu}: ${rel} is in the tree" test -f "${REPO}/${rel}"
         done <<< "${expected}"
 
+        link="$(chain "${REPO}/${menu}")" || exit 1
         out="$(run "$(seq "$((count + 1))")\n\n" env PORTANODE_ROOT="${ROOT}" \
-            "${BASH}" "$(chain "${REPO}/${menu}")")"
+            "${BASH}" "${link}")"
         check "${menu}: started through two symlinks, it names the root" \
             contains "${out}" "${name} Launcher (${ROOT})"
         ran="$(sed -n 's/^\(Select: \)\{0,1\}ran //p' <<< "${out}")"

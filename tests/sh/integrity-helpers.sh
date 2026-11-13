@@ -21,7 +21,7 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=shared/utilities/lib.sh
 . "$REPO/shared/utilities/lib.sh"
 
-T="$(mktemp -d "${TMPDIR:-/tmp}/portanode-integrity-test.XXXXXX")"
+T="$(mktemp -d "${TMPDIR:-/tmp}/portanode-integrity-test.XXXXXX")" || exit 1
 trap 'chmod -R u+rwX "${T:?}" 2>/dev/null; rm -rf "${T:?}"' EXIT
 
 pass() { echo "ok - $1"; }
@@ -180,7 +180,7 @@ EOF
     # shellcheck disable=SC2329 # run through check, as "$@"
     cleans_up() {
         local sh="$1" td out rc=0
-        td="$(mktemp -d "$T/tmpdir.XXXXXX")"
+        td="$(mktemp -d "$T/tmpdir.XXXXXX")" || return 1
         out="$(TMPDIR="$td" "$sh" "$T/tree-hash-refusal.sh" \
             "$REPO/shared/utilities/lib.sh" "$B" 2>&1)" || rc=$?
         [ "$rc" -ne 0 ] && [ -z "$(ls -A "$td")" ] \
