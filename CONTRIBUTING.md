@@ -710,13 +710,11 @@ restating it.
   unmodified tree first, then a clean run against the change, rather than
   a `.ps1` change read for correctness without being parsed.
 - **Blinter is compared by version and by line numbers.** Capture the
-  version once and run both halves of a comparison under it, stderr
-  dropped because it holds encoding notices, not findings, and an
-  ASCII-only edit can add or remove one:
+  version once and run both halves of a comparison under it:
 
   ```shell
   V=$(uvx blinter --version 2>/dev/null | sed -E 's/^v?([0-9.]+).*/\1/')
-  uvx --from "blinter==$V" blinter . --no-config --summary 2>/dev/null
+  uvx --from "blinter==$V" blinter . --no-config --summary
   ```
 
   The job reads with the Blinter that `script-security.yml` pins, so set

@@ -99,8 +99,8 @@ jobs:
       - name: Install Blinter
         run: |
           printf '%s --hash=sha256:%s\n' \
-            blinter==1.1.63 \
-            470a5cb5920f2f4544259b38689bd563210d2b4f636341059f02cb6e10434a62 \
+            blinter==1.1.69 \
+            4e91a3f0f56c453f33433f432580eb3a41e30274f9a4081ba2bd237514061a2d \
             charset-normalizer==3.5.2 \
             b6b751274acb69d77b3323d6b7dbaa3c7fdfc1eb829b7eb61d262f32e1af9685 \
             > "$RUNNER_TEMP/blinter-requirements.txt"
