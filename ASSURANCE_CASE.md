@@ -200,6 +200,8 @@ before a word starting with `-`, or at the end of the line, resolves. A
 its part before that space does, reads as the directory that part names.
 
 The mainnet launcher refuses to start while a mainnet node is running.
+Where the process list cannot be read, on any platform, it starts Bitcoin
+Core: `mainnet_node_running` in `shared/lib.sh` says why.
 It reads a node's flags as whole arguments, so a path holding
 `-regtest` is not the flag. Like Bitcoin Core, it reads no flag after a
 lone `-`. On macOS and Linux a network flag read as true before a lone

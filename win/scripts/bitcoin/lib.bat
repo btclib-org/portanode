@@ -85,9 +85,9 @@ REM node-args.ps1 beside this file reads them as Bitcoin Core does, so a node
 REM run from a path holding "-testnet" is still a mainnet node (#676), and
 REM Test-MainnetNode there says when a node counts.
 REM
-REM A check that cannot run is not read as a node here, where the guard
-REM above reads it as one: starting a node deletes nothing, and Bitcoin
-REM Core refuses a second node on the same data directory by itself.
+REM Of the query's exit codes, only 2, a mainnet node found, refuses: a
+REM check that cannot run is not read as a node here, where the guard above
+REM reads it as one. mainnet_node_running's header in shared/lib.sh says why.
 REM
 REM node-args.ps1 is dot-sourced by a relative name from its own directory:
 REM win/scripts/root.ps1 says why.
