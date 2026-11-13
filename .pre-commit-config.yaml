@@ -86,9 +86,7 @@ ci:
   # in it (`--freeze` format is automatically preserved, its documentation
   # at https://pre-commit.ci says); a local `pre-commit autoupdate`
   # without `--freeze` writes the bare tag back and drops the comment, so
-  # a local run is `pre-commit autoupdate --freeze`. The bot writes two
-  # spaces before the `#`, which prettier below rewrites to one, so its
-  # pull request fails prettier until a commit puts back the one space
+  # a local run is `pre-commit autoupdate --freeze`
   autoupdate_commit_msg: "Update the pinned pre-commit hook revisions"
   autoupdate_schedule: weekly
   # the hook pre-commit.ci cannot run: actionlint-shellcheck runs past
@@ -545,6 +543,9 @@ repos:
         # named by path rather than by type: `jsonc` is not a tag identify
         # knows, so a types_or entry for it fails the config outright
         files: ^(.*\.ya?ml|\.markdownlint\.jsonc)$
+        # not the gate itself, whose `# frozen:` spacing pre-commit.ci
+        # writes: section 4 of the organization's standard says why
+        exclude: ^\.pre-commit-config\.yaml$
   # the toml here is configuration and nothing else: .taplo.toml, which
   # carries the formatting choices and the reasoning, and .typos.toml,
   # which the hook above has no flag for. One indent for every toml in
