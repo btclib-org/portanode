@@ -5,10 +5,11 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2329 # check calls these functions by name
 # What the macOS and Linux validate-setup report, through verify-binaries.sh
-# beside them, by the checksums, the data directories, the free space and
-# bitcoin.conf's prune=. Each runs from the checkout against a folder of its
-# own named by PORTANODE_ROOT, with a PATH of links to /bin and /usr/bin in
-# which df is a stand-in answering the free space DF_KB gives.
+# beside them or its absence, by the checksums, the data directories, the free
+# space and bitcoin.conf's prune=. Each runs from the checkout, or through
+# links to it, against a folder of its own named by PORTANODE_ROOT, with a
+# PATH of links to /bin and /usr/bin in which df is a stand-in answering the
+# free space DF_KB gives.
 
 case "$0" in */*) ;; *) [ -f "$0" ] || {
     echo "$0: run this script by its path, not by a name found through PATH" >&2
@@ -59,15 +60,15 @@ fresh() {
     DF_KB=$((800 * GB))
 }
 
-# validate <platform>: runs that platform's validate-setup, stdout and stderr
-# together, then "exit <status>",
-# or what df refused alone.
+# validate <platform> [<tree>]: runs that platform's validate-setup from
+# <tree>, this checkout where none is given, stdout and stderr together, then
+# "exit <status>", or what df refused alone.
 validate() {
     local status=0 out
     rm -f "$TMP/unexpected"
     out="$(env PATH="$STANDINS:$BASE" PORTANODE_ROOT="$ROOT" DF_KB="$DF_KB" \
         UNEXPECTED="$TMP/unexpected" \
-        "$BASH" "$REPO/$1/scripts/utilities/validate-setup.sh" 2>&1)" \
+        "$BASH" "${2:-$REPO}/$1/scripts/utilities/validate-setup.sh" 2>&1)" \
         || status=$?
     if [ -f "$TMP/unexpected" ]; then
         echo "df refused: $(cat "$TMP/unexpected")"
@@ -125,6 +126,23 @@ exit 1" "$(validate "$platform")"
 Verifying binaries against $platform/checksums.sha256
 Error: $platform/checksums.sha256 not found.
 exit 1" "$(validate "$platform")"
+
+    # A tree of links to this checkout's validate-setup.sh and the libraries
+    # it sources, with no verify-binaries.sh.
+    tree="$TMP/no-verify-$platform"
+    mkdir -p "$tree/$platform/scripts/utilities"
+    ln -s "$REPO/shared" "$tree/shared"
+    ln -s "$REPO/$platform/scripts/lib.sh" "$tree/$platform/scripts/lib.sh"
+    ln -s "$REPO/$platform/scripts/utilities/validate-setup.sh" \
+        "$tree/$platform/scripts/utilities/validate-setup.sh"
+    fresh "$platform"
+    check "$platform: without verify-binaries.sh beside it, the checksums are skipped with a warning" \
+        same "Validating setup at $ROOT
+WARNING: verify-binaries.sh not found, skipping checksum check
+OK: Data directories exist
+Disk free space: ${DF_KB}K
+Setup validation completed.
+exit 0" "$(validate "$platform" "$tree")"
 
     fresh "$platform"
     rm -r "$ROOT/electrum-datadir"
