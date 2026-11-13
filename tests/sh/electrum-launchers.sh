@@ -175,7 +175,7 @@ stops() {
 # named when kcov first read it.
 links_and_path() {
     local launcher="$1" what="$2" dir out links
-    links="$(mktemp -d "${TMP}/links.XXXXXX")"
+    links="$(mktemp -d "${TMP}/links.XXXXXX")" || return 1
     mkdir "${links}/first"
     ln -s ../second "${links}/first/link"
     ln -s "${launcher}" "${links}/second"

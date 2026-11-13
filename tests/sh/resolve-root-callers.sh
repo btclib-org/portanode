@@ -21,7 +21,7 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=shared/lib.sh
 . "$REPO/shared/lib.sh"
 
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d)" || exit 1
 trap 'rm -rf "$TMP"' EXIT
 
 # make_root <dir> [<platform dir>...]: a folder marked as a root, holding

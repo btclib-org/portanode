@@ -123,7 +123,7 @@ stub() {
 # It prints the path of the first link.
 chain() {
     local dir
-    dir="$(mktemp -d "${TMP}/link.XXXXXX")"
+    dir="$(mktemp -d "${TMP}/link.XXXXXX")" || return 1
     ln -s "$1" "${dir}/absolute"
     ln -s absolute "${dir}/relative"
     printf '%s\n' "${dir}/relative"
