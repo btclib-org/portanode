@@ -206,10 +206,31 @@ lone `-`. On macOS and Linux a network flag read as true before a lone
 `-` selects that network, where Core reads only the last value, so
 `-testnet -testnet=0` can hide a mainnet node; a path with a space
 before a flag-shaped word still reads as the flag. There a node under
-`/Volumes/My - Drive` reads as one with no network flag, so the launcher
-refuses to start while it runs. On Windows the last value wins, as in
-Core (`node-args.ps1`). Bitcoin Core itself refuses a second node on one
-data directory.
+`/Volumes/My - Drive` reads as one with no network flag and, up to that
+`-`, no `-datadir`. So it counts, unless it is a `bitcoind` whose own
+configuration files and the default `bitcoin.conf` of the user running
+the launcher both select another network (below). On Windows the last
+value wins, as in Core (`node-args.ps1`). Bitcoin Core itself refuses a
+second node on one data directory.
+
+The mainnet launcher also reads a node's configuration files, as the
+Alice `-clean` launcher does, in the node's own data directory: the one
+its last `-datadir` names, or, for a `bitcoind` that names none, Bitcoin
+Core's default for the user running the launcher. A node whose flags
+select mainnet does not count where the files select testnet3, testnet4,
+signet or regtest. It still counts where they select more than one
+network or an unknown one, or cannot be read, and where its `-datadir`
+is relative. A `bitcoin-qt` that names no `-datadir` counts too: it may
+use the directory its own settings store, which the launcher does not
+read ([ISS 944](https://github.com/btclib-org/portanode/issues/944)). On
+macOS and Linux the files have to select another network both with the
+flags up to each lone `-` and with all of them. The files are read as
+they are now, so a mainnet node whose files have selected another
+network since it started does not count. On macOS and Linux neither does
+another user's `bitcoind` with no `-datadir` where the launcher's user
+has a default `bitcoin.conf` selecting another network, nor a node whose
+`-datadir` or `-conf` holds a space followed by `-` where the part
+before that space names a directory or a file selecting another network.
 
 **Electrum and its servers.** The plain `mainnet` launcher uses
 Electrum's own server choice, and `mainnet-local-server-only` talks to a

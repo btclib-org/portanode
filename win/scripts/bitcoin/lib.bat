@@ -78,11 +78,12 @@ if not "%PSFIND_RC%"=="0" (
 exit /b 0
 
 :require_no_mainnet_node
-REM Refuse to start a second mainnet node. A process whose arguments select
-REM another network does not count, which is what leaves a regtest or testnet
-REM node running while mainnet starts. node-args.ps1 beside this file reads
-REM them as Bitcoin Core does, so a node run from a path holding "-testnet"
-REM is still a mainnet node (#676).
+REM Refuse to start a second mainnet node. A process whose arguments or
+REM configuration files select another network does not count, which is what
+REM leaves a regtest or testnet node running while mainnet starts.
+REM node-args.ps1 beside this file reads them as Bitcoin Core does, so a node
+REM run from a path holding "-testnet" is still a mainnet node (#676), and
+REM Test-MainnetNode there says when a node counts.
 REM
 REM A check that cannot run is not read as a node here, where the guard
 REM above reads it as one: starting a node deletes nothing, and Bitcoin
@@ -108,6 +109,29 @@ if "%PSFIND_RC%"=="2" (
     echo Error: a Bitcoin Core mainnet node is already running.
     echo Stop it before starting another mainnet instance, or use a different
     echo data directory and ports.
+    exit /b 1
+)
+exit /b 0
+
+:require_confirmed
+REM Waits for the line that answers a clean launcher's "Press Enter" prompt,
+REM and refuses where none comes: end of input, with stdin from nul or from a
+REM pipe already drained, is no answer (#932). set /p leaves its variable as
+REM it was for an empty line and at end of input alike, so the line is read
+REM by PowerShell, whose ReadLine returns null at end of input and an empty
+REM string for an empty line. Any status but 0 refuses, a PowerShell that did
+REM not run included: what follows is a deletion.
+setlocal
+set "PSREAD=if ($null -eq [Console]::In.ReadLine()) { exit 2 }"
+REM System32 is the current directory around the read: root.bat's
+REM :leave_folder says why.
+call "%%LIB_DIR%%..\root.bat" :leave_folder
+if errorlevel 1 exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "%PSREAD%"
+set "PSREAD_RC=%ERRORLEVEL%"
+popd >nul 2>&1
+if not "%PSREAD_RC%"=="0" (
+    echo Error: no answer was read. Nothing has been deleted.
     exit /b 1
 )
 exit /b 0

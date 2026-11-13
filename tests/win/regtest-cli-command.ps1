@@ -98,7 +98,8 @@ function Build-Root {
 # current directory, so that the path is not on this command line. Returns
 # what the stub wrote, its arguments one per line, as Arguments, and what the
 # CLI console wrote as Console. Either is empty where it never ran.
-# The launcher reads one line, which answers the clean variants' pause.
+# Its stdin is one line, which answers the clean variants' Press Enter
+# prompt, read by :require_confirmed in win\scripts\bitcoin\lib.bat.
 function Get-Started {
   param([string]$Command, [string]$Root, [string]$From)
   $out = Join-Path $Root 'stub-arguments.txt'

@@ -107,13 +107,17 @@ function Get-NodeSwitch {
   # The switches of a node's command line in order, as Core reads them: each
   # a Name, lower case and without its dashes, and a Value, null where none
   # is given. Core reads no switch after a lone "-".
+  #
+  # Its comparisons are ordinal, as Core compares bytes: a culture-sensitive
+  # one passes over a zero-width character, and finds no "=" that a
+  # combining character follows, as U+0338.
   param([string]$CommandLine)
   foreach ($word in @(Split-CommandLine $CommandLine | Select-Object -Skip 1)) {
-    if ($word -ceq '-') { break }
+    if ([string]::Equals($word, '-', [StringComparison]::Ordinal)) { break }
     if ($word -notmatch '^[-/]') { continue }
     $word = $word.Substring(1)
-    if ($word.StartsWith('-')) { $word = $word.Substring(1) }
-    $eq = $word.IndexOf('=')
+    if ($word.StartsWith('-', [StringComparison]::Ordinal)) { $word = $word.Substring(1) }
+    $eq = $word.IndexOf([char]'=')
     if ($eq -lt 0) {
       [pscustomobject]@{ Name = $word.ToLowerInvariant(); Value = $null }
     } else {
@@ -473,8 +477,60 @@ function Test-NodeOnDatadir {
   return Test-DatadirMatch $d $Datadir
 }
 
+function Get-DefaultDatadir {
+  # The data directory Core's bitcoind uses where it is given none
+  # (GetDefaultDataDir in src/common/args.cpp): Bitcoin in this user's roaming
+  # application data folder where it exists, else in the local one. Empty
+  # where Windows names neither folder.
+  $roaming = [Environment]::GetFolderPath('ApplicationData')
+  if ($roaming) {
+    $legacy = [System.IO.Path]::Combine($roaming, 'Bitcoin')
+    if ([System.IO.Directory]::Exists($legacy) -or [System.IO.File]::Exists($legacy)) { return $legacy }
+  }
+  $local = [Environment]::GetFolderPath('LocalApplicationData')
+  if ($local) { return [System.IO.Path]::Combine($local, 'Bitcoin') }
+  return ''
+}
+
 function Test-MainnetNode {
-  # True where a node's command line selects mainnet.
+  # True where a node selects mainnet. False where its command line selects
+  # another network (Get-NodeChain), and false where its command line and its
+  # configuration files select testnet3, testnet4, signet or regtest
+  # (Get-NodeNetwork), read in its data directory: its last -datadir, or, for
+  # a bitcoind, Get-DefaultDatadir where it is given none, an empty one or a
+  # negated one. The program is a bitcoind where its file name is bitcoind or
+  # bitcoind.exe, in any case. True where the files select mainnet, more than
+  # one network or an unknown one, or cannot be read; where the data
+  # directory is not a full path, which Core reads against the node's own
+  # working directory; and where a node that is no bitcoind is given no data
+  # directory, since bitcoin-qt may use the one its GUI settings store
+  # (Intro::showIfNeeded in src/qt/intro.cpp), which is not read here.
   param([string]$CommandLine)
-  return ((Get-NodeChain $CommandLine) -ceq 'main')
+  if (-not [string]::Equals((Get-NodeChain $CommandLine), 'main', [StringComparison]::Ordinal)) { return $false }
+  $program = @(Split-CommandLine $CommandLine)[0] -split '[\\/]' | Select-Object -Last 1
+  $bitcoind = [string]::Equals($program, 'bitcoind', [StringComparison]::OrdinalIgnoreCase) -or
+    [string]::Equals($program, 'bitcoind.exe', [StringComparison]::OrdinalIgnoreCase)
+  $v = @(Get-SettingValue @(Get-NodeSwitch $CommandLine) 'datadir')
+  $datadir = $null
+  if ($v.Count -gt 0 -and $v[-1] -is [bool]) {
+    # Core reads a double negation, "-nodatadir=0", as "1".
+    if ($v[-1]) { $datadir = '1' }
+  } elseif ($v.Count -gt 0 -and $v[-1].Length -gt 0) {
+    $datadir = $v[-1]
+  }
+  if ($null -eq $datadir) {
+    if (-not $bitcoind) { return $true }
+    $datadir = Get-DefaultDatadir
+  }
+  $full = if ($env:OS -eq 'Windows_NT') { $datadir -match '^([A-Za-z]:[\\/]|[\\/][\\/])' } else { [System.IO.Path]::IsPathRooted($datadir) }
+  if (-not $full) { return $true }
+  try {
+    $network = Get-NodeNetwork $CommandLine $datadir
+  } catch {
+    return $true
+  }
+  foreach ($other in 'test', 'testnet4', 'signet', 'regtest') {
+    if ([string]::Equals($network, $other, [StringComparison]::Ordinal)) { return $false }
+  }
+  return $true
 }

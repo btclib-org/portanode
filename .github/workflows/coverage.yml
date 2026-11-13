@@ -51,7 +51,7 @@ jobs:
           docker run --rm
           --volume "$PWD:/checkout:ro"
           debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4
-          bash /checkout/tests/kcov.sh 73
+          bash /checkout/tests/kcov.sh 88
 
   statements:
     name: Measure the .ps1 statements the suite runs
@@ -66,4 +66,4 @@ jobs:
       # -Floor is the floor, a percentage
       - name: Run the suite with a statement log
         shell: pwsh
-        run: pwsh -NoProfile -File tests\statements.ps1 -Floor 71
+        run: pwsh -NoProfile -File tests\statements.ps1 -Floor 80
