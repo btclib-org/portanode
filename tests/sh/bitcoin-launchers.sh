@@ -21,6 +21,10 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
 
+# The stand-ins match the node pattern of tests/sh/running-guard.sh, so this
+# file runs under hold_node_lock. Without the lock the cases here still run.
+hold_node_lock || true
+
 TMP="$(mktemp -d)" || exit 1
 TMP="$(cd "$TMP" && pwd -P)"
 trap 'rm -rf "$TMP"' EXIT
