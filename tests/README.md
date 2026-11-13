@@ -21,9 +21,10 @@ non-zero.
 What the suite does not reach is a launcher starting Bitcoin Core or
 Electrum: no binary is in the tree. A test that runs a launcher that far
 gives it stand-ins that record the arguments they are given, as
-`sh/bitcoin-launchers.sh` does for the macOS and Linux Bitcoin launchers
-and `win/regtest-cli-command.ps1` for the Windows regtest CLI launchers.
-CI runs the menus from each runner's checkout, on the platforms
+`sh/bitcoin-launchers.sh` does for the macOS and Linux Bitcoin launchers,
+`sh/electrum-launchers.sh` for the macOS and Linux Electrum launchers, and
+`win/regtest-cli-command.ps1` for the Windows regtest CLI launchers. CI
+runs the menus from each runner's checkout, on the platforms
 `CONTRIBUTING.md`'s last section names.
 
 ## Coverage

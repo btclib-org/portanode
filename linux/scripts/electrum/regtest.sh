@@ -133,6 +133,7 @@ SOCKET_PROBE="${ROOTDIR}/electrum-datadir/.probe.$$"
 if command -v python3 > /dev/null 2>&1; then
     python3 - "${ROOTDIR}/electrum-datadir/daemon_rpc_socket" \
         "$SOCKET_PROBE" << 'PYEOF' 2> /dev/null
+# KCOV_EXCL_START
 import os
 import socket
 import sys
@@ -152,6 +153,7 @@ try:
 except OSError:
     raise SystemExit(4)
 PYEOF
+    # KCOV_EXCL_STOP
     SOCKET_PROBE_STATUS=$?
     rm -f "$SOCKET_PROBE"
     case "$SOCKET_PROBE_STATUS" in
