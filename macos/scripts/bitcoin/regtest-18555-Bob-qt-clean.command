@@ -71,7 +71,12 @@ esac
 
 echo "WARNING: This will delete regtest data."
 echo "Press Enter to continue or Ctrl+C to cancel."
-read -r
+# End of input (Ctrl+D, or stdin closed) is no answer: delete only after a
+# whole line has been read.
+if ! read -r; then
+    echo "Nothing has been deleted."
+    exit 1
+fi
 
 if ! rm -rf "${DATADIR}"; then
     echo "Error: could not delete ${DATADIR#"$ROOTDIR"/}."
