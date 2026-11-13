@@ -31,7 +31,7 @@ if ! command -v gpg > /dev/null; then
     exit 0
 fi
 
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-input.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-input.XXXXXX")" || exit 1
 WORK="$(cd "$WORK" && pwd -P)"
 # gpg-agent's socket path is bounded, so the homes are short.
 HOME_A="$(mktemp -d "${TMPDIR:-/tmp}/key-a.XXXXXX")"

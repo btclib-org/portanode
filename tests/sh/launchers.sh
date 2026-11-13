@@ -17,7 +17,7 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 . "$SCRIPT_DIR/../lib.sh"
 
 unset PORTANODE_ROOT
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d)" || exit 1
 TMP="$(cd "$TMP" && pwd -P)"
 trap 'rm -rf "$TMP"' EXIT
 
