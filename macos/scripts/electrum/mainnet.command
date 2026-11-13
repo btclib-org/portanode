@@ -97,6 +97,7 @@ SOCKET_PROBE="${ROOTDIR}/electrum-datadir/.probe.$$"
 if command -v perl > /dev/null 2>&1; then
     perl - "${ROOTDIR}/electrum-datadir/daemon_rpc_socket" \
         "$SOCKET_PROBE" << 'PLEOF' 2> /dev/null
+# KCOV_EXCL_START
 use Socket qw(PF_UNIX SOCK_STREAM pack_sockaddr_un unpack_sockaddr_un);
 for my $path (@ARGV) {
     exit 2 if unpack_sockaddr_un(pack_sockaddr_un($path)) ne $path;
@@ -105,6 +106,7 @@ socket(my $sock, PF_UNIX, SOCK_STREAM, 0) or exit 3;
 unlink $ARGV[1];
 bind($sock, pack_sockaddr_un($ARGV[1])) or exit 1;
 PLEOF
+    # KCOV_EXCL_STOP
     SOCKET_PROBE_STATUS=$?
     rm -f "$SOCKET_PROBE"
     case "$SOCKET_PROBE_STATUS" in

@@ -32,10 +32,14 @@ chown -R suite /home/suite
 
 # --bash-parse-files-in-dir counts the lines of scripts the suite never
 # starts. It also counts files bash never runs, among them a .bat, so those are
-# excluded here.
+# excluded here. It counts a here-document's lines too, which bash never runs
+# as commands, so a script marks the body of one that another interpreter
+# runs with a KCOV_EXCL_START line inside it and a KCOV_EXCL_STOP line after
+# it, and those lines are excluded as well.
 status=0
 su suite -c "kcov --bash-parse-files-in-dir=$TREE --include-path=$TREE \
     --exclude-path=$TREE/tests,$TREE/.git,$TREE/.github,$TREE/win,$TREE/.gitattributes,$TREE/.pre-commit-config.yaml \
+    --exclude-region=KCOV_EXCL_START:KCOV_EXCL_STOP \
     $OUT $TREE/tests/run.sh" || status=$?
 
 under=0
