@@ -2,10 +2,9 @@
 
 Follow `CONTRIBUTING.md` for project and organization rules, local
 gates, and worktree commands. Read `README.md` for user-facing behavior,
-`REVIEWING.md` for review expectations, including launcher path and
-executable-bit criteria, `REPOSITORY.md` before changing workflows or
-settings, `ASSURANCE_CASE.md` for security claims, and `VERIFYING.md` for
-release verification.
+`REPOSITORY.md` before changing workflows or settings,
+`ASSURANCE_CASE.md` for security claims, and `VERIFYING.md` for release
+verification.
 
 Keep the primary checkout clean and on `main`; use a separate worktree
 for each task, following the setup and cleanup commands in
