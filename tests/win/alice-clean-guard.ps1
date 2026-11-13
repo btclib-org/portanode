@@ -8,7 +8,9 @@
 # goes on where the node selects another network or uses another data
 # directory. It refuses as well where the node reaches bitcoin-datadir
 # through a junction, and says it cannot tell where the node's data
-# directory is relative or does not exist (ISS 888).
+# directory is relative or does not exist (ISS 888). Every clean launcher,
+# Bob's and Carol's as well, refuses with stdin at end of input rather than
+# take it for the Enter its prompt asks for (ISS 932).
 #
 # The stand-in is a program that sleeps, under the name of a node binary,
 # started with the arguments of the case. The binaries under win\bin are
@@ -108,8 +110,37 @@ function Invoke-Launcher {
   }
 }
 
-$held = [IO.File]::Open((Join-Path $netdir 'held'), 'OpenOrCreate', 'ReadWrite', 'None')
+$held = $null
 try {
+  # ISS 932: every clean launcher, with stdin at end of input and no node
+  # running, refuses at its prompt and deletes nothing. Run before the file is
+  # held, so that a launcher going on past the prompt deletes the wallet.
+  $kept = @{
+    'regtest-18444-Alice-qt-clean.bat' = $wallet
+    'regtest-18444-Alice-cli-clean.bat' = $wallet
+    'regtest-18555-Bob-qt-clean.bat' = Join-Path $datadir 'regtest_bob\wallet.dat'
+    'regtest-18555-Bob-cli-clean.bat' = Join-Path $datadir 'regtest_bob\wallet.dat'
+    'regtest-18666-Carol-qt-clean.bat' = Join-Path $datadir 'regtest_carol\wallet.dat'
+    'regtest-18666-Carol-cli-clean.bat' = Join-Path $datadir 'regtest_carol\wallet.dat'
+  }
+  foreach ($bat in ($kept.Keys | Sort-Object)) {
+    $file = $kept[$bat]
+    if (-not (Test-Path -LiteralPath $file)) {
+      New-Item -ItemType File -Path $file -Force | Out-Null
+    }
+    Push-Location -LiteralPath $repo
+    try {
+      $out = & cmd.exe /d /c ('.\win\scripts\bitcoin\' + $bat + ' < nul') 2>&1
+      $text = ($out | Out-String) + "status=$LASTEXITCODE"
+    } finally {
+      Pop-Location
+    }
+    Test-Contain "$bat at end of input refuses" $text 'Error: no answer was read.'
+    Test-Contain "$bat at end of input exits 1" $text 'status=1'
+    Test-Same "$bat at end of input deletes nothing" 'True' "$(Test-Path -LiteralPath $file)"
+  }
+
+  $held = [IO.File]::Open((Join-Path $netdir 'held'), 'OpenOrCreate', 'ReadWrite', 'None')
   foreach ($bat in 'regtest-18444-Alice-qt-clean.bat', 'regtest-18444-Alice-cli-clean.bat') {
     foreach ($case in $refused) {
       $name = "$bat, $($case[0]) $($case[1])"
@@ -133,7 +164,7 @@ try {
     }
   }
 } finally {
-  $held.Dispose()
+  if ($held) { $held.Dispose() }
   # Deleting the junction alone leaves its target where it is.
   [IO.Directory]::Delete($junction)
   Remove-Item Env:PORTANODE_ROOT -ErrorAction SilentlyContinue

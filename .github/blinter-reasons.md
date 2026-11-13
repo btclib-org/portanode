@@ -173,8 +173,9 @@ Blinter pairs a `popd` only with a `pushd` written earlier in the same
 file:
 
 - The utilities other than the updaters change directory with
-  `call root.bat :leave_folder`, and so do `:require_datadir_free` and
-  `:require_no_mainnet_node` in `win\scripts\bitcoin\lib.bat` and
+  `call root.bat :leave_folder`, and so do `:require_datadir_free`,
+  `:require_no_mainnet_node` and `:require_confirmed` in
+  `win\scripts\bitcoin\lib.bat` and
   `:require_non_portable_build` in `win\scripts\electrum\lib.bat`. The
   `pushd` of `:leave_folder` is in `root.bat`, and it is the one Blinter
   reports unmatched there.

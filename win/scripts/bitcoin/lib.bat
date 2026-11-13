@@ -112,6 +112,31 @@ if "%PSFIND_RC%"=="2" (
 )
 exit /b 0
 
+:require_confirmed
+REM Waits for the line that answers a clean launcher's "Press Enter" prompt,
+REM and refuses where none comes. pause went on at any key and, with stdin
+REM redirected, at end of input as well, so a run with stdin from nul or
+REM from a pipe already drained deleted the data directory unasked (#932).
+REM set /p cannot tell the two apart, leaving its variable as it was for an
+REM empty line and at end of input alike, so the line is read by PowerShell,
+REM whose ReadLine returns null at end of input and an empty string for an
+REM empty line. Any status but 0 refuses, a PowerShell that did not run
+REM included: what follows is a deletion.
+setlocal
+set "PSREAD=if ($null -eq [Console]::In.ReadLine()) { exit 2 }"
+REM System32 is the current directory around the read: root.bat's
+REM :leave_folder says why.
+call "%%LIB_DIR%%..\root.bat" :leave_folder
+if errorlevel 1 exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "%PSREAD%"
+set "PSREAD_RC=%ERRORLEVEL%"
+popd >nul 2>&1
+if not "%PSREAD_RC%"=="0" (
+    echo Error: no answer was read. Nothing has been deleted.
+    exit /b 1
+)
+exit /b 0
+
 :require_deleted
 REM Deletes what the first argument names, a directory or a file, and
 REM refuses to go on where it is still there afterward.
