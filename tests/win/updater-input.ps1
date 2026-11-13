@@ -248,16 +248,12 @@ Test-Same 'the checksum check refuses its name in another case' 'refused' `
 Remove-Item Env:TMPDIR, Env:FILE
 
 # --- gpg's status output ---------------------------------------------------------
-# :verify_pgp_signature in lib.bat counts the good signatures in the status
-# file by the pins in the fingerprints file, with :load_pin_reader's text
-# pasted in where it says %PIN_READER_PS%. The findstr lines before it, which
-# refuse a BADSIG and a status without NEWSIG or GOODSIG, are batch and are not
-# run here.
-$lib = Join-Path $utilities 'lib.bat'
-$pinLine = Get-Content -LiteralPath $lib |
-  Where-Object { $_.StartsWith('set "PIN_READER_PS=') } | Select-Object -First 1
-$pinReader = $pinLine.Substring(19, $pinLine.Length - 20)
-$verifyPs = (Get-BatchPowerShell 'lib.bat' 'Write-Output ($env:LABEL + '': good signatures from ''').Replace('%PIN_READER_PS%', $pinReader)
+# :pgp_read_status in lib.bat counts the good signatures in the status file
+# against the number asked for. Every key in a status line is one gpg found in
+# the keyring, so these cases are about how the lines are read. The findstr
+# lines before it, which refuse a BADSIG and a status without NEWSIG, are batch
+# and are not run here.
+$verifyPs = Get-BatchPowerShell 'lib.bat' 'Write-Output ($env:LABEL + '': good signatures from '''
 $p1 = '1' * 40
 $p2 = '2' * 40
 $outsider = '3' * 40
@@ -269,28 +265,36 @@ function Get-GoodStatus {
   "[GNUPG:] NEWSIG`n[GNUPG:] GOODSIG $($Signing.Substring(24)) portanode test <t@example.invalid>`n" +
   "[GNUPG:] VALIDSIG $Signing 2026-10-22 1792000000 0 4 0 22 10 00 $Primary`n"
 }
-# 'accepted' or 'refused' for $Status as the status file, under pins $p1 and
-# $p2 that ask for $Min signatures.
+# 'accepted' or 'refused' for $Status as the status file, where $Min
+# signatures are asked for.
 function Test-Status {
-  param([string]$Status, [int]$Min = 1)
-  $pins = Join-Path $tmp 'pins'
-  [IO.File]::WriteAllText($pins, "$p1`n$p2`nmin-signatures=$Min`n")
+  param([string]$Status, [string]$Min = '1')
   $statusFile = Join-Path $tmp 'status'
   [IO.File]::WriteAllText($statusFile, $Status)
-  $env:FPR_FILE = $pins
+  $env:MIN_SIGS = $Min
   $env:STATUS_FILE = $statusFile
   $env:LABEL = 'test'
+  $env:KEYRING_NAME = 'keys.gpg'
   $null = & $exe -NoProfile -Command $verifyPs 2>&1
   if ($LASTEXITCODE -eq 0) { 'accepted' } else { 'refused' }
 }
-Test-Same 'the signature check accepts a signature by a pinned key' 'accepted' `
+Test-Same 'the signature check accepts a signature by a key' 'accepted' `
   (Test-Status (Get-GoodStatus $p1 $p1))
-Test-Same 'the signature check accepts a signature by a pinned key''s subkey' 'accepted' `
+Test-Same 'the signature check accepts a signature by a key''s subkey' 'accepted' `
   (Test-Status (Get-GoodStatus $sub1 $p1))
+$f64 = $p1 + $sub1.Substring(0, 24)
+Test-Same 'the signature check accepts a signature by a key with a 64-digit fingerprint' 'accepted' `
+  (Test-Status (Get-GoodStatus $f64 $f64))
 Test-Same 'the signature check refuses empty gpg output' 'refused' (Test-Status '')
 Test-Same 'the signature check refuses a NEWSIG alone' 'refused' (Test-Status "[GNUPG:] NEWSIG`n")
-Test-Same 'the signature check refuses a good signature by a key that is not pinned' 'refused' `
-  (Test-Status (Get-GoodStatus $outsider $outsider))
+Test-Same 'the signature check refuses a primary fingerprint of 39 digits' 'refused' `
+  (Test-Status (Get-GoodStatus $p1 $p1.Substring(1)))
+Test-Same 'the signature check refuses a primary fingerprint that is not hex' 'refused' `
+  (Test-Status (Get-GoodStatus $p1 ($p1.Substring(1) + 'G')))
+foreach ($min in '0', 'x', '', '1000000000', ' 1') {
+  Test-Same "the signature check refuses '$min' as the number of signatures" 'refused' `
+    (Test-Status (Get-GoodStatus $p1 $p1) $min)
+}
 Test-Same 'the signature check refuses a GOODSIG with no VALIDSIG' 'refused' `
   (Test-Status (((Get-GoodStatus $p1 $p1) -split "`n" | Where-Object { $_ -notmatch 'VALIDSIG' }) -join "`n"))
 Test-Same 'the signature check refuses a VALIDSIG with no GOODSIG' 'refused' `
@@ -301,8 +305,6 @@ Test-Same 'the signature check refuses a GOODSIG and a VALIDSIG of two keys' 're
   (Test-Status ("[GNUPG:] NEWSIG`n" + $outsiderLines[1] + "`n" + $goodLines[2] + "`n"))
 Test-Same 'the signature check refuses a GOODSIG and a VALIDSIG in two signatures' 'refused' `
   (Test-Status ($outsiderLines[0] + "`n" + $outsiderLines[1] + "`n" + $goodLines[0] + "`n" + $goodLines[2] + "`n"))
-Test-Same 'the signature check refuses a pinned signing key under an unpinned primary' 'refused' `
-  (Test-Status (Get-GoodStatus $p1 $outsider))
 Test-Same 'the signature check refuses two GOODSIG lines in one signature' 'refused' `
   (Test-Status ((Get-GoodStatus $p1 $p1) + $outsiderLines[1] + "`n"))
 Test-Same 'the signature check refuses a revoked key''s signature' 'refused' `
@@ -314,14 +316,52 @@ Test-Same 'the signature check refuses an expired key''s signature' 'refused' `
 Test-Same 'the signature check refuses a status line that does not start the line' 'refused' `
   (Test-Status ((Get-GoodStatus $p1 $p1).Replace('[GNUPG:]', ' [GNUPG:]')))
 Test-Same 'the signature check refuses one of two required signatures' 'refused' `
-  (Test-Status (Get-GoodStatus $p1 $p1) 2)
+  (Test-Status (Get-GoodStatus $p1 $p1) '2')
 Test-Same 'the signature check refuses one key signing twice for two required signatures' 'refused' `
-  (Test-Status ((Get-GoodStatus $p1 $p1) + (Get-GoodStatus $sub1 $p1)) 2)
-Test-Same 'the signature check accepts two pinned keys for two required signatures' 'accepted' `
-  (Test-Status ((Get-GoodStatus $p1 $p1) + (Get-GoodStatus $p2 $p2)) 2)
-Test-Same 'the signature check refuses a pinned and an unpinned key for two required signatures' 'refused' `
-  (Test-Status ((Get-GoodStatus $p1 $p1) + (Get-GoodStatus $outsider $outsider)) 2)
-Remove-Item Env:FPR_FILE, Env:STATUS_FILE, Env:LABEL
+  (Test-Status ((Get-GoodStatus $p1 $p1) + (Get-GoodStatus $sub1 $p1)) '2')
+Test-Same 'the signature check accepts two keys for two required signatures' 'accepted' `
+  (Test-Status ((Get-GoodStatus $p1 $p1) + (Get-GoodStatus $p2 $p2)) '2')
+# Get-GoodStatus with $Hash as the VALIDSIG's hash algorithm, which it gives
+# as 10, SHA-512.
+function Get-HashStatus {
+  param([string]$Hash, [string]$Fpr)
+  (Get-GoodStatus $Fpr $Fpr).Replace(' 22 10 00 ', " 22 $Hash 00 ")
+}
+Test-Same 'the signature check accepts a signature over SHA-256' 'accepted' `
+  (Test-Status (Get-HashStatus '8' $p1))
+foreach ($hash in '1', '2', '3', '03', 'x') {
+  Test-Same "the signature check refuses '$hash' as the hash algorithm" 'refused' `
+    (Test-Status (Get-HashStatus $hash $p1))
+}
+Test-Same 'the signature check refuses a signature over SHA-1 as one of two required signatures' 'refused' `
+  (Test-Status ((Get-GoodStatus $p1 $p1) + (Get-HashStatus '2' $p2)) '2')
+$null = Test-Status (Get-HashStatus '2' $p1)
+$out = (& $exe -NoProfile -Command $verifyPs 2>&1) -join "`n"
+# The line a refusal for a weak hash prints, whole.
+$weakLine = '1 signature(s) on test use MD5, SHA-1 or RIPEMD-160, a weak hash, and do not count.'
+Test-Same 'the refusal of a signature over SHA-1 names the hash rule' 'True' `
+  ([string](@(($out -split "`r?`n") | Where-Object { $_ -ceq $weakLine }).Count -eq 1))
+# The status gpg 2.5.24 writes for a real signature over MD5 by a key the
+# keyring holds, code 5, or does not hold, code 9: ERRSIG and no GOODSIG.
+function Get-Md5Status {
+  param([string]$Fpr, [string]$Rc)
+  "[GNUPG:] NEWSIG`n[GNUPG:] ERRSIG $($Fpr.Substring(24)) 22 1 00 1794537603 $Rc $Fpr`n" +
+  "[GNUPG:] FAILURE gpg-exit 33554433`n"
+}
+$null = Test-Status (Get-Md5Status $p1 '5')
+$out = (& $exe -NoProfile -Command $verifyPs 2>&1) -join "`n"
+Test-Same 'the refusal of a signature over MD5 names the hash rule' 'True' `
+  ([string](@(($out -split "`r?`n") | Where-Object { $_ -ceq $weakLine }).Count -eq 1))
+Test-Contain 'the refusal of a signature over MD5 says no key verified it' $out 'verifies against a key in keys.gpg'
+$null = Test-Status ((Get-GoodStatus $p1 $p1) + (Get-Md5Status $p2 '5')) '2'
+$out = (& $exe -NoProfile -Command $verifyPs 2>&1) -join "`n"
+Test-Same 'the refusal of a signature over MD5 as one of two required signatures names the hash rule' 'True' `
+  ([string](@(($out -split "`r?`n") | Where-Object { $_ -ceq $weakLine }).Count -eq 1))
+$null = Test-Status (Get-Md5Status $p1 '9')
+$out = (& $exe -NoProfile -Command $verifyPs 2>&1) -join "`n"
+Test-Same 'the refusal of a signature over MD5 by a key not in the keyring does not name the hash' 'False' `
+  ([string]$out.Contains('weak hash'))
+Remove-Item Env:MIN_SIGS, Env:STATUS_FILE, Env:LABEL, Env:KEYRING_NAME
 
 Remove-Item Env:SCRIPT_DIR
 Remove-Item -LiteralPath $tmp -Recurse -Force

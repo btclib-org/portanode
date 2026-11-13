@@ -381,12 +381,12 @@ what it launches.** The hooks read prose, configuration and, through
 `shellcheck`, the `.sh` and `.command` launchers themselves —
 `shellcheck` reads a launcher by its shebang rather than by directory,
 so `linux/scripts/`'s own `.sh` files are in scope already and reaching
-them added no hook. The suite runs a launcher's menu and leaves it, no
-binary being in the tree, except as `tests/README.md` says. So a change
-to what a launcher starts is verified by running it on a macOS, a
-Windows and a Linux machine, from a volume that is not the boot disk —
-which is the case the paths in these scripts exist for, and the one a
-checkout on an internal disk never exercises.
+them added no hook. The suite starts neither Bitcoin Core nor Electrum,
+as `tests/README.md` says. So a change to what a launcher starts is
+verified by running it on a macOS, a Windows and a Linux machine, from a
+volume that is not the boot disk — which is the case the paths in these
+scripts exist for, and the one a checkout on an internal disk never
+exercises.
 
 **The bash style is ShellCheck with every optional check but those
 declined below, and shfmt's layout with `-i 4 -ci -bn -sr -ln bash`.**
@@ -495,7 +495,7 @@ updaters malformed `SHA256SUMS`, signature output and version strings**,
 and expect each refused with nothing installed. They stand in for a fuzzer
 ([ISS 646](https://github.com/btclib-org/portanode/issues/646)). The shell
 one runs the macOS and Linux updaters in a copy of the tree with
-a real throwaway key, and is skipped without `gpg`; the PowerShell one runs the
+real throwaway keys, and is skipped without `gpg`; the PowerShell one runs the
 PowerShell inside the `.bat` files, read from them, and runs on any system
 with `pwsh`. It also checks that each fetch offers TLS 1.2 and leaves
 `SystemDefault` alone. It is in the suite, so `tests/run.ps1` runs it:

@@ -12,8 +12,8 @@
 #
 # The updaters run in a copy of the tree with curl, pgrep, uname, sysctl and
 # hdiutil replaced by stubs on PATH. curl serves files from a directory, and the
-# signatures are real: gpg signs with a key made for the run, whose
-# fingerprint is the only one the copy's keys/*.fingerprints pin.
+# signatures are real: gpg signs with keys made for the run, and the copy's
+# keys/*.gpg hold those keys alone.
 # win/scripts/utilities holds the Windows halves, tested in
 # tests/win/updater-input.ps1.
 
@@ -31,7 +31,7 @@ if ! command -v gpg > /dev/null; then
     exit 0
 fi
 
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-input.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-input.XXXXXX")" || exit 1
 WORK="$(cd "$WORK" && pwd -P)"
 # gpg-agent's socket path is bounded, so the homes are short.
 HOME_A="$(mktemp -d "${TMPDIR:-/tmp}/key-a.XXXXXX")"
@@ -47,26 +47,36 @@ trap cleanup EXIT
 
 unset PORTANODE_ROOT
 
-# --- keys: A is pinned; B signs as an outsider ----------------------------
+# --- keys: A holds the three keys keys/ ships; B and C are outsiders ------
+# B is the user's: the updaters run with GNUPGHOME at HOME_B, so a signature
+# by B is one by a key the user's keyring holds. C is in no keyring.
+gen_key() { # gen_key HOMEDIR NAME
+    gpg --homedir "$1" --batch --passphrase '' --quick-gen-key \
+        "portanode $2 <$2@example.invalid>" ed25519 sign never > /dev/null 2>&1
+}
 for h in "$HOME_A" "$HOME_B" "$HOME_C"; do
     chmod 700 "$h"
-    gpg --homedir "$h" --batch --passphrase '' --quick-gen-key \
-        "portanode test <t@example.invalid>" ed25519 sign never > /dev/null 2>&1
 done
-fpr_of() {
+gen_key "$HOME_A" a1
+gen_key "$HOME_A" a2
+gen_key "$HOME_A" a3
+gen_key "$HOME_B" b
+gen_key "$HOME_C" c
+fprs_of() {
     gpg --homedir "$1" --with-colons --list-keys 2> /dev/null \
-        | awk -F: '$1 == "fpr" { print $10; exit }'
+        | awk -F: '$1 == "pub" { want = 1 } $1 == "fpr" && want { print $10; want = 0 }'
 }
-FPR_A="$(fpr_of "$HOME_A")"
-FPR_B="$(fpr_of "$HOME_B")"
-FPR_C="$(fpr_of "$HOME_C")"
-if [ "${#FPR_A}" -ne 40 ] || [ "${#FPR_B}" -ne 40 ] || [ "${#FPR_C}" -ne 40 ]; then
-    echo "not ok - gpg made no test key"
-    exit 1
-fi
-# B's public key, for the cases where an unpinned key is in the keyring.
-gpg --homedir "$HOME_B" --export 2> /dev/null \
-    | gpg --homedir "$HOME_A" --batch --import > /dev/null 2>&1
+read -r -d '' FPR_A1 FPR_A2 FPR_A3 < <(fprs_of "$HOME_A") || true
+FPR_B="$(fprs_of "$HOME_B")"
+FPR_C="$(fprs_of "$HOME_C")"
+for f in "$FPR_A1" "$FPR_A2" "$FPR_A3" "$FPR_B" "$FPR_C"; do
+    if [ "${#f}" -ne 40 ]; then
+        echo "not ok - gpg made no test key"
+        exit 1
+    fi
+done
+# The keyring the copy of the tree ships, as keys/ holds one: A's three keys.
+gpg --homedir "$HOME_A" --export > "$WORK/keys.gpg" 2> /dev/null
 sign() { # sign FILE HOMEDIR [KEY...]: writes FILE.asc
     local file="$1" home="$2" key args=()
     shift 2
@@ -83,8 +93,8 @@ fresh_tree() {
     rm -rf "$TREE"
     mkdir -p "$TREE"
     tar -C "$TREE" -xf "$WORK/tree.tar"
-    printf '%s\nmin-signatures=1\n' "$FPR_A" > "$TREE/keys/bitcoin-core.fingerprints"
-    printf '%s\n' "$FPR_A" > "$TREE/keys/electrum.fingerprints"
+    cp "$WORK/keys.gpg" "$TREE/keys/bitcoin-core.gpg"
+    cp "$WORK/keys.gpg" "$TREE/keys/electrum.gpg"
 }
 
 STUBS="$WORK/stubs"
@@ -141,7 +151,7 @@ run_updater() {
     RC=0
     OUT="$(env -u PORTANODE_ROOT PATH="$STUBS:$PATH" OSTYPE="$ostype" \
         STUB_ARCH="$arch" STUB_SYSCTL="${STUB_SYSCTL-1}" CURL_LOG="$WORK/curl.log" \
-        SERVE="$SERVE" TMPDIR="$WORK" GNUPGHOME="$HOME_A" \
+        SERVE="$SERVE" TMPDIR="$WORK" GNUPGHOME="$HOME_B" \
         bash "$TREE/$script" "$@" 2>&1)" || RC=$?
 }
 
@@ -218,8 +228,11 @@ serve_release() {
     HASH="$(hash_of "$SERVE/$FILE")"
     OTHER="$(printf 'another file' | { shasum -a 256 2> /dev/null || sha256sum; } | awk '{print $1}')"
 }
-# publish_sums: signs $SERVE/SHA256SUMS with the pinned key.
-publish_sums() { sign "$SERVE/SHA256SUMS" "$HOME_A"; }
+# publish_sums: signs $SERVE/SHA256SUMS with the three keys of keys/, as
+# many as the updaters ask of Bitcoin Core.
+publish_sums() {
+    sign "$SERVE/SHA256SUMS" "$HOME_A" "$FPR_A1" "$FPR_A2" "$FPR_A3"
+}
 # the lines a correct SHA256SUMS holds
 good_sums() {
     printf '%s  %s\n' "$HASH" "$FILE"
@@ -244,7 +257,7 @@ sums_case() {
     publish_sums
     bitcoin_run "$script" "$ostype" "$arch"
     refused "Checksum failed" || return 1
-    contains "$OUT" "good signatures from 1 key(s)"
+    contains "$OUT" "good signatures from 3 key(s)"
 }
 sums_empty() { :; }
 sums_hash_cut() {
@@ -429,7 +442,7 @@ serve_electrum() {
     rm -rf "$SERVE"
     mkdir -p "$SERVE"
     printf 'installer of %s\n' "$2" > "$SERVE/$EFILE"
-    sign "$SERVE/$EFILE" "$HOME_A"
+    sign "$SERVE/$EFILE" "$HOME_A" "$FPR_A1"
 }
 # sig_case SCRIPT OSTYPE ARCH KIND PRODUCT WANT: what the updater is served
 # (the file the signature covers, then the signature, spoiled as KIND says)
@@ -450,28 +463,46 @@ sig_case() {
     esac
     case "$kind" in
         unimported) sign "$file" "$HOME_C" ;;
-        unpinned) sign "$file" "$HOME_B" ;;
-        pinned) sign "$file" "$HOME_A" ;;
+        user) sign "$file" "$HOME_B" ;;
+        shipped) sign "$file" "$HOME_A" "$FPR_A1" "$FPR_A2" "$FPR_A3" ;;
+        short) sign "$file" "$HOME_A" "$FPR_A1" "$FPR_A2" ;;
+        short_user)
+            # two signatures by keys of keys/, and one by the user's key
+            sign "$file" "$HOME_B"
+            mv "$file.asc" "$WORK/user.asc"
+            sign "$file" "$HOME_A" "$FPR_A1" "$FPR_A2"
+            cat "$WORK/user.asc" >> "$file.asc"
+            ;;
         tampered)
-            sign "$file" "$HOME_A"
+            sign "$file" "$HOME_A" "$FPR_A1" "$FPR_A2" "$FPR_A3"
             printf 'x' >> "$file"
             ;;
         garbage) printf '<html>404</html>\n' > "$file.asc" ;;
         empty) : > "$file.asc" ;;
         other)
             printf 'something else\n' > "$WORK/other"
-            sign "$WORK/other" "$HOME_A"
+            sign "$WORK/other" "$HOME_A" "$FPR_A1" "$FPR_A2" "$FPR_A3"
             cp "$WORK/other.asc" "$file.asc"
             ;;
         missing) rm -f "$file.asc" ;;
+        no_keyring)
+            sign "$file" "$HOME_A" "$FPR_A1" "$FPR_A2" "$FPR_A3"
+            rm -f "$TREE/keys/bitcoin-core.gpg" "$TREE/keys/electrum.gpg"
+            ;;
+        empty_keyring)
+            sign "$file" "$HOME_A" "$FPR_A1" "$FPR_A2" "$FPR_A3"
+            : > "$TREE/keys/bitcoin-core.gpg"
+            : > "$TREE/keys/electrum.gpg"
+            ;;
         *) ;;
     esac
+
     BEFORE="$(snapshot)"
     case "$script" in
         *bitcoin*) run_updater "$ostype" "$arch" "$script" --version 29.0 ;;
         *) run_updater "$ostype" "$arch" "$script" --version 4.6.0 ;;
     esac
-    if [ "$kind" = pinned ]; then
+    if [ "$kind" = shipped ]; then
         [ "$RC" -eq 0 ] || {
             printf '  exit %s\n%s\n' "$RC" "$OUT"
             return 1
@@ -498,15 +529,25 @@ while read -r script ostype arch; do
     esac
     case "$script" in
         linux/*electrum*)
-            check "$name installs what a pinned key signed" \
-                sig_case "$script" "$ostype" "$arch" pinned "Electrum updated to 4.6.0"
+            check "$name installs what a key of keys/ signed" \
+                sig_case "$script" "$ostype" "$arch" shipped "Electrum updated to 4.6.0"
+            ;;
+        *bitcoin*)
+            check "$name refuses two of the three signatures it asks for" \
+                sig_case "$script" "$ostype" "$arch" short "good signatures from 2 key(s)"
+            check "$name does not count a signature by the user's key" \
+                sig_case "$script" "$ostype" "$arch" short_user "good signatures from 2 key(s)"
             ;;
         *) ;;
     esac
-    check "$name refuses a signature by a key nobody imported" \
-        sig_case "$script" "$ostype" "$arch" unimported "no valid PGP signature"
-    check "$name refuses a good signature by an imported key that is not pinned" \
-        sig_case "$script" "$ostype" "$arch" unpinned "good signatures from 0 key(s)"
+    check "$name refuses a signature by a key in no keyring" \
+        sig_case "$script" "$ostype" "$arch" unimported "verifies against a key in"
+    check "$name refuses a good signature by a key the user's keyring holds" \
+        sig_case "$script" "$ostype" "$arch" user "verifies against a key in"
+    check "$name refuses where keys/ holds no keyring" \
+        sig_case "$script" "$ostype" "$arch" no_keyring "missing, empty or unreadable"
+    check "$name refuses an empty keyring" \
+        sig_case "$script" "$ostype" "$arch" empty_keyring "missing, empty or unreadable"
     check "$name refuses a file changed after it was signed" \
         sig_case "$script" "$ostype" "$arch" tampered "BAD PGP signature"
     check "$name refuses an error page for a signature" \
@@ -520,7 +561,9 @@ while read -r script ostype arch; do
 done <<< "$SIGNED"
 
 # pgp_verify_or_fail on the status lines gpg is made to print. A stub gpg
-# prints $STATUS, so each case is one status output and one pin file.
+# prints $STATUS, so each case is one status output and one number of
+# signatures asked for. Every key in a status line is one gpg found in the
+# keyring, so these cases are about how the lines are read.
 mkdir -p "$WORK/gpgstub"
 printf '#!/bin/sh\ncat "$STATUS"\n' > "$WORK/gpgstub/gpg"
 chmod +x "$WORK/gpgstub/gpg"
@@ -534,19 +577,20 @@ status_good() {
     printf '[GNUPG:] GOODSIG %s portanode test <t@example.invalid>\n' "${1#"${1%????????????????}"}"
     printf '[GNUPG:] VALIDSIG %s 2026-10-22 1792000000 0 4 0 22 10 00 %s\n' "$1" "$2"
 }
-# pgp_case WANT MIN: the status on stdin; WANT is accept or refuse. The pin
-# file holds P1 and P2, and min-signatures MIN.
+# pgp_case WANT MIN [KEYRING]: the status on stdin; WANT is accept or
+# refuse, MIN the signatures asked for, KEYRING the keyring given, a file
+# holding one byte where it is not given.
 pgp_case() {
-    local verdict="$1" min="$2" got=accept
-    printf '%s\n%s\nmin-signatures=%s\n' "$P1" "$P2" "$min" > "$WORK/pins"
+    local verdict="$1" min="$2" keyring="${3:-$WORK/keyring}" got=accept
+    printf 'k' > "$WORK/keyring"
     cat > "$WORK/status"
     : > "$WORK/data"
     # shellcheck source=shared/utilities/lib.sh
     (
         . "$REPO/shared/utilities/lib.sh"
         PATH="$WORK/gpgstub:$PATH" STATUS="$WORK/status" \
-            pgp_verify_or_fail "$WORK/data" "$WORK/data" "test" "$WORK/pins" \
-            > "$WORK/pgp.out" 2>&1
+            pgp_verify_or_fail "$WORK/data" "$WORK/data" "test" "$keyring" \
+            "$min" > "$WORK/pgp.out" 2>&1
     ) || got=refuse
     if [ "$got" != "$verdict" ]; then
         printf '  %s, wanted %s\n' "$got" "$verdict"
@@ -554,14 +598,30 @@ pgp_case() {
         return 1
     fi
 }
-check "a signature by a pinned key is accepted" \
+check "a signature by a key is accepted" \
     pgp_case accept 1 < <(status_good "$P1" "$P1")
-check "a signature by a pinned key's subkey is accepted" \
+check "a signature by a key's subkey is accepted" \
     pgp_case accept 1 < <(status_good "$SUB1" "$P1")
+check "a signature by a key with a 64-digit fingerprint is accepted" \
+    pgp_case accept 1 < <(status_good "$P1${SUB1:0:24}" "$P1${SUB1:0:24}")
 check "empty gpg output is refused" pgp_case refuse 1 < /dev/null
 check "a NEWSIG alone is refused" pgp_case refuse 1 < <(echo '[GNUPG:] NEWSIG')
-check "a good signature by a key that is not pinned is refused" \
-    pgp_case refuse 1 < <(status_good "$OUTSIDER" "$OUTSIDER")
+check "a primary fingerprint of 39 digits is refused" \
+    pgp_case refuse 1 < <(status_good "$P1" "${P1%?}")
+check "a primary fingerprint that is not hex is refused" \
+    pgp_case refuse 1 < <(status_good "$P1" "${P1%?}G")
+check "a keyring that does not exist is refused" \
+    pgp_case refuse 1 "$WORK/absent.gpg" < <(status_good "$P1" "$P1")
+check "an empty keyring is refused" \
+    pgp_case refuse 1 /dev/null < <(status_good "$P1" "$P1")
+check "a number of signatures of 0 is refused" \
+    pgp_case refuse 0 < <(status_good "$P1" "$P1")
+check "a number of signatures that is not a number is refused" \
+    pgp_case refuse x < <(status_good "$P1" "$P1")
+check "no number of signatures is refused" \
+    pgp_case refuse "" < <(status_good "$P1" "$P1")
+check "a number of signatures of ten digits is refused" \
+    pgp_case refuse 1000000000 < <(status_good "$P1" "$P1")
 check "a GOODSIG with no VALIDSIG is refused" \
     pgp_case refuse 1 < <(status_good "$P1" "$P1" | grep -v VALIDSIG)
 check "a VALIDSIG with no GOODSIG is refused" \
@@ -577,8 +637,6 @@ check "a GOODSIG and a VALIDSIG in two signatures are refused" \
         status_good "$OUTSIDER" "$OUTSIDER" | sed -n 1,2p
         status_good "$P1" "$P1" | sed -n -e 1p -e 3p
     )
-check "a pinned fingerprint as the signing key of an unpinned primary is refused" \
-    pgp_case refuse 1 < <(status_good "$P1" "$OUTSIDER")
 check "two GOODSIG lines in one signature are refused" \
     pgp_case refuse 1 < <(
         status_good "$P1" "$P1"
@@ -610,16 +668,85 @@ check "one key signing twice is one of two required signatures" \
         status_good "$P1" "$P1"
         status_good "$SUB1" "$P1"
     )
-check "two pinned keys meet two required signatures" \
+check "two keys meet two required signatures" \
     pgp_case accept 2 < <(
         status_good "$P1" "$P1"
         status_good "$P2" "$P2"
     )
-check "one pinned and one unpinned key do not meet two required signatures" \
+# status_hash HASH SIGNING_FPR PRIMARY_FPR: status_good with HASH as the
+# VALIDSIG's hash algorithm, which status_good gives as 10, SHA-512.
+status_hash() {
+    status_good "$2" "$3" | sed "s/ 22 10 00 / 22 $1 00 /"
+}
+check "a signature over SHA-256 is accepted" \
+    pgp_case accept 1 < <(status_hash 8 "$P1" "$P1")
+check "a signature over MD5 is refused" \
+    pgp_case refuse 1 < <(status_hash 1 "$P1" "$P1")
+check "a signature over SHA-1 is refused" \
+    pgp_case refuse 1 < <(status_hash 2 "$P1" "$P1")
+check "the refusal of a signature over SHA-1 names the hash rule" \
+    grep -qxF '1 signature(s) on test use MD5, SHA-1 or RIPEMD-160, a weak hash, and do not count.' \
+    "$WORK/pgp.out"
+check "a signature over RIPEMD-160 is refused" \
+    pgp_case refuse 1 < <(status_hash 3 "$P1" "$P1")
+check "a hash algorithm of 3 written 03 is refused" \
+    pgp_case refuse 1 < <(status_hash 03 "$P1" "$P1")
+check "a hash algorithm that is not a number is refused" \
+    pgp_case refuse 1 < <(status_hash x "$P1" "$P1")
+check "a signature over SHA-1 is not one of two required signatures" \
     pgp_case refuse 2 < <(
         status_good "$P1" "$P1"
-        status_good "$OUTSIDER" "$OUTSIDER"
+        status_hash 2 "$P2" "$P2"
     )
+
+# Real signatures over a weak hash, by keys of keys/: measured with gpg
+# 2.5.24, one over MD5 gives ERRSIG and no GOODSIG, and one over SHA-1 gives
+# GOODSIG and VALIDSIG.
+# weak_case MIN DIGEST:USER...: pgp_verify_or_fail with MIN on one signature
+# per DIGEST:USER, made by USER of HOME_A over DIGEST; 0 where it refuses
+# and its message names the hash.
+weak_case() {
+    local min="$1" spec
+    shift
+    printf 'weak\n' > "$WORK/weak.data"
+    : > "$WORK/weak.sig"
+    for spec in "$@"; do
+        gpg --homedir "$HOME_A" --batch --yes --digest-algo "${spec%%:*}" \
+            --local-user "${spec#*:}" --output "$WORK/one.sig" \
+            --detach-sign "$WORK/weak.data" > /dev/null 2>&1 \
+            || {
+                echo "  gpg made no ${spec%%:*} signature"
+                return 1
+            }
+        cat "$WORK/one.sig" >> "$WORK/weak.sig"
+    done
+    # shellcheck source=shared/utilities/lib.sh
+    if (
+        . "$REPO/shared/utilities/lib.sh"
+        pgp_verify_or_fail "$WORK/weak.sig" "$WORK/weak.data" test \
+            "$WORK/keys.gpg" "$min" > "$WORK/weak.out" 2>&1
+    ); then
+        echo "  accepted"
+        return 1
+    fi
+    grep -qxF '1 signature(s) on test use MD5, SHA-1 or RIPEMD-160, a weak hash, and do not count.' \
+        "$WORK/weak.out" && return 0
+    sed 's/^/    /' "$WORK/weak.out"
+    return 1
+}
+check "a real signature over MD5 is refused for its hash" \
+    weak_case 1 "MD5:$FPR_A1"
+check "a real signature over SHA-1 is refused for its hash" \
+    weak_case 1 "SHA1:$FPR_A1"
+check "a real signature over MD5 is not one of two required signatures" \
+    weak_case 2 "SHA256:$FPR_A1" "MD5:$FPR_A2"
+check "a signature over MD5 by a key in no keyring is refused" \
+    pgp_case refuse 1 < <(
+        printf '[GNUPG:] NEWSIG\n[GNUPG:] ERRSIG %s 22 1 00 1794537603 9 %s\n' \
+            "${P1#"${P1%????????????????}"}" "$P1"
+    )
+check "the refusal of a signature over MD5 by a key in no keyring does not name the hash" \
+    bash -c '! grep -q "weak hash" "$1"' _ "$WORK/pgp.out"
 
 # --- a version string ------------------------------------------------------
 # A version reaches a URL, a file name and a directory name, so only digits

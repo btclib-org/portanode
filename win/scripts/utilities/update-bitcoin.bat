@@ -38,6 +38,10 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM The number of keys in keys\bitcoin-core.gpg that must each sign SHA256SUMS.
+REM tests/sh/min-signatures.sh checks that it equals the number the shell
+REM updaters read from shared/utilities/lib.sh.
+set "MIN_SIGNATURES=3"
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"
 set "ALLOW_DOWNGRADE=0"
@@ -213,8 +217,8 @@ endlocal
 where gpg >nul 2>&1
 if %errorlevel%==0 (
     echo gpg: found.
-    call "%%SCRIPT_DIR%%lib.bat" :warn_if_no_pubkeys
-    call "%%SCRIPT_DIR%%lib.bat" :preview_pinned_keys "%%ROOTDIR%%\keys\bitcoin-core.fingerprints" "keys\bitcoin-core.fingerprints" "the update"
+    call "%%SCRIPT_DIR%%lib.bat" :preview_keyring "%%ROOTDIR%%\keys\bitcoin-core.gpg" ^
+        "keys\bitcoin-core.gpg" "the update" %%MIN_SIGNATURES%%
 ) else (
     echo gpg: not found -- verification would fail closed.
 )
@@ -312,7 +316,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.Servic
 powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\fetch-https.ps1 -Uri $env:CHECKSUM_URL -OutFile ($env:TMPDIR + '\SHA256SUMS') } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\fetch-https.ps1 -Uri $env:CHECKSUM_SIG_URL -OutFile ($env:TMPDIR + '\SHA256SUMS.asc') } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
-call "%%SCRIPT_DIR%%lib.bat" :verify_pgp_signature "%%TMPDIR%%\SHA256SUMS.asc" "%%TMPDIR%%\SHA256SUMS" "SHA256SUMS" "%%ROOTDIR%%\keys\bitcoin-core.fingerprints"
+call "%%SCRIPT_DIR%%lib.bat" :verify_pgp_signature "%%TMPDIR%%\SHA256SUMS.asc" ^
+    "%%TMPDIR%%\SHA256SUMS" "SHA256SUMS" "%%ROOTDIR%%\keys\bitcoin-core.gpg" %%MIN_SIGNATURES%%
 if errorlevel 1 goto :error
 
 REM A SHA256SUMS line counts where its name field is FILE, whole and in
