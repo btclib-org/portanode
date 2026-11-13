@@ -23,7 +23,7 @@ REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
 
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tests.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tests.XXXXXX")" || exit 1
 trap 'rm -rf "$WORK"' EXIT
 
 NO_PGREP="$WORK/no-pgrep"
