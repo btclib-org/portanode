@@ -38,42 +38,42 @@ echo 13^) Regtest Carol ^(GUI, clean^)
 echo 14^) Regtest Carol ^(CLI^)
 echo 15^) Regtest Carol ^(CLI, clean^)
 echo 0^) Exit
-set "choice="
-set /p "choice=Select: "
+set "CHOICE="
+set /p "CHOICE=Select: "
 
-if "%choice%"=="" set "choice=0"
-if "%choice%"=="1" set "SCRIPT_REL=win\scripts\bitcoin\mainnet-8333-qt.bat"
-if "%choice%"=="2" set "SCRIPT_REL=win\scripts\bitcoin\testnet3-18333-qt.bat"
-if "%choice%"=="3" set "SCRIPT_REL=win\scripts\bitcoin\testnet4-48333-qt.bat"
-if "%choice%"=="4" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-qt.bat"
-if "%choice%"=="5" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-qt-clean.bat"
-if "%choice%"=="6" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-cli.bat"
-if "%choice%"=="7" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-cli-clean.bat"
-if "%choice%"=="8" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-qt.bat"
-if "%choice%"=="9" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-qt-clean.bat"
-if "%choice%"=="10" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-cli.bat"
-if "%choice%"=="11" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-cli-clean.bat"
-if "%choice%"=="12" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-qt.bat"
-if "%choice%"=="13" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-qt-clean.bat"
-if "%choice%"=="14" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-cli.bat"
-if "%choice%"=="15" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-cli-clean.bat"
-if "%choice%"=="0" goto end
+if "%CHOICE%"=="" set "CHOICE=0"
+if "%CHOICE%"=="1" set "SCRIPT_REL=win\scripts\bitcoin\mainnet-8333-qt.bat"
+if "%CHOICE%"=="2" set "SCRIPT_REL=win\scripts\bitcoin\testnet3-18333-qt.bat"
+if "%CHOICE%"=="3" set "SCRIPT_REL=win\scripts\bitcoin\testnet4-48333-qt.bat"
+if "%CHOICE%"=="4" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-qt.bat"
+if "%CHOICE%"=="5" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-qt-clean.bat"
+if "%CHOICE%"=="6" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-cli.bat"
+if "%CHOICE%"=="7" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18444-Alice-cli-clean.bat"
+if "%CHOICE%"=="8" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-qt.bat"
+if "%CHOICE%"=="9" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-qt-clean.bat"
+if "%CHOICE%"=="10" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-cli.bat"
+if "%CHOICE%"=="11" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18555-Bob-cli-clean.bat"
+if "%CHOICE%"=="12" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-qt.bat"
+if "%CHOICE%"=="13" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-qt-clean.bat"
+if "%CHOICE%"=="14" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-cli.bat"
+if "%CHOICE%"=="15" set "SCRIPT_REL=win\scripts\bitcoin\regtest-18666-Carol-cli-clean.bat"
+if "%CHOICE%"=="0" goto end
 
-if "%choice%"=="1" goto run
-if "%choice%"=="2" goto run
-if "%choice%"=="3" goto run
-if "%choice%"=="4" goto run
-if "%choice%"=="5" goto run
-if "%choice%"=="6" goto run
-if "%choice%"=="7" goto run
-if "%choice%"=="8" goto run
-if "%choice%"=="9" goto run
-if "%choice%"=="10" goto run
-if "%choice%"=="11" goto run
-if "%choice%"=="12" goto run
-if "%choice%"=="13" goto run
-if "%choice%"=="14" goto run
-if "%choice%"=="15" goto run
+if "%CHOICE%"=="1" goto run
+if "%CHOICE%"=="2" goto run
+if "%CHOICE%"=="3" goto run
+if "%CHOICE%"=="4" goto run
+if "%CHOICE%"=="5" goto run
+if "%CHOICE%"=="6" goto run
+if "%CHOICE%"=="7" goto run
+if "%CHOICE%"=="8" goto run
+if "%CHOICE%"=="9" goto run
+if "%CHOICE%"=="10" goto run
+if "%CHOICE%"=="11" goto run
+if "%CHOICE%"=="12" goto run
+if "%CHOICE%"=="13" goto run
+if "%CHOICE%"=="14" goto run
+if "%CHOICE%"=="15" goto run
 
 echo Invalid selection.
 echo.
@@ -84,6 +84,9 @@ call :run_script
 echo.
 goto menu
 
+REM :run_script
+REM Runs the script SCRIPT_REL names under ROOTDIR, and says so where none
+REM is there or where it returns an errorlevel of 1 or more.
 :run_script
 set "SCRIPT=%ROOTDIR%\%SCRIPT_REL%"
 if not exist "%SCRIPT%" (

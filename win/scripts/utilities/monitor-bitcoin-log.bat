@@ -24,6 +24,7 @@ if errorlevel 1 (
 set "LOG_FILE=%ROOTDIR%\bitcoin-datadir\debug.log"
 
 set "NO_NOTIFY_ARG="
+
 :parse_args
 if "%~1"=="" goto :args_done
 if "%~1"=="--no-notify" (
@@ -34,6 +35,7 @@ if "%~1"=="--no-notify" (
 echo Usage: %~nx0 [--no-notify]
 call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
+
 :args_done
 
 if not exist "%LOG_FILE%" (

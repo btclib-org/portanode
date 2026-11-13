@@ -118,7 +118,7 @@ try {
   foreach ($name in 'Bitcoin', 'Electrum') {
     # The entries are the numbers the .bat menu maps to a script.
     $entries = @(Get-Content -LiteralPath (Join-Path $repo "$name-Launcher.bat") |
-        Where-Object { $_ -match '^if "%choice%"=="([1-9][0-9]*)" set "SCRIPT_REL=' } |
+        Where-Object { $_ -match '^if "%CHOICE%"=="([1-9][0-9]*)" set "SCRIPT_REL=' } |
         ForEach-Object { $Matches[1] })
     Test-Same "the $name menu maps entries to scripts" 'True' "$($entries.Count -gt 0)"
     $lines = $entries + '0'

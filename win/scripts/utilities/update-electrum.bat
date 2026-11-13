@@ -20,6 +20,7 @@ if errorlevel 1 (
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"
 set "ALLOW_DOWNGRADE=0"
+
 :parse_args
 if "%~1"=="" goto :args_done
 if "%~1"=="--version" (
@@ -41,6 +42,7 @@ if "%~1"=="--allow-downgrade" (
 echo Usage: %~nx0 [--version ^<v^>] [--dry-run] [--allow-downgrade]
 call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
+
 :args_done
 
 REM The current directory is outside the folder, for the reason
@@ -77,6 +79,7 @@ setlocal enabledelayedexpansion
 echo Requested Electrum version: !VERSION!
 endlocal
 goto :version_ready
+
 :scrape_version
 set VERSION=
 REM Blinter's E010 on the loops below is no defect, as health-check.bat
@@ -105,6 +108,7 @@ if not defined VERSION (
 setlocal enabledelayedexpansion
 echo Latest Electrum version: !VERSION!
 endlocal
+
 :version_ready
 
 REM The standalone build, not electrum-<version>-portable.exe. The portable
@@ -152,6 +156,7 @@ if "!VERDICT!"=="OLDER" (
 endlocal
 echo Run again with --allow-downgrade to install it anyway.
 goto :error
+
 :downgrade_checked
 
 REM Flat rather than the one "if ... ( )" this replaced, for the reason
@@ -199,6 +204,7 @@ set /a "ARCHIVE_MB=%ARCHIVE_LEN%/1024/1024"
 echo Archive size: %ARCHIVE_MB% MB ^(downloaded to local temp
 echo storage, not the removable disk^).
 goto :archive_size_done
+
 :archive_size_unknown
 REM Printed rather than the branch falling silent: with no line at
 REM all, an estimate that could not be made reads the same as one
@@ -207,6 +213,7 @@ REM since the timeout above, a request that failed and a response
 REM carrying no Content-Length all reach here alike.
 echo Archive size: unknown ^(the HEAD request returned no
 echo Content-Length^).
+
 :archive_size_done
 set FREE_GB=
 REM Run from its own directory by a relative name: win/scripts/root.ps1
@@ -217,9 +224,11 @@ if not defined FREE_GB goto :free_space_done
 setlocal enabledelayedexpansion
 echo Free space at !ROOTDIR!: !FREE_GB! GB
 endlocal
+
 :free_space_done
 popd >nul 2>&1
 exit /b 0
+
 :dry_run_done
 
 REM Download/verify on the local disk (%TEMP%), never on the removable volume;
@@ -233,9 +242,11 @@ if not defined TMP_ID goto :tmpdir_failed
 mkdir "%TEMP%\portanode-electrum.%TMP_ID%" || goto :tmpdir_failed
 set "TMPDIR=%TEMP%\portanode-electrum.%TMP_ID%"
 goto :tmpdir_done
+
 :tmpdir_failed
 echo Error: could not create a new download directory under %%TEMP%%.
 goto :error
+
 :tmpdir_done
 
 setlocal enabledelayedexpansion

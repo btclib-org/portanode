@@ -34,34 +34,34 @@ echo 9^) Monitor Bitcoin log
 echo 10^) Rotate Bitcoin log
 echo 11^) Clean Windows artifacts
 echo 0^) Exit
-set "choice="
-set /p "choice=Select: "
+set "CHOICE="
+set /p "CHOICE=Select: "
 
-if "%choice%"=="" set "choice=0"
-if "%choice%"=="1" set "SCRIPT_REL=win\scripts\utilities\update-bitcoin.bat"
-if "%choice%"=="2" set "SCRIPT_REL=win\scripts\utilities\update-electrum.bat"
-if "%choice%"=="3" set "SCRIPT_REL=win\scripts\utilities\rollback-bitcoin.bat"
-if "%choice%"=="4" set "SCRIPT_REL=win\scripts\utilities\rollback-electrum.bat"
-if "%choice%"=="5" set "SCRIPT_REL=win\scripts\utilities\verify-binaries.bat"
-if "%choice%"=="6" set "SCRIPT_REL=win\scripts\utilities\validate-setup.bat"
-if "%choice%"=="7" set "SCRIPT_REL=win\scripts\utilities\set-permissions.bat"
-if "%choice%"=="8" set "SCRIPT_REL=win\scripts\utilities\health-check.bat"
-if "%choice%"=="9" set "SCRIPT_REL=win\scripts\utilities\monitor-bitcoin-log.bat"
-if "%choice%"=="10" set "SCRIPT_REL=win\scripts\utilities\rotate-bitcoin-log.bat"
-if "%choice%"=="11" set "SCRIPT_REL=win\scripts\utilities\clean-artifacts.bat"
-if "%choice%"=="0" goto end
+if "%CHOICE%"=="" set "CHOICE=0"
+if "%CHOICE%"=="1" set "SCRIPT_REL=win\scripts\utilities\update-bitcoin.bat"
+if "%CHOICE%"=="2" set "SCRIPT_REL=win\scripts\utilities\update-electrum.bat"
+if "%CHOICE%"=="3" set "SCRIPT_REL=win\scripts\utilities\rollback-bitcoin.bat"
+if "%CHOICE%"=="4" set "SCRIPT_REL=win\scripts\utilities\rollback-electrum.bat"
+if "%CHOICE%"=="5" set "SCRIPT_REL=win\scripts\utilities\verify-binaries.bat"
+if "%CHOICE%"=="6" set "SCRIPT_REL=win\scripts\utilities\validate-setup.bat"
+if "%CHOICE%"=="7" set "SCRIPT_REL=win\scripts\utilities\set-permissions.bat"
+if "%CHOICE%"=="8" set "SCRIPT_REL=win\scripts\utilities\health-check.bat"
+if "%CHOICE%"=="9" set "SCRIPT_REL=win\scripts\utilities\monitor-bitcoin-log.bat"
+if "%CHOICE%"=="10" set "SCRIPT_REL=win\scripts\utilities\rotate-bitcoin-log.bat"
+if "%CHOICE%"=="11" set "SCRIPT_REL=win\scripts\utilities\clean-artifacts.bat"
+if "%CHOICE%"=="0" goto end
 
-if "%choice%"=="1" goto run
-if "%choice%"=="2" goto run
-if "%choice%"=="3" goto run
-if "%choice%"=="4" goto run
-if "%choice%"=="5" goto run
-if "%choice%"=="6" goto run
-if "%choice%"=="7" goto run
-if "%choice%"=="8" goto run
-if "%choice%"=="9" goto run
-if "%choice%"=="10" goto run
-if "%choice%"=="11" goto run
+if "%CHOICE%"=="1" goto run
+if "%CHOICE%"=="2" goto run
+if "%CHOICE%"=="3" goto run
+if "%CHOICE%"=="4" goto run
+if "%CHOICE%"=="5" goto run
+if "%CHOICE%"=="6" goto run
+if "%CHOICE%"=="7" goto run
+if "%CHOICE%"=="8" goto run
+if "%CHOICE%"=="9" goto run
+if "%CHOICE%"=="10" goto run
+if "%CHOICE%"=="11" goto run
 
 echo Invalid selection.
 echo.
@@ -72,6 +72,9 @@ call :run_script
 echo.
 goto menu
 
+REM :run_script
+REM Runs the script SCRIPT_REL names under ROOTDIR, and says so where none
+REM is there or where it returns an errorlevel of 1 or more.
 :run_script
 set "SCRIPT=%ROOTDIR%\%SCRIPT_REL%"
 if not exist "%SCRIPT%" (

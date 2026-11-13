@@ -41,6 +41,7 @@ if errorlevel 1 (
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"
 set "ALLOW_DOWNGRADE=0"
+
 :parse_args
 if "%~1"=="" goto :args_done
 if "%~1"=="--version" (
@@ -62,6 +63,7 @@ if "%~1"=="--allow-downgrade" (
 echo Usage: %~nx0 [--version ^<v^>] [--dry-run] [--allow-downgrade]
 call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
+
 :args_done
 
 REM The current directory is System32 rather than the folder, so that a
@@ -90,6 +92,7 @@ setlocal enabledelayedexpansion
 echo Requested Bitcoin Core version: !VERSION!
 endlocal
 goto :version_ready
+
 :scrape_version
 echo Determining latest Bitcoin Core version...
 set VERSION=
@@ -129,6 +132,7 @@ if not defined VERSION (
 setlocal enabledelayedexpansion
 echo Latest Bitcoin Core with a win64 build: !VERSION!
 endlocal
+
 :version_ready
 REM VERSION reaches here from the scrape, regex-constrained to
 REM digits and dots, or from --version, quoted by whoever calls
@@ -168,6 +172,7 @@ echo Run again with --allow-downgrade to install it anyway.
 popd >nul 2>&1
 call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
+
 :downgrade_checked
 
 set STATUS=0
@@ -235,6 +240,7 @@ set /a "ARCHIVE_MB=%ARCHIVE_LEN%/1024/1024"
 echo Archive size: %ARCHIVE_MB% MB ^(downloaded to local temp
 echo storage, not the removable disk^).
 goto :archive_size_done
+
 :archive_size_unknown
 REM Printed rather than the branch falling silent: with no line at
 REM all, an estimate that could not be made reads the same as one
@@ -243,6 +249,7 @@ REM since the timeout above, a request that failed and a response
 REM carrying no Content-Length all reach here alike.
 echo Archive size: unknown ^(the HEAD request returned no
 echo Content-Length^).
+
 :archive_size_done
 set FREE_GB=
 REM Run from its own directory by a relative name: win/scripts/root.ps1
@@ -253,9 +260,11 @@ if not defined FREE_GB goto :free_space_done
 setlocal enabledelayedexpansion
 echo Free space at !ROOTDIR!: !FREE_GB! GB
 endlocal
+
 :free_space_done
 popd >nul 2>&1
 exit /b 0
+
 :dry_run_done
 
 REM Download/verify/extract on the local disk (%TEMP%), never on the removable
@@ -273,9 +282,11 @@ if not defined TMP_ID goto :tmpdir_failed
 mkdir "%TEMP%\portanode-bitcoin.%TMP_ID%" || goto :tmpdir_failed
 set "TMPDIR=%TEMP%\portanode-bitcoin.%TMP_ID%"
 goto :tmpdir_done
+
 :tmpdir_failed
 echo Error: could not create a new download directory under %%TEMP%%.
 goto :error
+
 :tmpdir_done
 
 setlocal enabledelayedexpansion
@@ -351,9 +362,11 @@ for %%F in ("%TMPDIR%\bitcoin-%VERSION%\bin\*.exe") do (
   if errorlevel 1 goto :install_failed
 )
 goto :install_done
+
 :install_failed
 echo Error: failed to install Bitcoin Core binaries.
 goto :error
+
 :install_done
 
 REM The entries are hashed from the files extracted from the archive

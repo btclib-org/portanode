@@ -352,6 +352,7 @@ if exist "%FILEPATH_FS%" goto :verify_checksum_found
 call :rootdir_relative "%%FILEPATH_FS%%" FILEPATH_REL
 echo Error: %FILEPATH_REL% not found.
 exit /b 1
+
 :verify_checksum_found
 if "%CHECKSUM_FILE%"=="" exit /b 1
 call :rootdir_relative "%%FILEPATH_FS%%" FILEPATH_REL
@@ -446,6 +447,7 @@ if not defined RR_PATH goto :rootdir_relative_done
 set "RR_ROOT=%ROOTDIR%\"
 if "%ROOTDIR:~-1%"=="\" set "RR_ROOT=%ROOTDIR%"
 set "RR_LEN=0"
+
 :rootdir_relative_count
 call set "RR_CHAR=%%RR_ROOT:~%RR_LEN%,1%%"
 if defined RR_CHAR (
@@ -454,6 +456,7 @@ if defined RR_CHAR (
 )
 call set "RR_HEAD=%%RR_PATH:~0,%RR_LEN%%%"
 if /i "%RR_HEAD%"=="%RR_ROOT%" call set "RR_PATH=%%RR_PATH:~%RR_LEN%%%"
+
 :rootdir_relative_done
 set "%RR_OUTVAR%=%RR_PATH%"
 exit /b 0
@@ -482,6 +485,9 @@ if defined GUARD_LISTED exit /b 0
 echo Error: cannot tell whether %GUARD_NAME% is running: tasklist is missing or failed. Not %GUARD_DOING%.
 exit /b 1
 
+REM :normalize_fs_path PATH OUTVAR
+REM Sets OUTVAR to PATH with each / turned into \, the form a Windows
+REM path takes.
 :normalize_fs_path
 set "RAW=%~1"
 set "OUTVAR=%~2"
@@ -489,6 +495,9 @@ set "VAL=%RAW:/=\%"
 set "%OUTVAR%=%VAL%"
 exit /b 0
 
+REM :normalize_entry_path PATH OUTVAR
+REM Sets OUTVAR to PATH with each \ turned into /, the form
+REM CHECKSUM_FILE's entries take.
 :normalize_entry_path
 set "RAW=%~1"
 set "OUTVAR=%~2"

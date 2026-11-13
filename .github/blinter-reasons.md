@@ -3,7 +3,8 @@
 `.github/blinter-baseline.json` accepts each Blinter finding that is no
 defect. This file says why for the Warning rules, one section per rule,
 its heading starting with the rule code. `.pre-commit-config.yaml`'s
-header says why for the Error and Security rules.
+header says why for the Error and Security rules, and the batch style
+in `CONTRIBUTING.md`'s last section says what else the baseline holds.
 `.github/workflows/script-security.yml`'s header says how the job holds
 the two files to each other.
 

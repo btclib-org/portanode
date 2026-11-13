@@ -65,6 +65,7 @@ if defined PORTANODE_ROOT (
 )
 
 set "ROOTDIR=%START_DIR%"
+
 :find_root
 REM A root is marked by VERSION plus one of macos\, win\ or linux\,
 REM which is the marker resolve_root in shared/lib.sh looks for; the
@@ -102,12 +103,12 @@ if "%ROOTDIR:~-1%"=="\" if not "%ROOTDIR:~-2%"==":\" set "ROOTDIR=%ROOTDIR:~0,-1
 if not "%OUTVAR%"=="" set "%OUTVAR%=%ROOTDIR%"
 exit /b 0
 
-:is_root
 REM Errorlevel 0 where ROOTDIR holds VERSION and one of macos\, win\ or
 REM linux\, 1 otherwise. The trailing backslash is what makes "if exist" test
 REM for a directory: without it a plain file named win answers here. VERSION
 REM is tested without one, so a directory of that name answers here where
 REM resolve_root's own [ -f ] refuses it.
+:is_root
 if exist "%ROOTDIR%\VERSION" (
     if exist "%ROOTDIR%\macos\" exit /b 0
     if exist "%ROOTDIR%\win\" exit /b 0

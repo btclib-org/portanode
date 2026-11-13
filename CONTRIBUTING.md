@@ -389,8 +389,9 @@ which is the case the paths in these scripts exist for, and the one a
 checkout on an internal disk never exercises.
 
 **The `.bat` and `.ps1` halves are read by the generic hooks, and by
-`script-security.yml` for PSScriptAnalyzer's findings and for Blinter's
-Error, Security and Warning findings** (*What gates a merge*, below).
+`script-security.yml` for PSScriptAnalyzer's findings and for the
+findings of the Blinter rules the batch style keeps** (*What gates a
+merge*, below).
 The same job refuses a non-ASCII byte and a lone CR in a `.bat` or
 `.cmd`; its header says why. PowerShell's parser is PSScriptAnalyzer,
 and `.pre-commit-config.yaml`'s header says why it is not a hook here.
@@ -478,6 +479,51 @@ It exits non-zero here, and `.pre-commit-config.yaml`'s header says why
 it is not a hook. Read what it reports before believing it, and inspect
 the file from `git archive`, which applies the checkout attributes.
 
+**The batch style is Blinter's rules at every severity, except those
+declined below**, and `script-security.yml` enforces it: its header says
+what fails the job, and `.github/blinter.ini` turns the declined rules
+off. A finding of a rule the style keeps is fixed, or recorded in the
+baseline as *What gates a merge* says. The baseline also holds the lines
+longer than 100 characters, which `S020` reports. A new one is wrapped
+with a `^` at its end, or recorded where that `^` would fall inside
+double quotes, which a `^` does not continue
+([BatchLang/Blinter#80](https://github.com/BatchLang/Blinter/issues/80)
+measured it with `cmd.exe`).
+
+The style declines these rules:
+
+- `S007` reports every file for its `.bat` extension. `README.md` tells
+  a user to run the `.bat` launchers, and the difference `.cmd` makes,
+  the `ERRORLEVEL` of the commands `W028` names in
+  `.github/blinter-reasons.md`, is read by no script here.
+- `S008` asks for a `REM` in or above each long parenthesized block. A
+  comment here says what the code does not, and one written to that
+  length would restate the block.
+- `S019` asks that a number of two digits or more be set in a variable
+  first. The numbers it reports are ports on a command line, timeouts in
+  a message or a PowerShell command, a code page, and the free space
+  `validate-setup.bat` asks for. A variable would move each away from
+  the line that uses it.
+- `P001` and `P017` report a path tested with `if exist` more than once.
+  Each repeated test here follows a command that removes the path, and
+  tells whether the removal worked.
+- `P012` reports a line with more than one `%name:~...%`. Each such line
+  here tests the first or last characters of a path to decide one `set`.
+- `P016`, `P019`, `P022` and `P023` report a variable appended to, a
+  `!name!` read, a redirection to `nul` and a `set /a` inside a `for`
+  loop. Appending is how a batch file builds a list, delayed expansion
+  is how a loop reads a variable it sets, a redirection to `nul` drops
+  output nobody reads, and `set /a` is cmd.exe's only arithmetic.
+  Blinter also reads every line after a `for /f` that a `^` continues as
+  inside that loop, for the reason `W068` gives in
+  `.github/blinter-reasons.md`.
+- `P024` reports a file's second `setlocal`. Every `.bat` here but
+  `root.bat` and the `lib.bat` files opens with
+  `setlocal disabledelayedexpansion`, for the reason the root launchers'
+  comment gives, and one that reads `!name!` turns delayed expansion on
+  with a later `setlocal`. In `win\scripts\bitcoin\lib.bat`, labels
+  open their own, so that what they set stays theirs.
+
 ### What gates a merge, and what only reports
 
 **`lint.yml` runs the gate above on every pull request**, with `uvx
@@ -502,13 +548,14 @@ because `enforce_admins` is off. `REPOSITORY.md`'s *What gates a merge*
 has the setting, that it is classic branch protection rather than a
 ruleset rule, and that its `strict` and `enforce_admins` flags are off.
 
-**`script-security.yml` runs PSScriptAnalyzer's default rules and
-Blinter's Error, Security and Warning rules, over the `.ps1` and `.bat`
-scripts on every pull request**, and its header says what fails it. Its
+**`script-security.yml` runs PSScriptAnalyzer's default rules and the
+Blinter rules the batch style keeps, over the `.ps1` and `.bat` scripts
+on every pull request**, and its header says what fails it. Its
 `Script security` job is a required check. A Blinter finding it reports is
 fixed or, where it is no defect, recorded in `.github/blinter-baseline.json`
 by the command the job prints. For a Warning rule,
-`.github/blinter-reasons.md` says why its findings are no defect.
+`.github/blinter-reasons.md` says why its findings are no defect. The
+batch style, above, says what else the baseline holds.
 
 `test.yml`'s `test: every job passed` job passes where every job of
 its run did, and the branch rule names it, so a red one holds the

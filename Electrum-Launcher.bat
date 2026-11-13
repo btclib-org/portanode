@@ -28,22 +28,22 @@ echo 3^) Testnet4
 echo 4^) Regtest
 echo 5^) Mainnet ^(local server only^)
 echo 0^) Exit
-set "choice="
-set /p "choice=Select: "
+set "CHOICE="
+set /p "CHOICE=Select: "
 
-if "%choice%"=="" set "choice=0"
-if "%choice%"=="1" set "SCRIPT_REL=win\scripts\electrum\mainnet.bat"
-if "%choice%"=="2" set "SCRIPT_REL=win\scripts\electrum\testnet3.bat"
-if "%choice%"=="3" set "SCRIPT_REL=win\scripts\electrum\testnet4.bat"
-if "%choice%"=="4" set "SCRIPT_REL=win\scripts\electrum\regtest.bat"
-if "%choice%"=="5" set "SCRIPT_REL=win\scripts\electrum\mainnet-local-server-only.bat"
-if "%choice%"=="0" goto end
+if "%CHOICE%"=="" set "CHOICE=0"
+if "%CHOICE%"=="1" set "SCRIPT_REL=win\scripts\electrum\mainnet.bat"
+if "%CHOICE%"=="2" set "SCRIPT_REL=win\scripts\electrum\testnet3.bat"
+if "%CHOICE%"=="3" set "SCRIPT_REL=win\scripts\electrum\testnet4.bat"
+if "%CHOICE%"=="4" set "SCRIPT_REL=win\scripts\electrum\regtest.bat"
+if "%CHOICE%"=="5" set "SCRIPT_REL=win\scripts\electrum\mainnet-local-server-only.bat"
+if "%CHOICE%"=="0" goto end
 
-if "%choice%"=="1" goto run
-if "%choice%"=="2" goto run
-if "%choice%"=="3" goto run
-if "%choice%"=="4" goto run
-if "%choice%"=="5" goto run
+if "%CHOICE%"=="1" goto run
+if "%CHOICE%"=="2" goto run
+if "%CHOICE%"=="3" goto run
+if "%CHOICE%"=="4" goto run
+if "%CHOICE%"=="5" goto run
 
 echo Invalid selection.
 echo.
@@ -54,6 +54,9 @@ call :run_script
 echo.
 goto menu
 
+REM :run_script
+REM Runs the script SCRIPT_REL names under ROOTDIR, and says so where none
+REM is there or where it returns an errorlevel of 1 or more.
 :run_script
 set "SCRIPT=%ROOTDIR%\%SCRIPT_REL%"
 if not exist "%SCRIPT%" (

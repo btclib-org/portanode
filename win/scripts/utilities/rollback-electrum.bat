@@ -24,6 +24,7 @@ REM guard ever tests it.
 set "CHECKSUM_FILE=%ROOTDIR%\win\checksums.sha256"
 
 set "DRY_RUN=0"
+
 :parse_args
 if "%~1"=="" goto :args_done
 if "%~1"=="--dry-run" (
@@ -34,6 +35,7 @@ if "%~1"=="--dry-run" (
 echo Usage: %~nx0 [--dry-run]
 call "%%SCRIPT_DIR%%..\root.bat" :pause_if_own_console "%~nx0"
 exit /b 1
+
 :args_done
 
 REM System32 is the current directory from here to each popd: root.bat's
@@ -103,6 +105,7 @@ echo Currently installed: %CURRENTVER%.
 echo Would replace win\bin\electrum.exe with the backup.
 popd >nul 2>&1
 exit /b 0
+
 :do_rollback
 
 REM The backup is moved rather than copied, so a rollback consumes it: the slot
