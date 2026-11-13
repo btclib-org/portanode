@@ -222,13 +222,12 @@ repos:
     hooks:
       - id: codespell
         name: codespell (in place fixes)
-        # identifiers rather than misspellings, and the same two
-        # .typos.toml carries: `fpr` is gpg's own --with-colons record
-        # name for a fingerprint, which the verification helpers read and
-        # name their variables after, and `bre` is the POSIX basic
-        # regular expressions the macOS grep comments are about. Written
-        # here rather than in a file of their own because codespell takes
-        # a flag for it where typos takes none
+        # identifiers rather than misspellings, and the same two .typos.toml
+        # carries: `fpr` is gpg's own --with-colons record name for a
+        # fingerprint, which RELEASING.md and the tests read, and `bre` is the
+        # POSIX basic regular expressions the macOS grep comments are about.
+        # Written here rather than in a file of their own because codespell
+        # takes a flag for it where typos takes none
         args: [--write-changes, -L, "fpr,bre"]
   # crate-ci/typos re-tags a moving `v1` alias onto the same commit
   # as each release, and `git describe --tags` breaks the tie between
@@ -280,14 +279,13 @@ repos:
     hooks:
       - id: detect-secrets
         name: detect-secrets (credentials of other systems)
-        # against a committed baseline rather than an exclusion: a
-        # finding recorded there is one somebody has read, where an
-        # excluded file is unwatched from then on. `keys/*.fingerprints`
-        # and `*/checksums.sha256` are the hex this tree carries. The one
-        # exclusion is a line filter on a `rev:` holding a 40-hex sha,
-        # which HexHighEntropyString reports and an autoupdate rewrites
-        # (btclib-org/.github#1723); with it, `detect-secrets scan` finds
-        # nothing else in the tree
+        # against a committed baseline rather than an exclusion: a finding
+        # recorded there is one somebody has read, where an excluded file is
+        # unwatched from then on. `*/checksums.sha256` is the hex this tree
+        # carries. The one exclusion is a line filter on a `rev:` holding a
+        # 40-hex sha, which HexHighEntropyString reports and an autoupdate
+        # rewrites (btclib-org/.github#1723); with it, `detect-secrets scan`
+        # finds nothing else in the tree
         args: [--baseline, .secrets.baseline]
   # check-changelog runs ahead of markdownlint-cli2 below: that hook's
   # `--fix` repairs the very seam the third check exists to name.

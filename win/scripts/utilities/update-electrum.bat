@@ -17,6 +17,10 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM The number of keys in keys\electrum.gpg that must each sign the download.
+REM tests/sh/min-signatures.sh checks that it equals the number the shell
+REM updaters read from shared/utilities/lib.sh.
+set "MIN_SIGNATURES=1"
 set "VERSION_OVERRIDE="
 set "DRY_RUN=0"
 set "ALLOW_DOWNGRADE=0"
@@ -120,7 +124,7 @@ REM this volume. Measured on windows-latest with 4.8.1: the portable build
 REM left the directory --dir named empty and wrote the wallet under the
 REM working directory, and the standalone build of the same release wrote it
 REM where --dir named. The .asc beside the standalone file carries a signature
-REM from the key keys\electrum.fingerprints pins, as the portable one's does,
+REM from the key keys\electrum.gpg holds, as the portable one's does,
 REM so the verification below is unchanged. win\scripts\electrum\lib.bat
 REM refuses a portable build already installed, this file's change reaching
 REM only an installation made after it.
@@ -177,8 +181,8 @@ endlocal
 where gpg >nul 2>&1
 if %errorlevel%==0 (
     echo gpg: found.
-    call "%%SCRIPT_DIR%%lib.bat" :warn_if_no_pubkeys
-    call "%%SCRIPT_DIR%%lib.bat" :preview_pinned_keys "%%ROOTDIR%%\keys\electrum.fingerprints" "keys\electrum.fingerprints" "the download"
+    call "%%SCRIPT_DIR%%lib.bat" :preview_keyring "%%ROOTDIR%%\keys\electrum.gpg" ^
+        "keys\electrum.gpg" "the download" %%MIN_SIGNATURES%%
 ) else (
     echo gpg: not found -- verification would fail closed.
 )
@@ -272,7 +276,8 @@ REM lib.bat (#578).
 powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\fetch-https.ps1 -Uri $env:URL -OutFile ($env:TMPDIR + '\' + $env:FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 powershell -NoProfile -ExecutionPolicy Bypass -Command "& { if ([int][Net.ServicePointManager]::SecurityProtocol -ne 0) { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 }; $ProgressPreference = 'SilentlyContinue'; try { Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\fetch-https.ps1 -Uri ($env:URL + '.asc') -OutFile ($env:TMPDIR + '\' + $env:SIG_FILE) } catch { Write-Host $_.Exception.Message; exit 1 } }" || goto :error
 
-call "%%SCRIPT_DIR%%lib.bat" :verify_pgp_signature "%%TMPDIR%%\%%SIG_FILE%%" "%%TMPDIR%%\%%FILE%%" "Electrum" "%%ROOTDIR%%\keys\electrum.fingerprints"
+call "%%SCRIPT_DIR%%lib.bat" :verify_pgp_signature "%%TMPDIR%%\%%SIG_FILE%%" ^
+    "%%TMPDIR%%\%%FILE%%" "Electrum" "%%ROOTDIR%%\keys\electrum.gpg" %%MIN_SIGNATURES%%
 if errorlevel 1 goto :error
 
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"

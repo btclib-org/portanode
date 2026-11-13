@@ -10,136 +10,118 @@ if "%ACTION%"=="" goto :eof
 shift /1
 goto %ACTION%
 
-REM :warn_if_no_pubkeys
-REM Reports on the local keyring and never fails the caller: both
-REM --dry-run, the side-effect-free preview, and :verify_pgp_signature
-REM call it, and neither wants that question answered by an error.
-REM Measured on windows-latest (#382), against the keyring directory
-REM gpg creates on its own first run: a for /f over gpg piped into
-REM findstr does not return, where the same listing redirected to a
-REM file returns in about a second. The wait is the pipe rather than
-REM gpg, so the listing goes to a file and nothing here reads a
-REM running command's output.
-REM The bound is Start-Process with WaitForExit, at the value the
-REM archive-size request in the same --dry-run block passes as
-REM -TimeoutSec 30, rather than a second number to defend. It covers
-REM a gpg slow for its own reasons, which is not the case measured
-REM above.
-REM gpg runs under a hidden cmd.exe, which redirects its output and
-REM reads WNP_ANSWER_FILE from its own environment rather than having
-REM the path spliced in. gpg can start keyboxd, which outlives this
-REM script. Where Start-Process redirects gpg's output itself, keyboxd
-REM holds the caller's output pipe, and a caller reading it never
-REM returns, measured on windows-latest; under the hidden window it does
-REM not. taskkill /t ends gpg along with that cmd.exe.
-REM An empty answer file is not a keyring holding no key, so the two
-REM print different warnings and neither ends the run: --dry-run
-REM reaches its free-space line and exits 0 either way (#327, #336).
-REM That warning names the absence rather than a cause, as the
-REM archive-size line in the same block does and for the same reason:
-REM the bound firing, a gpg that is not on PATH and a probe that could
-REM not run all reach it alike.
-REM The powershell argument below is one physical line for the reason
-REM :update_checksum's comment gives.
-REM WNP_ANSWER_FILE is TEMP-derived, and TEMP is the caller's to set,
-REM not this file's: an account name or a redirected TEMP holding an
-REM unmatched "!" is legal on Windows. It is read with "%...%"
-REM because every caller reaches this label with delayed expansion
-REM disabled, which is what leaves the character standing: with it
-REM on, the pass that would substitute a "!VAR!" strips an
-REM unmatched "!" out of what "%TEMP%" expanded to (#393). A "!"
-REM in the mount path is a separate source with a separate owner,
-REM and it is stripped a second time out of the caller's own
-REM "call" line, which is #411 and is measured at
-REM update-bitcoin.bat's comment on its own second line. Neither
-REM source implies the other: a plain mount path with a bangy TEMP
-REM reaches this label with a working call target. The state at
-REM each call is checked by a hook in .pre-commit-config.yaml (#448).
-:warn_if_no_pubkeys
-set "WNP_ANSWER_FILE=%TEMP%\pn_pubkeys_%RANDOM%%RANDOM%.txt"
-type nul > "%WNP_ANSWER_FILE%"
-powershell -NoProfile -Command "& { $out = $env:WNP_ANSWER_FILE + '.out'; $err = $env:WNP_ANSWER_FILE + '.err'; $q = [char]34; $p = Start-Process -FilePath 'cmd.exe' -ArgumentList ('/d /v:off /c gpg --batch --list-keys --with-colons > ' + $q + '%%WNP_ANSWER_FILE%%.out' + $q + ' 2> ' + $q + '%%WNP_ANSWER_FILE%%.err' + $q) -WindowStyle Hidden -PassThru; if ($p.WaitForExit(30000)) { $a = 'no'; if (Select-String -Path $out -Pattern '^pub' -Quiet) { $a = 'yes' }; Set-Content -Path $env:WNP_ANSWER_FILE -Value $a } else { taskkill.exe /pid $p.Id /t /f }; Remove-Item $out, $err -Force -ErrorAction SilentlyContinue }" >nul 2>&1
-set "WNP_ANSWER="
-set /p WNP_ANSWER=<"%WNP_ANSWER_FILE%"
-del "%WNP_ANSWER_FILE%" >nul 2>&1
-if "%WNP_ANSWER%"=="yes" exit /b 0
-if "%WNP_ANSWER%"=="no" echo Warning: no public keys found in local keyring.
-if "%WNP_ANSWER%"=="" (
-    echo Warning: the local keyring was not read; whether a public key
-    echo is imported is unknown.
-)
-exit /b 0
-
-REM :verify_pgp_signature SIG DATA LABEL FPR_FILE
-REM Fails CLOSED (exit /b 1) unless SIG carries good signatures from as many
-REM distinct keys pinned in FPR_FILE as its min-signatures asks for, the
-REM rule shared/utilities/lib.sh's pgp_verify_or_fail states. A file that
-REM pins no key refuses.
+REM :verify_pgp_signature SIG DATA LABEL KEYRING MIN
+REM Fails CLOSED (exit /b 1) unless SIG carries good signatures from MIN
+REM distinct keys of KEYRING, the rule shared/utilities/lib.sh's
+REM pgp_verify_or_fail states. gpg runs in a home of its own, made empty for
+REM the call in SIG's folder, with KEYRING copied in as its only keyring, so
+REM it reads no option, key or trust setting of the user's, as that
+REM function's comment says, and --batch is not passed, for the reason it
+REM gives. The updaters download into a folder of their own, made fresh, and
+REM remove it with what they downloaded, the home included. mkdir has to
+REM make the home, so a folder already there under that name is not used.
+REM Each updater verifies once in its folder. A second call in the same
+REM folder can draw the name of the first one's home and is then refused,
+REM as os-windows.yml run 43343570008 measured.
+REM gpg is started from inside that home, which it is given as ".", and finds
+REM the keyring by a name without a slash, which it reads as a file of that
+REM home. Git for Windows' gpg is an MSYS program and wants a home written
+REM as /c/..., as #806 says, so no path to the home or the keyring is
+REM written out for it. cmd.exe looks for a command in the current folder
+REM before PATH, so gpg is looked up before the folder changes, from the
+REM folder the caller runs in, and started by the path found.
 REM Written flat (no %var% set-and-read inside a ( ) block) because a
 REM read of that shape inside one answers with the value the variable
 REM held when cmd.exe parsed the block. Delayed expansion is the other
 REM way of fixing that, and lib.bat cannot turn it on for itself: the
 REM local scoping it comes with would confine the variables its labels
 REM set for their callers, :installed_version's OUTVAR among them.
-REM Written flat, neither STATUS_FILE nor
-REM the caller's own SIG_FILE and DATA_FILE needs it -- each is read
-REM at a line that runs after the line setting it -- and the callers
-REM reach this label with delayed expansion disabled, which is what
-REM lets a "!" in TEMP or in the mount path survive as far as here
-REM (#393, #411). The construct is named rather than spelled, because
-REM spelled out it reads to the batch linter as this file asking for
-REM what the paragraph forbids, and it then prints that advice against
-REM exit points throughout the file.
+REM Written flat, neither GPG_HOME nor the caller's own SIG_FILE and
+REM DATA_FILE needs it -- each is read at a line that runs after the line
+REM setting it -- and the callers reach this label with delayed expansion
+REM disabled, which is what lets a "!" in TEMP or in the mount path survive
+REM as far as here (#393, #411). The construct is named rather than
+REM spelled, because spelled out it reads to the batch linter as this file
+REM asking for what the paragraph forbids, and it then prints that advice
+REM against exit points throughout the file.
+REM GPG_HOME is built on SIG's folder, which the updaters build on TEMP, and
+REM TEMP is the caller's to set, not this file's: an account name or a
+REM redirected TEMP holding an unmatched "!" is legal on Windows. It is read
+REM with "%...%" because every caller reaches this label with delayed
+REM expansion disabled, which is what leaves the character standing: with it
+REM on, the pass that would substitute a "!VAR!" strips an unmatched "!" out
+REM of what "%TEMP%" expanded to (#393). A "!" in the mount path is a
+REM separate source with a separate owner, and it is stripped a second time
+REM out of the caller's own "call" line, which is #411 and is measured at
+REM update-bitcoin.bat's comment on its own second line. Neither source
+REM implies the other: a plain mount path with a bangy TEMP reaches this
+REM label with a working call target. The state at each call is checked by a
+REM hook in .pre-commit-config.yaml (#448).
 :verify_pgp_signature
 set "SIG_FILE=%~1"
 set "DATA_FILE=%~2"
 set "LABEL=%~3"
-set "FPR_FILE=%~4"
+set "KEYRING=%~4"
+set "MIN_SIGS=%~5"
+set "KEYRING_NAME=%~nx4"
 
-where gpg >nul 2>&1
-if not %errorlevel%==0 (
+set "GPG_HOME=%~dp1gpg-home-%RANDOM%%RANDOM%"
+
+set "GPG_EXE="
+for /f "delims=" %%G in ('where gpg 2^>nul') do if not defined GPG_EXE set "GPG_EXE=%%G"
+if not defined GPG_EXE (
     echo Error: gpg not found; cannot verify %LABEL%.
-    echo Install gpg and import the signing key.
+    echo Install gpg.
+    exit /b 1
+)
+call :keyring_is_readable "%%KEYRING%%"
+if errorlevel 1 (
+    echo Error: %KEYRING_NAME% is missing, empty or unreadable, so %LABEL% is
+    echo refused.
     exit /b 1
 )
 
-call :warn_if_no_pubkeys
 echo Verifying %LABEL% signature...
-REM STATUS_FILE is TEMP-derived: see the comment above
-REM :warn_if_no_pubkeys's own WNP_ANSWER_FILE on why that makes the
-REM caller's delayed-expansion state the thing it depends on (#393,
-REM #411). "%SIG_FILE%"/"%DATA_FILE%" are the caller's own paths rather
-REM than this file's, and depend on it the same way.
-set "STATUS_FILE=%TEMP%\pgp_status_%RANDOM%%RANDOM%.txt"
-gpg --status-fd 1 --verify "%SIG_FILE%" "%DATA_FILE%" 1> "%STATUS_FILE%" 2>nul
+mkdir "%GPG_HOME%" >nul 2>&1
+if errorlevel 1 goto :verify_pgp_no_home
+copy /b /y "%KEYRING%" "%GPG_HOME%\keys.gpg" >nul 2>&1
+if errorlevel 1 goto :verify_pgp_no_home
+set "STATUS_FILE=%GPG_HOME%\status.txt"
+pushd "%GPG_HOME%"
+"%GPG_EXE%" --homedir . --no-default-keyring --keyring keys.gpg --status-fd 1 ^
+    --verify "%SIG_FILE%" "%DATA_FILE%" 1> "%STATUS_FILE%" 2>nul
+popd
+call :pgp_read_status
+exit /b %errorlevel%
 
+:verify_pgp_no_home
+echo Error: no folder could be made for gpg to verify %LABEL% in; whether
+echo the signature is good is unknown.
+exit /b 1
+
+REM :pgp_read_status
+REM Reads the status lines gpg wrote to STATUS_FILE for
+REM :verify_pgp_signature, and exits 0 where they hold good signatures from
+REM MIN_SIGS distinct keys, as shared/utilities/lib.sh's pgp_read_status
+REM does.
 REM A status file that is absent or empty is gpg's answer lost rather
 REM than a signature refused, and the searches below cannot separate
 REM the two: where cmd.exe cannot open the file, a search answers the 1
-REM that "cmd /d /c exit 1" set, as it does on a file holding no GOODSIG.
-REM The exit code of the line above separates them the wrong way
-REM round, so it is not read at all: a redirection cmd.exe cannot open
-REM leaves errorlevel 0, which is what a good signature leaves, where
-REM a bad signature leaves 1 and a key not imported leaves 2.
+REM that "cmd /d /c exit 1" set, as it does on a file holding no NEWSIG.
+REM The exit code of gpg's line separates them the wrong way round, so it
+REM is not read at all: a redirection cmd.exe cannot open leaves
+REM errorlevel 0, which is what a good signature leaves, where a bad
+REM signature leaves 1 and a key not in the keyring leaves 2.
 REM The test is on size rather than existence, an empty file answering
 REM no more than a missing one; no case measured here separates the
-REM two.
-REM What reaches this line is a %TEMP% under which cmd.exe cannot create
-REM the file at all: one that is missing, as :warn_if_no_pubkeys leaves
-REM it on windows-latest, a drive letter that is not mapped, a path
-REM whose own directory component is a file.
-REM An unset %TEMP%, whose path resolves to the
-REM current drive's root, does not reach it, nor does one whose ACL
-REM grants the account read and execute alone, an Administrators entry
-REM beside it still granting a group the account is in full control.
-REM The message names the absence rather than a cause, for the reason
-REM :warn_if_no_pubkeys's comment gives of its own unknown branch.
+REM two. The message names the absence rather than a cause, several
+REM reaching it alike.
+:pgp_read_status
 set "STATUS_OK=0"
 if exist "%STATUS_FILE%" for %%S in ("%STATUS_FILE%") do if %%~zS GTR 0 set "STATUS_OK=1"
 if "%STATUS_OK%"=="0" (
     echo Error: gpg's status output for %LABEL% was not read; whether the
     echo signature is good is unknown.
-    del "%STATUS_FILE%" >nul 2>&1
     exit /b 1
 )
 
@@ -153,7 +135,6 @@ cmd /d /c exit 1
 findstr /c:"[GNUPG:] BADSIG" < "%STATUS_FILE%" >nul 2>&1
 if %errorlevel%==0 (
     echo Error: BAD PGP signature on %LABEL%.
-    del "%STATUS_FILE%" >nul 2>&1
     exit /b 1
 )
 
@@ -168,7 +149,7 @@ REM NEWSIG status instead", so the dependence is the one upstream
 REM asks for; nothing in this tree states a minimum gpg, and the
 REM oldest measured against it is 2.4.4.
 REM gpg's own exit status does not separate them either: a key that
-REM is not imported and a signature file that cannot be opened both
+REM is not in the keyring and a signature file that cannot be opened both
 REM leave errorlevel 2. Nor does the FAILURE line, which reads
 REM "verify" for a signature file that is missing or empty and
 REM "gpg-exit" for one holding something that is not a signature and
@@ -182,101 +163,71 @@ REM the account is denied by ACL is not among them: icacls granting
 REM the runner no access at all left gpg reading it, so an unreadable
 REM file is measured on the POSIX half alone.
 REM The message names what gpg did not do rather than a cause,
-REM several reaching it alike, as :warn_if_no_pubkeys does of its own
-REM unknown branch. A signature file that is present and readable and
-REM merely not a signature is one of them -- the shape a download
-REM answering 200 with an error page leaves -- so advice to check
-REM presence and readability would send that reader to confirm two
+REM several reaching it alike. A signature file that is present and
+REM readable and merely not a signature is one of them -- the shape a
+REM download answering 200 with an error page leaves -- so advice to
+REM check presence and readability would send that reader to confirm two
 REM things already true.
 cmd /d /c exit 1
 findstr /c:"[GNUPG:] NEWSIG" < "%STATUS_FILE%" >nul 2>&1
 if not %errorlevel%==0 (
     echo Error: gpg found no PGP signature to check on %LABEL%.
     echo Check the signature file and the file it signs.
-    del "%STATUS_FILE%" >nul 2>&1
     exit /b 1
 )
 
-cmd /d /c exit 1
-findstr /c:"[GNUPG:] GOODSIG" < "%STATUS_FILE%" >nul 2>&1
-if not %errorlevel%==0 (
-    echo Error: no valid PGP signature on %LABEL% ^(is the signer's key imported?^).
-    echo Import the signing key.
-    del "%STATUS_FILE%" >nul 2>&1
-    exit /b 1
-)
-
-REM Pinning: FPR_FILE is read by the PowerShell :load_pin_reader holds, by
-REM shared/utilities/lib.sh's pinned_fingerprints rule, and the status file
-REM counted by pgp_verify_or_fail's, each as that function's comment states.
-REM A PowerShell that exits non-zero for any reason, including not
-REM running at all, refuses. The catch makes an error that does not stop
-REM the block one of those reasons: measured on windows-latest with
-REM FPR_FILE naming a directory, the read threw and the block ran on.
+REM The status file is counted by pgp_read_status's rule, as that
+REM function's comment states, and MIN_SIGS read as pgp_verify_or_fail
+REM reads its MIN. A PowerShell that exits non-zero for any reason,
+REM including not running at all, refuses. The catch makes an error that
+REM does not stop the block one of those reasons.
 REM The powershell argument below is one physical line for the reason
-REM :update_checksum's comment gives.
-call :load_pin_reader
-powershell -NoProfile -Command "& { try { if ([string]::IsNullOrEmpty($env:FPR_FILE)) { Write-Output ('Error: no file of pinned fingerprints given, so ' + $env:LABEL + ' is refused.'); exit 1 }; $file = $env:FPR_FILE; %PIN_READER_PS%; if ($pins.Count -eq 0) { Write-Output ('Error: ' + $name + ' pins no key, so ' + $env:LABEL + ' is refused.'); Write-Output 'Add to it the fingerprints of the signers you trust.'; exit 1 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('Error: ' + $name + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for, so ' + $env:LABEL + ' is refused.'); exit 1 }; $sigs = New-Object System.Collections.ArrayList; foreach ($line in [IO.File]::ReadAllLines($env:STATUS_FILE)) { $w = $line.Split(' '); if ($w.Count -lt 2 -or $w[0] -cne '[GNUPG:]') { continue }; if ($w[1] -ceq 'NEWSIG') { [void]$sigs.Add(@{ goods = 0; valids = 0; revoked = $false; gid = ''; sfpr = ''; primary = '' }); continue }; if ($sigs.Count -eq 0) { continue }; $s = $sigs[$sigs.Count - 1]; if ($w[1] -ceq 'GOODSIG') { $s['goods'] += 1; $s['gid'] = $w[2].ToUpperInvariant() } elseif ($w[1] -ceq 'VALIDSIG') { $s['valids'] += 1; $s['sfpr'] = $w[2].ToUpperInvariant(); if ($w.Count -gt 11) { $s['primary'] = $w[11].ToUpperInvariant() } } elseif ($w[1] -ceq 'REVKEYSIG' -or $w[1] -ceq 'KEYREVOKED') { $s['revoked'] = $true } }; $counted = @{}; foreach ($s in $sigs) { if ($s['goods'] -eq 1 -and $s['valids'] -eq 1 -and -not $s['revoked'] -and $s['gid'].Length -ge 16 -and $s['sfpr'].EndsWith($s['gid'], [StringComparison]::Ordinal) -and $pins.ContainsKey($s['primary'])) { $counted[$s['primary']] = $true } }; if ($counted.Count -lt [int]$min) { Write-Output ('Error: ' + $env:LABEL + ' carries good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; it asks for ' + $min + '.'); Write-Output 'A key counts once, and not at all where it is expired or revoked.'; exit 1 }; Write-Output ($env:LABEL + ': good signatures from ' + $counted.Count + ' key(s) pinned in ' + $name + '; ' + $min + ' required.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
+REM :update_checksum's comment gives. The values reach PowerShell through
+REM the environment, for the reason :install_verified's comment gives.
+powershell -NoProfile -Command "& { try { $min = $env:MIN_SIGS; if ($min -cnotmatch '^[1-9][0-9]{0,8}$') { Write-Output ('Error: ' + $min + ' is not a number of signatures to ask for, so ' + $env:LABEL + ' is refused.'); exit 1 }; $sigs = New-Object System.Collections.ArrayList; $anyGood = $false; foreach ($line in [IO.File]::ReadAllLines($env:STATUS_FILE)) { $w = $line.Split(' '); if ($w.Count -lt 2 -or $w[0] -cne '[GNUPG:]') { continue }; if ($w[1] -ceq 'NEWSIG') { [void]$sigs.Add(@{ goods = 0; valids = 0; revoked = $false; gid = ''; sfpr = ''; hash = ''; primary = ''; errs = 0; errhash = ''; errrc = '' }); continue }; if ($w[1] -ceq 'GOODSIG') { $anyGood = $true }; if ($sigs.Count -eq 0) { continue }; $s = $sigs[$sigs.Count - 1]; if ($w[1] -ceq 'GOODSIG') { $s['goods'] += 1; $s['gid'] = $w[2].ToUpperInvariant() } elseif ($w[1] -ceq 'VALIDSIG') { $s['valids'] += 1; $s['sfpr'] = $w[2].ToUpperInvariant(); if ($w.Count -gt 9) { $s['hash'] = $w[9] }; if ($w.Count -gt 11) { $s['primary'] = $w[11].ToUpperInvariant() } } elseif ($w[1] -ceq 'ERRSIG') { $s['errs'] += 1; if ($w.Count -gt 7) { $s['errhash'] = $w[4]; $s['errrc'] = $w[7] } } elseif ($w[1] -ceq 'REVKEYSIG' -or $w[1] -ceq 'KEYREVOKED') { $s['revoked'] = $true } }; $counted = @{}; $weak = 0; foreach ($s in $sigs) { if ($s['errs'] -eq 1 -and $s['goods'] -eq 0 -and $s['valids'] -eq 0 -and $s['errhash'] -cmatch '^0*[1-3]$' -and $s['errrc'] -cne '9') { $weak += 1; continue }; if ($s['goods'] -eq 1 -and $s['valids'] -eq 1 -and -not $s['revoked'] -and $s['gid'].Length -ge 16 -and $s['sfpr'].EndsWith($s['gid'], [StringComparison]::Ordinal) -and ($s['primary'].Length -eq 40 -or $s['primary'].Length -eq 64) -and $s['primary'] -cmatch '^[0-9A-F]+$' -and $s['hash'] -cmatch '^[0-9]+$') { if ($s['hash'] -cnotmatch '^0*[0-3]$') { $counted[$s['primary']] = $true } elseif ($s['hash'] -cmatch '^0*[1-3]$') { $weak += 1 } } }; $weakMsg = [string]$weak + ' signature(s) on ' + $env:LABEL + ' use MD5, SHA-1 or RIPEMD-160, a weak hash, and do not count.'; if (-not $anyGood) { Write-Output ('Error: no PGP signature on ' + $env:LABEL + ' verifies against a key in ' + $env:KEYRING_NAME + '.'); if ($weak -gt 0) { Write-Output $weakMsg }; exit 1 }; if ($counted.Count -lt [int]$min) { Write-Output ('Error: ' + $env:LABEL + ' carries good signatures from ' + $counted.Count + ' key(s) in ' + $env:KEYRING_NAME + '; it asks for ' + $min + '.'); if ($weak -gt 0) { Write-Output $weakMsg }; Write-Output 'A key counts once, and not at all where it is expired or revoked.'; exit 1 }; Write-Output ($env:LABEL + ': good signatures from ' + $counted.Count + ' key(s) in ' + $env:KEYRING_NAME + '; ' + $min + ' required.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
 if not %errorlevel%==0 (
     echo Error: %LABEL% is refused.
-    del "%STATUS_FILE%" >nul 2>&1
     exit /b 1
 )
-
-del "%STATUS_FILE%" >nul 2>&1
 exit /b 0
 
-REM :load_pin_reader
-REM Sets PIN_READER_PS to the PowerShell that reads a file of pinned
-REM fingerprints, named by the $file variable the caller's block sets first,
-REM and leaves $name (the file's own name), $pins (the pinned keys, upper
-REM case, each once) and $min (the signatures asked for, 1 where the file
-REM sets none). :verify_pgp_signature and :preview_pinned_keys both paste it
-REM into their powershell argument, so that the preview reports the pins the
-REM verification enforces. A file it does not accept prints the reason and
-REM exits 1; a path that does not exist pins nothing.
-REM The bytes are decoded as Latin-1, one character per byte, so no
-REM decoder turns a byte PowerShell cannot read into one the rule accepts,
-REM and -creplace and -cnotmatch name their characters rather than \s,
-REM which matches U+00A0 as well.
-REM A line is tested for emptiness by its Length and for # by an ordinal
-REM StartsWith, because -eq '' and StartsWith's default compare by culture,
-REM which ignores some characters: measured with the line
-REM U+00AD followed by #, both Windows PowerShell 5.1 on windows-latest
-REM and pwsh 7 read it as a comment and skipped it, and pwsh 7 also read
-REM U+0001 alone as empty, where shared/utilities/lib.sh refuses both.
-REM PowerShell applies the rule rather than findstr: measured on
-REM windows-latest, findstr /i /r "^[0-9A-F][0-9A-F]*$" matched a
-REM CRLF-ended fingerprint line and not the same line LF-ended, and
-REM .gitattributes checks keys\*.fingerprints out LF-only.
-REM The text holds no double quote and no percent sign, so pasted into the
-REM caller's double-quoted -Command argument it stays one argument.
-:load_pin_reader
-set "PIN_READER_PS=$name = [IO.Path]::GetFileName($file); $pins = @{}; $min = '1'; $minSet = $false; if (Test-Path -LiteralPath $file) { $bytes = [IO.File]::ReadAllBytes($file); if ($bytes -contains 0) { Write-Output ('Error: ' + $name + ' holds a NUL byte, as a UTF-16 file does.'); exit 1 }; $text = [Text.Encoding]::GetEncoding(28591).GetString($bytes); if ($text.StartsWith([string][char]0xEF + [char]0xBB + [char]0xBF, [StringComparison]::Ordinal)) { $text = $text.Substring(3) }; $n = 0; foreach ($l in ($text -split '\r\n|\r|\n')) { $n++; $f = $l -creplace '[ \t\v\f]', ''; if ($f.Length -eq 0 -or $f.StartsWith('#', [StringComparison]::Ordinal)) { continue }; if ($f.StartsWith('min-signatures=', [StringComparison]::Ordinal)) { if ($minSet) { Write-Output ('Error: line ' + $n + ' of ' + $name + ' sets min-signatures a second time.'); exit 1 }; $min = $f.Substring(15); $minSet = $true; if ($min -cnotmatch '^[1-9][0-9]*$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' does not set min-signatures to a whole number from 1: ' + $f); exit 1 }; continue }; if ($f -cnotmatch '^[0-9A-Fa-f]{40}$') { Write-Output ('Error: line ' + $n + ' of ' + $name + ' is not a 40-hex fingerprint: ' + $f); exit 1 }; $pins[$f.ToUpperInvariant()] = $true } }"
+REM :keyring_is_readable KEYRING
+REM Exits 0 where KEYRING names a file holding at least one byte, as
+REM shared/utilities/lib.sh's keyring_is_readable does. A path that ends
+REM in "\" exists only where it names a folder. A file the account cannot
+REM read passes here, and :verify_pgp_signature refuses it when its copy
+REM fails.
+:keyring_is_readable
+set "KIR_FILE=%~1"
+set "KIR_SIZE="
+if "%KIR_FILE%"=="" exit /b 1
+if not exist "%KIR_FILE%" exit /b 1
+if exist "%KIR_FILE%\" exit /b 1
+for %%K in ("%KIR_FILE%") do set "KIR_SIZE=%%~zK"
+if "%KIR_SIZE%"=="" exit /b 1
+if "%KIR_SIZE%"=="0" exit /b 1
 exit /b 0
 
-REM :preview_pinned_keys FPR_FILE NAME WHAT
+REM :preview_keyring KEYRING NAME WHAT MIN
 REM For an updater's --dry-run, with gpg found: prints what
-REM :verify_pgp_signature would make of FPR_FILE. It reads the file with the
-REM PowerShell :load_pin_reader holds, and reports the cases that routine
-REM refuses: a file it does not accept, a file that pins no key, and a file
-REM that pins fewer keys than its min-signatures asks for. Otherwise it
-REM prints the pinned keys and the signatures asked for. NAME is the file as
-REM the user knows it and WHAT is what a refusal would stop. Always exits 0:
-REM a preview reports and does not end the run. The powershell argument is
-REM one physical line for the reason :update_checksum's comment gives.
-REM The values reach PowerShell through the environment, for the reason
-REM :install_verified's comment gives.
-:preview_pinned_keys
-set "PPK_FILE=%~1"
-set "PPK_NAME=%~2"
-set "PPK_WHAT=%~3"
-call :load_pin_reader
-powershell -NoProfile -Command "& { try { $file = $env:PPK_FILE; %PIN_READER_PS%; if ($pins.Count -eq 0) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins no key -- verification would refuse ' + $env:PPK_WHAT + '.'); exit 0 }; if ($min.Length -gt 9 -or $pins.Count -lt [int]$min) { Write-Output ('gpg: found, but ' + $env:PPK_NAME + ' pins ' + $pins.Count + ' key(s), fewer than the ' + $min + ' signatures it asks for -- verification would refuse ' + $env:PPK_WHAT + '.'); exit 0 }; foreach ($p in ($pins.Keys | Sort-Object)) { Write-Output ('Pinned key ' + $p + ' in ' + $env:PPK_NAME + '.') }; Write-Output ('Verification asks for ' + $min + ' good signature(s) from distinct pinned keys.') } catch { Write-Output ('Error: ' + $_.Exception.Message); exit 1 }; exit 0 }"
-if not %errorlevel%==0 (
-    echo gpg: found, but %PPK_NAME% was not accepted as a list of pinned
-    echo fingerprints -- verification would refuse %PPK_WHAT%.
-)
+REM :verify_pgp_signature would make of KEYRING before any signature is
+REM read, as shared/utilities/lib.sh's preview_keyring does. NAME is the
+REM keyring as the user knows it and WHAT is what a refusal would stop.
+REM Always exits 0: a preview reports and does not end the run.
+:preview_keyring
+set "PK_FILE=%~1"
+set "PK_NAME=%~2"
+set "PK_WHAT=%~3"
+set "PK_MIN=%~4"
+call :keyring_is_readable "%%PK_FILE%%"
+if errorlevel 1 goto :preview_keyring_refused
+echo gpg: found. Verification asks for %PK_MIN% good signature(s) from
+echo distinct keys in %PK_NAME%.
+exit /b 0
+
+:preview_keyring_refused
+echo gpg: found, but %PK_NAME% is missing, empty or unreadable --
+echo verification would refuse %PK_WHAT%.
 exit /b 0
 
 REM :update_checksum FILE ENTRY_PATH VERSION
@@ -382,7 +333,7 @@ REM mismatch. A copy that fails outright is reported and not retried,
 REM being an error the copy itself raises rather than a silent one.
 REM One physical line, for the reason :update_checksum's comment gives.
 REM The paths reach PowerShell through the environment, as
-REM :warn_if_no_pubkeys's WNP_ANSWER_FILE does, rather than spliced
+REM :pgp_read_status's STATUS_FILE does, rather than spliced
 REM between single quotes in the command text: a path holding an
 REM apostrophe ends such a string early, and PowerShell then refuses the
 REM whole command as a parse error (#578). Where a cmdlet takes

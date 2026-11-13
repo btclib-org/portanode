@@ -495,7 +495,7 @@ updaters malformed `SHA256SUMS`, signature output and version strings**,
 and expect each refused with nothing installed. They stand in for a fuzzer
 ([ISS 646](https://github.com/btclib-org/portanode/issues/646)). The shell
 one runs the macOS and Linux updaters in a copy of the tree with
-a real throwaway key, and is skipped without `gpg`; the PowerShell one runs the
+real throwaway keys, and is skipped without `gpg`; the PowerShell one runs the
 PowerShell inside the `.bat` files, read from them, and runs on any system
 with `pwsh`. It also checks that each fetch offers TLS 1.2 and leaves
 `SystemDefault` alone. It is in the suite, so `tests/run.ps1` runs it:

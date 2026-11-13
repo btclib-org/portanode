@@ -17,10 +17,10 @@ the open issue.
   `CONTRIBUTING.md` gives the path convention, and `README.md`'s
   *Expected Binaries by OS* names what `bin/` holds.
 - **An update installs only what its publisher signed.** The updaters
-  refuse a download whose PGP signatures do not satisfy
-  `keys/*.fingerprints`, as `README.md`'s *PGP verification fails closed*
-  says. The open issues under *The publishers and `bin/`* below are where
-  it falls short.
+  refuse a download without good PGP signatures from enough of the keys
+  in `keys/`, as `README.md`'s *PGP verification fails closed* says. The
+  open issues under *The publishers and `bin/`* below are where it falls
+  short.
 - **An installed binary that changes is detected.** `checksums.sha256`
   records each binary after a verified install, and `verify-binaries`
   and the rollbacks check against it.
@@ -59,7 +59,7 @@ for more.
 **What is not defended.** Each is stated in `README.md`'s *Limitations,
 not vulnerabilities*:
 
-- a key imported into your own keyring that is not the publisher's;
+- a key in a publisher's repository that is not its signer's;
 - the data on a drive that is lost or stolen;
 - the corruption risk Bitcoin Core warns of on exFAT under macOS;
 - launchers that are not signed or notarized, so the operating system
@@ -101,8 +101,7 @@ file on the drive.
       | grep -vE '^[^:]+:[[:space:]]*(#|REM |echo )' | cut -d: -f1 | sort -u
     ```
 
-- **The user's GPG keyring and `keys/*.fingerprints`**, which together
-  decide what an update accepts.
+- **The keyrings in `keys/`**, which decide what an update accepts.
 - **The files on the drive** that the launchers and the binaries read:
   `bin/`, `checksums.sha256`, `bitcoin-datadir/bitcoin.conf`, and
   Electrum's own configuration in `electrum-datadir/`.
@@ -127,10 +126,10 @@ once, a tag signed by another key prints another fingerprint.
 cutting it. A ZIP carries no signature, and is outside this boundary.
 
 **The publishers and `bin/`.** A download crosses here, and is trusted
-only once its signatures verify against the keys `keys/*.fingerprints`
-pins, Bitcoin Core asking for several builders and Electrum for its
-release key (`README.md`'s *Updating Binaries*). Which key is the
-publisher's is yours to establish, as *Limitations, not
+only once its signatures verify against the keyrings in `keys/`, Bitcoin
+Core asking for several builders and Electrum for its release key
+(`README.md`'s *Updating Binaries*). Which key is its signer's is what
+the publishers' repositories establish, as *Limitations, not
 vulnerabilities* says.
 
 The updaters refuse a version that is not digits and dots, and one older
@@ -259,10 +258,8 @@ Bitcoin Core's warning against exFAT on macOS is accepted, as
 Saltzer and Schroeder's principles, as they apply to launchers.
 
 - **Fail-safe defaults.** An update that cannot be verified is refused:
-  no `gpg`, no good signature, too few pinned signers, or a pin file that
-  lists no key. `keys/bitcoin-core.fingerprints` ships with no key, so a
-  fresh clone installs no Bitcoin Core until its user chooses the
-  builders to trust.
+  no `gpg`, no keyring in `keys/`, or too few of its keys with a good
+  signature. A key in the user's own keyring does not count.
 - **Economy of mechanism.** The macOS and Linux scripts share one
   library, `shared/`, for the root walk (`resolve_root` in
   `shared/lib.sh`), the PGP check (`pgp_verify_or_fail`) and the checksum
@@ -289,11 +286,13 @@ to, and what counters each.
   open gaps are the issues under *The publishers and `bin/`*.
 - **Improper verification of a signature (CWE-347).** The PGP check
   reads `gpg`'s status lines, not its exit code, and counts only distinct
-  pinned keys with a good signature (`pgp_verify_or_fail` in
+  keys of `keys/` with a good signature (`pgp_verify_or_fail` in
   `shared/utilities/lib.sh`, and `win/scripts/utilities/lib.bat`).
 - **Untrusted search path (CWE-426).** The Windows updaters and
   utilities leave the folder for `System32` before they run `gpg`,
-  `powershell` or another command by bare name.
+  `powershell` or another command by bare name. The updaters look `gpg`
+  up there and start it by the path found, from inside a folder they
+  make for its home in their fresh download folder.
 - **Insecure temporary file (CWE-377).** The macOS and Linux updaters
   download into a fresh `mktemp -d` directory, the Windows ones into a
   fresh `%TEMP%\portanode-<name>.<GUID>`.

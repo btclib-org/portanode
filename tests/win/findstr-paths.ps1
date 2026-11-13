@@ -12,8 +12,9 @@
 #
 # - :require_non_portable_build, in win/scripts/electrum/lib.bat, on a file in
 #   the folder;
-# - :verify_pgp_signature, in win/scripts/utilities/lib.bat, with TEMP in the
-#   folder, where it writes gpg's status file, and a throwaway key;
+# - :verify_pgp_signature, in win/scripts/utilities/lib.bat, on a signature in
+#   the folder, beside which it makes gpg's home, and a keyring of a throwaway
+#   key;
 # - the search for prune= in validate-setup.bat, on a bitcoin.conf in the
 #   folder;
 # - the test for the data directories in validate-setup.bat, which findstr
@@ -102,11 +103,11 @@ foreach ($label in $names.Keys) {
 }
 
 # --- :verify_pgp_signature ----------------------------------------------------
-# gpg runs for real, in a home of the tests' own with a throwaway key: it writes
-# the status lines :verify_pgp_signature reads. The cases are skipped where no
-# gpg is installed. Every gpg command runs in a batch file that sends its
-# output away, and the one that starts gpg's agent stops it again, so that no
-# agent outlives the test.
+# gpg runs for real, against a keyring holding a throwaway key made in a home of
+# the tests' own: it writes the status lines :verify_pgp_signature reads. The
+# cases are skipped where no gpg is installed. Every gpg command runs in a batch
+# file that sends its output away, and the one that starts gpg's agent stops it
+# again, so that no agent outlives the test.
 $gpg = Get-Command gpg -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
 if (-not $gpg) {
   Write-Output '# no gpg on PATH: the :verify_pgp_signature cases are skipped'
@@ -127,53 +128,78 @@ if (-not $gpg) {
   $data = Join-Path $tmp 'data.txt'
   $tampered = Join-Path $tmp 'tampered.txt'
   $sig = Join-Path $tmp 'data.txt.sig'
-  $keys = Join-Path $tmp 'keys.txt'
+  # The keyring of the key that signs, and of a key that signs nothing.
+  $keyring = Join-Path $tmp 'signer.gpg'
+  $otherKeyring = Join-Path $tmp 'other.gpg'
   [IO.File]::WriteAllText($data, "hello`n")
   [IO.File]::WriteAllText($tampered, "hullo`n")
   $setup = New-Driver 'gpg-setup.bat' @(
     '@echo off',
     'gpg --batch --pinentry-mode loopback --passphrase "" --quick-gen-key "portanode test <t@example.invalid>" ed25519 sign never > "%TEST_OUT%" 2>&1',
-    'gpg --batch --yes --pinentry-mode loopback --passphrase "" --detach-sign --output "%TEST_SIG%" "%TEST_DATA%" >> "%TEST_OUT%" 2>&1',
-    'gpg --batch --with-colons --list-keys > "%TEST_KEYS%" 2>nul',
+    'if defined TEST_SIG gpg --batch --yes --pinentry-mode loopback --passphrase "" --detach-sign --output "%TEST_SIG%" "%TEST_DATA%" >> "%TEST_OUT%" 2>&1',
+    'gpg --batch --export > "%TEST_KEYRING%" 2>nul',
     'gpgconf --kill gpg-agent >nul 2>&1')
   $setupOut = Join-Path $tmp 'gpg-setup.out'
   $null = Invoke-Bat $setup @{
-    GNUPGHOME = $home1; TEST_SIG = $sig; TEST_DATA = $data; TEST_KEYS = $keys; TEST_OUT = $setupOut
+    GNUPGHOME = $home1; TEST_SIG = $sig; TEST_DATA = $data; TEST_KEYRING = $keyring; TEST_OUT = $setupOut
   }
-  $fpr = ''
-  if (Test-Path -LiteralPath $keys) {
-    $fpr = ((Get-Content -LiteralPath $keys | Where-Object { $_ -like 'fpr:*' } | Select-Object -First 1) -split ':')[9]
+  $made = (Test-Path -LiteralPath $sig) -and (Test-Path -LiteralPath $keyring) -and
+    ((Get-Item -LiteralPath $keyring).Length -gt 0)
+  Write-TestResult -Name 'gpg makes the test key, signs with it and exports it' `
+    -Passed $made -Detail @(Get-Content -LiteralPath $setupOut -ErrorAction SilentlyContinue)
+  $null = Invoke-Bat $setup @{
+    GNUPGHOME = $home2; TEST_SIG = $null; TEST_KEYRING = $otherKeyring; TEST_OUT = $setupOut
   }
-  Write-TestResult -Name 'gpg makes the test key and signs with it' `
-    -Passed ([bool]$fpr -and (Test-Path -LiteralPath $sig)) -Detail @(Get-Content -LiteralPath $setupOut -ErrorAction SilentlyContinue)
-  $pins = Join-Path $tmp 'pins'
-  [IO.File]::WriteAllText($pins, "$fpr`n")
+  $made = (Test-Path -LiteralPath $otherKeyring) -and ((Get-Item -LiteralPath $otherKeyring).Length -gt 0)
+  Write-TestResult -Name 'gpg makes a second key and exports it' `
+    -Passed $made -Detail @(Get-Content -LiteralPath $setupOut -ErrorAction SilentlyContinue)
   $verify = New-Driver 'verify.bat' @(
     '@echo off',
-    'call "%TEST_LIB%" :verify_pgp_signature "%TEST_SIG%" "%TEST_DATA%" test "%TEST_FPR%" > "%TEST_OUT%" 2>&1',
+    'call "%TEST_LIB%" :verify_pgp_signature "%TEST_SIG%" "%TEST_DATA%" test "%TEST_KEYRING%" 1 > "%TEST_OUT%" 2>&1',
     'set "TEST_RC=%errorlevel%"',
     'type "%TEST_OUT%"',
     'exit /b %TEST_RC%')
   foreach ($label in $names.Keys) {
-    $temp = Join-Path $tmp ('temp-' + $names[$label])
-    New-Item -ItemType Directory -Path $temp | Out-Null
+    # Each case runs in a folder of its own inside the label's folder, as the
+    # updaters' fresh TMPDIR holds the data and its signature, and
+    # :verify_pgp_signature makes gpg's home beside them. A second call in one
+    # folder can draw the name of the first one's home, which lib.bat says.
+    $dir = Join-Path $tmp ('sig-' + $names[$label])
+    New-Item -ItemType Directory -Path $dir | Out-Null
+    $script:case = 0
+    # GNUPGHOME is the home that made the signing key, so a check that read
+    # the user's keyring would find the key there.
     $run = {
-      param($DataFile, $SigFile, $GpgHome)
+      param($DataFile, $SigFile, $Keyring)
+      $script:case++
+      $script:caseDir = Join-Path $dir ('case-' + $script:case)
+      New-Item -ItemType Directory -Path $script:caseDir | Out-Null
+      foreach ($f in $data, $tampered, $sig) { Copy-Item -LiteralPath $f -Destination $script:caseDir }
       Invoke-Bat $verify @{
-        TEST_LIB = $utilitiesLib; TEST_SIG = $SigFile; TEST_DATA = $DataFile; TEST_FPR = $pins
-        TEST_OUT = (Join-Path $tmp 'verify.out'); GNUPGHOME = $GpgHome; TEMP = $temp; TMP = $temp
+        TEST_LIB = $utilitiesLib; TEST_SIG = (Join-Path $script:caseDir $SigFile)
+        TEST_DATA = (Join-Path $script:caseDir $DataFile); TEST_KEYRING = $Keyring
+        TEST_OUT = (Join-Path $tmp 'verify.out'); GNUPGHOME = $home1
       }
     }
-    $r = & $run $data $sig $home1
-    Test-Same "the signature check accepts a good signature with TEMP in a $label folder" '0' ([string]$r.Status)
-    Test-Contain "the signature check counts it with TEMP in a $label folder" $r.Text 'good signatures from 1 key(s)'
-    $r = & $run $tampered $sig $home1
-    Test-Same "the signature check refuses a bad signature with TEMP in a $label folder" '1' ([string]$r.Status)
-    Test-Contain "the signature check calls it bad with TEMP in a $label folder" $r.Text 'BAD PGP signature'
-    $r = & $run $data (Join-Path $tmp 'absent.sig') $home1
-    Test-Contain "the signature check says gpg found none with TEMP in a $label folder" $r.Text 'found no PGP signature'
-    $r = & $run $data $sig $home2
-    Test-Contain "the signature check says the key is not imported with TEMP in a $label folder" $r.Text 'no valid PGP signature'
+    $dataName = Split-Path -Leaf $data
+    $sigName = Split-Path -Leaf $sig
+    $r = & $run $dataName $sigName $keyring
+    Test-Same "the signature check accepts a good signature in a $label folder" '0' ([string]$r.Status)
+    Test-Contain "the signature check counts it in a $label folder" $r.Text 'good signatures from 1 key(s)'
+    $homes = @(Get-ChildItem -LiteralPath $script:caseDir -Directory -Filter 'gpg-home-*')
+    Test-Same "the signature check makes gpg's home beside a signature in a $label folder" 1 $homes.Count
+    $r = & $run (Split-Path -Leaf $tampered) $sigName $keyring
+    Test-Same "the signature check refuses a bad signature in a $label folder" '1' ([string]$r.Status)
+    Test-Contain "the signature check calls it bad in a $label folder" $r.Text 'BAD PGP signature'
+    $r = & $run $dataName 'absent.sig' $keyring
+    Test-Contain "the signature check says gpg found none in a $label folder" $r.Text 'found no PGP signature'
+    $r = & $run $dataName $sigName $otherKeyring
+    Test-Same "the signature check refuses a key the keyring does not hold in a $label folder" '1' ([string]$r.Status)
+    Test-Contain "the signature check says no key of the keyring signed in a $label folder" $r.Text 'verifies against a key in'
+    $r = & $run $dataName $sigName (Join-Path $dir 'absent.gpg')
+    Test-Contain "the signature check refuses a keyring that does not exist in a $label folder" $r.Text 'missing, empty or unreadable'
+    $r = & $run $dataName $sigName $dir
+    Test-Contain "the signature check refuses a folder for a keyring in a $label folder" $r.Text 'missing, empty or unreadable'
   }
   Remove-Item -LiteralPath "$short-1", "$short-2" -Recurse -Force -ErrorAction SilentlyContinue
 }
