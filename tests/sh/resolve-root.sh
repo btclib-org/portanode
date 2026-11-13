@@ -5,7 +5,10 @@
 # shellcheck shell=bash
 # resolve_root, in shared/lib.sh.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -51,7 +54,7 @@ check "PORTANODE_ROOT naming a PortaNode folder overrides the walk" \
 
 mkdir -p "$TMP/not-a-root"
 err="$(PORTANODE_ROOT="$TMP/not-a-root" resolve_root "$REPO/linux" 2>&1 \
-    >/dev/null)"
+    > /dev/null)"
 status=$?
 check "PORTANODE_ROOT naming no PortaNode folder answers 1" same 1 "$status"
 check "PORTANODE_ROOT naming no PortaNode folder is named in the message" \

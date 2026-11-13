@@ -13,20 +13,23 @@
 # below and the root walk into the wrong directory -- is resolved a
 # link at a time instead.
 resolve_symlink() {
-  local target="$1" dir
-  while [ -L "$target" ]; do
-    dir="$(cd -P "$(dirname "$target")" && pwd)"
-    target="$(readlink "$target")"
-    case "$target" in
-      /*) ;;
-      *) target="$dir/$target" ;;
-    esac
-  done
-  printf '%s\n' "$target"
+    local target="$1" dir
+    while [ -L "$target" ]; do
+        dir="$(cd -P "$(dirname "$target")" && pwd)"
+        target="$(readlink "$target")"
+        case "$target" in
+            /*) ;;
+            *) target="$dir/$target" ;;
+        esac
+    done
+    printf '%s\n' "$target"
 }
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd -P)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -40,7 +43,7 @@ ELECTRUM_APPIMAGE="${BIN_DIR}/electrum.AppImage"
 # of this one, and a printed command that has drifted from what the
 # script runs is worse than no printed command.
 ELECTRUM_ARGS=(
-  --dir "${ROOTDIR}/electrum-datadir"
+    --dir "${ROOTDIR}/electrum-datadir"
 )
 
 if [ ! -d "$BIN_DIR" ]; then
@@ -126,9 +129,9 @@ mkdir -p "${ROOTDIR}/electrum-datadir" || {
     exit 1
 }
 SOCKET_PROBE="${ROOTDIR}/electrum-datadir/.probe.$$"
-if command -v python3 >/dev/null 2>&1; then
+if command -v python3 > /dev/null 2>&1; then
     python3 - "${ROOTDIR}/electrum-datadir/daemon_rpc_socket" \
-             "$SOCKET_PROBE" <<'PYEOF' 2>/dev/null
+        "$SOCKET_PROBE" << 'PYEOF' 2> /dev/null
 import os
 import socket
 import sys
@@ -151,48 +154,48 @@ PYEOF
     SOCKET_PROBE_STATUS=$?
     rm -f "$SOCKET_PROBE"
     case "$SOCKET_PROBE_STATUS" in
-    0) ;;
-    4)
-        echo "Error: electrum-datadir cannot hold a unix domain" \
-             "socket."
-        echo "Electrum's daemon binds one there (daemon_rpc_socket) for its" \
-             "own RPC channel, and every command against a wallet kept here" \
-             "goes through it; this is the filesystem refusing the bind, not" \
-             "a missing package or a wrong argument."
-        echo "To run Electrum anyway, point --dir at a directory on a" \
-             "filesystem that supports unix sockets (ext4 and most others" \
-             "do):"
-        printf '  %q --dir <path-on-another-filesystem>' "$ELECTRUM_APPIMAGE"
-        # The slice drops --dir and the datadir the line has just replaced,
-        # leaving the network flag. mainnet.sh has none, and printf with no
-        # operand left runs its format once more against an empty string,
-        # printing a trailing '' the reader would paste.
-        if [ "${#ELECTRUM_ARGS[@]}" -gt 2 ]; then
-            printf ' %q' "${ELECTRUM_ARGS[@]:2}"
-        fi
-        printf '\n'
-        exit 1
-        ;;
-    2)
-        # The warning reports the path's length, so it must print the
-        # absolute path. A relative path would fit sockaddr_un and make
-        # the warning false.
-        echo "Note: a unix domain socket address cannot hold a path as long" \
-             "as ${ROOTDIR}/electrum-datadir/daemon_rpc_socket, so whether" \
-             "that filesystem supports one was not tested. Electrum's daemon" \
-             "meets the same limit binding that path; a mount point with a" \
-             "shorter path is what shortens it."
-        ;;
-    *)
-        echo "Note: the unix-socket check for electrum-datadir did not run." \
-             "If Electrum's daemon fails to start, this directory's" \
-             "filesystem may not support unix domain sockets."
-        ;;
+        0) ;;
+        4)
+            echo "Error: electrum-datadir cannot hold a unix domain" \
+                "socket."
+            echo "Electrum's daemon binds one there (daemon_rpc_socket) for its" \
+                "own RPC channel, and every command against a wallet kept here" \
+                "goes through it; this is the filesystem refusing the bind, not" \
+                "a missing package or a wrong argument."
+            echo "To run Electrum anyway, point --dir at a directory on a" \
+                "filesystem that supports unix sockets (ext4 and most others" \
+                "do):"
+            printf '  %q --dir <path-on-another-filesystem>' "$ELECTRUM_APPIMAGE"
+            # The slice drops --dir and the datadir the line has just replaced,
+            # leaving the network flag. mainnet.sh has none, and printf with no
+            # operand left runs its format once more against an empty string,
+            # printing a trailing '' the reader would paste.
+            if [ "${#ELECTRUM_ARGS[@]}" -gt 2 ]; then
+                printf ' %q' "${ELECTRUM_ARGS[@]:2}"
+            fi
+            printf '\n'
+            exit 1
+            ;;
+        2)
+            # The warning reports the path's length, so it must print the
+            # absolute path. A relative path would fit sockaddr_un and make
+            # the warning false.
+            echo "Note: a unix domain socket address cannot hold a path as long" \
+                "as ${ROOTDIR}/electrum-datadir/daemon_rpc_socket, so whether" \
+                "that filesystem supports one was not tested. Electrum's daemon" \
+                "meets the same limit binding that path; a mount point with a" \
+                "shorter path is what shortens it."
+            ;;
+        *)
+            echo "Note: the unix-socket check for electrum-datadir did not run." \
+                "If Electrum's daemon fails to start, this directory's" \
+                "filesystem may not support unix domain sockets."
+            ;;
     esac
 else
     echo "Note: python3 not found; skipping the unix-socket check for" \
-         "electrum-datadir. If Electrum's daemon fails to start, this" \
-         "directory's filesystem may not support unix domain sockets."
+        "electrum-datadir. If Electrum's daemon fails to start, this" \
+        "directory's filesystem may not support unix domain sockets."
 fi
 
 "$ELECTRUM_APPIMAGE" "${ELECTRUM_ARGS[@]}"

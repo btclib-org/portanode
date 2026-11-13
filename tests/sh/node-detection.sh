@@ -9,7 +9,10 @@
 # no node and reads no process list: each case replaces _process_args with
 # the lines it names.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -152,7 +155,7 @@ check "a datadir under a directory that does not exist is compared as spelled" \
 # that does not spell it answers 2, and the spelling still answers 0. Its
 # bitcoin.conf cannot be read either, so a node with a -datadir that selects
 # no network answers 2 too (ISS 887).
-: >"$TMP/file"
+: > "$TMP/file"
 ln -s "$TMP/gone" "$TMP/dangling"
 for own in "$TMP/file" "$TMP/file/regtest" "$TMP/dangling"; do
     PROCS="$BIN -datadir=$TMP/other -regtest"$'\n'
@@ -239,7 +242,7 @@ conf_case() {
     shown=${shown//$'\f'/\\f}
     rm -f "$CONF"/*.conf
     for file in "$@"; do
-        printf '%s' "${file#*:}" >"$CONF/${file%%:*}"
+        printf '%s' "${file#*:}" > "$CONF/${file%%:*}"
     done
     PROCS="$BIN -datadir=$CONF $args"$'\n'
     check "regtest in the configuration files: [$args] $shown" \
@@ -272,7 +275,7 @@ conf_case 0 "" "bitcoin.conf:signet=1"$'\n'"testnet=1"$'\n'
 conf_case 0 "" "bitcoin.conf:includeconf=x.conf"$'\n' "x.conf:signet=1"$'\n'"testnet=1"$'\n'
 # bash cannot read a NUL byte as Core does, so the guard cannot tell.
 rm -f "$CONF"/*.conf
-printf 'noregtest=\0001\n' >"$CONF/bitcoin.conf"
+printf 'noregtest=\0001\n' > "$CONF/bitcoin.conf"
 PROCS="$BIN -datadir=$CONF"$'\n'
 check "regtest in the configuration files: a NUL byte in bitcoin.conf" \
     answers 2 regtest_node_running_on "$CONF"
@@ -282,13 +285,18 @@ check "regtest in the configuration files: a NUL byte in bitcoin.conf" \
 under_lang() {
     local lang="$1"
     shift
-    (unset LC_ALL LC_CTYPE; LANG=$lang; export LANG; "$@")
+    (
+        unset LC_ALL LC_CTYPE
+        LANG=$lang
+        export LANG
+        "$@"
+    )
 }
 if loc="$(_utf8_locale)"; then
-    printf '# comment \351\ntxindex=1\n' >"$CONF/bitcoin.conf"
+    printf '# comment \351\ntxindex=1\n' > "$CONF/bitcoin.conf"
     check "no network in bitcoin.conf, with a Latin-1 comment, under LANG=$loc" \
         under_lang "$loc" answers 1 regtest_node_running_on "$CONF"
-    printf 'regtest=1\n# comment \351\n' >"$CONF/bitcoin.conf"
+    printf 'regtest=1\n# comment \351\n' > "$CONF/bitcoin.conf"
     check "regtest in bitcoin.conf, with a Latin-1 comment, under LANG=$loc" \
         under_lang "$loc" answers 0 regtest_node_running_on "$CONF"
 else
@@ -335,7 +343,7 @@ conf_case 2 "" "bitcoin.conf:noincludeconf=0"$'\n'
 # regtest, as they do for a node on its datadir, and where they cannot be
 # read. Each case writes the files it reads.
 rm -f "$CONF"/*.conf
-printf 'regtest=1\n' >"$CONF/bitcoin.conf"
+printf 'regtest=1\n' > "$CONF/bitcoin.conf"
 PROCS="$BIN -datadir=$CONF"$'\n'
 check "a node on the datadir, regtest in the guard's bitcoin.conf" \
     answers 0 regtest_node_running_on "$CONF"

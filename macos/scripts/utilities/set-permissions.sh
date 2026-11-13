@@ -7,7 +7,10 @@
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=macos/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -67,7 +70,7 @@ restrict() {
     local rc=0
     chmod -R -H u=rwX,go= "$dir" || rc=$?
     chmod 700 "$dir" || rc=$?
-    chmod -N "$dir" 2>/dev/null || true
+    chmod -N "$dir" 2> /dev/null || true
     return "$rc"
 }
 
@@ -137,9 +140,9 @@ report_permission_effect() {
     local dir="$1" chmod_rc="$2"
     local rel mode device personality acl_lines
     rel="${dir#"$ROOTDIR/"}"
-    mode="$(stat -L -f '%OLp' "$dir" 2>/dev/null || true)"
-    device="$(df -P "$dir" 2>/dev/null | tail -1 | awk '{print $1}')"
-    personality="$(diskutil info "$device" 2>/dev/null \
+    mode="$(stat -L -f '%OLp' "$dir" 2> /dev/null || true)"
+    device="$(df -P "$dir" 2> /dev/null | tail -1 | awk '{print $1}')"
+    personality="$(diskutil info "$device" 2> /dev/null \
         | awk -F': +' '/File System Personality/ {print $2}')"
     # ls -e is BSD's ACL listing and has no find equivalent; SC2012 reads
     # this as parsing an arbitrary directory listing, but $dir is always
@@ -147,45 +150,45 @@ report_permission_effect() {
     # from user input, so the filenames-with-newlines case the check
     # guards against does not apply here.
     # shellcheck disable=SC2012
-    acl_lines="$(ls -lde "$dir/" 2>/dev/null | wc -l | tr -d ' ')"
+    acl_lines="$(ls -lde "$dir/" 2> /dev/null | wc -l | tr -d ' ')"
     case "$personality" in
-        ExFAT|MS-DOS*|FAT32)
+        ExFAT | MS-DOS* | FAT32)
             echo "Warning: $rel is on $personality, which does not store" \
-                 "POSIX permissions. chmod above changed nothing on" \
-                 "disk; the directory is still readable by anyone with" \
-                 "access to the volume. Restrict access with encryption or" \
-                 "physical control of the device instead."
+                "POSIX permissions. chmod above changed nothing on" \
+                "disk; the directory is still readable by anyone with" \
+                "access to the volume. Restrict access with encryption or" \
+                "physical control of the device instead."
             return 2
             ;;
         "")
             echo "Warning: could not determine the filesystem of $rel; it" \
-                 "reads ${mode:-unknown} after the chmod above (chmod exit" \
-                 "$chmod_rc)."
+                "reads ${mode:-unknown} after the chmod above (chmod exit" \
+                "$chmod_rc)."
             return 1
             ;;
         *)
             if [ "$mode" != "700" ]; then
                 echo "Warning: $rel is on $personality, which stores" \
-                     "POSIX permissions, and reads ${mode:-unknown}" \
-                     "rather than 700 after the chmod above (chmod exit" \
-                     "$chmod_rc)."
+                    "POSIX permissions, and reads ${mode:-unknown}" \
+                    "rather than 700 after the chmod above (chmod exit" \
+                    "$chmod_rc)."
                 return 1
             elif [ "$chmod_rc" -ne 0 ]; then
                 echo "Warning: $rel is on $personality and reads 700, but" \
-                     "chmod exited $chmod_rc: at least one path it was" \
-                     "given kept the mode it had. List what under $rel is" \
-                     "not owner-only with: find \"$dir\" -perm +077"
+                    "chmod exited $chmod_rc: at least one path it was" \
+                    "given kept the mode it had. List what under $rel is" \
+                    "not owner-only with: find \"$dir\" -perm +077"
                 return 1
             elif [ "$acl_lines" -gt 1 ]; then
                 echo "Warning: $rel is on $personality and reads 700, but" \
-                     "still carries an ACL entry chmod -N did not clear" \
-                     "-- ls -lde \"$dir/\" lists it. macOS evaluates an ACL" \
-                     "ahead of the mode, so an entry granting another" \
-                     "identity access can still reach $rel."
+                    "still carries an ACL entry chmod -N did not clear" \
+                    "-- ls -lde \"$dir/\" lists it. macOS evaluates an ACL" \
+                    "ahead of the mode, so an entry granting another" \
+                    "identity access can still reach $rel."
                 return 1
             else
                 echo "$rel is on $personality and reads 700: permissions" \
-                     "restricted to the owner."
+                    "restricted to the owner."
                 return 0
             fi
             ;;

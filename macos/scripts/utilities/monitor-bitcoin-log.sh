@@ -7,7 +7,10 @@
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=macos/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -44,7 +47,8 @@ else
     LAST_OFFSET=0
 fi
 case "$LAST_OFFSET" in
-    ''|*[!0-9]*) LAST_OFFSET=0 ;;
+    '' | *[!0-9]*) LAST_OFFSET=0 ;;
+    *) ;;
 esac
 
 # Current size in bytes, from the filesystem's own metadata rather than by
@@ -74,10 +78,10 @@ if [ "$CURRENT_SIZE" -gt "$LAST_OFFSET" ]; then
     # before they are captured, because bash drops a NUL from a captured
     # string.
     MATCHES=$(
-      tail -c "+$((LAST_OFFSET+1))" "$LOG_FILE" \
-        | grep -a -i "error\\|warning\\|failed" \
-        | escape_controls
-      exit "${PIPESTATUS[0]}"
+        tail -c "+$((LAST_OFFSET + 1))" "$LOG_FILE" \
+            | grep -a -i "error\\|warning\\|failed" \
+            | escape_controls
+        exit "${PIPESTATUS[0]}"
     ) || {
         echo "Error: bitcoin-datadir/debug.log could not be read."
         exit 1
@@ -90,7 +94,7 @@ if [ "$CURRENT_SIZE" -gt "$LAST_OFFSET" ]; then
         # this bash, echo turns an escape such as \x1b back into its byte.
         printf '%s\n' "$ERRORS"
         # macOS notification
-        if [ "$NO_NOTIFY" -eq 0 ] && command -v osascript >/dev/null 2>&1; then
+        if [ "$NO_NOTIFY" -eq 0 ] && command -v osascript > /dev/null 2>&1; then
             NOTIFY_MSG="Bitcoin errors detected"
             NOTIFY_TITLE="PortaNode Alert"
             OSA_SCRIPT="display notification \"$NOTIFY_MSG\""

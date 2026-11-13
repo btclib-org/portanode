@@ -31,10 +31,10 @@
   "code_of_conduct_status": "Met",
   "code_review_standards_justification": "REVIEWING.md states what a review checks, how a finding is written and what clears a pull request. https://github.com/btclib-org/portanode/blob/main/REVIEWING.md",
   "code_review_standards_status": "Met",
-  "coding_standards_enforced_justification": "No coding style is selected for bash, so none is enforced there. The hooks enforce whitespace, line endings and shellcheck's correctness checks. The required Script security check enforces the PowerShell and batch styles. https://github.com/btclib-org/portanode/blob/main/.pre-commit-config.yaml",
-  "coding_standards_enforced_status": "Unmet",
-  "coding_standards_justification": "No style guide is named for bash. shellcheck checks correctness, not a style. The PowerShell style is PSScriptAnalyzer's default rule set at every severity. The batch style is Blinter's rules at every severity, except those CONTRIBUTING.md declines with its reasons. https://github.com/btclib-org/portanode/blob/main/CONTRIBUTING.md",
-  "coding_standards_status": "Unmet",
+  "coding_standards_enforced_justification": "The required Lint check enforces the bash style on every .sh and .command script through the shellcheck and shfmt hooks, and trailing whitespace and the final newline in every text file. It enforces LF line endings in every text file but the .bat ones, which .gitattributes checks out with CRLF. The required Script security check enforces the PowerShell and batch styles. https://github.com/btclib-org/portanode/blob/main/.pre-commit-config.yaml",
+  "coding_standards_enforced_status": "Met",
+  "coding_standards_justification": "The bash style is ShellCheck with every optional check but those CONTRIBUTING.md declines with their reasons, and shfmt's layout. The PowerShell style is PSScriptAnalyzer's default rule set at every severity. The batch style is Blinter's rules at every severity, except those CONTRIBUTING.md declines with its reasons. https://github.com/btclib-org/portanode/blob/main/CONTRIBUTING.md",
+  "coding_standards_status": "Met",
   "contribution_justification": "CONTRIBUTING.md explains the process: issues, one pull request per subject, the review and the landing. https://github.com/btclib-org/portanode/blob/main/CONTRIBUTING.md",
   "contribution_requirements_justification": "CONTRIBUTING.md states the requirements: the Signed-off-by trailer, the gates that must pass, and REVIEWING.md, which the change is reviewed against. https://github.com/btclib-org/portanode/blob/main/CONTRIBUTING.md",
   "contribution_requirements_status": "Met",
@@ -381,6 +381,6 @@
   "warnings_fixed_status": "Met",
   "warnings_justification": "shellcheck reads every .sh and .command script in the required Lint check. The required Script security check runs PSScriptAnalyzer's default rules on the .ps1 scripts and the Blinter rules of the batch style on the .bat scripts. https://github.com/btclib-org/portanode/blob/main/.github/workflows/script-security.yml",
   "warnings_status": "Met",
-  "warnings_strict_justification": "shellcheck runs at its default severity with none of its optional checks enabled. The required Script security check runs PSScriptAnalyzer's default rules and Blinter's rules at every severity, except those the batch style declines. A finding of either at any severity fails it, PSScriptAnalyzer's Information and Blinter's Style included, unless Blinter's baseline holds it. https://github.com/btclib-org/portanode/blob/main/.github/workflows/script-security.yml",
-  "warnings_strict_status": "Unmet"
+  "warnings_strict_justification": "shellcheck runs on every .sh and .command script with every optional check but those CONTRIBUTING.md declines with their reasons, and a finding fails the required Lint check. The required Script security check runs PSScriptAnalyzer's default rules and Blinter's rules at every severity, except those the batch style declines. A finding of either at any severity fails it, PSScriptAnalyzer's Information and Blinter's Style included, unless Blinter's baseline holds it. https://github.com/btclib-org/portanode/blob/main/.github/workflows/script-security.yml",
+  "warnings_strict_status": "Met"
 }

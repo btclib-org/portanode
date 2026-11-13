@@ -17,7 +17,10 @@
 # win/scripts/utilities holds the Windows halves, tested in
 # tests/win/updater-input.ps1.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -48,11 +51,11 @@ unset PORTANODE_ROOT
 for h in "$HOME_A" "$HOME_B" "$HOME_C"; do
     chmod 700 "$h"
     gpg --homedir "$h" --batch --passphrase '' --quick-gen-key \
-      "portanode test <t@example.invalid>" ed25519 sign never > /dev/null 2>&1
+        "portanode test <t@example.invalid>" ed25519 sign never > /dev/null 2>&1
 done
 fpr_of() {
     gpg --homedir "$1" --with-colons --list-keys 2> /dev/null \
-      | awk -F: '$1 == "fpr" { print $10; exit }'
+        | awk -F: '$1 == "fpr" { print $10; exit }'
 }
 FPR_A="$(fpr_of "$HOME_A")"
 FPR_B="$(fpr_of "$HOME_B")"
@@ -63,14 +66,14 @@ if [ "${#FPR_A}" -ne 40 ] || [ "${#FPR_B}" -ne 40 ] || [ "${#FPR_C}" -ne 40 ]; t
 fi
 # B's public key, for the cases where an unpinned key is in the keyring.
 gpg --homedir "$HOME_B" --export 2> /dev/null \
-  | gpg --homedir "$HOME_A" --batch --import > /dev/null 2>&1
+    | gpg --homedir "$HOME_A" --batch --import > /dev/null 2>&1
 sign() { # sign FILE HOMEDIR [KEY...]: writes FILE.asc
     local file="$1" home="$2" key args=()
     shift 2
     for key in "$@"; do args+=(--local-user "$key"); done
     rm -f "$file.asc"
     gpg --homedir "$home" --batch --yes --armor --detach-sign \
-      ${args[@]+"${args[@]}"} --output "$file.asc" "$file" > /dev/null 2>&1
+        ${args[@]+"${args[@]}"} --output "$file.asc" "$file" > /dev/null 2>&1
 }
 
 # --- the copy of the tree, made fresh for every case ----------------------
@@ -90,7 +93,7 @@ mkdir -p "$STUBS"
 # curl serves $SERVE/<last path component of the URL>, the index of a
 # publisher from index-bitcoin or index-electrum, answers any HEAD with
 # success, and logs its arguments.
-cat > "$STUBS/curl" <<'EOF'
+cat > "$STUBS/curl" << 'EOF'
 #!/bin/bash
 echo "$*" >> "$CURL_LOG"
 out=""
@@ -117,7 +120,7 @@ printf '#!/bin/sh\nfor a; do :; done\n[ "$a" = . ] && echo 1 && exit 0\nexit 1\n
 printf '#!/bin/sh\necho "$STUB_ARCH"\n' > "$STUBS/uname"
 printf '#!/bin/sh\necho "$*" >> "$CURL_LOG.hdiutil"\nexit 1\n' > "$STUBS/hdiutil"
 # sysctl prints $STUB_SYSCTL, and at "error" fails as an unknown oid does.
-cat > "$STUBS/sysctl" <<'EOF'
+cat > "$STUBS/sysctl" << 'EOF'
 #!/bin/sh
 if [ "$STUB_SYSCTL" = error ]; then
     echo "sysctl: unknown oid '$2'" >&2
@@ -126,7 +129,7 @@ fi
 echo "$STUB_SYSCTL"
 EOF
 chmod +x "$STUBS/curl" "$STUBS/pgrep" "$STUBS/uname" "$STUBS/hdiutil" \
-  "$STUBS/sysctl"
+    "$STUBS/sysctl"
 
 # run_updater OSTYPE ARCH SCRIPT ARGS...: status in $RC, output in $OUT.
 # sysctl answers $STUB_SYSCTL where it is set, and 1 where it is not.
@@ -137,17 +140,19 @@ run_updater() {
     : > "$WORK/curl.log.hdiutil"
     RC=0
     OUT="$(env -u PORTANODE_ROOT PATH="$STUBS:$PATH" OSTYPE="$ostype" \
-      STUB_ARCH="$arch" STUB_SYSCTL="${STUB_SYSCTL-1}" CURL_LOG="$WORK/curl.log" \
-      SERVE="$SERVE" TMPDIR="$WORK" GNUPGHOME="$HOME_A" \
-      bash "$TREE/$script" "$@" 2>&1)" || RC=$?
+        STUB_ARCH="$arch" STUB_SYSCTL="${STUB_SYSCTL-1}" CURL_LOG="$WORK/curl.log" \
+        SERVE="$SERVE" TMPDIR="$WORK" GNUPGHOME="$HOME_A" \
+        bash "$TREE/$script" "$@" 2>&1)" || RC=$?
 }
 
 # Every path under the platform directories and the two checksum files: a
 # directory made or a binary written changes it.
 snapshot() {
-    ( cd "$TREE" && { find linux macos win | LC_ALL=C sort
-                      cat linux/checksums.sha256 macos/checksums.sha256 \
-                          win/checksums.sha256; } | cksum )
+    (cd "$TREE" && {
+        find linux macos win | LC_ALL=C sort
+        cat linux/checksums.sha256 macos/checksums.sha256 \
+            win/checksums.sha256
+    } | cksum)
 }
 
 # refused <want>: the last run exited non-zero with <want> in its output, and
@@ -199,7 +204,7 @@ serve_release() {
             CLI="bitcoin-$v-arm64-apple-darwin.tar.gz"
             mkdir -p "$d/Bitcoin-Qt.app/Contents/MacOS"
             cp "$d/bitcoin-$v/bin/bitcoin-qt" "$d/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt"
-            ( cd "$d" && zip -qr "$SERVE/$FILE" Bitcoin-Qt.app )
+            (cd "$d" && zip -qr "$SERVE/$FILE" Bitcoin-Qt.app)
             tar -C "$d" -czf "$SERVE/$CLI" "bitcoin-$v"
             HASH_CLI="$(hash_of "$SERVE/$CLI")"
             ;;
@@ -242,30 +247,56 @@ sums_case() {
     contains "$OUT" "good signatures from 1 key(s)"
 }
 sums_empty() { :; }
-sums_hash_cut() { printf '%s  %s\n' "${HASH%???????????????????????}" "$FILE"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
-sums_name_cut() { printf '%s  %s\n' "$HASH" "${FILE%?}"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
+sums_hash_cut() {
+    printf '%s  %s\n' "${HASH%???????????????????????}" "$FILE"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
+sums_name_cut() {
+    printf '%s  %s\n' "$HASH" "${FILE%?}"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
 sums_line_cut() { good_sums | head -c 100; }
-sums_no_name() { printf '%s\n' "$HASH"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
-sums_two_hashes() { printf '%s  %s  %s\n' "$HASH" "$OTHER" "$FILE"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
-sums_two_hashes_swapped() { printf '%s  %s  %s\n' "$OTHER" "$HASH" "$FILE"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
-sums_bad_then_good() { printf '%s  %s\n' "$OTHER" "$FILE"; good_sums; }
-sums_good_then_bad() { good_sums; printf '%s  %s\n' "$OTHER" "$FILE"; }
-sums_other_name() { printf '%s  %s\n' "$HASH" "other-$FILE"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
-sums_other_hash() { printf '%s  %s\n' "$OTHER" "$FILE"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
-sums_dot_slash() { printf '%s  ./%s\n' "$HASH" "$FILE"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
-sums_dir_prefix() { printf '%s  ../%s\n' "$HASH" "$FILE"
-    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"; }
+sums_no_name() {
+    printf '%s\n' "$HASH"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
+sums_two_hashes() {
+    printf '%s  %s  %s\n' "$HASH" "$OTHER" "$FILE"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
+sums_two_hashes_swapped() {
+    printf '%s  %s  %s\n' "$OTHER" "$HASH" "$FILE"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
+sums_bad_then_good() {
+    printf '%s  %s\n' "$OTHER" "$FILE"
+    good_sums
+}
+sums_good_then_bad() {
+    good_sums
+    printf '%s  %s\n' "$OTHER" "$FILE"
+}
+sums_other_name() {
+    printf '%s  %s\n' "$HASH" "other-$FILE"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
+sums_other_hash() {
+    printf '%s  %s\n' "$OTHER" "$FILE"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
+sums_dot_slash() {
+    printf '%s  ./%s\n' "$HASH" "$FILE"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
+sums_dir_prefix() {
+    printf '%s  ../%s\n' "$HASH" "$FILE"
+    [ -z "$CLI" ] || printf '%s  %s\n' "$HASH_CLI" "$CLI"
+}
 sums_no_cli() { printf '%s  %s\n' "$HASH" "$FILE"; }
-sums_cli_for_other() { printf '%s  %s\n' "$HASH" "$FILE"
-    printf '%s  other-%s\n' "$HASH_CLI" "$CLI"; }
+sums_cli_for_other() {
+    printf '%s  %s\n' "$HASH" "$FILE"
+    printf '%s  other-%s\n' "$HASH_CLI" "$CLI"
+}
 
 # the control: a correct SHA256SUMS installs, so that every refusal below is
 # the check refusing and not the harness.
@@ -276,13 +307,19 @@ install_case() {
     good_sums > "$SERVE/SHA256SUMS"
     publish_sums
     bitcoin_run "$script" "$ostype" "$arch"
-    [ "$RC" -eq 0 ] || { printf '  exit %s\n%s\n' "$RC" "$OUT"; return 1; }
+    [ "$RC" -eq 0 ] || {
+        printf '  exit %s\n%s\n' "$RC" "$OUT"
+        return 1
+    }
     contains "$OUT" "Bitcoin Core updated to 29.0" || return 1
     case "$script" in
         macos/*) bin="macos/bin/bitcoind" ;;
         *) bin="linux/bin/bitcoind" ;;
     esac
-    [ -x "$TREE/$bin" ] || { echo "  $bin not installed"; return 1; }
+    [ -x "$TREE/$bin" ] || {
+        echo "  $bin not installed"
+        return 1
+    }
 }
 
 while read -r script ostype arch; do
@@ -347,7 +384,10 @@ silicon_installs() {
     silicon_serve
     STUB_SYSCTL=1
     run_updater darwin24 x86_64 "$MACOS_BITCOIN" --version 29.0
-    [ "$RC" -eq 0 ] || { printf '  exit %s\n%s\n' "$RC" "$OUT"; return 1; }
+    [ "$RC" -eq 0 ] || {
+        printf '  exit %s\n%s\n' "$RC" "$OUT"
+        return 1
+    }
     contains "$OUT" "Bitcoin Core updated to 29.0" || return 1
     contains "$(cat "$WORK/curl.log")" "/$FILE" || return 1
     contains "$(cat "$WORK/curl.log")" "/$CLI"
@@ -377,7 +417,6 @@ if command -v zip > /dev/null && command -v unzip > /dev/null; then
 else
     echo "ok - skipped: macos bitcoin needs zip and unzip"
 fi
-
 
 # --- the signature on what is downloaded -----------------------------------
 # serve_electrum SCRIPT VERSION: the installer and its signature, in $SERVE;
@@ -413,13 +452,19 @@ sig_case() {
         unimported) sign "$file" "$HOME_C" ;;
         unpinned) sign "$file" "$HOME_B" ;;
         pinned) sign "$file" "$HOME_A" ;;
-        tampered) sign "$file" "$HOME_A"; printf 'x' >> "$file" ;;
+        tampered)
+            sign "$file" "$HOME_A"
+            printf 'x' >> "$file"
+            ;;
         garbage) printf '<html>404</html>\n' > "$file.asc" ;;
         empty) : > "$file.asc" ;;
-        other) printf 'something else\n' > "$WORK/other"
-               sign "$WORK/other" "$HOME_A"
-               cp "$WORK/other.asc" "$file.asc" ;;
+        other)
+            printf 'something else\n' > "$WORK/other"
+            sign "$WORK/other" "$HOME_A"
+            cp "$WORK/other.asc" "$file.asc"
+            ;;
         missing) rm -f "$file.asc" ;;
+        *) ;;
     esac
     BEFORE="$(snapshot)"
     case "$script" in
@@ -427,7 +472,10 @@ sig_case() {
         *) run_updater "$ostype" "$arch" "$script" --version 4.6.0 ;;
     esac
     if [ "$kind" = pinned ]; then
-        [ "$RC" -eq 0 ] || { printf '  exit %s\n%s\n' "$RC" "$OUT"; return 1; }
+        [ "$RC" -eq 0 ] || {
+            printf '  exit %s\n%s\n' "$RC" "$OUT"
+            return 1
+        }
         contains "$OUT" "$want"
     else
         refused "$want"
@@ -446,11 +494,14 @@ while read -r script ostype arch; do
     name="$plat $(basename "$script" .sh)"
     case "$script" in
         macos/*bitcoin*) command -v zip > /dev/null || continue ;;
+        *) ;;
     esac
     case "$script" in
         linux/*electrum*)
             check "$name installs what a pinned key signed" \
-                sig_case "$script" "$ostype" "$arch" pinned "Electrum updated to 4.6.0" ;;
+                sig_case "$script" "$ostype" "$arch" pinned "Electrum updated to 4.6.0"
+            ;;
+        *) ;;
     esac
     check "$name refuses a signature by a key nobody imported" \
         sig_case "$script" "$ostype" "$arch" unimported "no valid PGP signature"
@@ -491,10 +542,12 @@ pgp_case() {
     cat > "$WORK/status"
     : > "$WORK/data"
     # shellcheck source=shared/utilities/lib.sh
-    ( . "$REPO/shared/utilities/lib.sh"
-      PATH="$WORK/gpgstub:$PATH" STATUS="$WORK/status" \
-        pgp_verify_or_fail "$WORK/data" "$WORK/data" "test" "$WORK/pins" \
-        > "$WORK/pgp.out" 2>&1 ) || got=refuse
+    (
+        . "$REPO/shared/utilities/lib.sh"
+        PATH="$WORK/gpgstub:$PATH" STATUS="$WORK/status" \
+            pgp_verify_or_fail "$WORK/data" "$WORK/data" "test" "$WORK/pins" \
+            > "$WORK/pgp.out" 2>&1
+    ) || got=refuse
     if [ "$got" != "$verdict" ]; then
         printf '  %s, wanted %s\n' "$got" "$verdict"
         sed 's/^/    /' "$WORK/pgp.out"
@@ -517,21 +570,30 @@ check "a GOODSIG and a VALIDSIG of two keys are refused" \
     pgp_case refuse 1 < <(
         printf '[GNUPG:] NEWSIG\n'
         status_good "$OUTSIDER" "$OUTSIDER" | sed -n 2p
-        status_good "$P1" "$P1" | sed -n 3p)
+        status_good "$P1" "$P1" | sed -n 3p
+    )
 check "a GOODSIG and a VALIDSIG in two signatures are refused" \
     pgp_case refuse 1 < <(
         status_good "$OUTSIDER" "$OUTSIDER" | sed -n 1,2p
-        status_good "$P1" "$P1" | sed -n -e 1p -e 3p)
+        status_good "$P1" "$P1" | sed -n -e 1p -e 3p
+    )
 check "a pinned fingerprint as the signing key of an unpinned primary is refused" \
     pgp_case refuse 1 < <(status_good "$P1" "$OUTSIDER")
 check "two GOODSIG lines in one signature are refused" \
-    pgp_case refuse 1 < <(status_good "$P1" "$P1"
-        status_good "$OUTSIDER" "$OUTSIDER" | sed -n 2p)
+    pgp_case refuse 1 < <(
+        status_good "$P1" "$P1"
+        status_good "$OUTSIDER" "$OUTSIDER" | sed -n 2p
+    )
 check "a BADSIG beside a good signature is refused" \
-    pgp_case refuse 1 < <(status_good "$P1" "$P1"
-        echo "[GNUPG:] BADSIG ${OUTSIDER#????????????????????????} x")
+    pgp_case refuse 1 < <(
+        status_good "$P1" "$P1"
+        echo "[GNUPG:] BADSIG ${OUTSIDER#????????????????????????} x"
+    )
 check "a revoked key's signature is refused" \
-    pgp_case refuse 1 < <(status_good "$P1" "$P1"; echo "[GNUPG:] KEYREVOKED")
+    pgp_case refuse 1 < <(
+        status_good "$P1" "$P1"
+        echo "[GNUPG:] KEYREVOKED"
+    )
 check "a REVKEYSIG is refused" \
     pgp_case refuse 1 < <(status_good "$P1" "$P1" | sed 's/GOODSIG/REVKEYSIG/')
 check "an expired key's signature is refused" \
@@ -544,11 +606,20 @@ check "a key ID shorter than 16 digits is refused" \
 check "one of two required signatures is refused" \
     pgp_case refuse 2 < <(status_good "$P1" "$P1")
 check "one key signing twice is one of two required signatures" \
-    pgp_case refuse 2 < <(status_good "$P1" "$P1"; status_good "$SUB1" "$P1")
+    pgp_case refuse 2 < <(
+        status_good "$P1" "$P1"
+        status_good "$SUB1" "$P1"
+    )
 check "two pinned keys meet two required signatures" \
-    pgp_case accept 2 < <(status_good "$P1" "$P1"; status_good "$P2" "$P2")
+    pgp_case accept 2 < <(
+        status_good "$P1" "$P1"
+        status_good "$P2" "$P2"
+    )
 check "one pinned and one unpinned key do not meet two required signatures" \
-    pgp_case refuse 2 < <(status_good "$P1" "$P1"; status_good "$OUTSIDER" "$OUTSIDER")
+    pgp_case refuse 2 < <(
+        status_good "$P1" "$P1"
+        status_good "$OUTSIDER" "$OUTSIDER"
+    )
 
 # --- a version string ------------------------------------------------------
 # A version reaches a URL, a file name and a directory name, so only digits
@@ -605,8 +676,14 @@ index_case() {
     BEFORE="$(snapshot)"
     run_updater "$ostype" "$arch" "$script" --dry-run
     contains "$OUT" "$want" || return 1
-    [ "$(snapshot)" = "$BEFORE" ] || { echo "  the tree changed"; return 1; }
-    ! grep -E "$INDEX_BAD" "$WORK/curl.log" || { echo "  curl was given a malformed version"; return 1; }
+    [ "$(snapshot)" = "$BEFORE" ] || {
+        echo "  the tree changed"
+        return 1
+    }
+    ! grep -E "$INDEX_BAD" "$WORK/curl.log" || {
+        echo "  curl was given a malformed version"
+        return 1
+    }
 }
 INDEX_BAD='99\.0|98\.0|97\.|96\.|9\.9|8\.8|7\.7|6\.6|5\.5|\.\./'
 BITCOIN_INDEX_BAD='<a href="bitcoin-core-99.0/../">x</a>
@@ -636,11 +713,11 @@ check "macos update-bitcoin finds no version in an index of malformed ones" \
 for plat in linux macos; do
     if [ "$plat" = linux ]; then os=linux-gnu arch=x86_64; else os=darwin24 arch=arm64; fi
     check "$plat update-electrum takes the one well-formed version of its index" \
-        index_case "$plat/scripts/utilities/update-electrum.sh" $os $arch \
+        index_case "$plat/scripts/utilities/update-electrum.sh" "$os" "$arch" \
         "$ELECTRUM_INDEX_BAD
 <a href=\"4.6.0/\">x</a>" "Would install Electrum 4.6.0"
     check "$plat update-electrum finds no version in an index of malformed ones" \
-        index_case "$plat/scripts/utilities/update-electrum.sh" $os $arch \
+        index_case "$plat/scripts/utilities/update-electrum.sh" "$os" "$arch" \
         "$ELECTRUM_INDEX_BAD" "Failed to determine latest Electrum version"
 done
 

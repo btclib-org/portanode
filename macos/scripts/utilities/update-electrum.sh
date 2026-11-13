@@ -8,7 +8,10 @@ set -euo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=macos/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
@@ -33,7 +36,7 @@ while [ $# -gt 0 ]; do
             ;;
         *)
             echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" \
-              "[--allow-downgrade]" >&2
+                "[--allow-downgrade]" >&2
             exit 1
             ;;
     esac
@@ -59,7 +62,7 @@ cd "$ROOTDIR"
 # the rm -rf after it cannot modify the image through the mount.
 MOUNT_POINT="$TMP_DIR/mnt"
 cleanup() {
-    hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
+    hdiutil detach "$MOUNT_POINT" > /dev/null 2>&1 || true
     rm -rf "$TMP_DIR"
 }
 trap cleanup EXIT
@@ -104,16 +107,16 @@ else
     # ISS 348's grep -c was. It buys a message naming the publisher and
     # the bound, and a fixed exit 1 in place of curl's own status.
     INDEX_HTML="$(curl_https -fsSL --max-time 300 -H "User-Agent: PortaNode" \
-      https://download.electrum.org/)" || {
+        https://download.electrum.org/)" || {
         echo "Failed to fetch the release index from download.electrum.org" \
-             "(curl --max-time 300)."
+            "(curl --max-time 300)."
         exit 1
     }
     VERSION="$(
-      echo "$INDEX_HTML" \
-        | sed -nE 's/.*href="([0-9]+\.[0-9]+\.[0-9]+)\/".*/\1/p' \
-        | sort -t. -k1,1n -k2,2n -k3,3n \
-        | tail -n 1
+        echo "$INDEX_HTML" \
+            | sed -nE 's/.*href="([0-9]+\.[0-9]+\.[0-9]+)\/".*/\1/p' \
+            | sort -t. -k1,1n -k2,2n -k3,3n \
+            | tail -n 1
     )"
     if [ -z "$VERSION" ]; then
         echo "Failed to determine latest Electrum version from electrum.org."
@@ -122,11 +125,11 @@ else
 fi
 
 CURRENT="$(installed_version \
-  "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-  "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-  "$ROOTDIR/macos/checksums.sha256")"
+    "$ROOTDIR/macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+    "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+    "$ROOTDIR/macos/checksums.sha256")"
 refuse_downgrade "$CURRENT" "$VERSION" "$ALLOW_DOWNGRADE" "Electrum" \
-  || exit 1
+    || exit 1
 
 BASE_URL="https://download.electrum.org/${VERSION}"
 URL="${BASE_URL}/electrum-${VERSION}.dmg"
@@ -137,11 +140,11 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "--dry-run: nothing will be downloaded, verified or installed."
     echo "Would install Electrum ${VERSION} (currently installed: ${CURRENT})."
     echo "Would fetch: $URL"
-    if command -v gpg >/dev/null 2>&1; then
+    if command -v gpg > /dev/null 2>&1; then
         # The helper reads the file as pgp_verify_or_fail does, so the pins
         # named here are the ones the real run enforces.
         preview_pinned_keys "$ROOTDIR/keys/electrum.fingerprints" \
-          "keys/electrum.fingerprints" "the download"
+            "keys/electrum.fingerprints" "the download"
     else
         echo "gpg: not found -- verification would fail closed."
     fi
@@ -157,12 +160,12 @@ if [ "$DRY_RUN" -eq 1 ]; then
     # connection -- otherwise ends the run at this assignment, with the
     # free-space line below unreached.
     ARCHIVE_LEN="$(curl_https -fsIL --max-time 30 "$URL" \
-      | tr -d '\r' \
-      | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
-      || ARCHIVE_LEN=""
+        | tr -d '\r' \
+        | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
+        || ARCHIVE_LEN=""
     if [ -n "$ARCHIVE_LEN" ]; then
         echo "Archive size: $((ARCHIVE_LEN / 1024 / 1024)) MB" \
-             "(downloaded to local temp storage, not the removable disk)."
+            "(downloaded to local temp storage, not the removable disk)."
     else
         # Printed rather than the block falling silent: with no line at
         # all, an estimate that could not be made reads the same as one
@@ -170,7 +173,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
         # bound firing, a request that failed and a response carrying no
         # Content-Length all reach here alike.
         echo "Archive size: unknown (the HEAD request returned no" \
-             "Content-Length)."
+            "Content-Length)."
     fi
     df -h "$ROOTDIR" | awk -v r="$ROOTDIR" 'NR==2 {print "Free space at " r ": " $4}'
     exit 0
@@ -182,10 +185,10 @@ curl_https -fL -o "$TMP_DIR/$OUT_FILE" "$URL"
 curl_https -fL -o "$TMP_DIR/$SIG_FILE" "${URL}.asc"
 
 if ! pgp_verify_or_fail \
-  "$TMP_DIR/$SIG_FILE" \
-  "$TMP_DIR/$OUT_FILE" \
-  "Electrum" \
-  "$ROOTDIR/keys/electrum.fingerprints"; then
+    "$TMP_DIR/$SIG_FILE" \
+    "$TMP_DIR/$OUT_FILE" \
+    "Electrum" \
+    "$ROOTDIR/keys/electrum.fingerprints"; then
     exit 1
 fi
 
@@ -200,7 +203,7 @@ if [ -d "$ROOTDIR/macos/bin/Electrum.app" ]; then
     cp -R "$ROOTDIR/macos/bin/Electrum.app" "$BACKUP_DIR/Electrum.app"
 fi
 if ! hdiutil attach -nobrowse -readonly -mountpoint "$MOUNT_POINT" \
-  "$TMP_DIR/$OUT_FILE" >/dev/null; then
+    "$TMP_DIR/$OUT_FILE" > /dev/null; then
     echo "Failed to mount Electrum DMG."
     exit 1
 fi
@@ -211,8 +214,8 @@ if [ ! -d "${MOUNT_POINT}/Electrum.app" ]; then
 fi
 install_rc=0
 install_verified "${MOUNT_POINT}/Electrum.app" \
-  "$ROOTDIR/macos/bin/Electrum.app" || install_rc=1
-hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 || true
+    "$ROOTDIR/macos/bin/Electrum.app" || install_rc=1
+hdiutil detach "$MOUNT_POINT" > /dev/null 2>&1 || true
 if [ "$install_rc" -ne 0 ]; then
     exit 1
 fi
@@ -220,11 +223,11 @@ fi
 # read; the executable keeps its own for the reason update-bitcoin.sh
 # gives beside its own pair.
 update_checksum "$ROOTDIR/macos/bin/Electrum.app" \
-  "macos/bin/Electrum.app" "$VERSION"
+    "macos/bin/Electrum.app" "$VERSION"
 update_checksum \
-  "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-  "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
-  "$VERSION"
+    "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+    "macos/bin/Electrum.app/Contents/MacOS/run_electrum" \
+    "$VERSION"
 echo "Verifying installed Electrum against checksums.sha256..."
 if ! verify_checksum_entry "$ROOTDIR/macos/bin/Electrum.app" \
     "macos/bin/Electrum.app" \

@@ -7,7 +7,10 @@
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=macos/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -27,11 +30,11 @@ fi
 # once the log has been emptied, and the exit status is the rotation's.
 
 # Rotate existing logs
-for ((i=MAX_ROTATIONS-1; i>=1; i--)); do
+for ((i = MAX_ROTATIONS - 1; i >= 1; i--)); do
     if [ -f "${LOG_FILE}.$i" ]; then
-        if ! mv "${LOG_FILE}.$i" "${LOG_FILE}.$((i+1))"; then
+        if ! mv "${LOG_FILE}.$i" "${LOG_FILE}.$((i + 1))"; then
             echo "Error: renaming bitcoin-datadir/debug.log.$i failed;" \
-                 "debug.log was not rotated."
+                "debug.log was not rotated."
             exit 1
         fi
     fi
@@ -40,12 +43,12 @@ done
 # Copy and truncate current log to avoid losing the file handle
 if ! cp "$LOG_FILE" "${LOG_FILE}.1"; then
     echo "Error: copying bitcoin-datadir/debug.log to debug.log.1 failed;" \
-         "debug.log was not rotated."
+        "debug.log was not rotated."
     exit 1
 fi
 if ! : > "$LOG_FILE"; then
     echo "Error: emptying bitcoin-datadir/debug.log failed; its content is" \
-         "also in debug.log.1."
+        "also in debug.log.1."
     exit 1
 fi
 

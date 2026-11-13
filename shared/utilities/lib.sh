@@ -38,7 +38,7 @@ debug_list_dir() {
     # true" keeps a missing directory a listing (of nothing) rather than a
     # death of the caller, which is the case this helper exists for.
     entries="$(find "$dir" -mindepth 1 -maxdepth 1 -exec basename {} \; \
-        2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')" || true
+        2> /dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//')" || true
     # The ROOTDIR prefix is stripped because the folder is mounted at a
     # different point on every machine it is plugged into, so a message
     # quoting the mount point tells the reader where this run happened
@@ -71,9 +71,9 @@ debug_list_dir() {
 tree_hash() {
     local path="$1"
     local -a sha_cmd
-    if command -v shasum >/dev/null 2>&1; then
+    if command -v shasum > /dev/null 2>&1; then
         sha_cmd=(shasum -a 256)
-    elif command -v sha256sum >/dev/null 2>&1; then
+    elif command -v sha256sum > /dev/null 2>&1; then
         sha_cmd=(sha256sum)
     else
         echo "Error: neither shasum nor sha256sum found." >&2
@@ -94,43 +94,45 @@ tree_hash() {
         # does not escape prints more lines than there are files, and the
         # count check refuses. xargs -r: GNU xargs otherwise runs the
         # command once on empty input; BSD xargs accepts the flag.
-        ( cd "$path" || exit 1
-          set -o pipefail
-          # No "local": the subshell already scopes tmp and out, and on
-          # macOS's bash 3.2 a local is gone by the time the EXIT trap
-          # runs on "exit 1", which leaves the directory behind.
-          # A template, because macOS's mktemp -d without one ignores
-          # TMPDIR.
-          tmp="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tree-hash.XXXXXX")" \
-              || exit 1
-          trap 'rm -rf "$tmp"' EXIT
-          find . -type f ! -name '._*' -print0 | LC_ALL=C sort -z \
-              > "$tmp/files" || exit 1
-          find . -type l ! -name '._*' -print0 | LC_ALL=C sort -z \
-              > "$tmp/links" || exit 1
-          xargs -0 -r "${sha_cmd[@]}" < "$tmp/files" \
-              | sed 's/^\\//' | cut -c 1-64 > "$tmp/hashes" || exit 1
-          [ "$(LC_ALL=C tr -cd '\000' < "$tmp/files" | wc -c)" -eq \
-            "$(wc -l < "$tmp/hashes")" ] || exit 1
-          ! grep -qvE '^[0-9a-f]{64}$' "$tmp/hashes" || exit 1
-          # In the symlink loop, readlink -n prints the target with no line
-          # end added (without -n, macOS's readlink adds one only where the
-          # target does not already end in a newline), and the x keeps the
-          # target's trailing newlines, which command substitution would strip.
-          out="$(
-            {
-              while IFS= read -r -d '' p && IFS= read -r h <&3; do
-                  printf 'f\0%s\0%s\0' "$p" "$h"
-              done < "$tmp/files" 3< "$tmp/hashes"
-              while IFS= read -r -d '' p; do
-                  t="$(readlink -n "$p" && printf x)" || exit 1
-                  printf 'l\0%s\0%s\0' "$p" "${t%x}"
-              done < "$tmp/links"
-            } | "${sha_cmd[@]}" | awk '{print $1}'
-          )" || exit 1
-          printf '%s\n' "$out" )
+        (
+            cd "$path" || exit 1
+            set -o pipefail
+            # No "local": the subshell already scopes tmp and out, and on
+            # macOS's bash 3.2 a local is gone by the time the EXIT trap
+            # runs on "exit 1", which leaves the directory behind.
+            # A template, because macOS's mktemp -d without one ignores
+            # TMPDIR.
+            tmp="$(mktemp -d "${TMPDIR:-/tmp}/portanode-tree-hash.XXXXXX")" \
+                || exit 1
+            trap 'rm -rf "$tmp"' EXIT
+            find . -type f ! -name '._*' -print0 | LC_ALL=C sort -z \
+                > "$tmp/files" || exit 1
+            find . -type l ! -name '._*' -print0 | LC_ALL=C sort -z \
+                > "$tmp/links" || exit 1
+            xargs -0 -r "${sha_cmd[@]}" < "$tmp/files" \
+                | sed 's/^\\//' | cut -c 1-64 > "$tmp/hashes" || exit 1
+            [ "$(LC_ALL=C tr -cd '\000' < "$tmp/files" | wc -c)" -eq \
+                "$(wc -l < "$tmp/hashes")" ] || exit 1
+            ! grep -qvE '^[0-9a-f]{64}$' "$tmp/hashes" || exit 1
+            # In the symlink loop, readlink -n prints the target with no line
+            # end added (without -n, macOS's readlink adds one only where the
+            # target does not already end in a newline), and the x keeps the
+            # target's trailing newlines, which command substitution would strip.
+            out="$(
+                {
+                    while IFS= read -r -d '' p && IFS= read -r h <&3; do
+                        printf 'f\0%s\0%s\0' "$p" "$h"
+                    done < "$tmp/files" 3< "$tmp/hashes"
+                    while IFS= read -r -d '' p; do
+                        t="$(readlink -n "$p" && printf x)" || exit 1
+                        printf 'l\0%s\0%s\0' "$p" "${t%x}"
+                    done < "$tmp/links"
+                } | "${sha_cmd[@]}" | awk '{print $1}'
+            )" || exit 1
+            printf '%s\n' "$out"
+        )
     else
-        "${sha_cmd[@]}" "$path" 2>/dev/null | awk '{print $1}'
+        "${sha_cmd[@]}" "$path" 2> /dev/null | awk '{print $1}'
     fi
 }
 
@@ -148,13 +150,13 @@ install_verified() {
     for i in 1 2 3 4 5; do
         rm -rf "$dest"
         cp -R "$src" "$dest"
-        sync 2>/dev/null || true
+        sync 2> /dev/null || true
         got="$(tree_hash "$dest")" || got=""
         if [ "$got" = "$want" ]; then
             return 0
         fi
         echo "Warning: $(basename "$dest") corrupted on write" \
-             "(attempt $i/5); retrying..."
+            "(attempt $i/5); retrying..."
     done
     echo "Error: $(basename "$dest") still corrupt after 5 attempts."
     echo "The destination filesystem may be unreliable (e.g. exFAT/fskit)."
@@ -193,13 +195,13 @@ verify_sha256sums() {
             END { print n + 0 }' "$tmp_dir/$sums_file")" || count=""
         if [ "$count" != 1 ]; then
             echo "Error: ${sums_file} holds ${count:-an unreadable number of}" \
-                 "entries for ${name}; exactly 1 is required."
+                "entries for ${name}; exactly 1 is required."
             return 1
         fi
     done
-    if command -v shasum >/dev/null 2>&1; then
+    if command -v shasum > /dev/null 2>&1; then
         (cd "$tmp_dir" && shasum -a 256 -c "$filtered")
-    elif command -v sha256sum >/dev/null 2>&1; then
+    elif command -v sha256sum > /dev/null 2>&1; then
         (cd "$tmp_dir" && sha256sum -c "$filtered")
     else
         echo "Error: Neither shasum nor sha256sum found."
@@ -252,7 +254,7 @@ pinned_fingerprints() {
         return 1
     fi
     if [ "$(LC_ALL=C tr -d '\000' < "$_pf_file" | wc -c)" -ne \
-         "$(wc -c < "$_pf_file")" ]; then
+        "$(wc -c < "$_pf_file")" ]; then
         echo "Error: ${_pf_name} holds a NUL byte, as a UTF-16 file does."
         return 1
     fi
@@ -263,24 +265,24 @@ pinned_fingerprints() {
     while IFS= read -r _pf_line; do
         _pf_n=$((_pf_n + 1))
         _pf_fpr=${_pf_line//[$_pf_ws]/}
-        case "$_pf_fpr" in ''|\#*) continue ;; esac
+        case "$_pf_fpr" in '' | \#*) continue ;; *) ;; esac
         if [[ "$_pf_fpr" == min-signatures=* ]]; then
             if [ -n "$_pf_min" ]; then
                 echo "Error: line ${_pf_n} of ${_pf_name} sets min-signatures" \
-                     "a second time."
+                    "a second time."
                 return 1
             fi
             _pf_min=${_pf_fpr#min-signatures=}
             if ! [[ "$_pf_min" =~ ^[123456789][0123456789]*$ ]]; then
                 echo "Error: line ${_pf_n} of ${_pf_name} does not set" \
-                     "min-signatures to a whole number from 1: ${_pf_fpr}"
+                    "min-signatures to a whole number from 1: ${_pf_fpr}"
                 return 1
             fi
             continue
         fi
         if ! [[ "$_pf_fpr" =~ ^[0-9ABCDEFabcdef]{40}$ ]]; then
             echo "Error: line ${_pf_n} of ${_pf_name} is not a 40-hex" \
-                 "fingerprint: ${_pf_fpr}"
+                "fingerprint: ${_pf_fpr}"
             return 1
         fi
         _pf_pins="${_pf_pins:+${_pf_pins}${_pf_nl}}${_pf_fpr}"
@@ -305,10 +307,10 @@ pgp_verify_or_fail() {
     local label="$3"
     local fpr_file="${4:-}"
 
-    if ! command -v gpg >/dev/null 2>&1; then
+    if ! command -v gpg > /dev/null 2>&1; then
         echo "Error: gpg not found; cannot verify ${label}."
         echo "Install gpg (e.g. 'brew install gnupg') and import the signing" \
-             "key."
+            "key."
         return 1
     fi
 
@@ -316,7 +318,7 @@ pgp_verify_or_fail() {
     local status_file
     status_file="$(mktemp)"
     gpg --status-fd 1 --verify "$sig_file" "$data_file" 1> "$status_file" \
-        2>/dev/null || true
+        2> /dev/null || true
 
     # A status file that is absent or empty is gpg's answer lost rather
     # than a signature refused, and the greps below cannot separate the
@@ -332,7 +334,7 @@ pgp_verify_or_fail() {
     # separates the two.
     if [ ! -s "$status_file" ]; then
         echo "Error: gpg's status output for ${label} was not read;" \
-             "whether the signature is good is unknown."
+            "whether the signature is good is unknown."
         rm -f "$status_file"
         return 1
     fi
@@ -378,7 +380,7 @@ pgp_verify_or_fail() {
 
     if ! grep -q '^\[GNUPG:\] GOODSIG' "$status_file"; then
         echo "Error: no valid PGP signature on ${label}" \
-             "(is the signer's key imported?)."
+            "(is the signer's key imported?)."
         echo "Import the signing key."
         rm -f "$status_file"
         return 1
@@ -391,14 +393,14 @@ pgp_verify_or_fail() {
     local fpr_name pins min_sigs n_pins n_good
     if [ -z "$fpr_file" ]; then
         echo "Error: no file of pinned fingerprints given, so ${label} is" \
-             "refused."
+            "refused."
         rm -f "$status_file"
         return 1
     fi
     fpr_name="$(basename "$fpr_file")"
     if ! pinned_fingerprints "$fpr_file" pins min_sigs; then
         echo "Error: ${fpr_name} was not accepted as a list of pinned" \
-             "fingerprints, so ${label} is refused."
+            "fingerprints, so ${label} is refused."
         rm -f "$status_file"
         return 1
     fi
@@ -414,7 +416,7 @@ pgp_verify_or_fail() {
     # away from -lt, which errors on it rather than answering.
     if [ "${#min_sigs}" -gt 9 ] || [ "$n_pins" -lt "$min_sigs" ]; then
         echo "Error: ${fpr_name} pins ${n_pins} key(s), fewer than the" \
-             "${min_sigs} signatures it asks for, so ${label} is refused."
+            "${min_sigs} signatures it asks for, so ${label} is refused."
         rm -f "$status_file"
         return 1
     fi
@@ -453,17 +455,17 @@ pgp_verify_or_fail() {
         $2 == "REVKEYSIG" || $2 == "KEYREVOKED" { revoked = 1 }
         END { flush(); print n + 0 }
     ' "$status_file")" || n_good=0
-    case "$n_good" in ''|*[!0123456789]*) n_good=0 ;; esac
+    case "$n_good" in '' | *[!0123456789]*) n_good=0 ;; *) ;; esac
     if [ "$n_good" -lt "$min_sigs" ]; then
         echo "Error: ${label} carries good signatures from ${n_good} key(s)" \
-             "pinned in ${fpr_name}; it asks for ${min_sigs}."
+            "pinned in ${fpr_name}; it asks for ${min_sigs}."
         echo "A key counts once, and not at all where it is expired or" \
-             "revoked."
+            "revoked."
         rm -f "$status_file"
         return 1
     fi
     echo "${label}: good signatures from ${n_good} key(s) pinned in" \
-         "${fpr_name}; ${min_sigs} required."
+        "${fpr_name}; ${min_sigs} required."
 
     rm -f "$status_file"
     return 0
@@ -596,9 +598,9 @@ installed_version() {
         return 0
     fi
 
-    if command -v shasum >/dev/null 2>&1; then
+    if command -v shasum > /dev/null 2>&1; then
         hash="$(shasum -a 256 "$file" | awk '{print $1}')"
-    elif command -v sha256sum >/dev/null 2>&1; then
+    elif command -v sha256sum > /dev/null 2>&1; then
         hash="$(sha256sum "$file" | awk '{print $1}')"
     else
         echo "unknown"
@@ -640,38 +642,38 @@ preview_pinned_keys() {
     local _pk_pins _pk_min _pk_fpr _pk_n _pk_found=0
     if ! pinned_fingerprints "$_pk_file" _pk_pins _pk_min; then
         echo "gpg: found, but ${_pk_name} was not accepted as a list of" \
-             "pinned fingerprints -- verification would refuse ${_pk_what}."
+            "pinned fingerprints -- verification would refuse ${_pk_what}."
         return 0
     fi
     if [ -z "$_pk_pins" ]; then
         echo "gpg: found, but ${_pk_name} pins no key -- verification would" \
-             "refuse ${_pk_what}."
+            "refuse ${_pk_what}."
         return 0
     fi
     _pk_pins="$(printf '%s\n' "$_pk_pins" | tr 'abcdef' 'ABCDEF' \
-      | LC_ALL=C sort -u)"
+        | LC_ALL=C sort -u)"
     _pk_n="$(printf '%s\n' "$_pk_pins" | wc -l | tr -d ' ')"
     if [ "${#_pk_min}" -gt 9 ] || [ "$_pk_n" -lt "$_pk_min" ]; then
         echo "gpg: found, but ${_pk_name} pins ${_pk_n} key(s), fewer than" \
-             "the ${_pk_min} signatures it asks for -- verification would" \
-             "refuse ${_pk_what}."
+            "the ${_pk_min} signatures it asks for -- verification would" \
+            "refuse ${_pk_what}."
         return 0
     fi
     while IFS= read -r _pk_fpr; do
-        if gpg --list-keys "$_pk_fpr" >/dev/null 2>&1; then
+        if gpg --list-keys "$_pk_fpr" > /dev/null 2>&1; then
             echo "gpg: found, pinned key $_pk_fpr is in the local keyring."
             _pk_found=$((_pk_found + 1))
         else
             echo "gpg: found, but pinned key $_pk_fpr is NOT in the local" \
-                 "keyring."
+                "keyring."
         fi
     done <<< "$_pk_pins"
     echo "Verification asks for ${_pk_min} good signature(s) from distinct" \
-         "pinned keys."
+        "pinned keys."
     if [ "$_pk_found" -lt "$_pk_min" ]; then
         echo "Only ${_pk_found} pinned key(s) in the local keyring, fewer" \
-             "than the ${_pk_min} signatures asked for -- verification" \
-             "would fail closed."
+            "than the ${_pk_min} signatures asked for -- verification" \
+            "would fail closed."
     fi
     return 0
 }
@@ -731,7 +733,8 @@ verify_binaries() {
     local line hash rest version path seen p
     while IFS= read -r line; do
         case "$line" in
-            ""|\#*) continue ;;
+            "" | \#*) continue ;;
+            *) ;;
         esac
         hash="${line%%[[:space:]]*}"
         rest="${line#"$hash"}"
@@ -797,8 +800,8 @@ verify_binaries() {
             fail=$((fail + 1))
             continue
         fi
-        if ! command -v shasum >/dev/null 2>&1 && \
-           ! command -v sha256sum >/dev/null 2>&1; then
+        if ! command -v shasum > /dev/null 2>&1 \
+            && ! command -v sha256sum > /dev/null 2>&1; then
             echo "Error: Neither shasum nor sha256sum found."
             echo "Install coreutils or similar."
             return 1
@@ -887,7 +890,7 @@ refuse_downgrade() {
 
     if ! [[ "$requested" =~ $re ]]; then
         echo "Refusing to install $name $requested: a version is digits" \
-             "and dots."
+            "and dots."
         return 1
     fi
     if [ "$allow" = "1" ] || [ "$installed" = "unknown" ]; then
@@ -911,7 +914,7 @@ refuse_downgrade() {
             y="${b[i]:-0}"
             y="${y#"${y%%[!0]*}"}"
             if [ "${#y}" -gt "${#x}" ] \
-              || { [ "${#y}" -eq "${#x}" ] && [[ "$y" > "$x" ]]; }; then
+                || { [ "${#y}" -eq "${#x}" ] && [[ "$y" > "$x" ]]; }; then
                 return 0
             fi
             if [ "${#y}" -lt "${#x}" ] || [[ "$y" < "$x" ]]; then

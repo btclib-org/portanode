@@ -11,7 +11,10 @@
 #   bash tests/run.sh
 #   /bin/bash tests/run.sh    # the bash macOS starts a .command with
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 echo "# bash $BASH_VERSION"
@@ -21,7 +24,7 @@ for file in "$SCRIPT_DIR"/sh/*.sh; do
     out="$("$BASH" "$file" 2>&1)"
     status=$?
     printf '%s\n' "$out"
-    if [ "$status" -ne 0 ] || grep -q '^not ok ' <<<"$out"; then
+    if [ "$status" -ne 0 ] || grep -q '^not ok ' <<< "$out"; then
         failed="$failed ${file#"$SCRIPT_DIR"/}"
     fi
 done

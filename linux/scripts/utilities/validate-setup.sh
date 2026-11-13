@@ -8,7 +8,10 @@ set -euo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -49,9 +52,8 @@ echo "Disk free space: $DISK_FREE_HUMAN"
 
 BITCOIN_CONF="$ROOTDIR/bitcoin-datadir/bitcoin.conf"
 PRUNED=0
-if [ -f "$BITCOIN_CONF" ] && \
-   grep -qE '^[[:space:]]*prune[[:space:]]*=[[:space:]]*[1-9]' "$BITCOIN_CONF"
-then
+if [ -f "$BITCOIN_CONF" ] \
+    && grep -qE '^[[:space:]]*prune[[:space:]]*=[[:space:]]*[1-9]' "$BITCOIN_CONF"; then
     PRUNED=1
 fi
 
@@ -60,8 +62,8 @@ if [ "$DISK_FREE_KB" -lt "$PRUNED_MIN_KB" ]; then
     exit 1
 elif [ "$PRUNED" -eq 0 ] && [ "$DISK_FREE_KB" -lt "$MAINNET_MIN_KB" ]; then
     echo "WARNING: Less than 700GB free, and bitcoin-datadir/bitcoin.conf" \
-         "has no active prune=. An unpruned mainnet full sync needs 700GB;" \
-         "enable pruning, or use testnet/regtest, if this is not one."
+        "has no active prune=. An unpruned mainnet full sync needs 700GB;" \
+        "enable pruning, or use testnet/regtest, if this is not one."
 fi
 
 echo "Setup validation completed."

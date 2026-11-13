@@ -13,8 +13,8 @@
 # macos/, win/ or linux/, which is what marks a root; 1 otherwise.
 # Both ways resolve_root arrives at a root apply it.
 is_portanode_root() {
-    [ -f "$1/VERSION" ] && \
-        { [ -d "$1/macos" ] || [ -d "$1/win" ] || [ -d "$1/linux" ]; }
+    [ -f "$1/VERSION" ] \
+        && { [ -d "$1/macos" ] || [ -d "$1/win" ] || [ -d "$1/linux" ]; }
 }
 
 # resolve_root <start_dir>: prints the root. A PORTANODE_ROOT that is not
@@ -103,17 +103,18 @@ resolve_root() {
 # Core commit fa76b378e4.
 sync_percent() (
     export LC_ALL=C
-    fraction="$(printf '%.12f' "$1" 2>/dev/null)" || exit 1
+    fraction="$(printf '%.12f' "$1" 2> /dev/null)" || exit 1
     case "$fraction" in
         0.* | 1.000000000000) ;;
         *) exit 1 ;;
     esac
     fraction="${fraction%????????}"
-    percent="$(echo "$fraction * 100" | bc -l 2>/dev/null)" || exit 1
+    percent="$(echo "$fraction * 100" | bc -l 2> /dev/null)" || exit 1
     case "$percent" in
         '' | *[!0-9.]*) exit 1 ;;
+        *) ;;
     esac
-    printf '%.2f' "$percent" 2>/dev/null
+    printf '%.2f' "$percent" 2> /dev/null
 )
 
 # escape_controls: copies standard input to standard output with each control
@@ -193,7 +194,7 @@ escape_controls() {
 _utf8_locale() {
     local loc
     for loc in C.UTF-8 en_US.UTF-8; do
-        if [ "$(LC_ALL=$loc locale charmap 2>/dev/null)" = UTF-8 ]; then
+        if [ "$(LC_ALL=$loc locale charmap 2> /dev/null)" = UTF-8 ]; then
             printf '%s\n' "$loc"
             return 0
         fi
@@ -220,7 +221,7 @@ _process_args() {
 _printable_ascii() {
     (
         LC_ALL=C
-        case $1 in (*[![:print:]]*) exit 1 ;; esac
+        case $1 in *[![:print:]]*) exit 1 ;; *) ;; esac
     )
 }
 
@@ -236,11 +237,11 @@ _ps_shows() {
     local loc
     _printable_ascii "$1" && return 0
     loc="$(_utf8_locale)" || return 1
-    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$1"
+    LC_ALL="$loc" grep -q -v -x -e '.*' <<< "$1"
     [ $? -eq 1 ] || return 1
     (
         LC_ALL=$loc
-        case $1 in (*[![:print:]]*) exit 1 ;; esac
+        case $1 in *[![:print:]]*) exit 1 ;; *) ;; esac
     )
 }
 
@@ -271,17 +272,17 @@ process_running_with() {
     _ps_shows "$1" || return 2
     procs="$(_process_args)" || return 2
     loc="$(_utf8_locale)" || loc=C
-    LC_ALL="$loc" grep -q -i -F -e "$1" <<<"$procs"
+    LC_ALL="$loc" grep -q -i -F -e "$1" <<< "$procs"
     first=$?
     [ "$first" -eq 0 ] && return 0
-    LC_ALL=C grep -q -i -F -e "$1" <<<"$procs"
+    LC_ALL=C grep -q -i -F -e "$1" <<< "$procs"
     case $? in
         0) return 0 ;;
         1) [ "$first" -eq 1 ] || return 2 ;;
         *) return 2 ;;
     esac
     _printable_ascii "$1" && return 1
-    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$procs"
+    LC_ALL="$loc" grep -q -v -x -e '.*' <<< "$procs"
     [ $? -eq 1 ] && return 1
     return 2
 }
@@ -333,7 +334,7 @@ _value_reads_false() {
 # caller's locale.
 _line_selects_network() (
     LC_ALL=C
-    read -r -a words <<<"$1"
+    read -r -a words <<< "$1"
     for word in "${words[@]}"; do
         case $word in
             --*) word=${word#--} ;;
@@ -345,6 +346,7 @@ _line_selects_network() (
             "$2="*) _value_reads_false "${word#*=}" || exit 0 ;;
             "no$2="*) _value_reads_false "${word#*=}" && exit 0 ;;
             "chain=$3") exit 0 ;;
+            *) ;;
         esac
     done
     exit 1
@@ -365,29 +367,32 @@ _line_selects_network() (
 _conf_entries() {
     local LC_ALL=C line prefix="" key value hash ws=$' \t\r\n'
     [ -r "$1" ] || return 1
-    [ "$(LC_ALL=C tr -d '\000' <"$1" | LC_ALL=C wc -c)" \
-        -eq "$(LC_ALL=C wc -c <"$1")" ] || return 1
+    [ "$(LC_ALL=C tr -d '\000' < "$1" | LC_ALL=C wc -c)" \
+        -eq "$(LC_ALL=C wc -c < "$1")" ] || return 1
     while IFS= read -r line || [ -n "$line" ]; do
         hash=0
-        case $line in *"#"*) hash=1 ;; esac
+        case $line in *"#"*) hash=1 ;; *) ;; esac
         line=${line%%"#"*}
         line=${line#"${line%%[!"$ws"]*}"}
         line=${line%"${line##*[!"$ws"]}"}
         case $line in
             "") continue ;;
-            "["*"]") prefix="${line:1:${#line}-2}."; continue ;;
+            "["*"]")
+                prefix="${line:1:${#line}-2}."
+                continue
+                ;;
             -*) return 1 ;;
             *=*) ;;
             *) return 1 ;;
         esac
         key=${line%%=*}
         key=$prefix${key%"${key##*[!"$ws"]}"}
-        case $hash$key in 1*rpcpassword*) return 1 ;; esac
+        case $hash$key in 1*rpcpassword*) return 1 ;; *) ;; esac
         value=${line#*=}
         value=${value#"${value%%[!"$ws"]*}"}
         case $key in *.*) ;; *) key=".$key" ;; esac
         printf '%s=%s\n' "$key" "$value"
-    done <"$1"
+    done < "$1"
 }
 
 # _section_settings <entries> <section>: the entries of <section>, as
@@ -395,8 +400,8 @@ _conf_entries() {
 _section_settings() {
     local e
     while IFS= read -r e; do
-        case $e in "$2."*) printf '%s\n' "${e#"$2."}" ;; esac
-    done <<<"$1"
+        case $e in "$2."*) printf '%s\n' "${e#"$2."}" ;; *) ;; esac
+    done <<< "$1"
 }
 
 # _setting_values <settings> <name>: the values Core keeps for the setting
@@ -409,8 +414,9 @@ _setting_values() {
         case $s in
             "$2="*) printf '=%s\n' "${s#*=}" ;;
             "no$2="*) if _value_reads_false "${s#*=}"; then echo T; else echo F; fi ;;
+            *) ;;
         esac
-    done <<<"$1"
+    done <<< "$1"
 }
 
 # _after_negation: the lines of its input after its last "F".
@@ -426,7 +432,7 @@ _after_negation() {
 _network_selected() {
     local v
     v="$(_setting_values "$1" "$3" | LC_ALL=C tail -n 1)"
-    case $v in "" | F) v="$(_setting_values "$2" "$3" | LC_ALL=C tail -n 1)" ;; esac
+    case $v in "" | F) v="$(_setting_values "$2" "$3" | LC_ALL=C tail -n 1)" ;; *) ;; esac
     case $v in
         T) return 0 ;;
         =*) ! _value_reads_false "${v#=}" ;;
@@ -500,7 +506,11 @@ _networks_conflict() {
 # answers 2.
 _regtest_by_conf() {
     local whole cut pad=" $2 "
-    case $pad in *" - "*) ;; *) _regtest_by_conf_read "$1" "$2"; return ;; esac
+    case $pad in *" - "*) ;; *)
+        _regtest_by_conf_read "$1" "$2"
+        return
+        ;;
+    esac
     _regtest_by_conf_read "$1" "$2"
     whole=$?
     [ "$whole" -eq 0 ] && return 0
@@ -519,7 +529,7 @@ _regtest_by_conf_read() {
     local -a words
     pad=" $2 "
     low="$(_fold "$pad")"
-    read -r -a words <<<"$low"
+    read -r -a words <<< "$low"
     for word in "${words[@]}"; do
         case $word in
             --*) word=${word#--} ;;
@@ -531,7 +541,10 @@ _regtest_by_conf_read() {
     done
     v="$(_setting_values "$switches" conf | LC_ALL=C tail -n 1)"
     case $v in
-        "") path=bitcoin.conf; explicit=0 ;;
+        "")
+            path=bitcoin.conf
+            explicit=0
+            ;;
         F) path="" ;;
         T) path=1 ;;
         =) path=bitcoin.conf ;;
@@ -571,7 +584,7 @@ _regtest_by_conf_read() {
         for section in "${chain#=}" ""; do
             v="$(_section_settings "$entries" "$section")"
             v="$(_setting_values "$v" includeconf | _after_negation)"
-            case $'\n'$v$'\n' in *$'\nT\n'*) return 2 ;; esac
+            case $'\n'$v$'\n' in *$'\nT\n'*) return 2 ;; *) ;; esac
             [ -n "$v" ] && files="$files$v"$'\n'
         done
         while IFS= read -r file; do
@@ -581,7 +594,7 @@ _regtest_by_conf_read() {
             [ -f "$file" ] || return 2
             more="$(_conf_entries "$file")" || return 2
             entries="$entries"$'\n'"$more"
-        done <<<"$files"
+        done <<< "$files"
     fi
     top="$(_section_settings "$entries" "")"
     _network_selected "$switches" "$top" regtest && return 0
@@ -607,9 +620,9 @@ _regtest_selected() {
 # _regtest_selected cannot tell for a line that holds the datadir.
 _regtest_node_in() {
     local dir procs line orig pad answer=1
-    dir="$(printf '%s' "$2" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
+    dir="$(printf '%s' "$2" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2> /dev/null)" || return 2
     dir="${dir%/}"
-    procs="$(printf '%s\n' "$3" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2>/dev/null)" || return 2
+    procs="$(printf '%s\n' "$3" | LC_ALL="$1" tr '[:upper:]' '[:lower:]' 2> /dev/null)" || return 2
     while IFS= read -r line && IFS= read -r orig <&3; do
         pad=" $line "
         if _line_has_arg "$pad" "datadir=$dir" || _line_has_arg "$pad" "datadir=$dir/"; then
@@ -620,7 +633,7 @@ _regtest_node_in() {
                 *) answer=2 ;;
             esac
         fi
-    done <<<"$procs" 3<<<"$3"
+    done <<< "$procs" 3<<< "$3"
     return "$answer"
 }
 
@@ -644,8 +657,8 @@ _regtest_node_by_grep() {
                     *) answer=2 ;;
                 esac
             fi
-        done < <(LC_ALL="$1" grep -a -o -i -F -e "datadir=$dir" <<<"$line" 2>/dev/null)
-    done < <(LC_ALL="$1" grep -a -i -F -e "datadir=$dir" <<<"$3" 2>/dev/null)
+        done < <(LC_ALL="$1" grep -a -o -i -F -e "datadir=$dir" <<< "$line" 2> /dev/null)
+    done < <(LC_ALL="$1" grep -a -i -F -e "datadir=$dir" <<< "$3" 2> /dev/null)
     return "$answer"
 }
 
@@ -658,8 +671,8 @@ _regtest_node_by_grep() {
 _real_dir() {
     local real
     case $1 in /*) ;; *) return 1 ;; esac
-    real="$(CDPATH='' cd -P -- "$1" 2>/dev/null && pwd -P)" || return 1
-    case $real in //*) real=${real#/} ;; esac
+    real="$(CDPATH='' cd -P -- "$1" 2> /dev/null && pwd -P)" || return 1
+    case $real in //*) real=${real#/} ;; *) ;; esac
     printf '%s\n' "$real"
 }
 
@@ -676,7 +689,7 @@ _absent() {
         dir=${dir%/*}
         dir=${dir:-/}
     done
-    _real_dir "$dir" >/dev/null
+    _real_dir "$dir" > /dev/null
 }
 
 # _fold <string>: <string> with its ASCII letters in lower case.
@@ -722,7 +735,11 @@ _regtest_node_resolved() (
             off=$((start + 9))
             case ${low:0:start} in *" " | *" -") ;; *) continue ;; esac
             value=${pad:off}
-            case $value in /*) ;; *) answer=2; continue ;; esac
+            case $value in /*) ;; *)
+                answer=2
+                continue
+                ;;
+            esac
             reading=""
             known=1
             while [ -n "$value" ]; do
@@ -735,18 +752,21 @@ _regtest_node_resolved() (
                     else
                         _regtest_node_named "$1" " -regtest -datadir=$real"
                         case $? in
-                            0) [ "$selected" -eq 0 ] && exit 0; answer=2 ;;
+                            0)
+                                [ "$selected" -eq 0 ] && exit 0
+                                answer=2
+                                ;;
                             1) ;;
                             *) answer=2 ;;
                         esac
                     fi
-                    case $value in "" | -*) known=0 ;; esac
+                    case $value in "" | -*) known=0 ;; *) ;; esac
                 fi
                 reading="$reading "
             done
             [ "$known" -eq 0 ] || answer=2
         done
-    done <<<"$2"
+    done <<< "$2"
     exit "$answer"
 )
 
@@ -762,7 +782,7 @@ _regtest_datadir_given() (
         case $low in *" -datadir="* | *" --datadir="*) ;; *) continue ;; esac
         _regtest_selected "$2" "$line"
         [ $? -eq 1 ] || exit 0
-    done <<<"$1"
+    done <<< "$1"
     exit 1
 )
 
@@ -779,7 +799,10 @@ _regtest_datadir_given() (
 # holding one without the letter folded or found; otherwise it is 2.
 _regtest_node_named() {
     local loc first
-    if (LC_ALL=C; case $1 in *[!\ -~]*) exit 1 ;; esac); then
+    if (
+        LC_ALL=C
+        case $1 in *[!\ -~]*) exit 1 ;; *) ;; esac
+    ) then
         _regtest_node_in C "$1" "$2"
         return $?
     fi
@@ -795,7 +818,7 @@ _regtest_node_named() {
     esac
     _regtest_node_by_grep "$loc" "$1" "$2" && return 0
     [ "$first" -eq 1 ] || return 2
-    LC_ALL="$loc" grep -q -v -x -e '.*' <<<"$2"
+    LC_ALL="$loc" grep -q -v -x -e '.*' <<< "$2"
     [ $? -eq 1 ] && return 1
     return 2
 }
@@ -876,7 +899,7 @@ mainnet_node_running() (
             fi
         done
         exit 0
-    done <<<"$procs"
+    done <<< "$procs"
     exit 1
 )
 

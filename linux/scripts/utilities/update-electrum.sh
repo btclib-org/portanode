@@ -8,7 +8,10 @@ set -euo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
@@ -34,7 +37,7 @@ while [ $# -gt 0 ]; do
             ;;
         *)
             echo "Usage: $(basename "$0") [--version <v>] [--dry-run]" \
-              "[--allow-downgrade]" >&2
+                "[--allow-downgrade]" >&2
             exit 1
             ;;
     esac
@@ -52,7 +55,7 @@ fi
 ARCH="$(uname -m)"
 if [ "$ARCH" != "x86_64" ]; then
     echo "Unsupported architecture: $ARCH" \
-         "(electrum.org ships x86_64 only for Linux)."
+        "(electrum.org ships x86_64 only for Linux)."
     exit 1
 fi
 
@@ -124,16 +127,16 @@ else
     # ISS 348's grep -c was. It buys a message naming the publisher and
     # the bound, and a fixed exit 1 in place of curl's own status.
     INDEX_HTML="$(curl_https -fsSL --max-time 300 -H "User-Agent: PortaNode" \
-      https://download.electrum.org/)" || {
+        https://download.electrum.org/)" || {
         echo "Failed to fetch the release index from download.electrum.org" \
-             "(curl --max-time 300)."
+            "(curl --max-time 300)."
         exit 1
     }
     VERSION="$(
-      echo "$INDEX_HTML" \
-        | sed -nE 's/.*href="([0-9]+\.[0-9]+\.[0-9]+)\/".*/\1/p' \
-        | sort -t. -k1,1n -k2,2n -k3,3n \
-        | tail -n 1
+        echo "$INDEX_HTML" \
+            | sed -nE 's/.*href="([0-9]+\.[0-9]+\.[0-9]+)\/".*/\1/p' \
+            | sort -t. -k1,1n -k2,2n -k3,3n \
+            | tail -n 1
     )"
     if [ -z "$VERSION" ]; then
         echo "Failed to determine latest Electrum version from electrum.org."
@@ -142,11 +145,11 @@ else
 fi
 
 CURRENT="$(installed_version \
-  "$BIN_DIR/electrum.AppImage" \
-  "linux/bin/electrum.AppImage" \
-  "$CHECKSUM_FILE")"
+    "$BIN_DIR/electrum.AppImage" \
+    "linux/bin/electrum.AppImage" \
+    "$CHECKSUM_FILE")"
 refuse_downgrade "$CURRENT" "$VERSION" "$ALLOW_DOWNGRADE" "Electrum" \
-  || exit 1
+    || exit 1
 
 # Prevent updates while running. The mounted AppImage's own command line is
 # the primary signal; the mount point it creates
@@ -172,11 +175,11 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "--dry-run: nothing will be downloaded, verified or installed."
     echo "Would install Electrum ${VERSION} (currently installed: ${CURRENT})."
     echo "Would fetch: $URL"
-    if command -v gpg >/dev/null 2>&1; then
+    if command -v gpg > /dev/null 2>&1; then
         # The helper reads the file as pgp_verify_or_fail does, so the pins
         # named here are the ones the real run enforces.
         preview_pinned_keys "$ROOTDIR/keys/electrum.fingerprints" \
-          "keys/electrum.fingerprints" "the download"
+            "keys/electrum.fingerprints" "the download"
     else
         echo "gpg: not found -- verification would fail closed."
     fi
@@ -192,12 +195,12 @@ if [ "$DRY_RUN" -eq 1 ]; then
     # connection -- otherwise ends the run at this assignment, with the
     # free-space line below unreached.
     ARCHIVE_LEN="$(curl_https -fsIL --max-time 30 "$URL" \
-      | tr -d '\r' \
-      | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
-      || ARCHIVE_LEN=""
+        | tr -d '\r' \
+        | awk -F': ' 'tolower($1)=="content-length"{v=$2} END{print v}')" \
+        || ARCHIVE_LEN=""
     if [ -n "$ARCHIVE_LEN" ]; then
         echo "Archive size: $((ARCHIVE_LEN / 1024 / 1024)) MB" \
-             "(downloaded to local temp storage, not the removable disk)."
+            "(downloaded to local temp storage, not the removable disk)."
     else
         # Printed rather than the block falling silent: with no line at
         # all, an estimate that could not be made reads the same as one
@@ -205,7 +208,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
         # bound firing, a request that failed and a response carrying no
         # Content-Length all reach here alike.
         echo "Archive size: unknown (the HEAD request returned no" \
-             "Content-Length)."
+            "Content-Length)."
     fi
     df -h "$ROOTDIR" | awk -v r="$ROOTDIR" 'NR==2 {print "Free space at " r ": " $4}'
     exit 0
@@ -223,10 +226,10 @@ curl_https -fL -o "$TMP_DIR/$FILE" "$URL"
 curl_https -fL -o "$TMP_DIR/$FILE.asc" "${URL}.asc"
 
 if ! pgp_verify_or_fail \
-  "$TMP_DIR/$FILE.asc" \
-  "$TMP_DIR/$FILE" \
-  "Electrum" \
-  "$ROOTDIR/keys/electrum.fingerprints"; then
+    "$TMP_DIR/$FILE.asc" \
+    "$TMP_DIR/$FILE" \
+    "Electrum" \
+    "$ROOTDIR/keys/electrum.fingerprints"; then
     exit 1
 fi
 
@@ -242,10 +245,10 @@ fi
 chmod +x "$BIN_DIR/electrum.AppImage"
 
 update_checksum \
-  "$BIN_DIR/electrum.AppImage" \
-  "linux/bin/electrum.AppImage" \
-  "$VERSION" \
-  "$CHECKSUM_FILE"
+    "$BIN_DIR/electrum.AppImage" \
+    "linux/bin/electrum.AppImage" \
+    "$VERSION" \
+    "$CHECKSUM_FILE"
 echo "Verifying installed Electrum against checksums.sha256..."
 if ! verify_checksum_entry \
     "$BIN_DIR/electrum.AppImage" \

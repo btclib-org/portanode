@@ -8,7 +8,10 @@ set -euo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=macos/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
@@ -54,28 +57,28 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # in it.
     rc=0
     verify_checksum_entry \
-      "$BACKUP_DIR/Bitcoin-Qt.app" \
-      "macos/bin/Bitcoin-Qt.app" \
-      "$CHECKSUM_FILE" \
-      "backup" || rc=$?
+        "$BACKUP_DIR/Bitcoin-Qt.app" \
+        "macos/bin/Bitcoin-Qt.app" \
+        "$CHECKSUM_FILE" \
+        "backup" || rc=$?
     if [ "$rc" -ne 0 ]; then
         if [ "$rc" -eq 1 ]; then
             echo "Error: the backup's checksum is not recognized: no" \
-                 "macos/bin/Bitcoin-Qt.app entry in macos/checksums.sha256" \
-                 "matches it."
+                "macos/bin/Bitcoin-Qt.app entry in macos/checksums.sha256" \
+                "matches it."
         fi
         exit 1
     fi
 
     if [ "$DRY_RUN" -eq 1 ]; then
         BACKUP_VERSION="$(installed_version "$BACKUP_BIN" \
-          "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$CHECKSUM_FILE")"
+            "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$CHECKSUM_FILE")"
         CURRENT_VERSION="$(installed_version \
-          "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
-          "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$CHECKSUM_FILE")"
+            "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" \
+            "macos/bin/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" "$CHECKSUM_FILE")"
         echo "--dry-run: nothing will be changed."
         echo "Backup found in macos/bin/backup/bitcoin, checksum recognized:" \
-             "version ${BACKUP_VERSION}."
+            "version ${BACKUP_VERSION}."
         echo "Currently installed: ${CURRENT_VERSION}."
         echo "Would replace macos/bin/Bitcoin-Qt.app with the backup."
         exit 0
@@ -104,10 +107,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         if [ -n "$OUTGOING" ]; then
             if mv "$OUTGOING" "$APP"; then
                 echo "macos/bin/Bitcoin-Qt.app is the version that was" \
-                     "installed, and the backup is untouched."
+                    "installed, and the backup is untouched."
             else
                 echo "The version that was installed is at" \
-                     "${OUTGOING#"$ROOTDIR"/} and has to be moved back by hand."
+                    "${OUTGOING#"$ROOTDIR"/} and has to be moved back by hand."
             fi
         fi
         exit 1
@@ -115,7 +118,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     if [ -n "$OUTGOING" ]; then
         rm -rf "${OUTGOING:?}"
     fi
-    rmdir "$BACKUP_DIR" 2>/dev/null || true
+    rmdir "$BACKUP_DIR" 2> /dev/null || true
 else
     echo "Unsupported OS"
     exit 1
@@ -123,7 +126,7 @@ fi
 
 echo "Rollback complete"
 echo "The backup in macos/bin/backup/bitcoin is consumed: a second rollback" \
-     "has nothing to restore."
+    "has nothing to restore."
 echo "update-bitcoin.sh is what installs the current release again."
 # What a rollback restores is what update-bitcoin.sh backs up, and that is the
 # app alone: the command-line tools it installs beside it are stateless and
@@ -132,4 +135,4 @@ echo "update-bitcoin.sh is what installs the current release again."
 # restores the command-line tools too, update-bitcoin.bat copying them into the
 # backup.
 echo "The command-line tools in macos/bin are not rolled back: the backup" \
-     "holds the app alone."
+    "holds the app alone."

@@ -8,7 +8,10 @@ set -euo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=linux/scripts/utilities/lib.sh
 . "$SCRIPT_DIR/lib.sh"
@@ -62,7 +65,7 @@ fi
 
 rc=0
 verify_checksum_entry "$BACKUP_DIR/electrum.AppImage" "linux/bin/electrum.AppImage" \
-  "$CHECKSUM_FILE" "backup binary (electrum.AppImage)" || rc=$?
+    "$CHECKSUM_FILE" "backup binary (electrum.AppImage)" || rc=$?
 if [ "$rc" -ne 0 ]; then
     if [ "$rc" -eq 1 ]; then
         echo "Error: backup binary checksum not recognized for electrum.AppImage."
@@ -72,12 +75,12 @@ fi
 
 if [ "$DRY_RUN" -eq 1 ]; then
     BACKUP_VERSION="$(installed_version "$BACKUP_DIR/electrum.AppImage" \
-      "linux/bin/electrum.AppImage" "$CHECKSUM_FILE")"
+        "linux/bin/electrum.AppImage" "$CHECKSUM_FILE")"
     CURRENT_VERSION="$(installed_version "$BIN_DIR/electrum.AppImage" \
-      "linux/bin/electrum.AppImage" "$CHECKSUM_FILE")"
+        "linux/bin/electrum.AppImage" "$CHECKSUM_FILE")"
     echo "--dry-run: nothing will be changed."
     echo "Backup found in linux/bin/backup/electrum, checksum recognized:" \
-         "version ${BACKUP_VERSION}."
+        "version ${BACKUP_VERSION}."
     echo "Currently installed: ${CURRENT_VERSION}."
     echo "Would replace linux/bin/electrum.AppImage with the backup."
     exit 0
@@ -92,9 +95,9 @@ else
     echo "Error: restoring linux/bin/electrum.AppImage from the backup failed."
     exit 1
 fi
-rmdir "$BACKUP_DIR" 2>/dev/null || true
+rmdir "$BACKUP_DIR" 2> /dev/null || true
 
 echo "Rollback complete"
 echo "The backup in linux/bin/backup/electrum is consumed: a second rollback" \
-     "has nothing to restore."
+    "has nothing to restore."
 echo "update-electrum.sh is what installs the current release again."

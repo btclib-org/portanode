@@ -12,54 +12,58 @@ set -euo pipefail
 # below and the root walk into the wrong directory -- is resolved a
 # link at a time instead.
 resolve_symlink() {
-  local target="$1" dir
-  while [ -L "$target" ]; do
-    dir="$(cd -P "$(dirname "$target")" && pwd)"
-    target="$(readlink "$target")"
-    case "$target" in
-      /*) ;;
-      *) target="$dir/$target" ;;
-    esac
-  done
-  printf '%s\n' "$target"
+    local target="$1" dir
+    while [ -L "$target" ]; do
+        dir="$(cd -P "$(dirname "$target")" && pwd)"
+        target="$(readlink "$target")"
+        case "$target" in
+            /*) ;;
+            *) target="$dir/$target" ;;
+        esac
+    done
+    printf '%s\n' "$target"
 }
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd)"
 . "$SCRIPT_DIR/shared/lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
-UNAME="$(uname -s 2>/dev/null || true)"
+UNAME="$(uname -s 2> /dev/null || true)"
 
 case "$UNAME" in
-  MINGW*|MSYS*|CYGWIN*)
-    if command -v cmd.exe >/dev/null 2>&1; then
-      if [ -f "$ROOTDIR/Bitcoin-Launcher.bat" ]; then
-        cmd.exe /c "\"${ROOTDIR}\\Bitcoin-Launcher.bat\""
-      else
-        echo "Script not found: Bitcoin-Launcher.bat"
-        exit 1
-      fi
-      exit 0
-    fi
-    ;;
-  Linux)
-    # The .command below runs macOS's own menu, whose entries reach
-    # Mach-O binaries that do not exist on this platform, so Linux is
-    # served by a menu of its own rather than by that one.
-    if [ -f "$ROOTDIR/linux/Bitcoin-Launcher.sh" ]; then
-      bash "$ROOTDIR/linux/Bitcoin-Launcher.sh"
-    else
-      echo "Script not found: linux/Bitcoin-Launcher.sh"
-      exit 1
-    fi
-    exit 0
-    ;;
+    MINGW* | MSYS* | CYGWIN*)
+        if command -v cmd.exe > /dev/null 2>&1; then
+            if [ -f "$ROOTDIR/Bitcoin-Launcher.bat" ]; then
+                cmd.exe /c "\"${ROOTDIR}\\Bitcoin-Launcher.bat\""
+            else
+                echo "Script not found: Bitcoin-Launcher.bat"
+                exit 1
+            fi
+            exit 0
+        fi
+        ;;
+    Linux)
+        # The .command below runs macOS's own menu, whose entries reach
+        # Mach-O binaries that do not exist on this platform, so Linux is
+        # served by a menu of its own rather than by that one.
+        if [ -f "$ROOTDIR/linux/Bitcoin-Launcher.sh" ]; then
+            bash "$ROOTDIR/linux/Bitcoin-Launcher.sh"
+        else
+            echo "Script not found: linux/Bitcoin-Launcher.sh"
+            exit 1
+        fi
+        exit 0
+        ;;
+    *) ;;
 esac
 
 if [ -f "$ROOTDIR/Bitcoin-Launcher.command" ]; then
-  bash "$ROOTDIR/Bitcoin-Launcher.command"
+    bash "$ROOTDIR/Bitcoin-Launcher.command"
 else
-  echo "Script not found: Bitcoin-Launcher.command"
-  exit 1
+    echo "Script not found: Bitcoin-Launcher.command"
+    exit 1
 fi

@@ -12,7 +12,10 @@
 # linux/scripts/lib.sh in the same layout, with that check pointed at a file
 # of its own, so its cases run on every machine.
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -29,7 +32,7 @@ mkdir -p "$ROOT/linux/bin" "$MACOS_APP/Contents/MacOS" "$ROOT/win" "$STUBS"
 touch "$ROOT/VERSION"
 : > "$ROOT/electrum-datadir"
 
-cat > "$TMP/electrum-binary" <<'EOF'
+cat > "$TMP/electrum-binary" << 'EOF'
 #!/bin/sh
 printf '%s\n' "$0" >> "$PORTANODE_TEST_STARTS"
 EOF
@@ -85,6 +88,7 @@ for launcher in "${launchers[@]}"; do
             check "$name's copy tests $FUSE in place of /dev/fuse" \
                 same "0 1" "$(grep -cE -- '-[rw] /dev/fuse' "$path") $(grep -cxF "$FUSE_STANDIN" "$path")"
             ;;
+        *) ;;
     esac
     started="$TMP/${name//\//-}.started"
     output="$(run_launcher "$path" "$started")"
@@ -92,7 +96,7 @@ for launcher in "${launchers[@]}"; do
     check "$name reports a datadir creation error" \
         contains "$output" "Error: could not create electrum-datadir"
     check "$name exits 1 when electrum-datadir cannot be created" \
-        same "exit 1" "$(tail -n 1 <<<"$output")"
+        same "exit 1" "$(tail -n 1 <<< "$output")"
     if [ -e "$started" ]; then
         check "$name does not start Electrum after the creation error" \
             same absent present

@@ -8,7 +8,10 @@
 # majors only.
 # shellcheck disable=SC2329 # check calls these functions by name
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 REPO="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -99,8 +102,8 @@ done
 # fails supported_only.
 refused() {
     cp "$REPO/win/checksums.sha256" "$TMP/$1.sha256"
-    printf '%s\n' "$2" >>"$TMP/$1.sha256"
-    ! supported_only "$TMP/$1.sha256" "$count" "$latest" >/dev/null
+    printf '%s\n' "$2" >> "$TMP/$1.sha256"
+    ! supported_only "$TMP/$1.sha256" "$count" "$latest" > /dev/null
 }
 
 zeros="$(printf '0%.0s' $(seq 64))"
@@ -118,8 +121,8 @@ check "a Core entry whose major is not digits is refused" \
 # below it: the file's own newest major would pass both, and the other
 # files' refuses the second.
 printf '%s  win/bin/bitcoind.exe  version=%s.0\n' \
-    "$zeros" "$((old + 1))" "$zeros" "$old" >"$TMP/stale.sha256"
-if supported_only "$TMP/stale.sha256" "$count" "$latest" >/dev/null; then stale=passes; else stale=refused; fi
+    "$zeros" "$((old + 1))" "$zeros" "$old" > "$TMP/stale.sha256"
+if supported_only "$TMP/stale.sha256" "$count" "$latest" > /dev/null; then stale=passes; else stale=refused; fi
 check "an entry below the window the other files set is refused" same refused "$stale"
 
 finish

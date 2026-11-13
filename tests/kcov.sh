@@ -11,7 +11,10 @@
 #
 #   bash tests/kcov.sh <floor>
 
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 set -euo pipefail
 FLOOR="${1:?usage: bash tests/kcov.sh <floor, a percentage>}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -36,7 +39,7 @@ su suite -c "kcov --bash-parse-files-in-dir=$TREE --include-path=$TREE \
     $OUT $TREE/tests/run.sh" || status=$?
 
 under=0
-python3 -I - "$OUT/run.sh/coverage.json" "$TREE/" "$FLOOR" <<'EOF' || under=1
+python3 -I - "$OUT/run.sh/coverage.json" "$TREE/" "$FLOOR" << 'EOF' || under=1
 import json, sys
 
 report = json.load(open(sys.argv[1]))

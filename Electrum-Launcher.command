@@ -13,63 +13,66 @@ set -o pipefail
 # below and the root walk into the wrong directory -- is resolved a
 # link at a time instead.
 resolve_symlink() {
-  local target="$1" dir
-  while [ -L "$target" ]; do
-    dir="$(cd -P "$(dirname "$target")" && pwd)"
-    target="$(readlink "$target")"
-    case "$target" in
-      /*) ;;
-      *) target="$dir/$target" ;;
-    esac
-  done
-  printf '%s\n' "$target"
+    local target="$1" dir
+    while [ -L "$target" ]; do
+        dir="$(cd -P "$(dirname "$target")" && pwd)"
+        target="$(readlink "$target")"
+        case "$target" in
+            /*) ;;
+            *) target="$dir/$target" ;;
+        esac
+    done
+    printf '%s\n' "$target"
 }
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$(resolve_symlink "$0")")" && pwd)"
 . "$SCRIPT_DIR/macos/scripts/lib.sh"
 ROOTDIR="$(resolve_root "$SCRIPT_DIR")" || exit 1
 
 run_script() {
-  local rel="$1"
-  local script="$ROOTDIR/$rel"
-  if [ ! -f "$script" ]; then
-    echo "Script not found: $rel"
+    local rel="$1"
+    local script="$ROOTDIR/$rel"
+    if [ ! -f "$script" ]; then
+        echo "Script not found: $rel"
+        return 0
+    fi
+    bash "$script"
+    local status=$?
+    if [ "$status" -ne 0 ]; then
+        echo "Command failed (exit $status)."
+    fi
     return 0
-  fi
-  bash "$script"
-  local status=$?
-  if [ $status -ne 0 ]; then
-    echo "Command failed (exit $status)."
-  fi
-  return 0
 }
 
 while true; do
-  echo "Electrum Launcher ($ROOTDIR)"
-  echo "1) Mainnet"
-  echo "2) Testnet3"
-  echo "3) Testnet4"
-  echo "4) Regtest"
-  echo "5) Mainnet (local server only)"
-  echo "0) Exit"
-  printf "Select: "
-  read -r choice
+    echo "Electrum Launcher ($ROOTDIR)"
+    echo "1) Mainnet"
+    echo "2) Testnet3"
+    echo "3) Testnet4"
+    echo "4) Regtest"
+    echo "5) Mainnet (local server only)"
+    echo "0) Exit"
+    printf "Select: "
+    read -r choice
 
-  if [ -z "$choice" ]; then
-    choice=0
-  fi
+    if [ -z "$choice" ]; then
+        choice=0
+    fi
 
-  case "$choice" in
-    1) run_script "macos/scripts/electrum/mainnet.command" ;;
-    2) run_script "macos/scripts/electrum/testnet3.command" ;;
-    3) run_script "macos/scripts/electrum/testnet4.command" ;;
-    4) run_script "macos/scripts/electrum/regtest.command" ;;
-    5) run_script "macos/scripts/electrum/mainnet-local-server-only.command" ;;
-    0) exit 0 ;;
-    *) echo "Invalid selection." ;;
-  esac
+    case "$choice" in
+        1) run_script "macos/scripts/electrum/mainnet.command" ;;
+        2) run_script "macos/scripts/electrum/testnet3.command" ;;
+        3) run_script "macos/scripts/electrum/testnet4.command" ;;
+        4) run_script "macos/scripts/electrum/regtest.command" ;;
+        5) run_script "macos/scripts/electrum/mainnet-local-server-only.command" ;;
+        0) exit 0 ;;
+        *) echo "Invalid selection." ;;
+    esac
 
-  echo ""
+    echo ""
 done

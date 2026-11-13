@@ -7,7 +7,10 @@
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=macos/scripts/lib.sh
 . "$SCRIPT_DIR/../lib.sh"
@@ -33,7 +36,7 @@ BTC_PGREP_PATTERN="bitcoind|bitcoin-qt|bitcoin qt|bitcoin-qt.app"
 # Without pgrep, or where pgrep or ps fails, a process the other passes miss
 # may still be running, so the status lines read "unknown" rather than "no".
 PGREP_FOUND="no"
-if command -v pgrep >/dev/null 2>&1; then
+if command -v pgrep > /dev/null 2>&1; then
     PGREP_FOUND="yes"
 fi
 PGREP_ERR=""
@@ -41,7 +44,7 @@ PGREP_RC=1
 PGREP_FAILED="no"
 if [ "$PGREP_FOUND" = "yes" ]; then
     PGREP_RC=0
-    PGREP_ERR="$(pgrep_outside_own_line "$BTC_PGREP_PATTERN" 2>&1 >/dev/null)" \
+    PGREP_ERR="$(pgrep_outside_own_line "$BTC_PGREP_PATTERN" 2>&1 > /dev/null)" \
         || PGREP_RC=$?
     [ "$PGREP_RC" -le 1 ] || PGREP_FAILED="yes"
 fi
@@ -72,7 +75,7 @@ if [ -x "$ROOTDIR/macos/bin/bitcoin-cli" ]; then
     BTC_CLI="$ROOTDIR/macos/bin/bitcoin-cli"
 elif [ -x "$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/bitcoin-cli" ]; then
     BTC_CLI="$ROOTDIR/macos/bin/Bitcoin-Qt.app/Contents/MacOS/bitcoin-cli"
-elif command -v bitcoin-cli >/dev/null 2>&1; then
+elif command -v bitcoin-cli > /dev/null 2>&1; then
     BTC_CLI="bitcoin-cli"
 fi
 
@@ -82,8 +85,8 @@ BLOCKCHAIN_INFO=""
 ARTIFACT_NOTE=""
 if [ -n "$BTC_CLI" ]; then
     BLOCKCHAIN_INFO=$(
-      "$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" \
-        getblockchaininfo 2>/dev/null || true
+        "$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" \
+            getblockchaininfo 2> /dev/null || true
     )
     if [ -n "$BLOCKCHAIN_INFO" ]; then
         BTC_RUNNING="yes"
@@ -107,12 +110,12 @@ if [ "$BTC_RUNNING" != "yes" ]; then
     fi
     if [ -f "$ROOTDIR/bitcoin-datadir/bitcoind.pid" ]; then
         ARTIFACTS+=("bitcoind.pid")
-        PID="$(cat "$ROOTDIR/bitcoin-datadir/bitcoind.pid" 2>/dev/null || true)"
+        PID="$(cat "$ROOTDIR/bitcoin-datadir/bitcoind.pid" 2> /dev/null || true)"
         # Confirm the PID is actually a Bitcoin process: after a crash the pid
         # file can be left behind and its number reused by something unrelated,
         # so a bare kill -0 would report a false "running".
-        if [ -n "$PID" ] && \
-           ps -p "$PID" -o comm= 2>/dev/null | grep -qi "bitcoin"; then
+        if [ -n "$PID" ] \
+            && ps -p "$PID" -o comm= 2> /dev/null | grep -qi "bitcoin"; then
             BTC_RUNNING="yes"
             BTC_METHOD="pid"
         else
@@ -130,7 +133,7 @@ if [ "$BTC_RUNNING" = "yes" ]; then
     if [ -n "$BTC_METHOD" ]; then
         if [ "$BTC_METHOD" = "bitcoin-cli" ] && [ -n "$BTC_CLI" ]; then
             if [ "$BTC_CLI" = "bitcoin-cli" ]; then
-                BTC_CLI_PATH="$(command -v bitcoin-cli 2>/dev/null || true)"
+                BTC_CLI_PATH="$(command -v bitcoin-cli 2> /dev/null || true)"
                 if [ -n "$BTC_CLI_PATH" ]; then
                     echo "Bitcoin running: yes (${BTC_METHOD}: ${BTC_CLI_PATH})"
                 else
@@ -138,7 +141,7 @@ if [ "$BTC_RUNNING" = "yes" ]; then
                 fi
             else
                 echo "Bitcoin running: yes (${BTC_METHOD}:" \
-                     "${BTC_CLI#"$ROOTDIR"/})"
+                    "${BTC_CLI#"$ROOTDIR"/})"
             fi
         else
             echo "Bitcoin running: yes (${BTC_METHOD})"
@@ -148,14 +151,14 @@ if [ "$BTC_RUNNING" = "yes" ]; then
     fi
     if [ -z "$BLOCKCHAIN_INFO" ] && [ -n "$BTC_CLI" ]; then
         BLOCKCHAIN_INFO=$(
-          "$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" \
-            getblockchaininfo 2>/dev/null || true
+            "$BTC_CLI" -datadir="$ROOTDIR/bitcoin-datadir" \
+                getblockchaininfo 2> /dev/null || true
         )
     fi
-    if [ -n "$BLOCKCHAIN_INFO" ] && command -v jq >/dev/null 2>&1; then
+    if [ -n "$BLOCKCHAIN_INFO" ] && command -v jq > /dev/null 2>&1; then
         SYNC=$(echo "$BLOCKCHAIN_INFO" | jq -r '.verificationprogress')
-        if [ "$SYNC" != "null" ] && [ -n "$SYNC" ] && \
-           PCT=$(sync_percent "$SYNC"); then
+        if [ "$SYNC" != "null" ] && [ -n "$SYNC" ] \
+            && PCT=$(sync_percent "$SYNC"); then
             echo "Bitcoin sync: ${PCT}%"
         else
             echo "Bitcoin sync: unknown"
@@ -192,7 +195,10 @@ if [ "$PGREP_FOUND" = "yes" ]; then
     PGREP_RC=0
     pgrep_outside_own_line "$ELECTRUM_PGREP_PATTERN" > /dev/null || PGREP_RC=$?
     case "$PGREP_RC" in
-        0) ELECTRUM_RUNNING="yes"; ELECTRUM_METHOD="pgrep" ;;
+        0)
+            ELECTRUM_RUNNING="yes"
+            ELECTRUM_METHOD="pgrep"
+            ;;
         1) ;;
         *) PGREP_FAILED="yes" ;;
     esac
@@ -200,10 +206,10 @@ fi
 # A missing or failing ps leaves Electrum unknown, not "no".
 PS_FAILED="no"
 PS_FOUND="yes"
-if [ "$ELECTRUM_RUNNING" != "yes" ] && ! command -v ps >/dev/null 2>&1; then
+if [ "$ELECTRUM_RUNNING" != "yes" ] && ! command -v ps > /dev/null 2>&1; then
     PS_FOUND="no"
 elif [ "$ELECTRUM_RUNNING" != "yes" ]; then
-    if ! PS_COMM="$(ps -ax -o comm= 2>/dev/null)"; then
+    if ! PS_COMM="$(ps -ax -o comm= 2> /dev/null)"; then
         PS_FAILED="yes"
     elif printf '%s\n' "$PS_COMM" | awk '
         tolower($0) ~ /(electrum|run_electrum)$/ { found=1 }

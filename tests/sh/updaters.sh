@@ -16,7 +16,10 @@ set -uo pipefail
 
 # bash looks for a bare name in the current directory, then in PATH. Found
 # through PATH, $0 has no directory, so the directory below would be wrong.
-case "$0" in */*) ;; *) [ -f "$0" ] || { echo "$0: run this script by its path, not by a name found through PATH" >&2; exit 1; } ;; esac
+case "$0" in */*) ;; *) [ -f "$0" ] || {
+    echo "$0: run this script by its path, not by a name found through PATH" >&2
+    exit 1
+} ;; esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 # shellcheck source=tests/lib.sh
@@ -26,15 +29,18 @@ SERVER_PIDS=""
 # shellcheck disable=SC2329 # invoked by the EXIT trap below
 cleanup() {
     for pid in $SERVER_PIDS; do
-        kill "$pid" 2>/dev/null
-        wait "$pid" 2>/dev/null
+        kill "$pid" 2> /dev/null
+        wait "$pid" 2> /dev/null
     done
     rm -rf "$WORK"
 }
 trap cleanup EXIT
 
 pass() { echo "ok - $1"; }
-fail() { echo "not ok - $1"; TESTS_FAILED=$((TESTS_FAILED + 1)); }
+fail() {
+    echo "not ok - $1"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+}
 skip() { echo "ok - SKIP: $1"; }
 
 # shellcheck source=shared/utilities/lib.sh
@@ -75,7 +81,7 @@ while read -r installed requested expected; do
     fi
     if [ -n "$PWSH" ]; then
         verdict="$("$PWSH" -NoProfile -File "$PS1" \
-          -Installed "$installed" -Requested "$requested")"
+            -Installed "$installed" -Requested "$requested")"
         got=refuse
         [ "$verdict" != "OK" ] || got=pass
         if [ "$got" = "$expected" ]; then
@@ -99,10 +105,10 @@ fi
 # shapes it must let pass.
 bare_curl() {
     grep -nwE 'curl' "$@" \
-      | grep -vE ':[0-9]+:[[:space:]]*#' \
-      | grep -vF '"(curl --max-time 300)."'
+        | grep -vE ':[0-9]+:[[:space:]]*#' \
+        | grep -vF '"(curl --max-time 300)."'
 }
-cat > "$WORK/shapes.sh" <<'EOF'
+cat > "$WORK/shapes.sh" << 'EOF'
 curl -fL x
     curl -fL x
 V="$(curl -fsSL x)"
@@ -117,8 +123,8 @@ curl_rc=0
 EOF
 control="$(bare_curl /dev/null "$WORK/shapes.sh" | wc -l | tr -d ' ')"
 bare="$(bare_curl \
-  "$ROOT"/macos/scripts/utilities/update-*.sh \
-  "$ROOT"/linux/scripts/utilities/update-*.sh)"
+    "$ROOT"/macos/scripts/utilities/update-*.sh \
+    "$ROOT"/linux/scripts/utilities/update-*.sh)"
 if [ "$control" -eq 9 ] && [ -z "$bare" ]; then
     pass "updaters call curl only through curl_https"
 else
@@ -128,7 +134,7 @@ fi
 # --- curl_https against local servers ------------------------------------
 if command -v python3 > /dev/null && command -v openssl > /dev/null; then
     openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=127.0.0.1 \
-      -keyout "$WORK/key.pem" -out "$WORK/cert.pem" > /dev/null 2>&1
+        -keyout "$WORK/key.pem" -out "$WORK/cert.pem" > /dev/null 2>&1
     # One HTTP and one HTTPS server; the HTTPS one answers /ok with 200
     # and /redirect with a 302 to the HTTP one. Each writes its port.
     # socketserver.TCPServer, not http.server.HTTPServer, whose bind calls
@@ -137,7 +143,7 @@ if command -v python3 > /dev/null && command -v openssl > /dev/null; then
     # the second server misses that wait. This shows it there, in its later
     # calls, though not on every runner:
     # for _ in 1 2 3 4 5; do time python3 -c 'import socket; print(socket.getfqdn("127.0.0.1"))'; done
-    cat > "$WORK/server.py" <<'EOF'
+    cat > "$WORK/server.py" << 'EOF'
 import http.server, socketserver, ssl, sys
 tls, portfile, target = sys.argv[1] == "tls", sys.argv[2], sys.argv[3]
 class H(http.server.BaseHTTPRequestHandler):
@@ -166,12 +172,18 @@ s.serve_forever()
 EOF
     python3 -I "$WORK/server.py" plain "$WORK/http.port" none &
     SERVER_PIDS="$SERVER_PIDS $!"
-    for _ in $(seq 50); do [ -s "$WORK/http.port" ] && break; sleep 0.1; done
+    for _ in $(seq 50); do
+        [ -s "$WORK/http.port" ] && break
+        sleep 0.1
+    done
     HTTP="http://127.0.0.1:$(cat "$WORK/http.port")"
     python3 -I "$WORK/server.py" tls "$WORK/https.port" "$HTTP/" \
-      "$WORK/cert.pem" "$WORK/key.pem" &
+        "$WORK/cert.pem" "$WORK/key.pem" &
     SERVER_PIDS="$SERVER_PIDS $!"
-    for _ in $(seq 50); do [ -s "$WORK/https.port" ] && break; sleep 0.1; done
+    for _ in $(seq 50); do
+        [ -s "$WORK/https.port" ] && break
+        sleep 0.1
+    done
     HTTPS="https://127.0.0.1:$(cat "$WORK/https.port")"
     # Each refusal has its control: plain curl fetching the same URL.
     # --proto alone refuses the redirect to HTTP too, so these checks do
@@ -189,7 +201,7 @@ EOF
     fetch fetches "curl_https, HTTPS," curl_https -fsSk "$HTTPS/ok"
     fetch fetches "curl -L, HTTPS redirected to HTTP," curl -fsSkL "$HTTPS/redirect"
     fetch refuses "curl_https -L, HTTPS redirected to HTTP," \
-      curl_https -fsSkL "$HTTPS/redirect"
+        curl_https -fsSkL "$HTTPS/redirect"
 else
     skip "curl_https against local servers: python3 or openssl not found"
 fi
@@ -203,7 +215,7 @@ STUBS="$WORK/stubs"
 mkdir -p "$STUBS"
 # curl: logs its arguments; a HEAD (-I) succeeds, and any other request
 # prints an index listing one old release from each publisher.
-cat > "$STUBS/curl" <<'EOF'
+cat > "$STUBS/curl" << 'EOF'
 #!/bin/bash
 echo "$*" >> "$CURL_LOG"
 for a in "$@"; do [ "$a" = "-fsIL" ] && exit 0; done
@@ -216,7 +228,7 @@ EOF
 # shellcheck disable=SC2016 # the stand-in expands it
 printf '#!/bin/sh\nfor a; do :; done\n[ "$a" = . ] && echo 1 && exit 0\nexit 1\n' \
     > "$STUBS/pgrep"
-cat > "$STUBS/uname" <<'EOF'
+cat > "$STUBS/uname" << 'EOF'
 #!/bin/sh
 echo "$STUB_ARCH"
 EOF
@@ -250,8 +262,8 @@ run_updater() {
     shift 3
     RC=0
     OUT="$(env -u PORTANODE_ROOT PATH="$STUBS:$PATH" OSTYPE="$ostype" \
-      STUB_ARCH="$arch" CURL_LOG="$WORK/curl.log" TMPDIR="$WORK" \
-      GNUPGHOME="$WORK/gnupg" bash "$TREE/$script" "$@" 2>&1)" || RC=$?
+        STUB_ARCH="$arch" CURL_LOG="$WORK/curl.log" TMPDIR="$WORK" \
+        GNUPGHOME="$WORK/gnupg" bash "$TREE/$script" "$@" 2>&1)" || RC=$?
 }
 
 # expect WHAT RC PATTERN -- the last run exited RC and printed PATTERN
@@ -280,17 +292,17 @@ while read -r script ostype arch old new; do
     run_updater "$ostype" "$arch" "$script"
     expect "$script refuses the index's $old" 1 "Refusing to install"
     run_updater "$ostype" "$arch" "$script" --version "$old" \
-      --allow-downgrade --dry-run
+        --allow-downgrade --dry-run
     expect "$script --version $old --allow-downgrade proceeds" 0 \
-      "Would install"
+        "Would install"
     run_updater "$ostype" "$arch" "$script" --version "$new" --dry-run
     expect "$script --version $new proceeds" 0 "Would install"
 done <<< "$UPDATERS"
 
 # Every curl the updaters ran carried both flags.
 if [ -s "$WORK/curl.log" ] \
-  && ! grep -v -- "--proto =https --proto-redir =https" "$WORK/curl.log" \
-    > /dev/null; then
+    && ! grep -v -- "--proto =https --proto-redir =https" "$WORK/curl.log" \
+        > /dev/null; then
     pass "every curl the updaters ran was HTTPS-only"
 else
     fail "a curl the updaters ran was not HTTPS-only"
