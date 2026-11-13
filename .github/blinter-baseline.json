@@ -160,6 +160,11 @@
     "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"%PSFIND%\""
   },
   {
+    "code": "SEC009",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"%PSREAD%\""
+  },
+  {
     "code": "SEC014",
     "file": "../win/scripts/bitcoin/lib.bat",
     "text": "doskey btc=\"%%ROOTDIR%%\\win\\bin\\bitcoin-cli.exe\" %~2 -datadir=\"%%DATADIR%%\" $*"
@@ -170,9 +175,19 @@
     "text": "title %~1"
   },
   {
+    "code": "W014",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "exit /b 0"
+  },
+  {
     "code": "W028",
     "file": "../win/scripts/bitcoin/lib.bat",
     "text": "set \"ACTION=%~1\""
+  },
+  {
+    "code": "W061",
+    "file": "../win/scripts/bitcoin/lib.bat",
+    "text": "popd >nul 2>&1"
   },
   {
     "code": "W061",

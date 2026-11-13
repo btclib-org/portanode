@@ -104,12 +104,18 @@ the comment in `win\scripts\electrum\lib.bat` gives.
 
 ## W014 Missing PAUSE for user interaction
 
-Blinter asks for a `pause` in a script that reads `set /p` and holds no
-`pause`, and reports its last line. Every accepted `W014` is the last
-line of a root `.bat` launcher, the `exit /b 0` of `:end`. The menu
-goes there only where the choice is `0`, which asks to close. The
-launcher's one other exit, where `PORTANODE_ROOT` names no PortaNode
-folder, waits first with `:pause_if_own_console`.
+Blinter asks for a `pause` in a script where a line holds `set /p` and
+none holds `pause`, comment lines included, and reports its last line.
+Each accepted `W014` is the last line of one of these files:
+
+- A root `.bat` launcher, the `exit /b 0` of `:end`. The menu goes there
+  only where the choice is `0`, which asks to close. The launcher's one
+  other exit, where `PORTANODE_ROOT` names no PortaNode folder, waits
+  first with `:pause_if_own_console`.
+- `win\scripts\bitcoin\lib.bat`, which runs no `set /p`. The comment on
+  `:require_confirmed` names it, to say why PowerShell reads the line.
+  Blinter reading a comment as a prompt is its defect
+  ([ISS 939](https://github.com/btclib-org/portanode/issues/939)).
 
 ## W023 Inefficient nested FOR loops
 
@@ -173,8 +179,9 @@ Blinter pairs a `popd` only with a `pushd` written earlier in the same
 file:
 
 - The utilities other than the updaters change directory with
-  `call root.bat :leave_folder`, and so do `:require_datadir_free` and
-  `:require_no_mainnet_node` in `win\scripts\bitcoin\lib.bat` and
+  `call root.bat :leave_folder`, and so do `:require_datadir_free`,
+  `:require_no_mainnet_node` and `:require_confirmed` in
+  `win\scripts\bitcoin\lib.bat` and
   `:require_non_portable_build` in `win\scripts\electrum\lib.bat`. The
   `pushd` of `:leave_folder` is in `root.bat`, and it is the one Blinter
   reports unmatched there.
