@@ -24,7 +24,7 @@ REPO="$(cd "${SCRIPT_DIR}/../.." && pwd -P)"
 
 set -u
 unset PORTANODE_ROOT STANDIN_STATUS
-TMP="$(mktemp -d)"
+TMP="$(mktemp -d)" || exit 1
 TMP="$(cd "${TMP}" && pwd -P)"
 trap 'rm -rf "${TMP}"' EXIT
 
