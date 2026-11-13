@@ -76,15 +76,17 @@ fresh() {
 
 # monitor <platform> <path> [argument...]: runs that platform's monitor with
 # the stand-in stat answering its size query and the directory <path> before
-# the rest, stdout and
-# stderr together, then "exit <status>". NOTIFY_ENV, where set, is one
-# NAME=value more for its environment.
+# the rest, stdout and stderr together, then "exit <status>". NOTIFY_ENV,
+# where set, is one NAME=value more for its environment. A
+# PORTANODE_NO_NOTIFY the suite inherits is removed from it, so that only
+# NOTIFY_ENV sets that variable.
 monitor() {
     local platform="$1" dir="$2" status=0
     local query=-c%s
     [ "$platform" = linux ] || query=-f%z
     shift 2
-    env ${NOTIFY_ENV:+"$NOTIFY_ENV"} PATH="$dir:$TMP/stat:$BASE" \
+    env -u PORTANODE_NO_NOTIFY ${NOTIFY_ENV:+"$NOTIFY_ENV"} \
+        PATH="$dir:$TMP/stat:$BASE" \
         PORTANODE_ROOT="$ROOT" CALLS="$CALLS" STAT_FAILS="${STAT_FAILS:-}" \
         STAT_QUERY="$query" \
         "$BASH" "$REPO/$platform/scripts/utilities/monitor-bitcoin-log.sh" \
