@@ -18,6 +18,11 @@
 Push-Location -LiteralPath (Join-Path $PSScriptRoot '../../win/scripts/bitcoin')
 try { . ./node-args.ps1 } finally { Pop-Location }
 
+# Test-MainnetNode reads Core's default data directory for a bitcoind given
+# no -datadir: one of the test's own, which the ISS 903 cases below write in.
+$defaultDir = Join-Path ([IO.Path]::GetTempPath()) ('portanode-node-default-' + [guid]::NewGuid())
+function Get-DefaultDatadir { return $defaultDir }
+
 $script:failed = 0
 
 function Test-Case {
@@ -119,6 +124,8 @@ $other = @(
   "$qt -nochain",
   "$qt -chain=main -testnet",
   "$qt -testnet -regtest",
+  # A zero-width character makes a name of its own.
+  ("$qt -chain=ma" + [char]0x200B + 'in'),
   # ISS 828: a backslash before a quote, as Windows reads it.
   ($qt + ' -uacomment=a\" -testnet'),
   ($qt + ' -datadir="C:\a\\" -testnet')
@@ -174,7 +181,9 @@ $chains = @(
   @(("$qt -regtest=" + [char]0xA0 + '1'), 'main'),
   @(("$qt -regtest=" + [char]0x2003 + '1'), 'main'),
   @(("$qt -regtest=" + [char]11 + [char]12 + '1'), 'regtest'),
-  @(("$qt -noregtest=" + [char]11 + '1'), 'main')
+  @(("$qt -noregtest=" + [char]11 + '1'), 'main'),
+  # Core finds the "=" that a combining character follows.
+  @(("$qt -noregtest=" + [char]0x338), 'regtest')
 )
 foreach ($c in $chains) {
   Test-Case -Description "chain: $($c[0])" -Got "$(Get-NodeChain $c[0])" -Want "$($c[1])"
@@ -565,6 +574,78 @@ try {
     -Got (Get-Answer "$qt -datadir=C:\other -conf=missing.conf" $confDir) -Want 'False'
 } finally {
   Remove-Item -LiteralPath $confDir -Recurse -Force
+}
+
+# ISS 903: a node whose command line leaves it on mainnet is no mainnet node
+# where its configuration files select another network, read as the -clean
+# guard reads them, in the directory its -datadir names, @main in the cases,
+# or, for a bitcoind, in the default data directory. A bitcoin-qt given no
+# -datadir counts: it may use the directory its GUI settings store (ISS 944).
+# Each case names the files it writes, a name starting "default\" in the
+# default directory, the command line after the program, the program where
+# it is not $qt, and what Test-MainnetNode answers: false where the files
+# select another network, true where they do not or cannot be read.
+$mainDir = Join-Path ([IO.Path]::GetTempPath()) ('portanode-node-main-' + [guid]::NewGuid())
+$bitcoind = '"D:\portanode\win\bin\bitcoind.exe"'
+New-Item -ItemType Directory -Path $mainDir, $defaultDir | Out-Null
+try {
+  $mainCases = @(
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-datadir=@main', $false),
+    @(@{ 'bitcoin.conf' = "testnet=1`n" }, '-datadir=@main', $false),
+    @(@{ 'bitcoin.conf' = "testnet4=1`n" }, '-datadir=@main', $false),
+    @(@{ 'bitcoin.conf' = "signet=1`n" }, '-datadir=@main', $false),
+    @(@{ 'bitcoin.conf' = "chain=test`n" }, '-datadir=@main', $false),
+    @(@{ 'bitcoin.conf' = "includeconf=x.conf`n"; 'x.conf' = "regtest=1`n" }, '-datadir=@main', $false),
+    @(@{ 'x.conf' = "regtest=1`n" }, '-datadir=@main -conf=x.conf', $false),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '', $true),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '-datadir=', $true),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '-datadir=@main -nodatadir', $true),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '', $false, $bitcoind),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '', $false, 'bitcoind'),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '', $false, 'C:\x\BITCOIND.EXE'),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '-datadir=', $false, $bitcoind),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '-datadir=@main -nodatadir', $false, $bitcoind),
+    @(@{ 'default\bitcoin.conf' = "txindex=1`n" }, '', $true, $bitcoind),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '', $true, 'C:\x\bitcoind-old.exe'),
+    # Core reads no switch after a lone "-".
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-datadir=@main - -regtest=0', $false),
+    @(@{}, '-datadir=@main', $true),
+    @(@{ 'bitcoin.conf' = "txindex=1`n" }, '-datadir=@main', $true),
+    @(@{ 'bitcoin.conf' = "chain=main`n" }, '-datadir=@main', $true),
+    @(@{ 'bitcoin.conf' = "[regtest]`nregtest=1`n" }, '-datadir=@main', $true),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-datadir=@main -regtest=0', $true),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-datadir=@main -noconf', $true),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '-datadir=@main', $true),
+    # Core refuses more than one network, and an unknown one.
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-datadir=@main -chain=main', $true),
+    @(@{ 'bitcoin.conf' = "regtest=1`nsignet=1`n" }, '-datadir=@main', $true),
+    @(@{ 'bitcoin.conf' = "chain=regtestx`n" }, '-datadir=@main', $true),
+    # Files that cannot be read, and a data directory that cannot be placed:
+    # Core reads a relative one against the node's working directory, and a
+    # double negation as "1".
+    @(@{ 'bitcoin.conf' = "regtest`n" }, '-datadir=@main', $true),
+    @(@{ 'bitcoin.conf' = "regtest=1`nincludeconf=x.conf`n" }, '-datadir=@main', $true),
+    @(@{ 'bitcoin.conf' = "regtest=1`n" }, '-datadir=@main -conf=x.conf', $true),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '-datadir=bitcoin-datadir', $true),
+    @(@{ 'default\bitcoin.conf' = "regtest=1`n" }, '-nodatadir=0', $true)
+  )
+  foreach ($c in $mainCases) {
+    Get-ChildItem -LiteralPath $mainDir, $defaultDir | Remove-Item -Force
+    foreach ($name in $c[0].Keys) {
+      $path = if ($name.StartsWith('default\', [StringComparison]::Ordinal)) {
+        Join-Path $defaultDir $name.Substring(8)
+      } else {
+        Join-Path $mainDir $name
+      }
+      [IO.File]::WriteAllText($path, $c[0][$name])
+    }
+    $program = if ($c.Count -gt 3) { $c[3] } else { $qt }
+    $line = "$program " + $c[1].Replace('@main', "`"$mainDir`"")
+    $files = ($c[0].Keys | Sort-Object | ForEach-Object { "$_ = $($c[0][$_] -replace "`n", '\n')" }) -join ', '
+    Test-Case -Description "mainnet, configuration files: $program $($c[1]) with $files" -Got (Test-MainnetNode $line) -Want $c[2]
+  }
+} finally {
+  Remove-Item -LiteralPath $mainDir, $defaultDir -Recurse -Force
 }
 
 if ($script:failed -gt 0) {

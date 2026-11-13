@@ -78,11 +78,12 @@ if not "%PSFIND_RC%"=="0" (
 exit /b 0
 
 :require_no_mainnet_node
-REM Refuse to start a second mainnet node. A process whose arguments select
-REM another network does not count, which is what leaves a regtest or testnet
-REM node running while mainnet starts. node-args.ps1 beside this file reads
-REM them as Bitcoin Core does, so a node run from a path holding "-testnet"
-REM is still a mainnet node (#676).
+REM Refuse to start a second mainnet node. A process whose arguments or
+REM configuration files select another network does not count, which is what
+REM leaves a regtest or testnet node running while mainnet starts.
+REM node-args.ps1 beside this file reads them as Bitcoin Core does, so a node
+REM run from a path holding "-testnet" is still a mainnet node (#676), and
+REM Test-MainnetNode there says when a node counts.
 REM
 REM A check that cannot run is not read as a node here, where the guard
 REM above reads it as one: starting a node deletes nothing, and Bitcoin
