@@ -699,3 +699,16 @@ question names it.
   the suite under `tests/` reaches, what it does not, and what stands in
   for that. A review of a launcher change that ran nothing says so, in
   those words, rather than leaving it to be assumed.
+- **Does a new or changed file under `tests/sh/` stop when `mktemp -d`
+  fails?** A failed `mktemp -d` leaves the variable empty; `cd ""` then
+  stays where it is, `pwd -P` names the directory the test runs from,
+  and an EXIT trap running `rm -rf` on the variable deletes that
+  directory. The allocation is guarded, as `|| exit 1` does, before any
+  path built from it is used. `tests/sh/regtest-cli-rcfile.sh` line 19
+  has the form to follow:
+
+    ```shell
+    TMP="$(mktemp -d)" || exit 1
+    ```
+
+  An existing file that lacks the guard is no precedent for a new one.
