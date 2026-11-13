@@ -34,9 +34,9 @@ fi
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/portanode-input.XXXXXX")" || exit 1
 WORK="$(cd "$WORK" && pwd -P)"
 # gpg-agent's socket path is bounded, so the homes are short.
-HOME_A="$(mktemp -d "${TMPDIR:-/tmp}/key-a.XXXXXX")"
-HOME_B="$(mktemp -d "${TMPDIR:-/tmp}/key-b.XXXXXX")"
-HOME_C="$(mktemp -d "${TMPDIR:-/tmp}/key-c.XXXXXX")"
+HOME_A="$(mktemp -d "${TMPDIR:-/tmp}/key-a.XXXXXX")" || exit 1
+HOME_B="$(mktemp -d "${TMPDIR:-/tmp}/key-b.XXXXXX")" || exit 1
+HOME_C="$(mktemp -d "${TMPDIR:-/tmp}/key-c.XXXXXX")" || exit 1
 cleanup() {
     gpgconf --homedir "$HOME_A" --kill gpg-agent > /dev/null 2>&1
     gpgconf --homedir "$HOME_B" --kill gpg-agent > /dev/null 2>&1
