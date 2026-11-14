@@ -298,7 +298,7 @@ function Get-NodeDatadir {
   param([string]$CommandLine)
   $datadir = $null
   foreach ($switch in @(Get-NodeSwitch $CommandLine)) {
-    if ($switch.Name -ceq 'datadir') { $datadir = "$($switch.Value)" }
+    if ([string]::Equals($switch.Name, 'datadir', [StringComparison]::Ordinal)) { $datadir = "$($switch.Value)" }
   }
   return $datadir
 }
