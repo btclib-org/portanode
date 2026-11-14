@@ -225,6 +225,9 @@ network or an unknown one, or cannot be read, and where its `-datadir`
 is relative. A `bitcoin-qt` that names no `-datadir` counts too: it may
 use the directory its own settings store, which the launcher does not
 read ([ISS 944](https://github.com/btclib-org/portanode/issues/944)). On
+macOS and Linux a `bitcoind` under a directory whose name begins with
+`bitcoin-qt` and a space, as in `/Volumes/bitcoin-qt Drive`, reads as a
+`bitcoin-qt`, so it counts too where it names no `-datadir`. On
 macOS and Linux the files have to select another network both with the
 flags up to each lone `-` and with all of them. The files are read as
 they are now, so a mainnet node whose files have selected another
