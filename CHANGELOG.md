@@ -13,6 +13,68 @@ A release's own pull request writes the release's section under
 older headings, `## [YYYY.M.D] - <title>`, stay as written. No other
 pull request adds an entry.
 
+## v2026.11.14
+
+The updaters verify a download against the keys `keys/` ships, the
+`-clean` launchers delete only after a line is read, and the mainnet
+guards read a node's configuration files where they find them.
+
+### The updaters verify against the keys `keys/` ships
+
+`keys/bitcoin-core.gpg` and `keys/electrum.gpg` replace the fingerprint
+files, `gpg` reads no other keyring, and a signature over MD5, SHA-1 or
+RIPEMD-160 does not count (issue #806).
+
+### The `-clean` launchers delete only after a line is read
+
+On macOS and Linux, end of input at the Enter prompt deletes nothing and
+exits 1 (closes #922). On Windows they read a line in place of `pause`,
+and refuse at end of input (closes #932).
+
+### The mainnet guards read the node configuration files they find
+
+A node whose configuration files select another network no longer reads
+as mainnet, within the limits of `ASSURANCE_CASE.md`'s *Trust
+boundaries* and of the entry below (closes #903).
+
+### On macOS and Linux a `bitcoind` can read as a `bitcoin-qt`
+
+The mainnet guard reads a `bitcoind` as a `bitcoin-qt` where its command
+line, in any case, holds `/bitcoin-qt` followed by a space or the end of
+the line, or starts with `bitcoin-qt` and a space (issue #959).
+
+### Where the process list cannot be read
+
+`shared/lib.sh` says why a mainnet launcher starts then (closes #916).
+
+### The suite runs the macOS and Linux launchers
+
+It runs them, their menus and their utilities on stand-ins, and the kcov
+floor rises (closes #795, #796, #797 and #798). Its files stop where a
+`mktemp -d` fails (closes #923, #930, #934 and #940).
+
+### A named style for the bash and batch scripts
+
+Lint enforces ShellCheck and shfmt on the bash scripts (closes #781).
+Script security enforces Blinter on the batch files (closes #782), and
+its pin moves (closes #874).
+
+### The bestpractices.dev answers
+
+`.bestpractices.json` takes the v2026.11.13 release and the coverage
+runs (issue #773).
+
+### The shared files
+
+`AGENTS.md`, `CONTRIBUTING.md`, `REVIEWING.md` and `REPOSITORY.md` take
+shared changes (issues btclib-org/.github#2009, btclib-org/.github#2263
+and btclib-org/.github#2212).
+
+### The hooks and pins
+
+prettier leaves `.pre-commit-config.yaml` to pre-commit.ci (issue
+btclib-org/.github#2038), and Dependabot moves the action pins.
+
 ## v2026.11.13
 
 PortaNode supports Bitcoin Core 31 and 32, and the Alice `-clean`
