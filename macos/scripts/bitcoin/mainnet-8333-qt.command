@@ -65,6 +65,8 @@ if [ ! -x "$BTC_QT" ]; then
     exit 1
 fi
 
+# mainnet_node_running's status 2, a check that cannot run, reads as no node
+# here: its header in shared/lib.sh says why.
 if mainnet_node_running; then
     echo "Error: A Bitcoin Core mainnet process appears to be running."
     echo "Stop it before starting another mainnet instance (or use a different"

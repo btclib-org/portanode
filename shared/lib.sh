@@ -977,6 +977,12 @@ _off_mainnet_read() {
 # The network flags are read as whole arguments, so a node whose path holds
 # "-testnet" is still a mainnet node.
 #
+# The mainnet launchers read 2, a check that cannot run, as no node and start
+# Bitcoin Core, as win/scripts/bitcoin/lib.bat's :require_no_mainnet_node
+# does on Windows: the launcher deletes nothing before it starts Core, unlike
+# the -clean launchers, and Core's own data directory lock still applies, as
+# ASSURANCE_CASE.md says of the mainnet launcher.
+#
 # A network flag read as true before a lone "-" selects that network, though
 # Core reads only the last one, so a repeated flag can hide a mainnet node.
 #
