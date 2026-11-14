@@ -17,6 +17,21 @@ discovered on the next double-click.
 Whether a release carries a version named here is not this file's to
 say: the check at the top of `RELEASING.md` reads that off the forge.
 
+## v2026.11.14
+
+**The updaters trust only the keys `keys/` ships.** They no longer read
+your own keyring or `keys/*.fingerprints`, which are gone, so a key you
+imported or pinned there no longer counts, and a Bitcoin Core update no
+longer waits for you to pin builders' keys. A key the folder does not
+ship is added by a pull request, as `README.md`'s *Updating Binaries*
+says. A shipped key that expires stops counting: update the folder to a
+release that renews it.
+
+**A `-clean` launcher deletes nothing unless a line of input comes.** At
+end of input, as with Ctrl+D on macOS and Linux or input from
+`/dev/null` or `nul`, it exits 1. On Windows any key no longer goes on:
+press Enter. A script that runs one has to send it a line.
+
 ## v2026.11.13
 
 **On Windows, a Bitcoin Core 30.2 install no longer verifies.** The
