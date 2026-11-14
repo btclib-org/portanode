@@ -243,24 +243,15 @@ gh api repos/btclib-org/portanode --jq '{allow_squash_merge,
   allow_merge_commit, allow_rebase_merge, allow_auto_merge}'
 ```
 
-answers `true` for the squash and for auto-merge, and `false` for the
-merge commit and the rebase merge. The merge commit was refused by the
+answers `true` for the squash, and `false` for auto-merge, the merge
+commit and the rebase merge. The merge commit was refused by the
 linear-history rule already, so turning it off takes away a button that
 could not have worked. The rebase merge could have, and that is the one
 this removes: it replays a branch's commits onto `main`, where the rule
 is one commit per landed change.
 
-What a single method buys is not the button on a pull request somebody is
-looking at. GitHub preselects whichever method was used last, and the
-dialog that switches auto-merge on carries the same dropdown — so the
-answer can be given hours before anything merges, by whoever switched it
-on, with nothing asking again. One method is one entry: there is no wrong
-one to preselect, and nothing to read before pressing.
-
-**`allow_auto_merge` is on**, and the paragraph above rests on it rather
-than describing it. Off, auto-merge is not offered, there is no dialog to
-preselect a method in, and every landing waits on somebody pressing
-*Squash and merge* at the moment the last check goes green.
+**`allow_auto_merge` is off**, so no pull request can be armed: the merge
+is explicit.
 
 Two fields shape the commit it writes:
 
