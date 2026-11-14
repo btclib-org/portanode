@@ -11,7 +11,7 @@ the two files to each other.
 A finding that is Blinter's defect rather than the script's is accepted
 in the baseline and reported upstream. It is first filed in this
 repository as an `upstream-report` issue, as `btclib-common.md`'s
-[*Collateral*](https://github.com/btclib-org/claude-process/blob/main/process/btclib-common.md#collateral)
+[*Collateral*](https://github.com/btclib-org/ai-agents-process/blob/main/process/btclib-common.md#collateral)
 says.
 
 ## E006 Potentially undefined variable reference
