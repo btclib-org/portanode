@@ -54,10 +54,13 @@ concurrency:
   # each other. This repository is public, so a fork's pull request is a
   # thing that can arrive.
   #
-  # A run with no pull request -- a push to main, a dispatch -- has no
-  # number and falls back to github.ref, which is what gives it a group
-  # of its own
-  group: lint-${{ github.event.pull_request.number || github.ref }}
+  # A push run is keyed on its commit and its ref instead, as section 10
+  # of the organization's standard says, so a later push to main does
+  # not cancel it; a dispatch has no number and falls back to github.ref
+  group: >-
+    lint-${{ github.event_name == 'push'
+    && format('{0}-{1}', github.sha, github.ref)
+    || github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

@@ -463,10 +463,11 @@ message naming it:
 
 ## Contributing
 
-Development is LLM-based: humans are welcome, as long as they are
-comfortable with agentic development ;-). A contribution must have been
-read and understood by the person who submits it.
-[`CONTRIBUTING.md`](./CONTRIBUTING.md#working-with-an-llm) has the rules.
+Software development in btclib-org is mainly LLM-driven, but human
+beings are welcome too. A contribution must have been read and
+understood by the person who submits it.
+[`CONTRIBUTING.md`](https://github.com/btclib-org/portanode/blob/main/CONTRIBUTING.md#working-with-an-llm)
+has the rules.
 
 [`CONTRIBUTING.md`](./CONTRIBUTING.md) describes how a change gets in and
 what `main` requires of it; [`REVIEWING.md`](./REVIEWING.md) is the

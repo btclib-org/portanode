@@ -67,7 +67,10 @@ permissions:
 concurrency:
   # named literally and keyed as lint.yml's group is, for the reasons its
   # comment gives
-  group: script-security-${{ github.event.pull_request.number || github.ref }}
+  group: >-
+    script-security-${{ github.event_name == 'push'
+    && format('{0}-{1}', github.sha, github.ref)
+    || github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
