@@ -263,7 +263,7 @@
   "osps_sa_03_01_status": "Met",
   "osps_sa_03_02_justification": "ASSURANCE_CASE.md's Threat model names what is defended, the adversaries and what is not defended; its Entry points and Trust boundaries map where untrusted input enters. https://github.com/btclib-org/portanode/blob/main/ASSURANCE_CASE.md",
   "osps_sa_03_02_status": "Met",
-  "osps_vm_01_01_justification": "The security policy's Reporting a vulnerability gives the private channels and the timeframes: an acknowledgement within 7 days, and a fix or a published advisory within 90. https://github.com/btclib-org/portanode/security/policy",
+  "osps_vm_01_01_justification": "The security policy's Reporting a vulnerability gives the private channels and the timeframes: an acknowledgement within 7 days, and a fix or a published advisory within 90 days. https://github.com/btclib-org/portanode/security/policy",
   "osps_vm_01_01_status": "Met",
   "osps_vm_02_01_justification": "The security policy on the Security tab, the organization's SECURITY.md, names the contacts: a private GitHub security advisory, or email to security at btclib dot org. btclib-org/.github's GOVERNANCE.md, *Roles*, says that address reaches every owner. https://github.com/btclib-org/portanode/security/policy https://github.com/btclib-org/.github/blob/main/GOVERNANCE.md#roles",
   "osps_vm_02_01_status": "Met",
