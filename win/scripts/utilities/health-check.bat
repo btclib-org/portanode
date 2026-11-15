@@ -194,7 +194,11 @@ if "%BTC_RUNNING%"=="1" (
         REM -NoProfile and $env: for the reasons at the first capture above.
         REM The fraction is cut to the percentage's two decimals, not
         REM rounded, for the reason sync_percent in shared/lib.sh gives.
-        for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { $info = & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\bitcoin-datadir') getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { ([math]::Floor([decimal]$info.verificationprogress * 10000) / 100).ToString('F2', [cultureinfo]::InvariantCulture) } } catch { '' } }"`) do set SYNC=%%J
+        REM ConvertFrom-Json gives the fraction as a double, and .NET 11
+        REM converts a double to decimal exactly, so 0.29 would cut to
+        REM 28.99; the fraction goes through its 15 significant digits
+        REM first. Float, not the default Number, reads 1.2E-05.
+        for /f "usebackq delims=" %%J in (`powershell -NoProfile -Command "& { try { $info = & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\bitcoin-datadir') getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { $p = [decimal]::Parse(([double]$info.verificationprogress).ToString('G15', [cultureinfo]::InvariantCulture), [Globalization.NumberStyles]::Float, [cultureinfo]::InvariantCulture); ([math]::Floor($p * 10000) / 100).ToString('F2', [cultureinfo]::InvariantCulture) } } catch { '' } }"`) do set SYNC=%%J
         if defined SYNC (
             echo Bitcoin sync: !SYNC!%%
         ) else (
