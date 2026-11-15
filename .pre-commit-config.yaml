@@ -56,8 +56,8 @@
 # line, so a line inserted between the two restores the finding with
 # nothing marking the directive stale. It is also AGPL-3.0-or-later,
 # young, and written by one author, which a required gate would inherit.
-# Run it by hand, as above; reconsider it when it reads a `^`
-# continuation.
+# It is not a hook, so that its pin, hashed in the `Script security` job,
+# is kept in one place.
 #
 # PSScriptAnalyzer's default rules and the Blinter rules the batch style
 # keeps run in CI all the same, in
