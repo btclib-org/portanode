@@ -9,8 +9,9 @@
 # directory. It refuses as well where the node reaches bitcoin-datadir
 # through a junction, and says it cannot tell where the node's data
 # directory is relative or does not exist (ISS 888). Every clean launcher,
-# Bob's and Carol's as well, refuses with stdin at end of input rather than
-# take it for the Enter its prompt asks for (ISS 932).
+# Bob's and Carol's as well, refuses where stdin ends before a line ending,
+# empty (ISS 932) or holding a partial line (ISS 942), rather than take it
+# for the Enter its prompt asks for.
 #
 # The stand-in is a program that sleeps, under the name of a node binary,
 # started with the arguments of the case. The binaries under win\bin are
@@ -113,9 +114,15 @@ function Invoke-Launcher {
 
 $held = $null
 try {
-  # ISS 932: every clean launcher, with stdin at end of input and no node
-  # running, refuses at its prompt and deletes nothing. Run before the file is
-  # held, so that a launcher going on past the prompt deletes the wallet.
+  # ISS 932, ISS 942: every clean launcher, with no node running, refuses at
+  # its prompt and deletes nothing where stdin is nul or a file holding "y"
+  # with no line ending. Run before the file is held, so that a launcher going
+  # on past the prompt deletes the wallet.
+  $partial = Join-Path $tmp 'partial.txt'
+  [IO.File]::WriteAllText($partial, 'y')
+  $stdins = @(
+    @('at end of input', 'nul'),
+    @('on a partial line', "`"$partial`""))
   $kept = @{
     'regtest-18444-Alice-qt-clean.bat' = $wallet
     'regtest-18444-Alice-cli-clean.bat' = $wallet
@@ -126,19 +133,22 @@ try {
   }
   foreach ($bat in ($kept.Keys | Sort-Object)) {
     $file = $kept[$bat]
-    if (-not (Test-Path -LiteralPath $file)) {
-      New-Item -ItemType File -Path $file -Force | Out-Null
+    foreach ($stdin in $stdins) {
+      if (-not (Test-Path -LiteralPath $file)) {
+        New-Item -ItemType File -Path $file -Force | Out-Null
+      }
+      $name = "$bat $($stdin[0])"
+      Push-Location -LiteralPath $repo
+      try {
+        $out = & cmd.exe /d /c ('.\win\scripts\bitcoin\' + $bat + ' < ' + $stdin[1]) 2>&1
+        $text = ($out | Out-String) + "status=$LASTEXITCODE"
+      } finally {
+        Pop-Location
+      }
+      Test-Contain "$name refuses" $text 'Error: no answer was read.'
+      Test-Contain "$name exits 1" $text 'status=1'
+      Test-Same "$name deletes nothing" 'True' "$(Test-Path -LiteralPath $file)"
     }
-    Push-Location -LiteralPath $repo
-    try {
-      $out = & cmd.exe /d /c ('.\win\scripts\bitcoin\' + $bat + ' < nul') 2>&1
-      $text = ($out | Out-String) + "status=$LASTEXITCODE"
-    } finally {
-      Pop-Location
-    }
-    Test-Contain "$bat at end of input refuses" $text 'Error: no answer was read.'
-    Test-Contain "$bat at end of input exits 1" $text 'status=1'
-    Test-Same "$bat at end of input deletes nothing" 'True' "$(Test-Path -LiteralPath $file)"
   }
 
   $held = [IO.File]::Open((Join-Path $netdir 'held'), 'OpenOrCreate', 'ReadWrite', 'None')
