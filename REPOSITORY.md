@@ -25,7 +25,10 @@ it too, Actions being unmetered only here.
 ```shell
 gh api repos/btclib-org/portanode \
   --jq '{visibility, has_issues, wiki: .has_wiki, projects: .has_projects}'
-# {"has_issues":true,"projects":false,"visibility":"public","wiki":false}
+```
+
+```json
+{"has_issues":true,"projects":false,"visibility":"public","wiki":false}
 ```
 
 Section 11 of the organization's standard turns the wiki and the
@@ -39,7 +42,10 @@ projects board a per-user view of the same issues the tracker holds.
 
 ```shell
 gh api repos/btclib-org/portanode --jq '.default_branch'
-# main
+```
+
+```text
+main
 ```
 
 **`lint.yml`, `script-security.yml`, `test.yml` and `codeql.yml` run on
@@ -99,7 +105,10 @@ sets this value in every tree][s11-branch].
 ```shell
 gh api repos/btclib-org/portanode/branches/main/protection \
   --jq .enforce_admins.enabled
-# false
+```
+
+```text
+false
 ```
 
 `links.yml` and `claude-review.yml` are not part of the required checks: the
@@ -148,7 +157,10 @@ for a particular signer][s11-sigs].
 ```shell
 gh api repos/btclib-org/portanode/branches/main/protection \
   --jq '.required_signatures.enabled'
-# false
+```
+
+```text
+false
 ```
 
 Classic protection's own copy of the rule is off, as it is in every
@@ -168,7 +180,10 @@ done in an emergency then. This reads the bypass actors back:
 
 ```shell
 gh api repos/btclib-org/portanode/rulesets/20736361 --jq '.bypass_actors'
-# [{"actor_id":3296421,"actor_type":"User","bypass_mode":"pull_request"}]
+```
+
+```json
+[{"actor_id":3296421,"actor_type":"User","bypass_mode":"pull_request"}]
 ```
 
 The rule's own parameters carry more than the approval count, and each is
@@ -201,7 +216,10 @@ it back:
 gh api repos/btclib-org/portanode/rulesets/20736361 \
   --jq '.rules[] | select(.type=="pull_request")
     | .parameters.require_last_push_approval'
-# false
+```
+
+```text
+false
 ```
 
 **`tag-integrity` carries no `deletion` or `non_fast_forward` rule**, and
@@ -250,8 +268,8 @@ could not have worked. The rebase merge could have, and that is the one
 this removes: it replays a branch's commits onto `main`, where the rule
 is one commit per landed change.
 
-**`allow_auto_merge` is off**, so no pull request can be armed: the merge
-is explicit.
+**`allow_auto_merge` is off**, [for the reason section 11
+gives][s11-merge].
 
 Two fields shape the commit it writes:
 
@@ -322,7 +340,10 @@ the organization, so the repository's own store is read too:
 
 ```shell
 gh api repos/btclib-org/portanode/actions/variables --jq .total_count
-# 0
+```
+
+```text
+0
 ```
 
 The agent runs only while the organization's `CLAUDE_IMPLEMENT_ENABLED`,
@@ -382,9 +403,18 @@ fields][s11-tokens].
 
 ```shell
 gh api repos/btclib-org/portanode --jq .web_commit_signoff_required
-# true
+```
+
+```text
+true
+```
+
+```shell
 gh api orgs/btclib-org --jq .web_commit_signoff_required
-# true
+```
+
+```text
+true
 ```
 
 Set at the organization level, [for the reason section 11
@@ -470,7 +500,10 @@ that re-derives it:
 
 ```shell
 gh api orgs/btclib-org --jq .plan.name
-# free
+```
+
+```text
+free
 ```
 
 The plan is a fact about a changing world rather than a setting this
@@ -491,7 +524,10 @@ answers with its absence**, so what is read is the status line alone:
 
 ```shell
 gh api -i repos/btclib-org/portanode/pages 2>/dev/null | head -1
-# HTTP/2.0 404 Not Found
+```
+
+```text
+HTTP/2.0 404 Not Found
 ```
 
 The same call against `btclib-org/btclib-org.github.io`, the tree that
@@ -520,7 +556,10 @@ an alignment one, and the six above are what answer it.
 
 ```shell
 gh api repos/btclib-org/portanode --jq .homepage
-# https://btclib.org/portanode/
+```
+
+```text
+https://btclib.org/portanode/
 ```
 
 It is the *About* link on the repository page, and it points at this
@@ -572,5 +611,6 @@ GitHub release cut by hand with nothing to publish to an index.
 [admins]: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#do-not-allow-bypassing-the-above-settings
 [governance]: https://github.com/btclib-org/.github/blob/main/GOVERNANCE.md#how-a-decision-is-made
 [s11-branch]: https://github.com/btclib-org/.github/blob/main/README.md#branch-protection-and-rulesets
+[s11-merge]: https://github.com/btclib-org/.github/blob/main/README.md#merge-method
 [s11-sigs]: https://github.com/btclib-org/.github/blob/main/README.md#signatures
 [s11-tokens]: https://github.com/btclib-org/.github/blob/main/README.md#tokens-publishing-scanning

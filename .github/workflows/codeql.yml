@@ -46,10 +46,14 @@ permissions:
 concurrency:
   # named literally and keyed on the pull request's number where there is
   # one, as lint.yml's group is: for a closed, merged pull request
-  # github.ref is the base branch's ref, which is the push trigger's own
-  # group, so a group built from it would let the closed run cancel the
-  # analysis of the merge commit
-  group: codeql-${{ github.event.pull_request.number || github.ref }}
+  # github.ref is the base branch's ref, the group a scheduled or
+  # dispatched run on main falls back to, so a group built from it would
+  # let the closed run cancel that run. A push run is keyed on its commit
+  # and its ref, as lint.yml's is
+  group: >-
+    codeql-${{ github.event_name == 'push'
+    && format('{0}-{1}', github.sha, github.ref)
+    || github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
