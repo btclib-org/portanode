@@ -175,11 +175,6 @@
     "text": "title %~1"
   },
   {
-    "code": "W014",
-    "file": "../win/scripts/bitcoin/lib.bat",
-    "text": "exit /b 0"
-  },
-  {
     "code": "W028",
     "file": "../win/scripts/bitcoin/lib.bat",
     "text": "set \"ACTION=%~1\""
@@ -1160,11 +1155,6 @@
     "text": "popd >nul 2>&1"
   },
   {
-    "code": "E001",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if defined ELECTRUM_METHOD ("
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/utilities/health-check.bat",
     "text": "for /f \"usebackq delims=\" %%P in (\"!ROOTDIR!\\bitcoin-datadir\\bitcoind.pid\") do set PID=%%P"
@@ -1188,11 +1178,6 @@
     "code": "E006",
     "file": "../win/scripts/utilities/health-check.bat",
     "text": "set \"MOUNT_PATH=%ROOTDIR%\""
-  },
-  {
-    "code": "E010",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
     "code": "E047",
@@ -1225,11 +1210,6 @@
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
-    "code": "W001",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "exit /b 0"
-  },
-  {
     "code": "W028",
     "file": "../win/scripts/utilities/health-check.bat",
     "text": "set \"SCRIPT_DIR=%~dp0\""
@@ -1238,71 +1218,6 @@
     "code": "W061",
     "file": "../win/scripts/utilities/health-check.bat",
     "text": "popd >nul 2>&1"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "echo Bitcoin running: maybe ^(%BTC_METHOD%^)"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "echo Bitcoin running: yes ^(%BTC_METHOD%: !BTC_CLI_SHOWN!^)"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "echo Bitcoin running: yes ^(%BTC_METHOD%^)"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "echo Electrum running: yes ^(%ELECTRUM_METHOD%^)"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if \"%BTC_RUNNING%\"==\"0\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if \"%BTC_RUNNING%\"==\"0\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if \"%BTC_RUNNING%\"==\"1\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if \"%BTC_RUNNING%\"==\"2\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if \"%ELECTRUM_RUNNING%\"==\"0\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if \"%ELECTRUM_RUNNING%\"==\"1\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if /i \"%BTC_METHOD%\"==\"bitcoin-cli\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if defined BTC_CLI call \"%%SCRIPT_DIR%%lib.bat\" :rootdir_relative \"%%BTC_BIN%%\" BTC_CLI_SHOWN"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/health-check.bat",
-    "text": "if exist \"%BTC_BIN%\" set \"BTC_CLI=%BTC_BIN%\""
   },
   {
     "code": "E006",
@@ -1760,11 +1675,6 @@
     "text": "popd >nul 2>&1"
   },
   {
-    "code": "E001",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "if \"!ACL_RC!\"==\"3\" ("
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/utilities/set-permissions.bat",
     "text": "REM each caller holds it as a literal; cutting %ROOTDIR% off %TARGET%"
@@ -1778,11 +1688,6 @@
     "code": "E006",
     "file": "../win/scripts/utilities/set-permissions.bat",
     "text": "set \"EDD=%ROOTDIR%\\electrum-datadir\""
-  },
-  {
-    "code": "E010",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
     "code": "S020",
@@ -1825,61 +1730,6 @@
     "text": "popd >nul 2>&1"
   },
   {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "echo %REL% is on %FS_NAME%: permissions restricted to"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "echo Warning: %REL% is on %FS_NAME% and !TARGET! itself now"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "echo Warning: %REL% is on %FS_NAME% and grants"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "echo Warning: %REL% is on %FS_NAME%, but !TARGET! does not"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "echo Warning: %REL% is on %FS_NAME%, but its ACL could not be read"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "echo Warning: %REL% is on %FS_NAME%, which does not store ACLs. The"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "if /i \"%FS_NAME%\"==\"FAT\" set \"NO_ACL=1\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "if /i \"%FS_NAME%\"==\"FAT32\" set \"NO_ACL=1\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "if /i \"%FS_NAME%\"==\"exFAT\" set \"NO_ACL=1\""
-  },
-  {
-    "code": "W071",
-    "file": "../win/scripts/utilities/set-permissions.bat",
-    "text": "set \"ACL_RC=%ERRORLEVEL%\""
-  },
-  {
-    "code": "E001",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if \"%VERR%\"==\"1\" ("
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "REM quotes %ROOTDIR%, and every echo of it or of a URL built on it"
@@ -1918,21 +1768,6 @@
     "code": "E006",
     "file": "../win/scripts/utilities/update-bitcoin.bat",
     "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
-  },
-  {
-    "code": "E010",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
-  },
-  {
-    "code": "E010",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for /f \"usebackq delims=\" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
-  },
-  {
-    "code": "E010",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
     "code": "S020",
@@ -2160,151 +1995,6 @@
     "text": "popd >nul 2>&1"
   },
   {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "\"%%TMPDIR%%\\SHA256SUMS\" \"SHA256SUMS\" \"%%ROOTDIR%%\\keys\\bitcoin-core.gpg\" %%MIN_SIGNATURES%%"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :installed_version \"%%BIN_DIR%%\\bitcoin-qt.exe\" \"win/bin/bitcoin-qt.exe\" \"%%CHECKSUM_FILE%%\" CURRENT"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\SHA256SUMS.asc\" ^"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "echo Archive size: %ARCHIVE_MB% MB ^(downloaded to local temp"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "endlocal & exit /b %STATUS%"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "endlocal & exit /b %STATUS%"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\bitcoin-%%VERSION%%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%%VERSION%%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for %%E in (bitcoin-qt bitcoind bitcoin-cli bitcoin-wallet bitcoin-tx bitcoin-util bitcoin) do call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\bitcoin-%%VERSION%%\\bin\\%%E.exe\" \"win/bin/%%E.exe\" \"%%VERSION%%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for %%F in (\"%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe\") do ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "for %%F in (\"%TMPDIR%\\bitcoin-%VERSION%\\bin\\*.exe\") do ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if \"%VERDICT%\"==\"OK\" goto :downgrade_checked"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if \"%VERDICT%\"==\"OK\" goto :downgrade_checked"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if \"%VERR%\"==\"1\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if \"%VERSION%\"==\"INDEX_UNREACHABLE\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if \"%VERSION%\"==\"PROBE_TIMEOUT\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if defined TMPDIR if exist \"%TMPDIR%\" rmdir /s /q \"%TMPDIR%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if not exist \"%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if not exist \"%TMPDIR%\\bitcoin-%VERSION%\\bin\\bitcoin-qt.exe\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "mkdir \"%TEMP%\\portanode-bitcoin.%TMP_ID%\" || goto :tmpdir_failed"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "set \"BASE_URL=https://bitcoincore.org/bin/bitcoin-core-%VERSION%/\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "set \"CHECKSUM_SIG_URL=%BASE_URL%SHA256SUMS.asc\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "set \"CHECKSUM_URL=%BASE_URL%SHA256SUMS\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "set \"FILE=bitcoin-%VERSION%-win64.zip\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "set \"TMPDIR=%TEMP%\\portanode-bitcoin.%TMP_ID%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "set \"URL=%BASE_URL%%FILE%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "set \"URL=%BASE_URL%%FILE%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "set /a \"ARCHIVE_MB=%ARCHIVE_LEN%/1024/1024\""
-  },
-  {
-    "code": "W071",
-    "file": "../win/scripts/utilities/update-bitcoin.bat",
-    "text": "if %errorlevel%==0 ("
-  },
-  {
-    "code": "E001",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "if errorlevel 1 ("
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "REM quotes %ROOTDIR%, and every echo of it or of a URL built on it"
@@ -2338,21 +2028,6 @@
     "code": "E006",
     "file": "../win/scripts/utilities/update-electrum.bat",
     "text": "set \"CHECKSUM_FILE=%ROOTDIR%\\win\\checksums.sha256\""
-  },
-  {
-    "code": "E010",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
-  },
-  {
-    "code": "E010",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "for /f \"usebackq delims=\" %%R in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
-  },
-  {
-    "code": "E010",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "for /f \"usebackq delims=\" %%V in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
   },
   {
     "code": "S020",
@@ -2495,141 +2170,6 @@
     "text": "popd >nul 2>&1"
   },
   {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "\"%%TMPDIR%%\\%%FILE%%\" \"Electrum\" \"%%ROOTDIR%%\\keys\\electrum.gpg\" %%MIN_SIGNATURES%%"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "\"%%TMPDIR%%\\%%FILE%%\" \"Electrum\" \"%%ROOTDIR%%\\keys\\electrum.gpg\" %%MIN_SIGNATURES%%"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :install_verified \"%%TMPDIR%%\\%%FILE%%\" \"%%BIN_DIR%%\\electrum.exe\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :install_verified \"%%TMPDIR%%\\%%FILE%%\" \"%%BIN_DIR%%\\electrum.exe\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\%%FILE%%\" \"win/bin/electrum.exe\" \"%%VERSION%%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\%%FILE%%\" \"win/bin/electrum.exe\" \"%%VERSION%%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :update_checksum \"%%TMPDIR%%\\%%FILE%%\" \"win/bin/electrum.exe\" \"%%VERSION%%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\%%SIG_FILE%%\" ^"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "call \"%%SCRIPT_DIR%%lib.bat\" :verify_pgp_signature \"%%TMPDIR%%\\%%SIG_FILE%%\" ^"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "echo Archive size: %ARCHIVE_MB% MB ^(downloaded to local temp"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "endlocal & exit /b %STATUS%"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "if \"%VERDICT%\"==\"OK\" goto :downgrade_checked"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "if \"%VERDICT%\"==\"OK\" goto :downgrade_checked"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "if \"%VERSION%\"==\"INDEX_UNREACHABLE\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "if defined TMPDIR if exist \"%TMPDIR%\" rmdir /s /q \"%TMPDIR%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "if not exist \"%TMPDIR%\\%FILE%\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "if not exist \"%TMPDIR%\\%FILE%\" ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "mkdir \"%TEMP%\\portanode-electrum.%TMP_ID%\" || goto :tmpdir_failed"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "set \"BASE_URL=https://download.electrum.org/%VERSION%/\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "set \"FILE=electrum-%VERSION%.exe\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "set \"SIG_FILE=%FILE%.asc\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "set \"TMPDIR=%TEMP%\\portanode-electrum.%TMP_ID%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "set \"URL=%BASE_URL%%FILE%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "set \"URL=%BASE_URL%%FILE%\""
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "set /a \"ARCHIVE_MB=%ARCHIVE_LEN%/1024/1024\""
-  },
-  {
-    "code": "W071",
-    "file": "../win/scripts/utilities/update-electrum.bat",
-    "text": "if %errorlevel%==0 ("
-  },
-  {
-    "code": "E001",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "if \"%PRUNED%\"==\"0\" if %FREE_GB% lss 700 ("
-  },
-  {
     "code": "E006",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "< \"%ROOTDIR%\\bitcoin-datadir\\bitcoin.conf\" >nul 2>&1"
@@ -2655,11 +2195,6 @@
     "text": "if exist \"%ROOTDIR%\\bitcoin-datadir\\bitcoin.conf\" ("
   },
   {
-    "code": "E010",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
-  },
-  {
     "code": "S020",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "-Command \"Set-Location -LiteralPath $env:SCRIPT_DIR -ErrorAction Stop; & .\\free-space-gb.ps1 -Path $env:ROOTDIR; exit $LASTEXITCODE\"`) do set FREE_GB=%%F"
@@ -2668,11 +2203,6 @@
     "code": "SEC009",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "for /f \"usebackq delims=\" %%F in (`powershell -NoProfile -ExecutionPolicy Bypass ^"
-  },
-  {
-    "code": "W001",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "exit /b 0"
   },
   {
     "code": "W028",
@@ -2693,21 +2223,6 @@
     "code": "W061",
     "file": "../win/scripts/utilities/validate-setup.bat",
     "text": "popd >nul 2>&1"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "echo Disk free space: %FREE_GB% GB"
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "if \"%PRUNED%\"==\"0\" if %FREE_GB% lss 700 ("
-  },
-  {
-    "code": "W068",
-    "file": "../win/scripts/utilities/validate-setup.bat",
-    "text": "if %FREE_GB% lss 100 ("
   },
   {
     "code": "E006",

@@ -36,9 +36,7 @@
 # Security ones, not one of the findings they produce here is a defect,
 # and disabling exactly those rules makes it exit 0. Examples rather
 # than the whole of it -- a `%VAR%` next to a redirection, a pipe or an
-# `&` reads as command injection; the `^` continuation these scripts
-# wrap with leaves `for /f` looking like it lost its `do` and a quoted
-# string looking unterminated; `-ExecutionPolicy Bypass` is how a
+# `&` reads as command injection; `-ExecutionPolicy Bypass` is how a
 # launcher runs the PowerShell beside it; a `set` whose value holds
 # quotes of its own reads as unquoted (SEC002), and the
 # `set "NAME=value"` form Blinter asks for closes its outer pair at the

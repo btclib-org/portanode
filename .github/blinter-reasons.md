@@ -39,16 +39,10 @@ Each accepted `E006` has one of these shapes:
 
 ## W001 Missing exit code
 
-Each accepted `W001` has one of these shapes:
-
-- **A launch script runs to its end.** The launch scripts under
-  `win\scripts\bitcoin` and `win\scripts\electrum` hold no label and no
-  `goto`, and their last command is `start`. They return `start`'s
-  status, which the root launcher's `if errorlevel 1` reads.
-- **The script ends on `exit /b 0`.** In `health-check.bat` and
-  `validate-setup.bat`, Blinter reads that `exit` as inside a block, for
-  the reason `W068` gives. With those `for /f` lines joined, Blinter
-  reports no `W001` on either.
+Each accepted `W001` is a launch script that runs to its end. The launch
+scripts under `win\scripts\bitcoin` and `win\scripts\electrum` hold no
+label and no `goto`, and their last command is `start`. They return
+`start`'s status, which the root launcher's `if errorlevel 1` reads.
 
 ## W002 Missing ERRORLEVEL check
 
@@ -104,18 +98,13 @@ the comment in `win\scripts\electrum\lib.bat` gives.
 
 ## W014 Missing PAUSE for user interaction
 
-Blinter asks for a `pause` in a script where a line holds `set /p` and
-none holds `pause`, comment lines included, and reports its last line.
-Each accepted `W014` is the last line of one of these files:
-
-- A root `.bat` launcher, the `exit /b 0` of `:end`. The menu goes there
-  only where the choice is `0`, which asks to close. The launcher's one
-  other exit, where `PORTANODE_ROOT` names no PortaNode folder, waits
-  first with `:pause_if_own_console`.
-- `win\scripts\bitcoin\lib.bat`, which runs no `set /p`. The comment on
-  `:require_confirmed` names it, to say why PowerShell reads the line.
-  Blinter reading a comment as a prompt is its defect
-  ([ISS 939](https://github.com/btclib-org/portanode/issues/939)).
+Blinter asks for a `pause` in a script where a line that is not a
+comment holds `set /p` and none holds `pause`, and reports its last
+line. Each accepted `W014` is the last line of a root `.bat` launcher,
+the `exit /b 0` of `:end`. The menu goes there only where the choice is
+`0`, which asks to close. The launcher's one other exit, where
+`PORTANODE_ROOT` names no PortaNode folder, waits first with
+`:pause_if_own_console`.
 
 ## W023 Inefficient nested FOR loops
 
@@ -190,15 +179,3 @@ file:
 
 Every exit after the change of directory pops first, except the exit
 taken where the change failed.
-
-## W068 Percent expansion of a variable set in the same parenthesized block
-
-Blinter's count of open parentheses stays raised after a `for /f` whose
-`^` continues it on the next line, the shape `E010` reports. From there
-it reads every later line as inside a block. With those `for /f` lines
-joined, Blinter reports no `W068` here. No accepted `W068` reads, inside
-a block, a variable that block sets.
-
-## W071 Parse-time pseudo-variable inside a parenthesized block
-
-The same miscount as `W068`'s. No accepted `W071` is inside a block.
