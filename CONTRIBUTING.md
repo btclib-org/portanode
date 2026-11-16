@@ -556,9 +556,6 @@ The style declines these rules:
   a message or a PowerShell command, a code page, and the free space
   `validate-setup.bat` asks for. A variable would move each away from
   the line that uses it.
-- `P001` and `P017` report a path tested with `if exist` more than once.
-  Each repeated test here follows a command that removes the path, and
-  tells whether the removal worked.
 - `P012` reports a line with more than one `%name:~...%`. Each such line
   here tests the first or last characters of a path to decide one `set`.
 - `P016`, `P019`, `P022` and `P023` report a variable appended to, a
@@ -566,9 +563,6 @@ The style declines these rules:
   loop. Appending is how a batch file builds a list, delayed expansion
   is how a loop reads a variable it sets, a redirection to `nul` drops
   output nobody reads, and `set /a` is cmd.exe's only arithmetic.
-  Blinter also reads every line after a `for /f` that a `^` continues as
-  inside that loop, for the reason `W068` gives in
-  `.github/blinter-reasons.md`.
 - `P024` reports a file's second `setlocal`. Every `.bat` here but
   `root.bat` and the `lib.bat` files opens with
   `setlocal disabledelayedexpansion`, for the reason the root launchers'
