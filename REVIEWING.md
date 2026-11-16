@@ -704,7 +704,7 @@ question names it.
   stays where it is, `pwd -P` names the directory the test runs from,
   and an EXIT trap running `rm -rf` on the variable deletes that
   directory. The allocation is guarded, as `|| exit 1` does, before any
-  path built from it is used. `tests/sh/regtest-cli-rcfile.sh` line 19
+  path built from it is used. `tests/sh/regtest-cli-rcfile.sh`
   has the form to follow:
 
     ```shell
