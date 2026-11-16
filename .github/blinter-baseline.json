@@ -1192,7 +1192,7 @@
   {
     "code": "S020",
     "file": "../win/scripts/utilities/health-check.bat",
-    "text": "for /f \"usebackq delims=\" %%J in (`powershell -NoProfile -Command \"& { try { $info = & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\\bitcoin-datadir') getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { ([math]::Floor([decimal]$info.verificationprogress * 10000) / 100).ToString('F2', [cultureinfo]::InvariantCulture) } } catch { '' } }\"`) do set SYNC=%%J"
+    "text": "for /f \"usebackq delims=\" %%J in (`powershell -NoProfile -Command \"& { try { $info = & $env:BTC_CLI ('-datadir=' + $env:ROOTDIR + '\\bitcoin-datadir') getblockchaininfo 2>$null | ConvertFrom-Json; if ($info.verificationprogress) { $p = [decimal]::Parse(([double]$info.verificationprogress).ToString('G15', [cultureinfo]::InvariantCulture), [Globalization.NumberStyles]::Float, [cultureinfo]::InvariantCulture); ([math]::Floor($p * 10000) / 100).ToString('F2', [cultureinfo]::InvariantCulture) } } catch { '' } }\"`) do set SYNC=%%J"
   },
   {
     "code": "S020",
