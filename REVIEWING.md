@@ -700,12 +700,13 @@ question names it.
   for that. A review of a launcher change that ran nothing says so, in
   those words, rather than leaving it to be assumed.
 - **Does a new or changed file under `tests/sh/` stop when `mktemp -d`
-  fails?** A failed `mktemp -d` leaves the variable empty; `cd ""` then
-  stays where it is, `pwd -P` names the directory the test runs from,
-  and an EXIT trap running `rm -rf` on the variable deletes that
-  directory. The allocation is guarded, as `|| exit 1` does, before any
-  path built from it is used. `tests/sh/regtest-cli-rcfile.sh`
-  has the form to follow:
+  fails?** A failed `mktemp -d` leaves the variable empty. Where the
+  next line is `TMP="$(cd "$TMP" && pwd -P)"`, bash before 5.3, macOS's
+  3.2 included, reads `cd ""` as staying where it is, so `TMP` names the
+  directory the test runs from, and an EXIT trap running `rm -rf "$TMP"`
+  deletes it. The allocation is guarded, as `|| exit 1` does, before any
+  path built from it is used. `tests/sh/regtest-cli-rcfile.sh` has the
+  form to follow:
 
     ```shell
     TMP="$(mktemp -d)" || exit 1
