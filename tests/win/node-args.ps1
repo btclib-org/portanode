@@ -223,7 +223,10 @@ $datadirs = @(
 foreach ($c in $datadirs) {
   Test-Case -Description "datadir: $($c[0])" -Got "$(Get-NodeDatadir $c[0])" -Want $c[1]
 }
-foreach ($c in "$qt", "$qt -uacomment=-datadir=$dd", "$qt - -datadir=$dd") {
+# Core compares a switch's name byte for byte, so a zero-width space makes
+# an unknown parameter, not -datadir.
+foreach ($c in "$qt", "$qt -uacomment=-datadir=$dd", "$qt - -datadir=$dd",
+  "$qt -data$([char]0x200B)dir=D:\other") {
   Test-Case -Description "datadir, none: $c" -Got ($null -eq (Get-NodeDatadir $c)) -Want $true
 }
 
