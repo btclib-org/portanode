@@ -307,11 +307,11 @@ message naming it:
       ```shell
       h=$(mktemp -d)
       printf '%s\0' <folder>/* | LC_ALL=C sort -z |
-        xargs -0 gpg --homedir "$h" --batch --import
-      gpg --homedir "$h" --export --export-options export-minimal \
+        xargs -0 gpg --homedir "${h:?}" --batch --import
+      gpg --homedir "${h:?}" --export --export-options export-minimal \
         > keys/bitcoin-core.gpg
-      gpgconf --homedir "$h" --kill all
-      rm -rf "$h"
+      gpgconf --homedir "${h:?}" --kill all
+      rm -rf "${h:?}"
       ```
 
       `gpg` writes the keys in the order it imported them, so the files are
@@ -322,10 +322,10 @@ message naming it:
 
       ```shell
       h=$(mktemp -d)
-      gpg --homedir "$h" --no-default-keyring \
+      gpg --homedir "${h:?}" --no-default-keyring \
         --keyring "$PWD/keys/bitcoin-core.gpg" --list-keys
-      gpgconf --homedir "$h" --kill all
-      rm -rf "$h"
+      gpgconf --homedir "${h:?}" --kill all
+      rm -rf "${h:?}"
       ```
 
 - **If an updater cannot run** — no network access to bitcoincore.org or
