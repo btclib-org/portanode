@@ -59,11 +59,12 @@ and Ubuntu it has to run under, not on a single default:
   clears the owner's execute bit or which carries `noexec`:
   *Troubleshooting* below has the remedy for both, and for a folder that
   reached the disk some other way.
-- **Dependencies**: [`dependencies.yaml`](./dependencies.yaml) lists the
-  programs the launchers and utilities start that this folder does not
-  hold, what each is for and which ones are required. Bitcoin Core and
-  Electrum come through the updaters, which need `gpg` (*PGP verification
-  fails closed* below).
+- **Dependencies**:
+  [`dependencies.yaml`](https://github.com/btclib-org/portanode/blob/main/dependencies.yaml)
+  lists the programs the launchers and utilities start that this folder
+  does not hold, what each is for and which ones are required. Bitcoin
+  Core and Electrum come through the updaters, which need `gpg` (*PGP
+  verification fails closed* below).
   `tests/sh/dependencies.sh` fails where this list and that file differ:
     - macOS: Bitcoin Core, Electrum, `bash`, `env`, `gpg`, `curl`, `tar`,
       `unzip`, `hdiutil`, `open`, `diskutil`, `sysctl`, `stat`, `ps`, `pgrep`,
@@ -94,8 +95,9 @@ executable bit the launchers carry in the repository, which is what
 *Prerequisites*' **Permissions** bullet above is about; a folder that
 reached the disk any other way is under *Troubleshooting*.
 
-Each release has a signed tag. [`VERIFYING.md`](./VERIFYING.md) shows
-how to check it in a clone before running anything from it.
+Each release has a signed tag.
+[`VERIFYING.md`](https://github.com/btclib-org/portanode/blob/main/VERIFYING.md)
+shows how to check it in a clone before running anything from it.
 
 Where on the disk it sits is free. A launcher walks up from its own
 location to the directory holding `VERSION` beside `macos/`, `win/` or
@@ -469,9 +471,10 @@ understood by the person who submits it.
 [`CONTRIBUTING.md`](https://github.com/btclib-org/portanode/blob/main/CONTRIBUTING.md#working-with-an-llm)
 has the rules.
 
-[`CONTRIBUTING.md`](./CONTRIBUTING.md) describes how a change gets in and
-what `main` requires of it; [`REVIEWING.md`](./REVIEWING.md) is the
-standard a review is written against.
+[`CONTRIBUTING.md`](https://github.com/btclib-org/portanode/blob/main/CONTRIBUTING.md)
+describes how a change gets in and what `main` requires of it;
+[`REVIEWING.md`](https://github.com/btclib-org/portanode/blob/main/REVIEWING.md)
+is the standard a review is written against.
 
 How the organization decides, and who holds which role, is its
 [GOVERNANCE.md](https://github.com/btclib-org/.github/blob/main/GOVERNANCE.md);
@@ -484,9 +487,10 @@ list, and it is the only list.
 
 ## Security Notes
 
-- **Threat model**: [`ASSURANCE_CASE.md`](./ASSURANCE_CASE.md) names what
-  is defended and against whom, where input enters, and how each threat
-  is countered or why it is accepted.
+- **Threat model**:
+  [`ASSURANCE_CASE.md`](https://github.com/btclib-org/portanode/blob/main/ASSURANCE_CASE.md)
+  names what is defended and against whom, where input enters, and how
+  each threat is countered or why it is accepted.
 - **Binary Integrity**: Verify binaries with
   `macos/scripts/utilities/verify-binaries.sh` (macOS),
   `win/scripts/utilities/verify-binaries.bat` (Windows), or
