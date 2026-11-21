@@ -117,6 +117,8 @@ thing to hold a merge on. `coverage.yml` is not part of them either: a pull
 request runs it only where it changes that file, `tests/kcov.sh` or
 `tests/statements.ps1`, and a required check that never runs blocks a merge.
 `scorecard.yml` is not a check on a pull request at all.
+`sign-off-comment.yml` runs on a completed run of `lint` and only writes a
+comment: the `Sign-off` job is what gates.
 
 What holds a pull request is `main-self-merge`, which the maintainer's
 bypass excuses whole on the maintainer's merge, and, for anybody but an
@@ -331,10 +333,12 @@ review that silently reviewed nothing.
 ## Variables
 
 **Switches this repository does not set.** A switch is a variable that
-the jobs of a `btclib-org/.github` workflow called here guard on:
-`reusable-claude-review.yml`, which `claude-review.yml` calls, guards
-on `vars.CLAUDE_REVIEW_ENABLED`, and `reusable-claude-implement.yml`,
-which `claude-implement.yml` calls, on `vars.CLAUDE_IMPLEMENT_ENABLED`.
+jobs of a `btclib-org/.github` workflow called here guard on. The review
+and the mention jobs of `reusable-claude-review.yml`, which
+`claude-review.yml` calls, guard on `vars.CLAUDE_REVIEW_ENABLED`; the job
+that clears a new head's reactions runs whatever it says, for the reason
+that workflow's header gives. `reusable-claude-implement.yml`, which
+`claude-implement.yml` calls, guards on `vars.CLAUDE_IMPLEMENT_ENABLED`.
 A variable set here would take precedence over one of the same name on
 the organization, so the repository's own store is read too:
 
@@ -371,9 +375,11 @@ lists each such declaration:
 git grep -n -E '^ +[a-z-]+: write' -- .github/workflows/
 ```
 
-`claude-review.yml` grants `pull-requests: write` to post a comment, and
-`claude-implement.yml` grants `issues: write` to post an assessment and
-apply a label. Both grant `id-token: write` for the OIDC token the
+`claude-review.yml` grants `pull-requests: write` to post the review,
+its reactions and the mention reply, `sign-off-comment.yml` grants it to
+post its one comment, and `claude-implement.yml` grants `issues: write`
+to post an assessment and apply a label. `claude-review.yml` and
+`claude-implement.yml` grant `id-token: write` for the OIDC token the
 action mints at startup, and `claude-implement.yml` also for the token
 its callee's `publish` job trades for the App's token.
 `codeql.yml` grants `security-events: write` to upload the analysis to
@@ -471,15 +477,19 @@ only a preference but the fallback if it does.
 CodeQL's default setup is not configured, because `codeql.yml` is the
 analysis: code scanning as a file, as section 10 of the standard asks of
 the trees its `codeql` entry names, which names this one. It calls the
-organization's `reusable-codeql.yml` over `actions` alone.
-`code-scanning/default-setup` lists `actions` as the only language this
-repository holds, so what CodeQL reads here is its own workflow files,
-not its launcher scripts. What reads the launchers instead is
-`shellcheck`, in `.pre-commit-config.yaml`'s own hooks, and the rules
-`script-security.yml` runs over the `.bat` and `.ps1` ones.
-`code-quality/setup` answers with an empty `languages` list of its own,
-which is the code-quality feature's state and not CodeQL's — the two
-endpoints cover different features and do not corroborate each other.
+organization's `reusable-codeql.yml` over `actions` alone, the one
+language CodeQL reads in this repository's own source, so what CodeQL
+reads here is its own workflow files, not its launcher scripts. What
+reads the launchers instead is `shellcheck`, in
+`.pre-commit-config.yaml`'s own hooks, and the rules
+`script-security.yml` runs over the `.bat` and `.ps1` ones. The tree's
+Python, `.github/scripts/check_link_destinations.py`, is a copy section
+14 of the standard lists, linted and tested in `btclib-org/.github`,
+where its canonical copy is. `code-quality/setup` answers with an empty
+`languages` list, which is the code-quality feature's state, not that
+of CodeQL's default setup, which `code-scanning/default-setup` reads —
+the two endpoints cover different features and do not corroborate each
+other.
 
 `codeql.yml` is why the OpenSSF Scorecard's SAST check can score: that
 check reads a code-scanning check run on the commits of merged pull
@@ -514,8 +524,9 @@ not a drift this file's readback catches. Read at 2026-09-21T22:00:24Z.
 turns that answer into a number, twenty concurrent jobs on the free plan,
 shared across every repository of the organization. `lint.yml`,
 `script-security.yml`, `test.yml`, `codeql.yml` and `claude-review.yml`
-are what a pull request here starts, with `links.yml` and `coverage.yml`
-added where a path their triggers name is touched.
+are what a pull request here starts, `sign-off-comment.yml` once `lint`
+completes, with `links.yml` and `coverage.yml` added where a path their
+triggers name is touched.
 
 ## Pages, which this repository does not use
 

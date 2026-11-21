@@ -2,11 +2,14 @@
 name: codeql
 
 # CodeQL over this repository's own workflow files, `actions` being the
-# one language it holds source for: the launchers are shell, batch and
-# PowerShell, which CodeQL does not read, and script-security.yml and the
-# shellcheck hook are what read them. The analysis is btclib-org/.github's
-# reusable-codeql.yml, called at a tagged commit (section 10 of
-# the organization's standard).
+# one language CodeQL reads in the tree's own source: the launchers are
+# shell, batch and PowerShell, which CodeQL does not read, and
+# script-security.yml and the shellcheck hook are what read them. The
+# tree's Python, .github/scripts/check_link_destinations.py, is a copy
+# section 14 of the organization's standard lists, linted and tested in
+# btclib-org/.github, where its canonical copy is. The analysis is
+# btclib-org/.github's reusable-codeql.yml, called at a tagged commit
+# (section 10 of the organization's standard).
 #
 # The OpenSSF Scorecard's SAST check is the reason this exists: it asks
 # whether a code-scanning analysis ran on the commits of merged pull
@@ -58,10 +61,9 @@ concurrency:
 
 jobs:
   analyze:
-    uses: btclib-org/.github/.github/workflows/reusable-codeql.yml@76965633d09b390a5760b5201e3cf3e82022fe81 # v2026.11.13
+    uses: btclib-org/.github/.github/workflows/reusable-codeql.yml@a96ab77e0b59880c6412f62da26d3f62dfc31e0c # v2026.11.20
     with:
-      # CodeQL fails a language it finds no source for, so the list names
-      # the one this tree holds
+      # `actions` alone, for the reason the header gives
       languages: '["actions"]'
     # a caller's permissions: block bounds the called workflow and refuses
     # rather than trims, so every scope its job declares is named here
