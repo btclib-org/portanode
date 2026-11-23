@@ -307,7 +307,7 @@ repos:
   # the one every repository of the organization carries: prose moves
   # between them, and a paragraph that lints in one has to lint here
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: c01a1853c19b175aee6a09f24e2ad9b748c485ad  # frozen: v0.24.1
+    rev: d4df4cec471ce155946474590d7b95920f623ccb  # frozen: v0.24.2
     hooks:
       - id: markdownlint-cli2
         name: markdownlint-cli2 (in place fixes)
@@ -637,7 +637,7 @@ repos:
   # grant, a reason on the grant's own line, or an inline decline with its
   # reason beside it.
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: 06a39750ec31860bb44f2acf67182c40016cd1e7 # frozen: v1.32.0
+    rev: c7d31dc612dffdd4d3b2f2b88b9660d3ab057ee8  # frozen: v1.33.1
     hooks:
       - id: zizmor
         # offline is what it does by default, said out loud: it warns
